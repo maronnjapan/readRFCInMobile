@@ -1,6 +1,6 @@
 import { parseRfc } from './rfc-parser.js';
 import { renderDocument } from './render.js';
-import { normalizePdfInput, openPdf, createRegionRenderer, completePdfMeta, sha256Hex, pdfStore, fileKey } from './pdf-reader.js';
+import { normalizePdfInput, openPdf, createRegionRenderer, completePdfMeta, sha256Hex, pdfStore, fileKey, findStoredPdf, storedPdfKey, storedPdfPath } from './pdf-reader.js';
 import { parseTranslation, applyTranslation, makeTemplate, stringifyTranslation, rfcTranslationPath, pdfTranslationPath } from './translation.js';
 
 const SETTINGS_KEY = 'rfcreader:settings';
@@ -26,6 +26,22 @@ function saveIssueUrl(n) {
   return issueUrl(
     `save rfc ${n}`,
     `このまま「Submit new issue」を押すと、GitHub Actions が RFC ${n} の本文を rfc-editor.org から取得して \`rfcs/rfc${n}.txt\` に保存し、サイトを再デプロイします。完了するとこの Issue は自動で閉じられます。`,
+  );
+}
+const PDF_PUBLIC_NOTE = '保存した PDF は GitHub のリポジトリとサイトで公開されます。再配布してよい PDF だけを保存してください。';
+function savePdfIssueUrl(url) {
+  const title = `save pdf ${url}`;
+  // Issue のタイトルは 256 文字まで。収まらない URL は本文に書く (タイトルに URL が無ければ本文の URL を取得する)
+  if (title.length <= 250) {
+    return issueUrl(title, `このまま「Submit new issue」を押すと、GitHub Actions がタイトルの URL から PDF を取得して \`pdfs/\` に保存し、サイトを再デプロイします。完了するとこの Issue は自動で閉じられます。\n\n${PDF_PUBLIC_NOTE}`);
+  }
+  return issueUrl('save pdf', `このまま「Submit new issue」を押すと、GitHub Actions が次の URL から PDF を取得して \`pdfs/\` に保存し、サイトを再デプロイします。完了するとこの Issue は自動で閉じられます。\n\n${PDF_PUBLIC_NOTE}\n\n${url}`);
+}
+// 端末のファイルはブラウザから GitHub に送れないので、Issue の本文に添付してもらう
+function savePdfFileIssueUrl(name) {
+  return issueUrl(
+    'save pdf',
+    `この下に PDF ファイル「${name}」を添付してから「Submit new issue」を押してください (入力欄へのドラッグ＆ドロップ、貼り付け、または添付のボタンから選べます)。GitHub Actions が添付した PDF を \`pdfs/\` に保存し、サイトを再デプロイします。完了するとこの Issue は自動で閉じられます。\n\n${PDF_PUBLIC_NOTE}\n\n`,
   );
 }
 function openInNewTab(url) {
@@ -134,9 +150,9 @@ els.sourceInput.addEventListener('change', () => {
   settings.source = els.sourceInput.value.trim();
   saveSettings();
 });
-// 消すのはブラウザ側のキャッシュと履歴だけ。GitHub (rfcs/) に保存した RFC テキストは残し、引き続き表示する
+// 消すのはブラウザ側のキャッシュと履歴だけ。GitHub (rfcs/, pdfs/) に保存した RFC テキストと PDF は残し、引き続き表示する
 $('#clear-cache').addEventListener('click', async () => {
-  if (!window.confirm('ブラウザのキャッシュと最近読んだ履歴 (端末に保存した PDF を含む) を削除します。\nGitHub に保存した RFC テキストは削除されず、引き続き表示されます。よろしいですか？')) return;
+  if (!window.confirm('ブラウザのキャッシュと最近読んだ履歴 (端末に保存した PDF を含む) を削除します。\nGitHub に保存した RFC テキストと PDF は削除されず、引き続き表示されます。よろしいですか？')) return;
   try {
     if ('caches' in window) {
       const keys = await caches.keys();
@@ -148,7 +164,7 @@ $('#clear-cache').addEventListener('click', async () => {
     await pdfStore.clear();
     renderRecent();
     renderStored();
-    showStatus('キャッシュと履歴を削除しました。GitHub に保存した RFC はそのまま表示されます。', { autoHide: true });
+    showStatus('キャッシュと履歴を削除しました。GitHub に保存した RFC と PDF はそのまま表示されます。', { autoHide: true });
   } catch (e) {
     showStatus(`削除に失敗しました: ${e.message}`, { error: true });
   }
@@ -302,25 +318,42 @@ function renderRecent() {
     })
     .join('');
 }
-async function renderStored() {
+// GitHub に保存した RFC・PDF の一覧 (rfcs/index.json, pdfs/index.json)。
+// 保存・削除した直後でも反映されるよう、HTTP キャッシュに頼らずサーバーに確認する
+async function fetchIndex(path) {
   try {
-    // 保存した直後でも一覧に出るよう、HTTP キャッシュに頼らずサーバーに確認する
-    const res = await fetch('rfcs/index.json', { cache: 'no-cache' });
-    if (!res.ok) return;
-    const list = await res.json();
-    els.storedWrap.hidden = !Array.isArray(list) || !list.length;
-    if (els.storedWrap.hidden) return;
-    els.storedList.innerHTML = list
-      .map((r) => {
-        // translations.ja は日本語訳の題名 (題名が未訳なら空文字)
-        const ja = typeof r.translations?.ja === 'string';
-        const title = settings.lang === 'ja' && ja && r.translations.ja ? r.translations.ja : r.title;
-        return `<li><a href="?rfc=${r.number}" data-rfc="${r.number}"><span class="num">RFC ${r.number}</span>${ja ? '<span class="tag">日本語訳</span>' : ''}<span class="ttl">${escapeHtml(title || '')}</span>${r.date ? `<span class="when">${escapeHtml(r.date)}</span>` : ''}</a></li>`;
-      })
-      .join('');
+    const res = await fetch(path, { cache: 'no-cache' });
+    const list = res.ok ? await res.json() : [];
+    return Array.isArray(list) ? list : [];
   } catch {
-    /* ignore */
+    return [];
   }
+}
+const hostOf = (url) => {
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return '';
+  }
+};
+// 一覧の項目に日本語訳があれば印を付け、日本語訳で読む設定なら訳した題名を出す (translations.ja は訳した題名。未訳なら空文字)
+const trTag = (e) => (typeof e.translations?.ja === 'string' ? '<span class="tag">日本語訳</span>' : '');
+const listTitle = (e, title) => (settings.lang === 'ja' && e.translations?.ja ? e.translations.ja : title);
+async function renderStored() {
+  const [rfcs, pdfs] = await Promise.all([fetchIndex('rfcs/index.json'), fetchIndex('pdfs/index.json')]);
+  const items = [
+    ...rfcs.map(
+      (r) =>
+        `<li><a href="?rfc=${r.number}" data-rfc="${r.number}"><span class="num">RFC ${r.number}</span>${trTag(r)}<span class="ttl">${escapeHtml(listTitle(r, r.title || ''))}</span>${r.date ? `<span class="when">${escapeHtml(r.date)}</span>` : ''}</a></li>`,
+    ),
+    ...pdfs.map((p) => {
+      const key = storedPdfKey(p);
+      const sub = [p.url ? hostOf(p.url) : '', p.pages ? `${p.pages} ページ` : ''].filter(Boolean).join(' ・ ');
+      return `<li><a href="?pdf=${encodeURIComponent(key)}" data-pdf="${escapeHtml(key)}"><span class="num">PDF</span>${trTag(p)}<span class="ttl">${escapeHtml(listTitle(p, p.title || p.file))}</span>${sub ? `<span class="when">${escapeHtml(sub)}</span>` : ''}</a></li>`;
+    }),
+  ];
+  els.storedWrap.hidden = !items.length;
+  els.storedList.innerHTML = items.join('');
 }
 
 // ---------- 画面遷移 ----------
@@ -524,6 +557,9 @@ function headActionsHtml(cur) {
   if (cur.kind === 'rfc') {
     if (cur.source.local) html += '<p class="doc-actions"><span class="stored-badge">GitHub に保存済み</span></p>';
     else if (REPO) html += `<p class="doc-actions"><a class="btn small" id="save-github" href="${escapeHtml(saveIssueUrl(cur.n))}" target="_blank" rel="noopener">GitHub に保存</a><span class="hint">Issue の作成画面が開きます。送信すると GitHub Actions が本文を rfcs/ に保存します。</span></p>`;
+  } else {
+    const actions = pdfActions(cur.pdfKey, cur.stored, cur.name);
+    if (actions) html += `<p class="doc-actions">${actions}</p>`;
   }
   if (cur.tr?.ja) {
     const { total, translated } = cur.tr.ja;
@@ -555,9 +591,11 @@ function footerHtml(cur) {
     const n = cur.n;
     html = `取得元: ${escapeHtml(cur.source.name)} ・ <a href="https://www.rfc-editor.org/rfc/rfc${n}.html" target="_blank" rel="noopener">rfc-editor.org の原文</a><a href="https://www.rfc-editor.org/rfc/rfc${n}.txt" target="_blank" rel="noopener">テキスト版</a><a href="https://datatracker.ietf.org/doc/rfc${n}/" target="_blank" rel="noopener">Datatracker</a>`;
   } else {
-    const origin = cur.url
-      ? `取得元: <a href="${escapeHtml(cur.url)}" target="_blank" rel="noopener">${escapeHtml(cur.url)}</a>`
-      : `端末のファイル: ${escapeHtml(cur.name)} ・ <a href="#" id="open-original">元の PDF を開く</a>`;
+    const origin = cur.github
+      ? `取得元: GitHub に保存した PDF (<a href="${escapeHtml(storedPdfPath(cur.github))}" target="_blank" rel="noopener">pdfs/${escapeHtml(cur.github.file)}</a>)${cur.url ? ` ・ <a href="${escapeHtml(cur.url)}" target="_blank" rel="noopener">元の URL</a>` : ''}`
+      : cur.url
+        ? `取得元: <a href="${escapeHtml(cur.url)}" target="_blank" rel="noopener">${escapeHtml(cur.url)}</a>`
+        : `端末のファイル: ${escapeHtml(cur.name)} ・ <a href="#" id="open-original">元の PDF を開く</a>`;
     html = `${origin}<p class="hint">PDF の文字の位置から自動で組み直した表示です。図・表・数式はページから切り出した画像で、タップすると拡大します。崩れている箇所は元の PDF を参照してください。</p>`;
   }
   return html + translationFootHtml(cur);
@@ -722,15 +760,35 @@ function restoreScroll(hash, restore) {
 const memPdfs = new Map(); // IndexedDB を使えないときの保存先
 const isPdfBytes = (buf) => String.fromCharCode(...new Uint8Array(buf.slice(0, 1024))).includes('%PDF-');
 
-async function loadPdfBytes(key) {
+// GitHub (pdfs/) に保存した PDF。保存済みなら元のサイトに取りに行かずにここから読む (ブラウザから取得できないサイトの PDF も読める)
+async function fetchStoredPdf(entry) {
+  const res = await fetch(storedPdfPath(entry), { cache: 'no-cache' });
+  if (!res.ok) throw new Error(`GitHub に保存した PDF を取得できませんでした (HTTP ${res.status})。`);
+  const bytes = await res.arrayBuffer();
+  if (!isPdfBytes(bytes)) throw new Error('GitHub に保存した PDF を取得できませんでした。');
+  return { bytes, name: entry.file, url: entry.url || '', github: entry };
+}
+
+// storedP: このキーに当たる GitHub 保存済みの PDF (pdfs/index.json の項目か null)。端末に無いときだけ待つ
+async function loadPdfBytes(key, storedP) {
   if (key.startsWith('local:')) {
     const rec = memPdfs.get(key) || (await pdfStore.get(key));
-    if (!rec) throw new Error('この端末には保存されていません。もう一度ファイルを選んで開いてください。');
-    return { bytes: rec.bytes, name: rec.name || 'PDF', url: '' };
+    if (rec) return { bytes: rec.bytes, name: rec.name || 'PDF', url: '' };
+    const stored = await storedP;
+    if (stored) return fetchStoredPdf(stored);
+    throw new Error('この端末には保存されていません。もう一度ファイルを選んで開いてください。');
   }
   const url = new URL(key, location.href).href;
   const cached = await pdfStore.get(key);
   if (cached) return { bytes: cached.bytes, name: cached.name, url };
+  const stored = await storedP;
+  if (stored) {
+    try {
+      return await fetchStoredPdf(stored);
+    } catch {
+      /* 元の URL から取得する */
+    }
+  }
   let res;
   try {
     res = await fetch(url);
@@ -739,7 +797,7 @@ async function loadPdfBytes(key) {
     err.cors = true;
     throw err;
   }
-  if (!res.ok) throw new Error(`PDF を取得できませんでした (HTTP ${res.status})。`);
+  if (!res.ok) throw Object.assign(new Error(`PDF を取得できませんでした (HTTP ${res.status})。`), { http: true });
   const bytes = await res.arrayBuffer();
   if (!isPdfBytes(bytes)) throw new Error('PDF ファイルではないようです。');
   const name = decodeURIComponent(new URL(url).pathname.split('/').pop() || 'PDF');
@@ -750,12 +808,14 @@ async function loadPdfBytes(key) {
 async function showPdf(key, { hash = '', restore = true, lang = null } = {}) {
   const token = startLoading('PDF', 'PDF を読み込んでいます…');
   const stale = () => loadToken !== token;
+  const storedP = fetchIndex('pdfs/index.json').then((list) => findStoredPdf(list, key, location.href));
   let src;
   let opened;
   let hex = '';
   let tr = null;
+  let stored = null;
   try {
-    src = await loadPdfBytes(key);
+    src = await loadPdfBytes(key, storedP);
     if (stale()) return;
     // 日本語訳 (pdfs/ja/<SHA-256 の先頭 16 文字>.json) は解析と並行して取りに行く
     hex = await sha256Hex(src.bytes);
@@ -766,14 +826,17 @@ async function showPdf(key, { hash = '', restore = true, lang = null } = {}) {
         if (!stale()) showStatus(`<span class="spinner"></span>PDF を解析しています… <small>(${i} / ${total} ページ)</small>`);
       },
     });
-    tr = await trPromise;
+    [tr, stored] = await Promise.all([trPromise, storedP]);
   } catch (e) {
     if (stale()) return;
     console.error(e);
     const remote = !key.startsWith('local:');
+    // 取得に失敗した URL は、GitHub Actions に取得させて pdfs/ に保存できる
+    const viaGitHub = REPO && (e.cors || e.http) && /^https?:\/\//i.test(key);
+    const help = `${e.cors ? 'このサイトはブラウザからの直接の取得を許可していません。PDF を端末に保存してから「ファイルを選んで開く」で開いてください。' : ''}${viaGitHub ? '「GitHub に保存して読む」は Issue の作成画面を開きます。送信すると GitHub Actions が PDF を取得して保存するので、数分後にこのページを再読み込みしてください。' : ''}`;
     showStatus(`<strong>PDF を表示できませんでした。</strong> ${escapeHtml(e.message)}`, {
       error: true,
-      actions: `${remote ? `<a class="btn secondary" href="${escapeHtml(new URL(key, location.href).href)}" target="_blank" rel="noopener">元の PDF を開く</a>` : ''}<button class="btn secondary" id="pick-again">ファイルを選んで開く</button>${e.cors ? '<p class="help">このサイトはブラウザからの直接の取得を許可していません。PDF を端末に保存してから「ファイルを選んで開く」で開いてください。</p>' : ''}`,
+      actions: `${viaGitHub ? `<a class="btn" href="${escapeHtml(savePdfIssueUrl(key))}" target="_blank" rel="noopener">GitHub に保存して読む</a>` : ''}${remote ? `<a class="btn secondary" href="${escapeHtml(new URL(key, location.href).href)}" target="_blank" rel="noopener">元の PDF を開く</a>` : ''}<button class="btn secondary" id="pick-again">ファイルを選んで開く</button>${help ? `<p class="help">${help}</p>` : ''}`,
     });
     $('#pick-again')?.addEventListener('click', () => els.pdfFile.click());
     return;
@@ -795,6 +858,8 @@ async function showPdf(key, { hash = '', restore = true, lang = null } = {}) {
     sha256: hex,
     name: src.name,
     url: src.url,
+    github: src.github || null, // GitHub (pdfs/) から読んだときの pdfs/index.json の項目
+    stored, // このキーに当たる GitHub 保存済みの PDF
     notices: '',
     regions,
     openOriginal: () => {
@@ -814,6 +879,17 @@ async function showPdf(key, { hash = '', restore = true, lang = null } = {}) {
   }
   pushRecent(recentEntry());
   pdfStore.touch(key, { title: doc.meta.title });
+}
+
+// GitHub に保存済みならその表示、まだなら「GitHub に保存」(URL は Actions が取得、端末のファイルは Issue に添付)
+function pdfActions(key, stored, name) {
+  if (stored) return `<span class="stored-badge">GitHub に保存済み (pdfs/${escapeHtml(stored.file)})</span>`;
+  if (!REPO) return '';
+  if (key.startsWith('local:')) {
+    return `<a class="btn small" href="${escapeHtml(savePdfFileIssueUrl(name))}" target="_blank" rel="noopener">GitHub に保存</a><span class="hint">Issue の作成画面が開きます。本文にこの PDF ファイルを添付して送信すると、GitHub Actions が pdfs/ に保存します。${PDF_PUBLIC_NOTE}</span>`;
+  }
+  if (!/^https?:\/\//i.test(key)) return '';
+  return `<a class="btn small" href="${escapeHtml(savePdfIssueUrl(key))}" target="_blank" rel="noopener">GitHub に保存</a><span class="hint">Issue の作成画面が開きます。送信すると GitHub Actions が PDF を取得して pdfs/ に保存します。${PDF_PUBLIC_NOTE}</span>`;
 }
 
 els.pdfForm.addEventListener('submit', (e) => {

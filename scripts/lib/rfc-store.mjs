@@ -4,12 +4,12 @@ import { readFileSync, writeFileSync, readdirSync, mkdirSync, existsSync, unlink
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseRfc } from '../../src/rfc-parser.js';
-import { parseTranslation, translatedTitle } from '../../src/translation.js';
+import { translationTitles } from './translation-index.mjs';
 
 export const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 export const defaultDir = join(repoRoot, 'rfcs');
 
-const USER_AGENT = 'readRFCInMobile/1.0 (+https://github.com/maronnjapan/readRFCInMobile)';
+export const USER_AGENT = 'readRFCInMobile/1.0 (+https://github.com/maronnjapan/readRFCInMobile)';
 
 export function sourcesFor(n) {
   const list = [];
@@ -48,31 +48,13 @@ export function listStored(dir = defaultDir) {
     .sort((a, b) => a - b);
 }
 
-// rfcs/<lang>/rfcNNNN.json (日本語訳など) があれば、その言語の題名を返す ({ ja: "訳した題名" }。題名が未訳なら空文字)
-function translationTitles(dir, number, doc) {
-  const out = {};
-  const langs = readdirSync(dir, { withFileTypes: true })
-    .filter((d) => d.isDirectory() && /^[a-z]{2,3}(?:-[A-Za-z0-9]+)?$/.test(d.name))
-    .map((d) => d.name)
-    .sort();
-  for (const lang of langs) {
-    const file = join(dir, lang, `rfc${number}.json`);
-    if (!existsSync(file)) continue;
-    try {
-      out[lang] = translatedTitle(doc, parseTranslation(JSON.parse(readFileSync(file, 'utf8')))).trim();
-    } catch {
-      /* 壊れた翻訳ファイルは一覧に載せない (node scripts/translation.mjs check で分かる) */
-    }
-  }
-  return out;
-}
-
 export function reindex(dir = defaultDir) {
   mkdirSync(dir, { recursive: true });
   const list = listStored(dir).map((number) => {
     const doc = parseRfc(readFileSync(join(dir, `rfc${number}.txt`), 'utf8'), { number });
     const entry = { number, title: doc.meta.title, date: doc.meta.date || '', category: doc.meta.category || '' };
-    const translations = translationTitles(dir, number, doc);
+    // 日本語訳 (rfcs/ja/rfcNNNN.json) があれば、訳した題名を載せる
+    const translations = translationTitles(dir, `rfc${number}.json`, doc.meta.title);
     if (Object.keys(translations).length) entry.translations = translations;
     return entry;
   });

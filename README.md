@@ -13,7 +13,7 @@ NIST SP や論文などの PDF も、段組を解いて同じ形式で表示で�
 - **リンク化**: `[RFC2119]` のような引用は参考文献へ、`RFC 9110` や `Section 4.1 of [RFC7231]` は該当 RFC・該当セクションへ飛べます。
 - **表示設定**: 文字サイズ、テーマ（自動 / ライト / ダーク / セピア）、コードブロックの折り返し。
 - **オフライン対応**: 一度読んだ RFC は Service Worker がキャッシュします。ホーム画面に追加して PWA として使えます。
-- **GitHub への保存**: 閲覧画面の「GitHub に保存」から、読んだ RFC のテキストをリポジトリの `rfcs/` に保存できます（Issue 経由、後述）。
+- **GitHub への保存**: 閲覧画面の「GitHub に保存」から、読んだ RFC のテキストをリポジトリの `rfcs/` に、PDF を `pdfs/` に保存できます（Issue 経由、後述）。
 - **廃止・更新の表示**: rfc-editor.org のメタデータが取得できる場合、「この RFC は RFC XXXX により廃止されています」と先頭に表示します。
 - **PDF の再レイアウト**: 端末の PDF ファイル、PDF の URL、arXiv の ID から開き、2 段組や見出し・参考文献を解析して RFC と同じ表示にします。図・表・数式は元のページから切り出した画像で表示します。
 - **日本語訳への切り替え**: GitHub に翻訳ファイル (`rfcs/ja/`・`pdfs/ja/`) を置くと、RFC も PDF も原文と日本語訳を切り替えて読めます。見た目 (見出し・目次・コード・表・図) は原文と同じです（後述）。
@@ -40,8 +40,9 @@ npm test           # パーサーとレンダラーのテスト (Node 18 以降�
 ホーム画面の「PDF を読む」から開きます。
 
 - **PDF ファイルを選ぶ**: 端末に保存した PDF を開きます。どのサイトの PDF でも確実に開ける方法です。
-- **URL / arXiv ID**: `https://arxiv.org/abs/1706.03762` や `1706.03762`、`arXiv:1706.03762` のように入力します。arXiv はブラウザからの直接取得を許可しているので、そのまま開けます。ほかのサイト（NIST など）はブラウザからの取得を許可していないことが多く、その場合は PDF を端末に保存してからファイルとして開いてください。
+- **URL / arXiv ID**: `https://arxiv.org/abs/1706.03762` や `1706.03762`、`arXiv:1706.03762` のように入力します。arXiv はブラウザからの直接取得を許可しているので、そのまま開けます。ほかのサイト（NIST など）はブラウザからの取得を許可していないことが多く、その場合は PDF を端末に保存してからファイルとして開くか、開けなかった画面の「GitHub に保存して読む」で GitHub Actions に取得させてください（[PDF を GitHub に保存する](#pdf-を-github-に保存する)）。
 - 開いた PDF は端末内 (IndexedDB) に最大 12 件保存され、「最近読んだもの」から開き直せます。表示設定の「キャッシュを削除」で消えます。URL は `?pdf=<URL>`（ファイルは `?pdf=local:<ID>`）の形になります。
+- 「GitHub に保存」で `pdfs/` に保存した PDF は、キャッシュを消しても、ほかの端末からでも「このサイトに保存済み」から読めます。
 
 主な対象は、2 段組の論文（IEEE・ACM・USENIX・arXiv の LaTeX）と、NIST SP のような Word 由来の 1 段組の文書です。
 
@@ -70,12 +71,12 @@ node scripts/pdf-extract.mjs paper.pdf > paper.json    # 文字の位置情報 (
 
 ## 日本語訳を表示する
 
-GitHub に翻訳ファイルを置くと、その文書を原文と日本語訳で切り替えて読めます。翻訳ファイルは自分で用意します（アプリが翻訳することはありません）。
+GitHub に翻訳ファイルを置くと、その文書を原文と日本語訳で切り替えて読めます。`rfcs/`・`pdfs/` に保存した文書はもちろん、rfc-editor.org から読んだ RFC や端末のファイルとして開いた PDF でも、対応する翻訳ファイルがあれば切り替えられます。翻訳ファイルは自分で用意します（アプリが翻訳することはありません）。
 
 | 文書 | 翻訳ファイルの場所 |
 | --- | --- |
 | RFC | `rfcs/ja/rfcNNNN.json`（例: `rfcs/ja/rfc7591.json`） |
-| PDF | `pdfs/ja/<ID>.json`。ID は PDF ファイルの SHA-256 の先頭 16 文字（小文字の 16 進）で、同じファイルなら URL から開いても端末のファイルとして開いても同じです |
+| PDF | `pdfs/ja/<ID>.json`。ID は PDF ファイルの SHA-256 の先頭 16 文字（小文字の 16 進）で、同じファイルなら URL から開いても、端末のファイルとして開いても、`pdfs/` に保存したものを開いても同じです |
 
 翻訳ファイルがある文書を開くと、上部のバーに「日本語」（日本語訳を表示中は「原文」）、題名の下に「原文 / 日本語訳」の切り替えが出ます。切り替えても読んでいた箇所はそのままです。次に翻訳のある文書を開くときは最後に選んだほうで表示します（表示設定の「日本語訳がある文書」でも選べます）。`?rfc=7591&lang=ja` のように URL で指定することもできます。
 
@@ -92,7 +93,7 @@ GitHub に翻訳ファイルを置くと、その文書を原文と日本語訳�
 
 1. ひな形を作ります（どちらも同じものができます）。
    - アプリ: 文書の末尾の「翻訳用ファイル (JSON) を書き出す」。PDF はこの方法が手軽です。
-   - コマンド: `node scripts/translation.mjs template rfc 7591`、`node scripts/translation.mjs template pdf paper.pdf`（URL も可）
+   - コマンド: `node scripts/translation.mjs template rfc 7591`、`node scripts/translation.mjs template pdf paper.pdf`（URL や `pdfs/` に保存したファイルも可）
 2. 各項目の `dst` に、`src` の訳文を書き込みます。`src` は変更しないでください。
 3. GitHub の `rfcs/ja/rfc7591.json`、`pdfs/ja/<ID>.json` に置きます（GitHub の画面の「Add file → Upload files」でも構いません）。サイトの再デプロイが終わると切り替えられるようになります。
 
@@ -127,7 +128,7 @@ node scripts/translation.mjs template rfc 7591   # 既存のファイルの訳�
 
 `check` は、原文に見つからない訳文も一覧にします。アプリの更新で段落の区切りが変わった場合などに起こるので、`template` で作り直して足りない項目を訳してください（原文に見つからなくなった訳文も、作業が失われないようファイルの末尾に残ります）。
 
-翻訳ファイルは、表示設定の「キャッシュを削除」や Issue の `delete rfc` / `clear rfcs` では削除されません。不要になったら GitHub 上で削除してください。リポジトリが公開されていれば翻訳ファイルも誰でも読めるので、論文などを訳す場合は元の文書のライセンスを確認してください。
+翻訳ファイルは、表示設定の「キャッシュを削除」や Issue の `delete rfc` / `clear rfcs` / `delete pdf` / `clear pdfs` では削除されません。不要になったら GitHub 上で削除してください。リポジトリが公開されていれば翻訳ファイルも誰でも読めるので、論文などを訳す場合は元の文書のライセンスを確認してください。
 
 ## 本文の取得元
 
@@ -151,7 +152,7 @@ node scripts/translation.mjs template rfc 7591   # 既存のファイルの訳�
 2. 「Submit new issue」を押すと `.github/workflows/store-rfc.yml` が起動し、rfc-editor.org から本文を取得して `rfcs/rfc9110.txt` にコミットし、サイトを再デプロイして Issue を自動で閉じます。結果は Issue にコメントされます。
 3. 以後その RFC は `rfcs/` から読み込まれ、閲覧画面に「GitHub に保存済み」と表示されます。
 
-表示設定の「キャッシュを削除」が消すのは、ブラウザに保存した本文キャッシュ、端末に保存した PDF、最近読んだ履歴だけです。GitHub (`rfcs/`) に保存した RFC テキストは削除されず、その後も「このサイトに保存済み」に表示され、`rfcs/` から読み込まれます。
+表示設定の「キャッシュを削除」が消すのは、ブラウザに保存した本文キャッシュ、端末に保存した PDF、最近読んだ履歴だけです。GitHub (`rfcs/`, `pdfs/`) に保存した RFC テキストと PDF は削除されず、その後も「このサイトに保存済み」に表示され、そこから読み込まれます。
 保存したテキストを削除したいときは、下のコマンドをタイトルにした Issue を作成してください。
 
 Issue のタイトルで使えるコマンド:
@@ -185,6 +186,52 @@ node scripts/fetch-rfc.mjs --reindex       # index.json だけ作り直す
 
 `rfcs/rfcNNNN.txt` を置き、`node scripts/fetch-rfc.mjs --reindex` で `index.json` を更新します。
 
+## PDF を GitHub に保存する
+
+PDF はリポジトリの `pdfs/` に保存し、`pdfs/index.json` に一覧（題名・ページ数・元の URL・内容のハッシュ）を載せます。
+保存した PDF はホーム画面の「このサイトに保存済み」に表示され、元のサイトや端末のキャッシュに関係なく `pdfs/` から読み込みます。
+ブラウザから取得できないサイト（NIST など）の PDF も、GitHub Actions が代わりに取得するので読めるようになります。
+
+> 保存した PDF はリポジトリと GitHub Pages のサイトで公開されます（公開リポジトリなら誰でも見られます）。再配布してよい PDF だけを保存してください。
+
+### アプリの「GitHub に保存」ボタン (Issue 経由、推奨)
+
+- **URL や arXiv ID で開いた PDF**: 閲覧画面の「GitHub に保存」（読み込みに失敗した画面では「GitHub に保存して読む」）を押すと、タイトルに `save pdf <URL>` が入った Issue の作成画面が開きます。「Submit new issue」を押すと、GitHub Actions が PDF を取得して `pdfs/` にコミットし、サイトを再デプロイして Issue を閉じます。
+- **端末のファイルとして開いた PDF**: 「GitHub に保存」を押すと、タイトルが `save pdf` の Issue の作成画面が開きます。本文に同じ PDF ファイルを添付して（ドラッグ＆ドロップ、貼り付け、または添付のボタンから選択）送信すると、GitHub Actions が添付ファイルを `pdfs/` に保存します。ブラウザにトークンを置かない方針なので、ファイルは Issue の添付として GitHub に渡します。添付し忘れたときは、Issue を編集して添付するともう一度処理します。
+
+保存が終わると、閲覧画面に「GitHub に保存済み」と表示されます。同じ内容の PDF は二重に保存しません。
+ファイルとして保存した PDF は、内容のハッシュ（`?pdf=local:<ID>` の ID）で見分けるので、別の端末で同じファイルを開いても保存済みとして扱います。
+
+Issue のタイトルで使えるコマンド:
+
+| タイトル | 動作 |
+| --- | --- |
+| `save pdf https://arxiv.org/abs/1706.03762` | URL から取得して保存（arXiv は `save pdf 1706.03762` のように ID でも可。スペース区切りで複数指定可） |
+| `save pdf` ＋ 本文に PDF ファイルを添付 | 添付したファイルを保存 |
+| `delete pdf arxiv-1706.03762` | 指定した PDF を削除（`pdfs/` のファイル名。`.pdf` は省略可。元の URL でも指定できます） |
+| `clear pdfs` | すべて削除 |
+
+ファイル名は、arXiv なら `arxiv-<ID>.pdf`、ほかは URL や添付ファイルの名前から付けます。保存できるのは 1 ファイル 50 MB までです（Issue に添付できるファイルは GitHub の制限で 25 MB まで）。
+RFC と同じく、リポジトリのオーナー・メンバー・コラボレーターが作成した Issue だけを処理します。
+
+### 手元のスクリプトで保存する
+
+```sh
+node scripts/fetch-pdf.mjs https://arxiv.org/abs/1706.03762  # URL (arXiv の ID も可) から取得して保存
+node scripts/fetch-pdf.mjs ~/Downloads/paper.pdf             # 手元のファイルを保存
+node scripts/fetch-pdf.mjs --delete arxiv-1706.03762         # 削除
+node scripts/fetch-pdf.mjs --clear                           # すべて削除
+node scripts/fetch-pdf.mjs --reindex                         # index.json を pdfs/ の中身に合わせる
+```
+
+保存した後に commit / push してください。
+
+### 自分でファイルを置く
+
+GitHub の画面（`pdfs/` を開いて **Add file → Upload files**）や git で `pdfs/` に PDF を置くこともできます。
+デプロイのたびに `deploy-pages.yml` が公開する `index.json` を `pdfs/` の中身に合わせる（題名を解析して追加し、無くなったものを外す。リポジトリの `index.json` は書き換えません）ので、置いた PDF もそのまま「このサイトに保存済み」に表示されます。
+手元の `npm run serve` で確認するときは `node scripts/fetch-pdf.mjs --reindex` を実行してください。
+
 ## ファイル構成
 
 ```
@@ -201,15 +248,19 @@ vendor/pdfjs/         PDF.js 6.4.299 (legacy ビルド)
 sw.js                 オフラインキャッシュ
 rfcs/                 格納済みの RFC テキストと index.json
 rfcs/ja/              RFC の日本語訳 (rfcNNNN.json)
+pdfs/                 格納済みの PDF と index.json
 pdfs/ja/              PDF の日本語訳 (<SHA-256 の先頭 16 文字>.json)
 scripts/fetch-rfc.mjs RFC テキストの取得・削除スクリプト
-scripts/issue-command.mjs  Issue タイトルをコマンドとして実行 (Actions から使用)
+scripts/fetch-pdf.mjs PDF の取得・保存・削除スクリプト
+scripts/issue-command.mjs  Issue のタイトル (と本文の添付ファイル) をコマンドとして実行 (Actions から使用)
 scripts/lib/rfc-store.mjs  rfcs/ の保存・削除・index.json 更新
+scripts/lib/pdf-store.mjs  pdfs/ の保存・削除・index.json 更新
 scripts/translation.mjs    翻訳ファイルのひな形の作成・検査
 scripts/lib/translation-store.mjs  rfcs/ja/・pdfs/ja/ のひな形の作成・検査 (translation.mjs とテストから使用)
+scripts/lib/translation-index.mjs  index.json に載せる日本語訳の題名の読み込み
 scripts/pdf-extract.mjs    PDF の解析結果の確認、テスト用データの作成
 test/                 パーサー・レンダラー・保存処理・PDF 解析・翻訳のテスト (test/fixtures/ にテスト用の RFC テキスト、fixtures/pdf/ に PDF とその生成スクリプト)
-.github/workflows/    GitHub Pages へのデプロイ、RFC 取得 (手動 / Issue 経由) ワークフロー
+.github/workflows/    GitHub Pages へのデプロイ、RFC の取得 (手動)、RFC・PDF の保存 (Issue 経由) ワークフロー
 ```
 
 ## 解析の仕組み (概要)
@@ -226,4 +277,4 @@ test/                 パーサー・レンダラー・保存処理・PDF 解析
 
 ## ライセンス
 
-このリポジトリのコードは MIT ライセンスです。`rfcs/` と `test/fixtures/` 以下の RFC 本文は IETF Trust の著作物で、RFC の再配布条件に従って無改変で収録しています（`rfcs/ja/`・`pdfs/ja/` の翻訳ファイルは利用者が用意するもので、原文の著作権はそれぞれの権利者にあります）。`test/fixtures/pdf/` の PDF はテスト用に作った架空の文書です。`vendor/pdfjs/` は Mozilla の PDF.js で、Apache License 2.0 です（`vendor/pdfjs/LICENSE`）。
+このリポジトリのコードは MIT ライセンスです。`rfcs/` と `test/fixtures/` 以下の RFC 本文は IETF Trust の著作物で、RFC の再配布条件に従って無改変で収録しています。`pdfs/` に保存した PDF の権利はそれぞれの著作者にあります。`rfcs/ja/`・`pdfs/ja/` の翻訳ファイルは利用者が用意するもので、原文の著作権はそれぞれの権利者にあります。`test/fixtures/pdf/` の PDF はテスト用に作った架空の文書です。`vendor/pdfjs/` は Mozilla の PDF.js で、Apache License 2.0 です（`vendor/pdfjs/LICENSE`）。

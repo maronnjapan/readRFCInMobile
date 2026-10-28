@@ -1,11 +1,13 @@
-name: Store RFC via issue
+name: Store RFC / PDF via issue
 
 # アプリの「GitHub に保存」「キャッシュを削除」から開いた Issue を受け取り、
-# タイトルをコマンドとして実行する (save rfc 9110 / delete rfc 9110 / clear rfcs)。
+# タイトルをコマンドとして実行する (save rfc 9110 / delete rfc 9110 / clear rfcs /
+# save pdf <URL> / delete pdf <ファイル名> / clear pdfs)。save pdf は本文に添付した PDF ファイルも保存する。
 # リポジトリのオーナー・メンバー・コラボレーターが作成した Issue だけを処理する。
+# 開いている Issue を編集したとき (PDF の添付し忘れを直したときなど) も、もう一度処理する。
 on:
   issues:
-    types: [opened, reopened]
+    types: [opened, reopened, edited]
 
 permissions:
   contents: write
@@ -18,7 +20,9 @@ concurrency:
 
 jobs:
   store:
-    if: contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.issue.author_association)
+    if: >-
+      contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.issue.author_association) &&
+      (github.event.action != 'edited' || github.event.issue.state == 'open')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -31,6 +35,7 @@ jobs:
         id: cmd
         env:
           ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
           SITE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
         run: node scripts/issue-command.mjs
       - name: Commit and push
@@ -41,7 +46,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add rfcs
+          git add rfcs pdfs
           git commit -m "$COMMIT_MESSAGE" -m "Requested in #$ISSUE_NUMBER"
           git pull --rebase origin main
           git push origin HEAD:main

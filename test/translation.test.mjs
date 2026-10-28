@@ -20,6 +20,7 @@ import {
   pdfTranslationPath,
 } from '../src/translation.js';
 import { reindex } from '../scripts/lib/rfc-store.mjs';
+import { reindexPdfs, loadPdfIndex } from '../scripts/lib/pdf-store.mjs';
 import { rfcTemplate, pdfTemplate, checkTranslations } from '../scripts/lib/translation-store.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -258,4 +259,30 @@ test('pdfTemplate names the file after the SHA-256 of the PDF, like the app does
     tr.segments.map((s) => s.src),
     collectSegments(doc),
   );
+});
+
+test('pdfs/index.json marks stored PDFs that have a translation in pdfs/ja/', async () => {
+  const dir = join(root, 'pdfs');
+  copyFileSync(join(here, 'fixtures/pdf/two-column.pdf'), join(dir, 'two-column.pdf'));
+  const log = console.log;
+  console.log = () => {};
+  try {
+    // pdfTemplate (前のテスト) が作ったひな形がある。題名はまだ訳していない
+    let [entry] = await reindexPdfs({ dir });
+    assert.deepEqual(entry.translations, { ja: '' });
+    // 題名の訳を書き込む
+    const file = join(dir, 'ja', `${entry.sha256.slice(0, 16)}.json`);
+    const tr = JSON.parse(readFileSync(file, 'utf8'));
+    tr.segments.find((s) => s.src === entry.title).dst = 'モバイル文書リーダーのための読み順の再構成';
+    writeFileSync(file, stringifyTranslation(tr));
+    [entry] = await reindexPdfs({ dir });
+    assert.deepEqual(entry.translations, { ja: 'モバイル文書リーダーのための読み順の再構成' });
+    assert.deepEqual(loadPdfIndex(dir), [entry]);
+    // 翻訳ファイルを消すと、印も消える
+    rmSync(file);
+    [entry] = await reindexPdfs({ dir });
+    assert.equal(entry.translations, undefined);
+  } finally {
+    console.log = log;
+  }
 });

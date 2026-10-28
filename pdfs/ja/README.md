@@ -1,8 +1,8 @@
 # PDF の日本語訳
 
 このフォルダに `<ID>.json` を置くと、その PDF を原文と日本語訳で切り替えて読めます。
-ID は PDF ファイルの SHA-256 の先頭 16 文字（小文字の 16 進）です。
+ID は PDF ファイルの SHA-256 の先頭 16 文字（小文字の 16 進）です。`pdfs/` に保存した PDF の場合は、`pdfs/index.json` の `sha256` の先頭 16 文字です。
 
 ひな形はアプリで PDF を開き、文書の末尾にある「翻訳用ファイル (JSON) を書き出す」で作れます（ファイル名が ID になっています）。
-`node scripts/translation.mjs template pdf paper.pdf`（URL も可）でも同じものが作れます。
+`node scripts/translation.mjs template pdf pdfs/paper.pdf`（手元のファイルや URL も可）でも同じものが作れます。
 各項目の `dst` に `src`（原文）の訳文を書き込んでください。詳しくはリポジトリの README の「日本語訳を表示する」を参照してください。

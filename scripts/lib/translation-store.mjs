@@ -10,8 +10,7 @@ import { layoutPdf } from '../../src/pdf-layout.js';
 import { completePdfMeta } from '../../src/pdf-reader.js';
 import { makeTemplate, parseTranslation, stringifyTranslation, translationCoverage, rfcTranslationPath, pdfTranslationPath } from '../../src/translation.js';
 import { repoRoot, fetchText } from './rfc-store.mjs';
-
-const LANG_RE = /^[a-z]{2,3}(?:-[A-Za-z0-9]+)?$/;
+import { translationLangs } from './translation-index.mjs';
 
 function readJson(file) {
   return JSON.parse(readFileSync(file, 'utf8'));
@@ -95,8 +94,7 @@ export function listTranslationFiles(root = repoRoot) {
   const out = [];
   for (const kind of ['rfc', 'pdf']) {
     const base = join(root, `${kind}s`);
-    if (!existsSync(base)) continue;
-    for (const lang of readdirSync(base, { withFileTypes: true }).filter((d) => d.isDirectory() && LANG_RE.test(d.name)).map((d) => d.name).sort()) {
+    for (const lang of translationLangs(base)) {
       for (const f of readdirSync(join(base, lang)).filter((x) => x.endsWith('.json')).sort()) {
         out.push({ kind, lang, file: join(base, lang, f), name: f });
       }
