@@ -13,8 +13,9 @@ const INLINE_RE = new RegExp(
     String.raw`\[([A-Za-z0-9][\w.+/-]{0,40})\]`, // 3 [引用タグ]
     String.raw`\b(RFC)[  ]?(\d{1,5})\b`, // 4,5 RFC 番号
     String.raw`\b(Sections?|Appendix|Appendices)\s+(${SEC_NUM}(?:\s*(?:,|and|or|through|to)\s*${SEC_NUM})*)`, // 6,7 セクション参照
-    String.raw`\b(Figure|Table)\s+(\d{1,3})\b`, // 8,9 図表参照
+    String.raw`\b(Figure|Fig\.|Table)\s+(\d{1,3})\b`, // 8,9 図表参照
     String.raw`\b(${BCP14})\b`, // 10 BCP 14 キーワード
+    String.raw`\[(\d{1,3}(?:\s*[,–-]\s*\d{1,3})+)\]`, // 11 論文の番号付き引用 ([3, 12] / [5–7])
   ].join('|'),
   'g',
 );
@@ -99,13 +100,18 @@ export function renderInline(text, ctx, mode = 'text') {
       continue;
     }
     if (m[8]) {
-      const id = `${m[8].toLowerCase()}-${m[9]}`;
+      const id = `${m[8] === 'Fig.' ? 'figure' : m[8].toLowerCase()}-${m[9]}`;
       if (mode !== 'pre' && ctx.ids && ctx.ids.has(id)) out += `<a class="xref" href="#${id}">${esc(whole)}</a>`;
       else out += esc(whole);
       continue;
     }
     if (m[10]) {
       out += mode === 'pre' ? esc(whole) : `<span class="bcp14">${esc(whole)}</span>`;
+      continue;
+    }
+    if (m[11]) {
+      const linked = m[11].replace(/\d+/g, (num) => (ctx.refTags && ctx.refTags.has(num) ? `<a class="cite" href="#${refId(num)}">${num}</a>` : num));
+      out += `[${linked}]`;
       continue;
     }
     out += esc(whole);
@@ -129,6 +135,17 @@ function renderPre(b, ctx) {
   const pre = `<pre class="${b.kind === 'art' ? 'art' : 'code'}">${body}</pre>`;
   if (b.caption) return `<figure class="fig">${pre}${renderCaption(b.caption)}</figure>`;
   return pre;
+}
+
+// PDF のページの一部 (図・表・数式) を切り出して表示する枠。画像は app.js が表示時に描く
+function renderRegion(b) {
+  const r = b.region;
+  const w = r.x1 - r.x0;
+  const h = r.y1 - r.y0;
+  const box = [r.x0, r.y0, r.x1, r.y1].map((v) => v.toFixed(1)).join(',');
+  const label = b.alt ? ` aria-label="${esc(b.alt.slice(0, 300))}"` : '';
+  const region = `<div class="pdf-region" role="img"${label} data-page="${r.page}" data-region="${box}" style="aspect-ratio: ${w.toFixed(1)} / ${h.toFixed(1)}; max-width: ${Math.round(w * 1.6)}px"></div>`;
+  return `<figure class="fig pdf-fig">${region}${renderCaption(b.caption)}</figure>`;
 }
 
 function renderTable(b, ctx) {
@@ -208,7 +225,7 @@ export function renderBlocks(blocks, ctx) {
         break;
       }
       case 'para': {
-        const cls = [b.quote ? 'quote' : '', b.center ? 'center' : ''].filter(Boolean).join(' ');
+        const cls = [b.quote ? 'quote' : '', b.center ? 'center' : '', b.note ? 'note' : ''].filter(Boolean).join(' ');
         out += `<p${cls ? ` class="${cls}"` : ''}${b.id ? ` id="${esc(b.id)}"` : ''}>${renderInline(b.text, ctx)}</p>`;
         break;
       }
@@ -220,6 +237,9 @@ export function renderBlocks(blocks, ctx) {
       }
       case 'pre':
         out += renderPre(b, ctx);
+        break;
+      case 'figure':
+        out += renderRegion(b);
         break;
       case 'table':
         out += renderTable(b, ctx);
@@ -243,7 +263,19 @@ export function renderBlocks(blocks, ctx) {
   return out;
 }
 
+function renderPdfHead(meta, ctx) {
+  const chips = ['<span class="chip chip-num">PDF</span>'];
+  if (meta.pages) chips.push(`<span class="chip">${meta.pages} ページ</span>`);
+  if (meta.source) chips.push(`<span class="chip">${esc(meta.source)}</span>`);
+  return `<header class="rfc-head">
+  <p class="chips">${chips.join('')}</p>
+  <h1 class="rfc-title">${renderInline(meta.title || '', ctx)}</h1>
+  <div class="status-slot" data-status-slot></div>
+</header>`;
+}
+
 export function renderHead(meta, headerLines, ctx) {
+  if (meta.kind === 'pdf') return renderPdfHead(meta, ctx);
   const chips = [];
   if (meta.number) chips.push(`<span class="chip chip-num">RFC ${esc(meta.number)}</span>`);
   if (meta.isDraft && meta.draftName) chips.push(`<span class="chip">${esc(meta.draftName)}</span>`);

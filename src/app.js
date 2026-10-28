@@ -1,5 +1,6 @@
 import { parseRfc } from './rfc-parser.js';
 import { renderDocument } from './render.js';
+import { normalizePdfInput, openPdf, renderRegions, pdfStore, fileKey } from './pdf-reader.js';
 
 const SETTINGS_KEY = 'rfcreader:settings';
 const RECENT_KEY = 'rfcreader:recent';
@@ -26,6 +27,16 @@ function saveIssueUrl(n) {
     `このまま「Submit new issue」を押すと、GitHub Actions が RFC ${n} の本文を rfc-editor.org から取得して \`rfcs/rfc${n}.txt\` に保存し、サイトを再デプロイします。完了するとこの Issue は自動で閉じられます。`,
   );
 }
+function openInNewTab(url) {
+  const a = document.createElement('a');
+  a.href = url;
+  a.target = '_blank';
+  a.rel = 'noopener';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
+
 const $ = (sel) => document.querySelector(sel);
 const els = {
   home: $('#home'),
@@ -48,6 +59,9 @@ const els = {
   storedList: $('#stored-list'),
   fsOut: $('#fs-out'),
   sourceInput: $('#source-input'),
+  pdfForm: $('#pdf-form'),
+  pdfInput: $('#pdf-input'),
+  pdfFile: $('#pdf-file'),
 };
 
 // ---------- 設定 ----------
@@ -108,7 +122,7 @@ els.sourceInput.addEventListener('change', () => {
 });
 // 消すのはブラウザ側のキャッシュと履歴だけ。GitHub (rfcs/) に保存した RFC テキストは残し、引き続き表示する
 $('#clear-cache').addEventListener('click', async () => {
-  if (!window.confirm('ブラウザのキャッシュと最近読んだ履歴を削除します。\nGitHub に保存した RFC テキストは削除されず、引き続き表示されます。よろしいですか？')) return;
+  if (!window.confirm('ブラウザのキャッシュと最近読んだ履歴 (端末に保存した PDF を含む) を削除します。\nGitHub に保存した RFC テキストは削除されず、引き続き表示されます。よろしいですか？')) return;
   try {
     if ('caches' in window) {
       const keys = await caches.keys();
@@ -117,6 +131,7 @@ $('#clear-cache').addEventListener('click', async () => {
     Object.keys(localStorage)
       .filter((k) => k === RECENT_KEY || k.startsWith(POS_PREFIX))
       .forEach((k) => localStorage.removeItem(k));
+    await pdfStore.clear();
     renderRecent();
     renderStored();
     showStatus('キャッシュと履歴を削除しました。GitHub に保存した RFC はそのまま表示されます。', { autoHide: true });
@@ -220,9 +235,9 @@ function loadRecent() {
     return [];
   }
 }
-function pushRecent(n, title) {
-  const list = loadRecent().filter((r) => r.n !== n);
-  list.unshift({ n, title, t: Date.now() });
+function pushRecent(entry) {
+  const list = loadRecent().filter((r) => (entry.pdf ? r.pdf !== entry.pdf : r.n !== entry.n));
+  list.unshift({ ...entry, t: Date.now() });
   try {
     localStorage.setItem(RECENT_KEY, JSON.stringify(list.slice(0, MAX_RECENT)));
   } catch {
@@ -233,10 +248,11 @@ function renderRecent() {
   const list = loadRecent();
   els.recentWrap.hidden = !list.length;
   els.recentList.innerHTML = list
-    .map(
-      (r) =>
-        `<li><a href="?rfc=${r.n}" data-rfc="${r.n}"><span class="num">RFC ${r.n}</span><span class="ttl">${escapeHtml(r.title || '')}</span><span class="when">${new Date(r.t).toLocaleString('ja-JP')}</span></a></li>`,
-    )
+    .map((r) => {
+      const when = `<span class="when">${new Date(r.t).toLocaleString('ja-JP')}</span>`;
+      if (r.pdf) return `<li><a href="?pdf=${encodeURIComponent(r.pdf)}" data-pdf="${escapeHtml(r.pdf)}"><span class="num">PDF</span><span class="ttl">${escapeHtml(r.title || r.pdf)}</span>${when}</a></li>`;
+      return `<li><a href="?rfc=${r.n}" data-rfc="${r.n}"><span class="num">RFC ${r.n}</span><span class="ttl">${escapeHtml(r.title || '')}</span>${when}</a></li>`;
+    })
     .join('');
 }
 async function renderStored() {
@@ -259,11 +275,16 @@ async function renderStored() {
 }
 
 // ---------- 画面遷移 ----------
-let current = null; // { n, doc }
+let current = null; // { n?, pdfKey?, doc, posKey, cleanup? }
 let headingObserver = null;
 
-function showHome() {
+function leaveDocument() {
+  current?.cleanup?.();
   current = null;
+}
+
+function showHome() {
+  leaveDocument();
   els.doc.hidden = true;
   els.doc.innerHTML = '';
   els.home.hidden = false;
@@ -283,6 +304,7 @@ async function showRfc(n, { hash = '', restore = true } = {}) {
     showStatus('RFC 番号は 1 〜 99999 の整数で指定してください。', { error: true });
     return;
   }
+  leaveDocument();
   els.home.hidden = true;
   els.doc.hidden = true;
   els.doc.innerHTML = '';
@@ -323,7 +345,7 @@ async function showRfc(n, { hash = '', restore = true } = {}) {
     return;
   }
   hideStatus();
-  current = { n, doc };
+  current = { n, doc, posKey: POS_PREFIX + n };
   els.doc.innerHTML = `${rendered.html}<footer class="docfoot">取得元: ${escapeHtml(result.source.name)} ・ <a href="https://www.rfc-editor.org/rfc/rfc${n}.html" target="_blank" rel="noopener">rfc-editor.org の原文</a><a href="https://www.rfc-editor.org/rfc/rfc${n}.txt" target="_blank" rel="noopener">テキスト版</a><a href="https://datatracker.ietf.org/doc/rfc${n}/" target="_blank" rel="noopener">Datatracker</a></footer>`;
   els.doc.hidden = false;
   const shortTitle = doc.meta.title && doc.meta.title !== `RFC ${n}` ? doc.meta.title : '';
@@ -339,23 +361,9 @@ async function showRfc(n, { hash = '', restore = true } = {}) {
   if (actions.innerHTML) els.doc.querySelector('.rfc-head .status-slot')?.before(actions);
   els.tocBody.innerHTML = rendered.tocHtml || '<p class="empty">見出しを検出できませんでした。</p>';
   els.btnToc.hidden = false;
-  pushRecent(n, shortTitle);
+  pushRecent({ n, title: shortTitle });
   observeHeadings();
-
-  // スクロール位置: ハッシュがあればそこへ、なければ前回位置へ
-  requestAnimationFrame(() => {
-    if (hash) {
-      const target = document.getElementById(decodeURIComponent(hash.replace(/^#/, '')));
-      if (target) target.scrollIntoView();
-      else window.scrollTo(0, 0);
-    } else if (restore) {
-      const pos = Number(localStorage.getItem(POS_PREFIX + n) || 0);
-      window.scrollTo(0, pos);
-    } else {
-      window.scrollTo(0, 0);
-    }
-    updateProgress();
-  });
+  restoreScroll(hash, restore);
 
   fetchRfcInfo(n).then((info) => {
     if (!info || !current || current.n !== n) return;
@@ -372,6 +380,163 @@ async function showRfc(n, { hash = '', restore = true } = {}) {
     slot.innerHTML = parts.join('');
   });
 }
+
+// スクロール位置: ハッシュがあればそこへ、なければ前回位置へ
+function restoreScroll(hash, restore) {
+  requestAnimationFrame(() => {
+    if (hash) {
+      const target = document.getElementById(decodeURIComponent(hash.replace(/^#/, '')));
+      if (target) target.scrollIntoView();
+      else window.scrollTo(0, 0);
+    } else if (restore && current) {
+      const pos = Number(localStorage.getItem(current.posKey) || 0);
+      window.scrollTo(0, pos);
+    } else {
+      window.scrollTo(0, 0);
+    }
+    updateProgress();
+  });
+}
+
+// ---------- PDF ----------
+const memPdfs = new Map(); // IndexedDB を使えないときの保存先
+const isPdfBytes = (buf) => String.fromCharCode(...new Uint8Array(buf.slice(0, 1024))).includes('%PDF-');
+
+async function loadPdfBytes(key) {
+  if (key.startsWith('local:')) {
+    const rec = memPdfs.get(key) || (await pdfStore.get(key));
+    if (!rec) throw new Error('この端末には保存されていません。もう一度ファイルを選んで開いてください。');
+    return { bytes: rec.bytes, name: rec.name || 'PDF', url: '' };
+  }
+  const url = new URL(key, location.href).href;
+  const cached = await pdfStore.get(key);
+  if (cached) return { bytes: cached.bytes, name: cached.name, url };
+  let res;
+  try {
+    res = await fetch(url);
+  } catch {
+    const err = new Error('PDF を取得できませんでした (ブラウザからの取得が許可されていないか、ネットワークエラーです)。');
+    err.cors = true;
+    throw err;
+  }
+  if (!res.ok) throw new Error(`PDF を取得できませんでした (HTTP ${res.status})。`);
+  const bytes = await res.arrayBuffer();
+  if (!isPdfBytes(bytes)) throw new Error('PDF ファイルではないようです。');
+  const name = decodeURIComponent(new URL(url).pathname.split('/').pop() || 'PDF');
+  await pdfStore.put({ key, name, bytes });
+  return { bytes, name, url };
+}
+
+async function showPdf(key, { hash = '', restore = true } = {}) {
+  leaveDocument();
+  els.home.hidden = true;
+  els.doc.hidden = true;
+  els.doc.innerHTML = '';
+  els.btnToc.hidden = true;
+  els.barTitle.innerHTML = '<small>PDF</small>';
+  document.title = 'PDF - RFC Reader';
+  showStatus('<span class="spinner"></span>PDF を読み込んでいます…');
+  const token = (showPdf.token = Symbol('load'));
+  const stale = () => showPdf.token !== token;
+  let src;
+  let opened;
+  try {
+    src = await loadPdfBytes(key);
+    if (stale()) return;
+    showStatus('<span class="spinner"></span>PDF を解析しています…');
+    opened = await openPdf(src.bytes, {
+      onProgress: (i, total) => {
+        if (!stale()) showStatus(`<span class="spinner"></span>PDF を解析しています… <small>(${i} / ${total} ページ)</small>`);
+      },
+    });
+  } catch (e) {
+    if (stale()) return;
+    console.error(e);
+    const remote = !key.startsWith('local:');
+    showStatus(`<strong>PDF を表示できませんでした。</strong> ${escapeHtml(e.message)}`, {
+      error: true,
+      actions: `${remote ? `<a class="btn secondary" href="${escapeHtml(new URL(key, location.href).href)}" target="_blank" rel="noopener">元の PDF を開く</a>` : ''}<button class="btn secondary" id="pick-again">ファイルを選んで開く</button>${e.cors ? '<p class="help">このサイトはブラウザからの直接の取得を許可していません。PDF を端末に保存してから「ファイルを選んで開く」で開いてください。</p>' : ''}`,
+    });
+    $('#pick-again')?.addEventListener('click', () => els.pdfFile.click());
+    return;
+  }
+  if (stale()) {
+    opened.destroy();
+    return;
+  }
+  const { doc, pdf } = opened;
+  if (src.url) doc.meta.source = new URL(src.url).hostname;
+  if (!doc.meta.title) doc.meta.title = src.name.replace(/\.pdf$/i, '');
+  let rendered;
+  try {
+    rendered = renderDocument(doc, { rfcHref: (num, frag) => `?rfc=${num}${frag ? `#${frag}` : ''}` });
+  } catch (e) {
+    console.error(e);
+    opened.destroy();
+    showStatus(`<strong>表示の変換に失敗しました。</strong> ${escapeHtml(e.message)}`, { error: true });
+    return;
+  }
+  hideStatus();
+  const origin = src.url
+    ? `取得元: <a href="${escapeHtml(src.url)}" target="_blank" rel="noopener">${escapeHtml(src.url)}</a>`
+    : `端末のファイル: ${escapeHtml(src.name)} ・ <a href="#" id="open-original">元の PDF を開く</a>`;
+  els.doc.innerHTML = `${rendered.html}<footer class="docfoot">${origin}<p class="hint">PDF の文字の位置から自動で組み直した表示です。図・表・数式はページから切り出した画像で、タップすると拡大します。崩れている箇所は元の PDF を参照してください。</p></footer>`;
+  els.doc.hidden = false;
+  let blobUrl = '';
+  $('#open-original')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (!blobUrl) blobUrl = URL.createObjectURL(new Blob([src.bytes], { type: 'application/pdf' }));
+    openInNewTab(blobUrl);
+  });
+  const stopRegions = renderRegions(els.doc, pdf);
+  current = {
+    pdfKey: key,
+    doc,
+    posKey: `${POS_PREFIX}pdf:${key}`,
+    cleanup: () => {
+      stopRegions();
+      opened.destroy();
+      if (blobUrl) URL.revokeObjectURL(blobUrl);
+    },
+  };
+  const title = doc.meta.title;
+  els.barTitle.innerHTML = `<small>PDF</small>${escapeHtml(title)}`;
+  document.title = `${title} - RFC Reader`;
+  els.tocBody.innerHTML = rendered.tocHtml || '<p class="empty">見出しを検出できませんでした。</p>';
+  els.btnToc.hidden = false;
+  pushRecent({ pdf: key, title });
+  pdfStore.touch(key, { title });
+  observeHeadings();
+  restoreScroll(hash, restore);
+}
+
+els.pdfForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const url = normalizePdfInput(els.pdfInput.value);
+  if (!url) return;
+  els.pdfInput.blur();
+  navigatePdf(url);
+});
+
+els.pdfFile.addEventListener('change', async () => {
+  const file = els.pdfFile.files && els.pdfFile.files[0];
+  els.pdfFile.value = '';
+  if (!file) return;
+  try {
+    const bytes = await file.arrayBuffer();
+    if (!isPdfBytes(bytes)) {
+      showStatus('PDF ファイルを選んでください。', { error: true });
+      return;
+    }
+    const key = await fileKey(bytes, file);
+    const rec = { key, name: file.name, bytes };
+    memPdfs.set(key, rec);
+    await pdfStore.put(rec);
+    navigatePdf(key);
+  } catch (e) {
+    showStatus(`ファイルを読み込めませんでした: ${escapeHtml(e.message)}`, { error: true });
+  }
+});
 
 function observeHeadings() {
   if (headingObserver) headingObserver.disconnect();
@@ -423,7 +588,7 @@ window.addEventListener(
     clearTimeout(scrollTimer);
     scrollTimer = setTimeout(() => {
       try {
-        localStorage.setItem(POS_PREFIX + current.n, String(Math.round(window.scrollY)));
+        localStorage.setItem(current.posKey, String(Math.round(window.scrollY)));
       } catch {
         /* ignore */
       }
@@ -436,6 +601,8 @@ els.fab.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smo
 // ---------- ルーティング ----------
 function parseLocation() {
   const params = new URLSearchParams(location.search);
+  const pdf = params.get('pdf');
+  if (pdf) return { n: null, pdf, hash: location.hash };
   let n = params.get('rfc');
   if (!n) {
     const m = /^#\/?rfc\/?(\d+)/i.exec(location.hash) || /^#rfc(\d+)$/i.exec(location.hash);
@@ -448,9 +615,22 @@ function parseLocation() {
 
 function route({ restore = true } = {}) {
   closeDrawers();
-  const { n, hash } = parseLocation();
-  if (n) showRfc(n, { hash, restore });
+  const { n, pdf, hash } = parseLocation();
+  // 同じ文書の中のリンク (目次・節の参照) で戻る・進むときは、読み込み直さずにその位置へ移る
+  if (current && ((pdf && current.pdfKey === pdf) || (!pdf && n && current.n === n))) {
+    const target = hash && document.getElementById(decodeURIComponent(hash.slice(1)));
+    if (target) target.scrollIntoView();
+    else if (!hash) window.scrollTo(0, 0);
+    return;
+  }
+  if (pdf) showPdf(pdf, { hash, restore });
+  else if (n) showRfc(n, { hash, restore });
   else showHome();
+}
+
+function navigatePdf(key, hash = '') {
+  history.pushState(null, '', `?pdf=${encodeURIComponent(key)}${hash}`);
+  route({ restore: !hash });
 }
 
 function navigate(n, hash = '') {
@@ -468,6 +648,12 @@ els.form.addEventListener('submit', (e) => {
 });
 
 document.addEventListener('click', (e) => {
+  const p = e.target.closest('a[data-pdf]');
+  if (p && !e.metaKey && !e.ctrlKey && !e.shiftKey && e.button === 0) {
+    e.preventDefault();
+    navigatePdf(p.dataset.pdf);
+    return;
+  }
   const a = e.target.closest('a[data-rfc]');
   if (!a || e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
   const n = Number(a.dataset.rfc);
