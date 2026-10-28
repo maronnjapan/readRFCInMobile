@@ -53,7 +53,7 @@
         <button class="btn" type="submit">開く</button>
       </form>
       <label class="btn secondary file-btn">PDF ファイルを選ぶ<input type="file" id="pdf-file" accept="application/pdf,.pdf"></label>
-      <p class="help">NIST SP や論文の PDF を、段組を解いてスマホ向けに組み直します。arXiv は URL か ID (例: 1706.03762) で開けます。ブラウザからの取得を許可していないサイトの PDF は、端末に保存してからファイルとして開いてください。</p>
+      <p class="help">NIST SP や論文の PDF を、段組を解いてスマホ向けに組み直します。arXiv は URL か ID (例: 1706.03762) で開けます。ブラウザからの取得を許可していないサイトの PDF は、端末に保存してからファイルとして開くか、開けなかった画面の「GitHub に保存して読む」で GitHub Actions に取得させてください。</p>
       <div id="home-recent" hidden>
         <h2>最近読んだもの</h2>
         <ul class="cardlist" id="recent-list"></ul>
@@ -69,7 +69,7 @@
         <li><a href="?rfc=8259" data-rfc="8259"><span class="num">RFC 8259</span>The JavaScript Object Notation (JSON) Data Interchange Format</a></li>
         <li><a href="?rfc=2119" data-rfc="2119"><span class="num">RFC 2119</span>Key words for use in RFCs to Indicate Requirement Levels</a></li>
       </ul>
-      <p class="help">本文は rfc-editor.org から直接取得します。閲覧画面の「GitHub に保存」を押すと、リポジトリの <code>rfcs/</code> にテキストとして保存され、以後はそこから読み込みます（詳しくは README を参照）。</p>
+      <p class="help">本文は rfc-editor.org から直接取得します。閲覧画面の「GitHub に保存」を押すと、RFC はリポジトリの <code>rfcs/</code> に、PDF は <code>pdfs/</code> に保存され、以後はそこから読み込みます（詳しくは README を参照）。</p>
     </section>
 
     <article id="doc" hidden></article>
@@ -131,7 +131,7 @@
         </div>
         <div class="setting">
           <button class="btn secondary" id="clear-cache">キャッシュを削除</button>
-          <p class="hint">ブラウザに保存した本文キャッシュと最近読んだ履歴 (端末に保存した PDF を含む) を消します。GitHub に保存した RFC テキストは削除されず、引き続き表示されます。</p>
+          <p class="hint">ブラウザに保存した本文キャッシュと最近読んだ履歴 (端末に保存した PDF を含む) を消します。GitHub に保存した RFC テキストと PDF は削除されず、引き続き表示されます。</p>
         </div>
       </div>
     </div>
