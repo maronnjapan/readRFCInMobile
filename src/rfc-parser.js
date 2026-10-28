@@ -91,22 +91,43 @@ function toLines(text) {
 }
 
 function isRunningHeader(l) {
-  if (indentOf(l) > 0 && !/\s{2,}/.test(l.trim())) return false;
   const t = l.trim();
-  if (/^(RFC\s?\d+|RFC-\d+|Internet-Draft|INTERNET-DRAFT|draft-[\w.-]+|Request for Comments)\b/i.test(t)) return true;
+  // 見開きの体裁の古い RFC では、日付だけのヘッダーが右寄せになるページがある
   if (DATE_RE.test(t)) return true;
+  if (indentOf(l) > 0 && !/\s{2,}/.test(t)) return false;
+  if (/^(RFC\s?\d+|RFC-\d+|Internet-Draft|INTERNET-DRAFT|draft-[\w.-]+|Request for Comments)\b/i.test(t)) return true;
   if (/^[A-Z][\w .'/()-]{2,}\s{2,}.*\s{2,}[\w ,.()/-]+$/.test(t) && MONTH_RE.test(t) && /\d{4}\s*$/.test(t)) return true;
   return false;
 }
 
-function shouldJoinAcrossPage(a, b) {
+// 定義リストの用語らしい 1 行 ("client_id" / "Field name:" など)
+function isTermLine(l) {
+  const t = l.trim();
+  return t.length <= 50 && !/[.!?,;]$/.test(t) && !/\s{2,}/.test(t) && !LIST_RE.test(l) && !REF_RE.test(l) && !CODE_LINE_RE.test(t);
+}
+
+// a: 前ページ末尾の行、before: その直前の行、b: 次ページ先頭の行、next: その次の行
+function shouldJoinAcrossPage(a, b, before, next) {
   if (a === undefined || b === undefined) return false;
   const lm = LIST_RE.exec(a);
   const ia = lm ? a.length - lm[9].length : indentOf(a);
   const ib = indentOf(b);
+  if (ib > ia && ia > 0 && !lm && (before === undefined || before.trim() === '')) {
+    const t = b.trim();
+    // ページ末尾に用語だけが残り、説明文が次ページの一段深い位置から始まる
+    if (isTermLine(a)) return /^[A-Za-z"'(]/.test(t) && t.split(/\s+/).length >= 4 && !CODE_LINE_RE.test(t) && !CAPTION_RE.test(b);
+    // "用語:  説明" の 1 行目だけがページ末尾に残り、文の続きが一段深い位置から始まる
+    if (/^\s*[A-Za-z0-9"'(\[][^:]{0,48}?:\s{2,}\S/.test(a) && !/[.!?]["')\]]*$/.test(a)) return !CAPTION_RE.test(b) && !LIST_RE.test(b);
+  }
   if (ia !== ib || ib === 0) return false;
   if (LIST_RE.test(b) || REF_RE.test(b)) return false;
-  if (/[.:!?]["')\]]*$/.test(a)) return /^\s*[a-z(]/.test(b);
+  // ABNF の規則や列揃えの行の後に、文章の段落が続いている
+  if ((RULE_HEAD_RE.test(a) || /\S {3,}\S/.test(a.trim())) && /^\s*[A-Z]/.test(b) && proseLine(b.trim())) return false;
+  if (/[.:!?]["')\]]*$/.test(a)) {
+    // 次ページが「用語 + 一段深い説明」で始まるなら、前の段落の続きではない
+    if (next !== undefined && next.trim() !== '' && indentOf(next) > ib) return false;
+    return /^\s*[a-z(]/.test(b) && !RULE_HEAD_RE.test(b) && !/[{}]|::=/.test(b);
+  }
   return true;
 }
 
@@ -134,9 +155,12 @@ export function depaginate(lines) {
     let start = 0;
     while (start < end && pg[start].trim() === '') start++;
     if (i > 0 && start < end && isRunningHeader(pg[start])) {
+      // 2〜3 行構成のヘッダー (古い RFC): 日付の反対側に寄せた短い行 (文書名・章名) が続く
+      const opposite = indentOf(pg[start]) >= 24 ? (l) => indentOf(l) === 0 : (l) => indentOf(l) >= 24;
       start++;
-      // 2 行構成のヘッダー (古い RFC): 右寄せの短い 1 行が続く
-      if (start < end && pg[start].trim() !== '' && indentOf(pg[start]) >= 24 && (start + 1 >= end || pg[start + 1].trim() === '')) start++;
+      let k = start;
+      while (k < end && k - start < 2 && pg[k].trim() !== '' && opposite(pg[k]) && pg[k].trim().length <= 40 && !/^(?:\d+(?:\.\d+)*\.?|Appendix)\s/.test(pg[k].trim())) k++;
+      if (k > start && (k >= end || pg[k].trim() === '')) start = k;
       while (start < end && pg[start].trim() === '') start++;
     }
     if (start < end) cleaned.push(pg.slice(start, end));
@@ -144,7 +168,7 @@ export function depaginate(lines) {
   if (!cleaned.length) return [];
   const out = [...cleaned[0]];
   for (let i = 1; i < cleaned.length; i++) {
-    if (!shouldJoinAcrossPage(out[out.length - 1], cleaned[i][0])) out.push('');
+    if (!shouldJoinAcrossPage(out[out.length - 1], cleaned[i][0], out[out.length - 2], cleaned[i][1])) out.push('');
     out.push(...cleaned[i]);
   }
   return out;
@@ -362,6 +386,20 @@ function hasArt(lines) {
   return lines.some((l) => ART_RE.test(l));
 }
 
+// 折り返した行を 1 行につなぐ。"human-" + "readable" のようにハイフンで折り返した語や、
+// "<http://example.com/" + "path>" のように途中で折り返した URL には空白を入れない
+// ("400-" + "and 500-level" のような語の省略は除く)
+function joinLines(texts) {
+  let out = '';
+  for (const t of texts) {
+    if (!t) continue;
+    if (!out) out = t;
+    else if ((/[A-Za-z0-9]-$/.test(out) && /^[A-Za-z0-9]/.test(t) && !/^(?:and|or|nor|to)\b/.test(t)) || /<https?:\/\/[^>\s]*$/.test(out)) out += t;
+    else out += ` ${t}`;
+  }
+  return out;
+}
+
 function stripListMarker(l) {
   const m = LIST_RE.exec(l);
   return m ? m[9] : l.trim();
@@ -382,6 +420,8 @@ function proseLike(lines) {
   const texts = lines.map((l) => l.trim());
   if (texts.some((t) => /[{}\\]|\s=\s|=\s*$|^\s*=|^[#%&]|^<[a-zA-Z/!?][^>]*>\s*$|^\.\.|\S {3,}\S|\|.*\|/.test(t))) return false;
   if (texts.some((t) => /[.:?!"')\]]/.test(t) ? /[^.:?!"')\]] {2}\S/.test(t) : /\S {2}\S/.test(t))) return false;
+  // 長くても単語の区切りがほとんどない行 (フォーム形式のリクエスト本文や base64 など) は文章ではない
+  if (texts.length > 1 && texts.filter((t) => t.split(/\s+/).length >= 4).length < texts.length / 2) return false;
   if (texts.length === 1) {
     const t = texts[0];
     return /^["'(A-Za-z\[]/.test(t) && /[.:;!?"')\]]$/.test(t) && /\s/.test(t) && !/^[A-Z][A-Z0-9_ -]+$/.test(t) && t.split(/\s+/).length >= 4;
@@ -391,16 +431,49 @@ function proseLike(lines) {
   return longEnough / body.length >= 0.7;
 }
 
+// 折り返された文章の行らしいか: 十分に長く、6 語以上で、ほとんどが英単語。
+// コメント行・ヘッダー行・列揃えの行・波括弧を含む行は除く
+function proseLine(t) {
+  if (t.length < 50 || /^(?:[;#*]|\/\/|\/\*|--)|^[A-Za-z][\w-]*:\s|^\w{1,3}\s+-\s|[{}]|\s[;=]\s|\S {3,}\S|[^.:?!"')\]] {2,}\S/.test(t)) return false;
+  const words = t.split(/\s+/);
+  if (words.length < 6) return false;
+  return words.filter((w) => /^[("'[]*[A-Za-z0-9][A-Za-z0-9'’.-]*[)"'\].,;:!?]*$/.test(w)).length / words.length >= 0.75;
+}
+
+// "#" や "\u30AF" のような記号を引用していても、大半の行が文章なら段落として扱う
+function wordy(lines) {
+  if (lines.length < 2 || RULE_HEAD_RE.test(lines[0])) return false;
+  const body = lines.slice(0, -1).map((l) => l.trim());
+  return body.filter(proseLine).length / body.length >= 0.6;
+}
+
 function shortLines(lines) {
   return lines.length >= 2 && lines.every((l) => l.trim().length <= 45);
 }
 
 const CODE_LINE_RE = /[=;{}<>\\|*%$#^~`]|\/|^\s*[A-Za-z][\w-]*:\s|^\s*[-+]?\d+\s*$|\(\)|[,;{]\s*$|\w\([^()]*\)\s*[,;.]?\s*$|0x[0-9A-Fa-f]+|^\s*(?:if|for|while|return|def|function|class|import|struct|int|void|var|let|const|enum|opaque|select|case)\b/;
+const RULE_HEAD_RE = /^\s*[A-Za-z][\w.-]*\s*(?:::=|:=|=\/|=)(?:\s|$)/;
+const HTTP_START_RE = /^(?:(?:GET|POST|PUT|DELETE|PATCH|HEAD|OPTIONS|CONNECT|TRACE)\s+(?:\/|\*|https?:\/\/)\S*(?:\s+HTTP\/\d(?:\.\d)?)?|HTTP\/\d(?:\.\d)?\s+\d{3}(?:\s.*)?)$/;
 
 // 短い行で構成されたブロックがコードらしいか (HTTP メッセージ例、ABNF、JSON など)
 function looksCode(lines) {
+  // 継続行を持つ ABNF / ASN.1 の規則 ("name := ..." の後に揃えた行が続く)
+  if (lines.length > 1 && RULE_HEAD_RE.test(lines[0])) return true;
   const hits = lines.filter((l) => CODE_LINE_RE.test(l.trim())).length;
   return hits / lines.length >= 0.5;
+}
+
+// 形だけでコードと分かるブロック: JSON、HTTP メッセージ、改行で区切った JWT などの長いトークン
+function codeShaped(lines) {
+  const texts = lines.map((l) => l.trim());
+  const first = texts[0];
+  if (/^[{[]\s*(?:$|["{[\d-]|true|false|null)/.test(first) && /[}\]][,;]?$/.test(texts[texts.length - 1]) && (texts.length > 1 || /"\s*:|^\[\s*[\d"]/.test(first))) return true;
+  if (HTTP_START_RE.test(first)) return true;
+  if (texts.every((t) => !/\s/.test(t) && /[\d_./:=+~%&?-]/.test(t))) {
+    const longest = Math.max(...texts.map((t) => t.length));
+    return texts.length > 1 ? longest >= 20 : longest >= 40;
+  }
+  return false;
 }
 
 function parseGridTable(lines) {
@@ -435,13 +508,27 @@ function parseGridTable(lines) {
         if (c) cells[ci].push(c);
       });
     }
-    return cells.map((c) => c.join(' '));
+    return cells.map(joinLines);
   };
-  const table = { header: [], rows: [] };
-  groups.forEach((grp) => {
-    if (!grp.lines.length) return;
-    (grp.sepAfter === '=' ? table.header : table.rows).push(toCells(grp.lines));
-  });
+  // 行ごとの区切り線がない古い形式の表: 1 列目が埋まっている行から新しい行を始め、空なら前の行の続きとする
+  const splitRows = (ls) => {
+    const out = [];
+    for (const l of ls) {
+      if (!out.length || l.slice(bounds[0] + 1, bounds[1]).trim()) out.push([l]);
+      else out[out.length - 1].push(l);
+    }
+    return out;
+  };
+  const filled = groups.filter((grp) => grp.lines.length);
+  let headGroups = filled.filter((grp) => grp.sepAfter === '=');
+  let bodyGroups = filled.filter((grp) => grp.sepAfter !== '=');
+  // 見出しの下と表の末尾にしか区切り線がない場合は、先頭の塊を見出しとみなす
+  if (!headGroups.length && bodyGroups.length === 2) {
+    headGroups = [bodyGroups[0]];
+    bodyGroups = [bodyGroups[1]];
+  }
+  const rowLines = bodyGroups.length === 1 ? splitRows(bodyGroups[0].lines) : bodyGroups.map((grp) => grp.lines);
+  const table = { header: headGroups.map((grp) => toCells(grp.lines)), rows: rowLines.map(toCells) };
   if (!table.header.length && !table.rows.length) return null;
   return table;
 }
@@ -471,6 +558,8 @@ function parseListBlock(block) {
     }
     if (cur && ind >= cur.contentIndent) {
       if (ind === cur.contentIndent && !cur.childLines.length && !LIST_RE.test(line)) cur.lead.push(line.trim());
+      // "2xx: Success - The action was ..." のように説明の位置に揃えた継続行
+      else if (!cur.childLines.length && /^[a-z]/.test(line.trim()) && !/[.:]$/.test(cur.lead[cur.lead.length - 1]) && !CODE_LINE_RE.test(line.trim())) cur.lead.push(line.trim());
       else cur.childLines.push(line);
       continue;
     }
@@ -538,9 +627,14 @@ function classifyBlock(block, ctx) {
   if ((m = REF_RE.exec(first)) && (ctx.inRefs || lines.length === 1 || lines.slice(1).every((l) => indentOf(l) > indent))) {
     if (ctx.inRefs || /^(RFC\s?\d+|BCP\d+|STD\d+|\d{1,3}|[A-Z][\w.+/-]*)$/.test(m[2])) {
       ctx.refTags.add(m[2]);
-      const text = [m[3], ...lines.slice(1).map((l) => l.trim())].join(' ');
+      const text = joinLines([m[3], ...lines.slice(1).map((l) => l.trim())]);
       return { type: 'ref', tag: m[2], text, indent };
     }
+  }
+  // タグが長くて 1 行を占め、書誌情報が次の行から字下げして続く参考文献 ("[IANA.Language]" など)
+  if (ctx.inRefs && lines.length > 1 && (m = /^\s*\[([^\]\s]{1,40})\]$/.exec(first)) && lines.slice(1).every((l) => indentOf(l) > indent)) {
+    ctx.refTags.add(m[1]);
+    return { type: 'ref', tag: m[1], text: joinLines(lines.slice(1).map((l) => l.trim())), indent };
   }
 
   if (LIST_RE.test(first)) {
@@ -554,12 +648,12 @@ function classifyBlock(block, ctx) {
         items: parsed.items.map((it) => ({
           marker: it.marker,
           contentIndent: it.contentIndent,
-          lead: it.lead.join(' '),
+          lead: joinLines(it.lead),
           children: it.childLines.length ? classifyAll(splitBlocks(it.childLines), { ...ctx, inToc: false }) : [],
         })),
       };
       list.items.forEach((it) => {
-        it.children = finalize(nestByIndent(it.children), ctx);
+        it.children = finalize(nestByIndent(it.children), ctx).map((c) => rebase(c, it.contentIndent));
       });
       if (parsed.rest) {
         const restBlock = classifyBlock({ start: block.start, lines: parsed.rest }, ctx);
@@ -569,23 +663,28 @@ function classifyBlock(block, ctx) {
     }
   }
 
+  if (!ctx.inAuthors && codeShaped(lines)) return { type: 'pre', kind: 'code', lines, indent };
+
   // 定義リスト風 ("用語:  説明" / 1 行目の後に深いインデントの説明が続く)
   const dl = matchDefinition(block, ctx, indent);
   if (dl) return dl;
 
   const deep = indent >= ctx.bodyIndent + 3;
-  if (!proseLike(lines)) {
+  if (!proseLike(lines) && (ctx.inAuthors || !wordy(lines))) {
     if (!ctx.inAuthors && (looksCode(lines) || columnar(lines))) return { type: 'pre', kind: 'code', lines, indent };
     if (deep || shortLines(lines) || ctx.inAuthors) return { type: 'lines', lines, indent, center: indent >= Math.max(12, ctx.bodyIndent + 6) };
   }
 
   return {
     type: 'para',
-    text: lines.map((l) => l.trim()).join(' '),
+    text: joinLines(lines.map((l) => l.trim())),
     indent,
     quote: indent >= ctx.bodyIndent + 3,
   };
 }
+
+// 用語の形をしたコードの断片 ("Validity ::= SEQUENCE {" / "Subject: This" など)
+const TERM_CODE_RE = /[{};=]|::=|\(\)|^\/[*/]|^(?:struct|enum|select|case|union)\b|^[\w-]+:\s+\S/;
 
 function matchDefinition(block, ctx, indent) {
   const lines = block.lines;
@@ -594,9 +693,12 @@ function matchDefinition(block, ctx, indent) {
   const restDeeper = rest.length > 0 && rest.every((l) => indentOf(l) > indent);
   if (rest.length && !restDeeper) return null;
   if (LIST_RE.test(lines[0]) || REF_RE.test(lines[0]) || CAPTION_RE.test(lines[0])) return null;
+  // 中央寄せのタイトルや図の一部は定義リストではない
+  if (rest.length && indent >= Math.max(12, ctx.bodyIndent + 6)) return null;
   let m;
   let term;
   let lead = '';
+  let tagged = false;
   if ((m = /^([A-Za-z0-9"'(\[][^:]{0,48}?):\s{2,}(\S.*)$/.exec(first)) && !/[.;]/.test(m[1])) {
     term = m[1];
     lead = m[2];
@@ -604,48 +706,75 @@ function matchDefinition(block, ctx, indent) {
     term = m[1];
   } else if (rest.length && first.length <= 50 && !/[.!?,;]$/.test(first) && !/\s{2,}/.test(first)) {
     term = first;
+  } else if (
+    // "TTL             a 32 bit signed integer ..." のように用語の右に説明を並べ、継続行を字下げする古い形式
+    (m = /^(\S+(?: \S+){0,3})\s{2,}(["'(A-Za-z].*)$/.exec(first)) && m[1].length <= 30 && !/[.,;:]$/.test(m[1]) &&
+    m[2].split(/\s+/).length >= 3 && (rest.length || /[.;]$/.test(m[2])) &&
+    ![m[2], ...rest.map((l) => l.trim())].some((t) => /[{}\\]|\s=\s|=\s*$|^=|\S {3,}\S|\|.*\|/.test(t))
+  ) {
+    term = m[1];
+    lead = m[2];
+    tagged = true;
   } else {
     return null;
   }
   if (!rest.length && !lead) return null;
+  if (TERM_CODE_RE.test(term) && !(rest.length && proseLike(rest))) return null;
+  // 説明の位置。空行の後に続く段落やリストも、ここより深ければ同じ項目の説明として扱う (nestByIndent)
+  const contentIndent = rest.length ? Math.min(...rest.map(indentOf)) : indent + 1;
   // 空行を挟まずに続く説明文は、そのまま lead に連結する (コードや入れ子リストなら構造解析に回す)
   const uniform = rest.every((l) => indentOf(l) === indentOf(rest[0]));
-  if (rest.length && uniform && !hasArt(rest) && !looksCode(rest) && !rest.some((l) => LIST_RE.test(l))) {
-    return { type: 'dl', items: [{ term, lead: [lead, ...rest.map((l) => l.trim())].filter(Boolean).join(' '), children: [] }], indent };
+  if (rest.length && uniform && !hasArt(rest) && (tagged || !looksCode(rest)) && !rest.some((l) => LIST_RE.test(l))) {
+    return { type: 'dl', items: [{ term, lead: joinLines([lead, ...rest.map((l) => l.trim())]), children: [], contentIndent }], indent };
   }
-  const children = rest.length ? finalize(nestByIndent(classifyAll(splitBlocks(rest), { ...ctx, inToc: false })), ctx) : [];
+  // 1 行だけの "用語  説明" は表の 1 行かもしれないので、元の行を残す (前後がコードなら finalize でコードに戻す)
+  if (tagged && !rest.length) return { type: 'dl', items: [{ term, lead, children: [], contentIndent, src: lines }], indent };
+  const children = rest.length ? finalize(nestByIndent(classifyAll(splitBlocks(rest), { ...ctx, inToc: false })), ctx).map((c) => rebase(c, contentIndent)) : [];
   // 説明部分が 1 つの段落なら lead に連結する
   if (children.length === 1 && children[0].type === 'para' && !lead) {
     lead = children[0].text;
     children.length = 0;
   } else if (children.length >= 1 && children[0].type === 'para' && lead) {
-    lead = `${lead} ${children[0].text}`;
+    lead = joinLines([lead, children[0].text]);
     children.shift();
   }
-  return { type: 'dl', items: [{ term, lead, children }], indent };
+  return { type: 'dl', items: [{ term, lead, children, contentIndent }], indent };
 }
 
-// 空行で区切られたブロック同士を、インデントに基づいてリスト項目の中へ入れ子にする
+// 項目の中へ入れたブロックの引用・中央寄せを、項目の本文位置を基準に判定し直す
+function rebase(b, contentIndent) {
+  if (b.type === 'para' || b.type === 'lines') {
+    b.center = !!b.center && b.indent >= Math.max(12, contentIndent + 6);
+    if (b.type === 'para') b.quote = !b.center && b.indent >= contentIndent + 3;
+  }
+  return b;
+}
+
+// 空行で区切られたブロック同士を、インデントに基づいてリスト・定義リストの項目の中へ入れ子にする
 function nestByIndent(blocks) {
   const out = [];
-  const stack = []; // 開いているリスト
-  const lastItem = (list) => list.items[list.items.length - 1];
+  const stack = []; // 開いているリスト・定義リスト
+  const lastItem = (c) => c.items[c.items.length - 1];
+  const addChild = (c, b) => {
+    const item = lastItem(c);
+    item.children.push(rebase(b, item.contentIndent));
+  };
   for (const b of blocks) {
     if (b.type === 'heading') {
       stack.length = 0;
       out.push(b);
       continue;
     }
-    if (b.type === 'list') {
-      while (stack.length && stack[stack.length - 1].markerIndent > b.markerIndent) stack.pop();
+    if (b.type === 'list' || b.type === 'dl') {
+      while (stack.length && stack[stack.length - 1].indent > b.indent) stack.pop();
       const top = stack[stack.length - 1];
-      if (top && top.markerIndent === b.markerIndent && top.ordered === b.ordered) {
+      if (top && top.type === b.type && top.indent === b.indent && top.ordered === b.ordered) {
         top.items.push(...b.items);
-        top.loose = true;
+        if (b.type === 'list') top.loose = true;
         continue;
       }
-      if (top && b.markerIndent >= lastItem(top).contentIndent) {
-        lastItem(top).children.push(b);
+      if (top && b.indent >= lastItem(top).contentIndent) {
+        addChild(top, b);
         stack.push(b);
         continue;
       }
@@ -656,7 +785,7 @@ function nestByIndent(blocks) {
     }
     while (stack.length && (b.indent ?? 0) < lastItem(stack[stack.length - 1]).contentIndent) stack.pop();
     if (stack.length && b.type !== 'tocraw') {
-      lastItem(stack[stack.length - 1]).children.push(b);
+      addChild(stack[stack.length - 1], b);
       continue;
     }
     out.push(b);
@@ -664,11 +793,19 @@ function nestByIndent(blocks) {
   return out;
 }
 
+const isCode = (b) => !!b && b.type === 'pre' && b.kind === 'code';
+// 1 行の "用語  説明" だけでできた定義リスト (表の行かもしれない)
+const rowLike = (b) => !!b && b.type === 'dl' && b.items.every((it) => it.src && !it.children.length);
+const rowsToCode = (b) => ({ type: 'pre', kind: 'code', lines: b.items.flatMap((it, i) => (i ? ['', ...it.src] : it.src)), indent: b.indent });
+
 // 隣接ブロックの結合 (参考文献・定義リスト) とキャプションの図への紐付け
 function finalize(blocks, ctx) {
   const out = [];
-  for (const b of blocks) {
-    const prev = out[out.length - 1];
+  for (let b of blocks) {
+    let prev = out[out.length - 1];
+    // 列揃えのコードに挟まれた 1 行の "用語  説明" は、表の一部としてコードに戻す
+    if (rowLike(b) && isCode(prev) && prev.indent === b.indent) b = rowsToCode(b);
+    else if (isCode(b) && rowLike(prev) && prev.indent === b.indent) out[out.length - 1] = prev = rowsToCode(prev);
     if (b.type === 'ref') {
       if (prev && prev.type === 'refs') prev.items.push(b);
       else out.push({ type: 'refs', items: [b], indent: b.indent });
@@ -678,8 +815,12 @@ function finalize(blocks, ctx) {
       prev.items.push(...b.items);
       continue;
     }
-    // 空行で区切られた連続するコードブロック (ABNF の規則など) は 1 つにまとめる
-    if (b.type === 'pre' && b.kind === 'code' && prev && prev.type === 'pre' && prev.kind === 'code' && prev.indent === b.indent && !prev.caption) {
+    // 空行で区切られた連続するコードブロック (ABNF の規則、HTTP のヘッダーと本文など) は 1 つにまとめる。
+    // 本文の継続行だけが浅い位置にあることもあるので、先頭行の位置が揃っていれば同じ例とみなす
+    if (
+      isCode(b) && isCode(prev) && !prev.caption &&
+      (prev.indent === b.indent || indentOf(prev.lines[0]) === indentOf(b.lines[0]))
+    ) {
       prev.lines.push('', ...b.lines);
       continue;
     }
