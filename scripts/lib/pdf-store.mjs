@@ -2,7 +2,8 @@
 // CLI (fetch-pdf.mjs / issue-command.mjs) とテストの両方から使う。
 //
 // pdfs/index.json には保存した PDF を新しい順に載せる:
-//   { file: 'arxiv-1706.03762.pdf', title, pages, size, sha256, url: 元の URL (ファイルとして保存したものは '') }
+//   { file: 'arxiv-1706.03762.pdf', title, pages, size, sha256, url: 元の URL (ファイルとして保存したものは ''),
+//     translations?: { ja: 訳した題名 } (pdfs/ja/ に日本語訳があるとき。reindex で付ける) }
 // アプリは url (無ければ sha256 の先頭 16 桁 = ファイルとして開いたときのキー) で保存済みかどうかを判定する。
 import { readFileSync, writeFileSync, readdirSync, mkdirSync, existsSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
@@ -12,6 +13,7 @@ import { repoRoot, USER_AGENT } from './rfc-store.mjs';
 import { extractPdf } from '../../src/pdf-extract.js';
 import { layoutPdf } from '../../src/pdf-layout.js';
 import { normalizePdfInput } from '../../src/pdf-reader.js';
+import { translationTitles } from './translation-index.mjs';
 
 export const defaultPdfDir = join(repoRoot, 'pdfs');
 // GitHub は 50 MB を超えるファイルの push に警告を出す (100 MB で拒否する)
@@ -237,9 +239,18 @@ export async function reindexPdfs({ dir = defaultPdfDir, log = () => {} } = {}) 
     if (prev) current.set(file, entry);
     else fresh.push(entry);
   }
-  const list = [...fresh, ...old.filter((e) => current.has(e.file)).map((e) => current.get(e.file))];
+  const list = [...fresh, ...old.filter((e) => current.has(e.file)).map((e) => current.get(e.file))].map((e) => withTranslations(dir, e));
   writePdfIndex(dir, list);
   return list;
+}
+
+// 日本語訳 (pdfs/ja/<SHA-256 の先頭 16 文字>.json) があれば、訳した題名を translations に載せる
+function withTranslations(dir, entry) {
+  const out = { ...entry };
+  delete out.translations;
+  const translations = entry.sha256 ? translationTitles(dir, `${entry.sha256.slice(0, 16)}.json`, entry.title) : {};
+  if (Object.keys(translations).length) out.translations = translations;
+  return out;
 }
 
 // ---------- Issue のコマンド ----------

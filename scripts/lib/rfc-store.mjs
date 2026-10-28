@@ -4,6 +4,7 @@ import { readFileSync, writeFileSync, readdirSync, mkdirSync, existsSync, unlink
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseRfc } from '../../src/rfc-parser.js';
+import { translationTitles } from './translation-index.mjs';
 
 export const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 export const defaultDir = join(repoRoot, 'rfcs');
@@ -51,7 +52,11 @@ export function reindex(dir = defaultDir) {
   mkdirSync(dir, { recursive: true });
   const list = listStored(dir).map((number) => {
     const doc = parseRfc(readFileSync(join(dir, `rfc${number}.txt`), 'utf8'), { number });
-    return { number, title: doc.meta.title, date: doc.meta.date || '', category: doc.meta.category || '' };
+    const entry = { number, title: doc.meta.title, date: doc.meta.date || '', category: doc.meta.category || '' };
+    // 日本語訳 (rfcs/ja/rfcNNNN.json) があれば、訳した題名を載せる
+    const translations = translationTitles(dir, `rfc${number}.json`, doc.meta.title);
+    if (Object.keys(translations).length) entry.translations = translations;
+    return entry;
   });
   writeFileSync(join(dir, 'index.json'), `${JSON.stringify(list, null, 2)}\n`);
   return list;

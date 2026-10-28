@@ -1,6 +1,7 @@
 import { parseRfc } from './rfc-parser.js';
 import { renderDocument } from './render.js';
-import { normalizePdfInput, openPdf, renderRegions, pdfStore, fileKey, findStoredPdf, storedPdfKey, storedPdfPath } from './pdf-reader.js';
+import { normalizePdfInput, openPdf, createRegionRenderer, completePdfMeta, sha256Hex, pdfStore, fileKey, findStoredPdf, storedPdfKey, storedPdfPath } from './pdf-reader.js';
+import { parseTranslation, applyTranslation, makeTemplate, stringifyTranslation, rfcTranslationPath, pdfTranslationPath } from './translation.js';
 
 const SETTINGS_KEY = 'rfcreader:settings';
 const RECENT_KEY = 'rfcreader:recent';
@@ -58,8 +59,10 @@ const els = {
   home: $('#home'),
   doc: $('#doc'),
   status: $('#status'),
+  topbar: $('.topbar'),
   barTitle: $('#bar-title'),
   btnHome: $('#btn-home'),
+  btnLang: $('#btn-lang'),
   btnToc: $('#btn-toc'),
   btnSettings: $('#btn-settings'),
   progress: $('#progress'),
@@ -81,7 +84,8 @@ const els = {
 };
 
 // ---------- 設定 ----------
-const defaults = { fs: 17, theme: 'system', wrap: true, source: '' };
+// lang: 日本語訳がある文書を開いたときの表示 (orig: 原文 / ja: 日本語訳)。閲覧画面で切り替えると、最後に選んだほうになる
+const defaults = { fs: 17, theme: 'system', wrap: true, source: '', lang: 'orig' };
 let settings = { ...defaults };
 try {
   settings = { ...defaults, ...JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}') };
@@ -105,6 +109,7 @@ function applySettings() {
   els.fsOut.textContent = `${settings.fs}px`;
   document.querySelectorAll('#theme-seg button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.theme === settings.theme)));
   document.querySelectorAll('#wrap-seg button').forEach((b) => b.setAttribute('aria-pressed', String((b.dataset.wrap === 'on') === settings.wrap)));
+  document.querySelectorAll('#lang-seg button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.lang === settings.lang)));
   els.sourceInput.value = settings.source || '';
 }
 
@@ -131,6 +136,15 @@ $('#wrap-seg').addEventListener('click', (e) => {
   settings.wrap = b.dataset.wrap === 'on';
   saveSettings();
   applySettings();
+});
+$('#lang-seg').addEventListener('click', (e) => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  settings.lang = b.dataset.lang === 'ja' ? 'ja' : 'orig';
+  saveSettings();
+  applySettings();
+  // 日本語訳のある文書を開いていれば、その場で切り替える
+  if (current?.tr?.ja) setLang(settings.lang);
 });
 els.sourceInput.addEventListener('change', () => {
   settings.source = els.sourceInput.value.trim();
@@ -174,6 +188,12 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') closeDrawers();
 });
 els.btnToc.addEventListener('click', () => openDrawer(els.tocDrawer));
+els.btnToc.addEventListener('click', () => {
+  // いま読んでいる節を目次の中で示す
+  markCurrentHeading();
+  const cur = els.tocBody.querySelector('a.current');
+  if (cur) cur.scrollIntoView({ block: 'center' });
+});
 els.btnSettings.addEventListener('click', () => openDrawer(els.settingsDrawer));
 els.tocBody.addEventListener('click', (e) => {
   if (e.target.closest('a')) closeDrawers();
@@ -225,6 +245,33 @@ async function fetchRfcInfo(n) {
     return await res.json();
   } catch {
     return null;
+  }
+}
+
+// GitHub に置いた翻訳ファイル (rfcs/ja/rfcNNNN.json、pdfs/ja/<ID>.json)。
+// 無ければ null、あるのに読めなければ { path, error } (画面にエラーを出して原文を表示する)
+async function fetchTranslation(path) {
+  let text;
+  try {
+    // 置き換えたらすぐ反映されるよう、HTTP キャッシュに頼らずサーバーに確認する
+    const res = await fetch(path, { cache: 'no-cache' });
+    if (!res.ok) return null;
+    text = await res.text();
+  } catch {
+    return null;
+  }
+  // 存在しないファイルにも HTML (トップページなど) を返すサーバーでは、翻訳なしとみなす
+  if (/^\s*</.test(text)) return null;
+  let json;
+  try {
+    json = JSON.parse(text);
+  } catch (e) {
+    return { path, error: `JSON の書き方に誤りがあります (${e.message})` };
+  }
+  try {
+    return { path, data: parseTranslation(json) };
+  } catch (e) {
+    return { path, error: e.message };
   }
 }
 
@@ -289,17 +336,20 @@ const hostOf = (url) => {
     return '';
   }
 };
+// 一覧の項目に日本語訳があれば印を付け、日本語訳で読む設定なら訳した題名を出す (translations.ja は訳した題名。未訳なら空文字)
+const trTag = (e) => (typeof e.translations?.ja === 'string' ? '<span class="tag">日本語訳</span>' : '');
+const listTitle = (e, title) => (settings.lang === 'ja' && e.translations?.ja ? e.translations.ja : title);
 async function renderStored() {
   const [rfcs, pdfs] = await Promise.all([fetchIndex('rfcs/index.json'), fetchIndex('pdfs/index.json')]);
   const items = [
     ...rfcs.map(
       (r) =>
-        `<li><a href="?rfc=${r.number}" data-rfc="${r.number}"><span class="num">RFC ${r.number}</span><span class="ttl">${escapeHtml(r.title || '')}</span>${r.date ? `<span class="when">${escapeHtml(r.date)}</span>` : ''}</a></li>`,
+        `<li><a href="?rfc=${r.number}" data-rfc="${r.number}"><span class="num">RFC ${r.number}</span>${trTag(r)}<span class="ttl">${escapeHtml(listTitle(r, r.title || ''))}</span>${r.date ? `<span class="when">${escapeHtml(r.date)}</span>` : ''}</a></li>`,
     ),
     ...pdfs.map((p) => {
       const key = storedPdfKey(p);
       const sub = [p.url ? hostOf(p.url) : '', p.pages ? `${p.pages} ページ` : ''].filter(Boolean).join(' ・ ');
-      return `<li><a href="?pdf=${encodeURIComponent(key)}" data-pdf="${escapeHtml(key)}"><span class="num">PDF</span><span class="ttl">${escapeHtml(p.title || p.file)}</span>${sub ? `<span class="when">${escapeHtml(sub)}</span>` : ''}</a></li>`;
+      return `<li><a href="?pdf=${encodeURIComponent(key)}" data-pdf="${escapeHtml(key)}"><span class="num">PDF</span>${trTag(p)}<span class="ttl">${escapeHtml(listTitle(p, p.title || p.file))}</span>${sub ? `<span class="when">${escapeHtml(sub)}</span>` : ''}</a></li>`;
     }),
   ];
   els.storedWrap.hidden = !items.length;
@@ -307,16 +357,24 @@ async function renderStored() {
 }
 
 // ---------- 画面遷移 ----------
-let current = null; // { n?, pdfKey?, doc, posKey, cleanup? }
+// current: 表示中の文書
+//   { kind: 'rfc' | 'pdf', n? | pdfKey?, doc (原文の構造), tr (翻訳: { path, data, ja: { doc, total, translated }, error }),
+//     lang ('orig' | 'ja'), posKey, notices, regions?, cleanup?, ... }
+let current = null;
+let loadToken = null; // 後から開いた文書が先に表示されないよう、読み込みごとに作り直す
 let headingObserver = null;
+let markCurrentHeading = () => {};
 
 function leaveDocument() {
   current?.cleanup?.();
   current = null;
+  anchorCache = null;
+  els.btnLang.hidden = true;
 }
 
 function showHome() {
   leaveDocument();
+  loadToken = null;
   els.doc.hidden = true;
   els.doc.innerHTML = '';
   els.home.hidden = false;
@@ -331,43 +389,49 @@ function showHome() {
   if (headingObserver) headingObserver.disconnect();
 }
 
-async function showRfc(n, { hash = '', restore = true } = {}) {
-  if (!Number.isInteger(n) || n <= 0 || n > 99999) {
-    showStatus('RFC 番号は 1 〜 99999 の整数で指定してください。', { error: true });
-    return;
-  }
+function startLoading(label, message) {
   leaveDocument();
   els.home.hidden = true;
   els.doc.hidden = true;
   els.doc.innerHTML = '';
   els.btnToc.hidden = true;
-  els.barTitle.innerHTML = `<small>RFC ${n}</small>`;
-  document.title = `RFC ${n} - RFC Reader`;
-  showStatus(`<span class="spinner"></span>RFC ${n} を取得しています…`);
-  const token = (showRfc.token = Symbol('load'));
+  els.barTitle.innerHTML = `<small>${label}</small>`;
+  document.title = `${label} - RFC Reader`;
+  showStatus(`<span class="spinner"></span>${message}`);
+  loadToken = Symbol('load');
+  return loadToken;
+}
+
+async function showRfc(n, { hash = '', restore = true, lang = null } = {}) {
+  if (!Number.isInteger(n) || n <= 0 || n > 99999) {
+    showStatus('RFC 番号は 1 〜 99999 の整数で指定してください。', { error: true });
+    return;
+  }
+  const token = startLoading(`RFC ${n}`, `RFC ${n} を取得しています…`);
+  const stale = () => loadToken !== token;
+  // 日本語訳は本文と並行して取りに行く
+  const trPromise = fetchTranslation(rfcTranslationPath(n));
   let result;
   try {
     result = await fetchRfcText(n, (src) => {
-      if (showRfc.token !== token) return;
+      if (stale()) return;
       showStatus(`<span class="spinner"></span>RFC ${n} を取得しています… <small>(${escapeHtml(src.name)})</small>`);
     });
   } catch (e) {
-    if (showRfc.token !== token) return;
+    if (stale()) return;
     showStatus(`<strong>RFC ${n} を読み込めませんでした。</strong>`, {
       error: true,
       details: e.details || [e.message],
       actions: `${REPO ? `<a class="btn" href="${escapeHtml(saveIssueUrl(n))}" target="_blank" rel="noopener">GitHub に保存して読む</a>` : ''}<a class="btn secondary" href="https://www.rfc-editor.org/rfc/rfc${n}.html" target="_blank" rel="noopener">rfc-editor.org で開く</a><button class="btn secondary" id="retry">再試行</button>${REPO ? '<p class="help">「GitHub に保存して読む」は Issue の作成画面を開きます。送信すると GitHub Actions が本文を取得して保存するので、数分後にこのページを再読み込みしてください。</p>' : ''}`,
     });
-    $('#retry')?.addEventListener('click', () => showRfc(n, { hash, restore }));
+    $('#retry')?.addEventListener('click', () => showRfc(n, { hash, restore, lang }));
     return;
   }
-  if (showRfc.token !== token) return;
+  if (stale()) return;
 
   let doc;
-  let rendered;
   try {
     doc = parseRfc(result.text, { number: n });
-    rendered = renderDocument(doc, { rfcHref: (num, frag) => `?rfc=${num}${frag ? `#${frag}` : ''}` });
   } catch (e) {
     console.error(e);
     showStatus(`<strong>表示の変換に失敗しました。</strong> ${escapeHtml(e.message)}`, {
@@ -376,31 +440,18 @@ async function showRfc(n, { hash = '', restore = true } = {}) {
     });
     return;
   }
-  hideStatus();
-  current = { n, doc, posKey: POS_PREFIX + n };
-  els.doc.innerHTML = `${rendered.html}<footer class="docfoot">取得元: ${escapeHtml(result.source.name)} ・ <a href="https://www.rfc-editor.org/rfc/rfc${n}.html" target="_blank" rel="noopener">rfc-editor.org の原文</a><a href="https://www.rfc-editor.org/rfc/rfc${n}.txt" target="_blank" rel="noopener">テキスト版</a><a href="https://datatracker.ietf.org/doc/rfc${n}/" target="_blank" rel="noopener">Datatracker</a></footer>`;
-  els.doc.hidden = false;
-  const shortTitle = doc.meta.title && doc.meta.title !== `RFC ${n}` ? doc.meta.title : '';
-  els.barTitle.innerHTML = `<small>RFC ${n}</small>${escapeHtml(shortTitle)}`;
-  document.title = `RFC ${n}${shortTitle ? `: ${shortTitle}` : ''} - RFC Reader`;
-  const actions = document.createElement('p');
-  actions.className = 'doc-actions';
-  if (result.source.local) {
-    actions.innerHTML = '<span class="stored-badge">GitHub に保存済み</span>';
-  } else if (REPO) {
-    actions.innerHTML = `<a class="btn small" id="save-github" href="${escapeHtml(saveIssueUrl(n))}" target="_blank" rel="noopener">GitHub に保存</a><span class="hint">Issue の作成画面が開きます。送信すると GitHub Actions が本文を rfcs/ に保存します。</span>`;
+  const tr = await trPromise;
+  if (stale()) return;
+  current = { kind: 'rfc', n, doc, source: result.source, posKey: POS_PREFIX + n, notices: '' };
+  prepareTranslation(current, tr, lang);
+  if (!present({ hash, restore })) {
+    leaveDocument();
+    return;
   }
-  if (actions.innerHTML) els.doc.querySelector('.rfc-head .status-slot')?.before(actions);
-  els.tocBody.innerHTML = rendered.tocHtml || '<p class="empty">見出しを検出できませんでした。</p>';
-  els.btnToc.hidden = false;
-  pushRecent({ n, title: shortTitle });
-  observeHeadings();
-  restoreScroll(hash, restore);
+  pushRecent(recentEntry());
 
   fetchRfcInfo(n).then((info) => {
     if (!info || !current || current.n !== n) return;
-    const slot = els.doc.querySelector('[data-status-slot]');
-    if (!slot) return;
     const nums = (arr) => (Array.isArray(arr) ? arr.map((s) => String(s).replace(/\D/g, '')).filter(Boolean) : []);
     const links = (arr) => arr.map((x) => `<a href="?rfc=${x}" data-rfc="${x}">RFC ${x}</a>`).join(', ');
     const obsBy = nums(info.obsoleted_by);
@@ -409,8 +460,281 @@ async function showRfc(n, { hash = '', restore = true } = {}) {
     if (obsBy.length) parts.push(`<div class="notice warn">この RFC は ${links(obsBy)} によって廃止 (obsoleted) されています。</div>`);
     if (updBy.length) parts.push(`<div class="notice">この RFC は ${links(updBy)} によって更新 (updated) されています。</div>`);
     if (info.errata_url && info.errata_url !== '') parts.push(`<div class="notice"><a href="${escapeHtml(info.errata_url)}" target="_blank" rel="noopener">正誤表 (Errata) があります</a></div>`);
-    slot.innerHTML = parts.join('');
+    current.notices = parts.join('');
+    fillNotices();
   });
+}
+
+// ---------- 日本語訳 ----------
+function prepareTranslation(cur, tr, lang) {
+  cur.tr = tr ? { path: tr.path, data: tr.data || null, ja: null, error: tr.error || '' } : null;
+  if (cur.tr?.data) {
+    try {
+      cur.tr.ja = applyTranslation(cur.doc, cur.tr.data);
+    } catch (e) {
+      console.error(e);
+      cur.tr.error = `訳文を当てはめられませんでした (${e.message})`;
+    }
+  }
+  cur.lang = cur.tr?.ja && (lang || settings.lang) === 'ja' ? 'ja' : 'orig';
+}
+
+function translationPathOf(cur) {
+  if (cur.kind === 'rfc') return rfcTranslationPath(cur.n);
+  return cur.pdfId ? pdfTranslationPath(cur.pdfId) : '';
+}
+
+// 原文と日本語訳を切り替える。構造が同じなので、読んでいた位置の要素に合わせて表示し直す
+function setLang(lang) {
+  if (!current?.tr?.ja) return;
+  lang = lang === 'ja' ? 'ja' : 'orig';
+  // 次に日本語訳のある文書を開いたときも、最後に選んだほうで表示する
+  settings.lang = lang;
+  saveSettings();
+  applySettings();
+  if (current.lang === lang) return;
+  const anchor = readingAnchor();
+  current.lang = lang;
+  dropLangParam();
+  present({ anchor });
+  pushRecent(recentEntry());
+}
+
+// URL の lang (?rfc=7591&lang=ja) はその表示だけの指定。切り替えたら外して、以後は設定に従う
+function dropLangParam() {
+  const u = new URL(location.href);
+  if (!u.searchParams.has('lang')) return;
+  u.searchParams.delete('lang');
+  history.replaceState(history.state, '', `${u.pathname}${u.search}${u.hash}`);
+}
+
+function updateLangButton() {
+  const has = !!current?.tr?.ja;
+  els.btnLang.hidden = !has;
+  if (!has) return;
+  const ja = current.lang === 'ja';
+  const label = ja ? '原文に切り替え' : '日本語訳に切り替え';
+  els.btnLang.textContent = ja ? '原文' : '日本語';
+  els.btnLang.setAttribute('aria-label', label);
+  els.btnLang.title = label;
+}
+els.btnLang.addEventListener('click', () => setLang(current?.lang === 'ja' ? 'orig' : 'ja'));
+
+// 翻訳ファイルのひな形 (原文の文字列ごとに訳文を書き込む欄) を書き出す。既存の訳文は引き継ぐ
+function exportTranslation() {
+  const cur = current;
+  const path = cur && translationPathOf(cur);
+  if (!path) return;
+  const meta = cur.doc.meta;
+  const source =
+    cur.kind === 'rfc'
+      ? { type: 'rfc', number: cur.n, title: meta.title || '' }
+      : { type: 'pdf', id: cur.pdfId, sha256: cur.sha256, name: cur.name, ...(cur.url ? { url: cur.url } : {}), title: meta.title || '', pages: meta.pages };
+  const text = stringifyTranslation(makeTemplate(cur.doc, { source, previous: cur.tr?.data || null }));
+  const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = path.split('/').pop();
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+}
+
+// ---------- 表示 ----------
+function shownTitle() {
+  const doc = current.lang === 'ja' ? current.tr.ja.doc : current.doc;
+  const title = doc.meta.title || '';
+  return current.kind === 'rfc' && title === `RFC ${current.n}` ? '' : title;
+}
+
+function recentEntry() {
+  return current.kind === 'rfc' ? { n: current.n, title: shownTitle() } : { pdf: current.pdfKey, title: shownTitle() };
+}
+
+function headActionsHtml(cur) {
+  let html = '';
+  if (cur.kind === 'rfc') {
+    if (cur.source.local) html += '<p class="doc-actions"><span class="stored-badge">GitHub に保存済み</span></p>';
+    else if (REPO) html += `<p class="doc-actions"><a class="btn small" id="save-github" href="${escapeHtml(saveIssueUrl(cur.n))}" target="_blank" rel="noopener">GitHub に保存</a><span class="hint">Issue の作成画面が開きます。送信すると GitHub Actions が本文を rfcs/ に保存します。</span></p>`;
+  } else {
+    const actions = pdfActions(cur.pdfKey, cur.stored, cur.name);
+    if (actions) html += `<p class="doc-actions">${actions}</p>`;
+  }
+  if (cur.tr?.ja) {
+    const { total, translated } = cur.tr.ja;
+    const hints = [];
+    if (translated < total) hints.push(`翻訳済み ${Math.floor((translated / total) * 100)}%。訳文のない部分は原文のまま表示します。`);
+    if (cur.tr.data.note) hints.push(escapeHtml(cur.tr.data.note));
+    const buttons = [
+      ['orig', '原文'],
+      ['ja', '日本語訳'],
+    ].map(([l, label]) => `<button type="button" data-lang="${l}" aria-pressed="${cur.lang === l}">${label}</button>`);
+    html += `<div class="lang-switch"><div class="seg" role="group" aria-label="表示する言語">${buttons.join('')}</div>${hints.length ? `<p class="hint">${hints.join(' ')}</p>` : ''}</div>`;
+  }
+  return html;
+}
+
+function translationFootHtml(cur) {
+  const path = translationPathOf(cur);
+  if (!path) return '';
+  const code = `<code>${escapeHtml(path)}</code>`;
+  // GitHub 上にあるファイルは、編集できるよう GitHub の画面へのリンクにする
+  const file = cur.tr && REPO ? `<a href="https://github.com/${REPO}/blob/main/${escapeHtml(path)}" target="_blank" rel="noopener">${code}</a>` : code;
+  const label = cur.tr?.data ? '日本語訳' : cur.tr ? '日本語訳のファイル (読み込めません)' : '日本語訳のファイル (未作成)';
+  return `<p class="tr-foot">${label}: ${file}<button type="button" class="linkbtn" id="export-translation">翻訳用ファイル (JSON) を書き出す</button></p><p class="hint">書き出したファイルの "dst" に "src" (原文) の訳文を書き込み、GitHub の ${code} に置くと、原文と日本語訳を切り替えて読めます。</p>`;
+}
+
+function footerHtml(cur) {
+  let html;
+  if (cur.kind === 'rfc') {
+    const n = cur.n;
+    html = `取得元: ${escapeHtml(cur.source.name)} ・ <a href="https://www.rfc-editor.org/rfc/rfc${n}.html" target="_blank" rel="noopener">rfc-editor.org の原文</a><a href="https://www.rfc-editor.org/rfc/rfc${n}.txt" target="_blank" rel="noopener">テキスト版</a><a href="https://datatracker.ietf.org/doc/rfc${n}/" target="_blank" rel="noopener">Datatracker</a>`;
+  } else {
+    const origin = cur.github
+      ? `取得元: GitHub に保存した PDF (<a href="${escapeHtml(storedPdfPath(cur.github))}" target="_blank" rel="noopener">pdfs/${escapeHtml(cur.github.file)}</a>)${cur.url ? ` ・ <a href="${escapeHtml(cur.url)}" target="_blank" rel="noopener">元の URL</a>` : ''}`
+      : cur.url
+        ? `取得元: <a href="${escapeHtml(cur.url)}" target="_blank" rel="noopener">${escapeHtml(cur.url)}</a>`
+        : `端末のファイル: ${escapeHtml(cur.name)} ・ <a href="#" id="open-original">元の PDF を開く</a>`;
+    html = `${origin}<p class="hint">PDF の文字の位置から自動で組み直した表示です。図・表・数式はページから切り出した画像で、タップすると拡大します。崩れている箇所は元の PDF を参照してください。</p>`;
+  }
+  return html + translationFootHtml(cur);
+}
+
+// rfc-editor.org の廃止・更新情報と、翻訳ファイルを読めなかったときの案内
+function fillNotices() {
+  const slot = els.doc.querySelector('[data-status-slot]');
+  if (!slot || !current) return;
+  const trError = current.tr?.error ? `<div class="notice warn">日本語訳のファイル (${escapeHtml(current.tr.path)}) を読み込めなかったため、原文を表示しています: ${escapeHtml(current.tr.error)}</div>` : '';
+  slot.innerHTML = trError + (current.notices || '');
+}
+
+// current を表示する (開いたとき・原文と日本語訳を切り替えたとき)。
+// anchor を渡すとその位置 (readingAnchor) へ、渡さなければ hash の位置か前回の位置へ移る
+function present({ hash = '', restore = true, anchor } = {}) {
+  const cur = current;
+  const ja = cur.lang === 'ja' ? cur.tr.ja : null;
+  const doc = ja ? ja.doc : cur.doc;
+  let rendered;
+  try {
+    rendered = renderDocument(doc, { rfcHref: (num, frag) => `?rfc=${num}${frag ? `#${frag}` : ''}` });
+  } catch (e) {
+    console.error(e);
+    showStatus(`<strong>表示の変換に失敗しました。</strong> ${escapeHtml(e.message)}`, {
+      error: true,
+      actions: cur.kind === 'rfc' ? `<a class="btn secondary" href="https://www.rfc-editor.org/rfc/rfc${cur.n}.html" target="_blank" rel="noopener">rfc-editor.org で開く</a>` : '',
+    });
+    return false;
+  }
+  hideStatus();
+  if (ja) els.doc.lang = cur.tr.data.lang;
+  else if (cur.kind === 'rfc') els.doc.lang = 'en';
+  else els.doc.removeAttribute('lang');
+  els.doc.innerHTML = `${rendered.html}<footer class="docfoot">${footerHtml(cur)}</footer>`;
+  els.doc.hidden = false;
+  anchorCache = null;
+  els.doc.querySelector('.rfc-head .status-slot')?.insertAdjacentHTML('beforebegin', headActionsHtml(cur));
+  fillNotices();
+  const title = shownTitle();
+  if (cur.kind === 'rfc') {
+    els.barTitle.innerHTML = `<small>RFC ${cur.n}</small>${escapeHtml(title)}`;
+    document.title = `RFC ${cur.n}${title ? `: ${title}` : ''} - RFC Reader`;
+  } else {
+    els.barTitle.innerHTML = `<small>PDF</small>${escapeHtml(title)}`;
+    document.title = `${title} - RFC Reader`;
+  }
+  els.tocBody.innerHTML = rendered.tocHtml || '<p class="empty">見出しを検出できませんでした。</p>';
+  els.btnToc.hidden = false;
+  updateLangButton();
+  cur.regions?.attach(els.doc);
+  observeHeadings();
+  if (anchor !== undefined) {
+    requestAnimationFrame(() => {
+      restoreAnchor(anchor);
+      updateProgress();
+    });
+  } else restoreScroll(hash, restore);
+  return true;
+}
+
+els.doc.addEventListener('click', (e) => {
+  const lb = e.target.closest('.lang-switch [data-lang]');
+  if (lb) {
+    setLang(lb.dataset.lang);
+    return;
+  }
+  if (e.target.closest('#export-translation')) {
+    exportTranslation();
+    return;
+  }
+  if (e.target.closest('#open-original')) {
+    e.preventDefault();
+    current?.openOriginal?.();
+  }
+});
+
+// ---------- 読んでいる位置 ----------
+// 原文と日本語訳は同じ構造なので、「何番目の段落 (見出し・行・セル…) の何割の位置か」で対応づける。
+// 文字サイズを変えた後や、前回と違う言語で開いたときも同じ箇所に戻れる
+const ANCHOR_SEL = ['.rfc-head', ...['h2', 'h3', 'h4', 'h5', 'h6', 'p', 'pre', 'li', 'dt', 'dd', 'tr', 'figcaption', '.pdf-region'].map((s) => `.rfc-body ${s}`)].join(', ');
+let anchorCache = null;
+function anchorElements() {
+  if (!anchorCache) anchorCache = [...els.doc.querySelectorAll(ANCHOR_SEL)].filter((el) => !el.closest('.toc-inline'));
+  return anchorCache;
+}
+const viewTop = () => els.topbar.getBoundingClientRect().bottom;
+
+// 画面の上端 (トップバーの下) にある要素とその中の位置。先頭にいるときは null
+function readingAnchor() {
+  const list = anchorElements();
+  if (!list.length || window.scrollY < 1) return null;
+  const top = viewTop();
+  // 文書の順に並んだ要素の上端は単調に増えるので、二分探索で上端が画面の上端より上にある最後の要素を探す
+  let lo = 0;
+  let hi = list.length - 1;
+  let idx = -1;
+  while (lo <= hi) {
+    const mid = (lo + hi) >> 1;
+    if (list[mid].getBoundingClientRect().top <= top) {
+      idx = mid;
+      lo = mid + 1;
+    } else hi = mid - 1;
+  }
+  if (idx < 0) return null;
+  // その要素が既に終わっていれば、まだ続いている外側の要素 (箇条書きの項目など) を使う
+  let i = idx;
+  for (let k = idx; k >= Math.max(0, idx - 40); k--) {
+    if (list[k].getBoundingClientRect().bottom > top) {
+      i = k;
+      break;
+    }
+  }
+  const r = list[i].getBoundingClientRect();
+  const f = r.height > 0 ? Math.min(1, Math.max(0, (top - r.top) / r.height)) : 0;
+  return { i, f: Math.round(f * 1000) / 1000 };
+}
+
+function restoreAnchor(anchor) {
+  const list = anchorElements();
+  const el = anchor && list[Math.min(anchor.i, list.length - 1)];
+  if (!el) {
+    window.scrollTo(0, 0);
+    return;
+  }
+  const r = el.getBoundingClientRect();
+  window.scrollTo(0, Math.max(0, window.scrollY + r.top - viewTop() + (anchor.f || 0) * r.height));
+}
+
+function savedPosition(key) {
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return null;
+    // 以前の形式 (スクロール量の数値だけ)
+    if (/^\d+$/.test(raw)) return { y: Number(raw) };
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
 }
 
 // スクロール位置: ハッシュがあればそこへ、なければ前回位置へ
@@ -421,8 +745,10 @@ function restoreScroll(hash, restore) {
       if (target) target.scrollIntoView();
       else window.scrollTo(0, 0);
     } else if (restore && current) {
-      const pos = Number(localStorage.getItem(current.posKey) || 0);
-      window.scrollTo(0, pos);
+      const pos = savedPosition(current.posKey);
+      // 前回と違う言語・文字サイズで開いても同じ箇所に戻れるよう、要素の位置を優先する
+      if (pos && pos.i !== undefined) restoreAnchor(pos);
+      else window.scrollTo(0, pos ? Number(pos.y) || 0 : 0);
     } else {
       window.scrollTo(0, 0);
     }
@@ -479,29 +805,28 @@ async function loadPdfBytes(key, storedP) {
   return { bytes, name, url };
 }
 
-async function showPdf(key, { hash = '', restore = true } = {}) {
-  leaveDocument();
-  els.home.hidden = true;
-  els.doc.hidden = true;
-  els.doc.innerHTML = '';
-  els.btnToc.hidden = true;
-  els.barTitle.innerHTML = '<small>PDF</small>';
-  document.title = 'PDF - RFC Reader';
-  showStatus('<span class="spinner"></span>PDF を読み込んでいます…');
-  const token = (showPdf.token = Symbol('load'));
-  const stale = () => showPdf.token !== token;
+async function showPdf(key, { hash = '', restore = true, lang = null } = {}) {
+  const token = startLoading('PDF', 'PDF を読み込んでいます…');
+  const stale = () => loadToken !== token;
   const storedP = fetchIndex('pdfs/index.json').then((list) => findStoredPdf(list, key, location.href));
   let src;
   let opened;
+  let hex = '';
+  let tr = null;
+  let stored = null;
   try {
     src = await loadPdfBytes(key, storedP);
     if (stale()) return;
+    // 日本語訳 (pdfs/ja/<SHA-256 の先頭 16 文字>.json) は解析と並行して取りに行く
+    hex = await sha256Hex(src.bytes);
+    const trPromise = hex ? fetchTranslation(pdfTranslationPath(hex.slice(0, 16))) : Promise.resolve(null);
     showStatus('<span class="spinner"></span>PDF を解析しています…');
     opened = await openPdf(src.bytes, {
       onProgress: (i, total) => {
         if (!stale()) showStatus(`<span class="spinner"></span>PDF を解析しています… <small>(${i} / ${total} ページ)</small>`);
       },
     });
+    [tr, stored] = await Promise.all([trPromise, storedP]);
   } catch (e) {
     if (stale()) return;
     console.error(e);
@@ -521,61 +846,39 @@ async function showPdf(key, { hash = '', restore = true } = {}) {
     return;
   }
   const { doc, pdf } = opened;
-  if (src.url) doc.meta.source = new URL(src.url).hostname;
-  if (!doc.meta.title) doc.meta.title = src.name.replace(/\.pdf$/i, '');
-  let rendered;
-  try {
-    rendered = renderDocument(doc, { rfcHref: (num, frag) => `?rfc=${num}${frag ? `#${frag}` : ''}` });
-  } catch (e) {
-    console.error(e);
-    opened.destroy();
-    showStatus(`<strong>表示の変換に失敗しました。</strong> ${escapeHtml(e.message)}`, { error: true });
-    return;
-  }
-  hideStatus();
-  const origin = src.github
-    ? `取得元: GitHub に保存した PDF (<a href="${escapeHtml(storedPdfPath(src.github))}" target="_blank" rel="noopener">pdfs/${escapeHtml(src.github.file)}</a>)${src.url ? ` ・ <a href="${escapeHtml(src.url)}" target="_blank" rel="noopener">元の URL</a>` : ''}`
-    : src.url
-      ? `取得元: <a href="${escapeHtml(src.url)}" target="_blank" rel="noopener">${escapeHtml(src.url)}</a>`
-      : `端末のファイル: ${escapeHtml(src.name)} ・ <a href="#" id="open-original">元の PDF を開く</a>`;
-  els.doc.innerHTML = `${rendered.html}<footer class="docfoot">${origin}<p class="hint">PDF の文字の位置から自動で組み直した表示です。図・表・数式はページから切り出した画像で、タップすると拡大します。崩れている箇所は元の PDF を参照してください。</p></footer>`;
-  els.doc.hidden = false;
+  completePdfMeta(doc, src);
+  const regions = createRegionRenderer(pdf);
   let blobUrl = '';
-  $('#open-original')?.addEventListener('click', (e) => {
-    e.preventDefault();
-    if (!blobUrl) blobUrl = URL.createObjectURL(new Blob([src.bytes], { type: 'application/pdf' }));
-    openInNewTab(blobUrl);
-  });
-  const stopRegions = renderRegions(els.doc, pdf);
   current = {
+    kind: 'pdf',
     pdfKey: key,
     doc,
     posKey: `${POS_PREFIX}pdf:${key}`,
+    pdfId: hex.slice(0, 16),
+    sha256: hex,
+    name: src.name,
+    url: src.url,
+    github: src.github || null, // GitHub (pdfs/) から読んだときの pdfs/index.json の項目
+    stored, // このキーに当たる GitHub 保存済みの PDF
+    notices: '',
+    regions,
+    openOriginal: () => {
+      if (!blobUrl) blobUrl = URL.createObjectURL(new Blob([src.bytes], { type: 'application/pdf' }));
+      openInNewTab(blobUrl);
+    },
     cleanup: () => {
-      stopRegions();
+      regions.destroy();
       opened.destroy();
       if (blobUrl) URL.revokeObjectURL(blobUrl);
     },
   };
-  const title = doc.meta.title;
-  els.barTitle.innerHTML = `<small>PDF</small>${escapeHtml(title)}`;
-  document.title = `${title} - RFC Reader`;
-  els.tocBody.innerHTML = rendered.tocHtml || '<p class="empty">見出しを検出できませんでした。</p>';
-  els.btnToc.hidden = false;
-  pushRecent({ pdf: key, title });
-  pdfStore.touch(key, { title });
-  observeHeadings();
-  restoreScroll(hash, restore);
-
-  storedP.then((stored) => {
-    if (stale() || current?.pdfKey !== key) return;
-    const html = pdfActions(key, stored, src.name);
-    if (!html) return;
-    const actions = document.createElement('p');
-    actions.className = 'doc-actions';
-    actions.innerHTML = html;
-    els.doc.querySelector('.rfc-head .status-slot')?.before(actions);
-  });
+  prepareTranslation(current, tr, lang);
+  if (!present({ hash, restore })) {
+    leaveDocument();
+    return;
+  }
+  pushRecent(recentEntry());
+  pdfStore.touch(key, { title: doc.meta.title });
 }
 
 // GitHub に保存済みならその表示、まだなら「GitHub に保存」(URL は Actions が取得、端末のファイルは Issue に添付)
@@ -619,9 +922,10 @@ els.pdfFile.addEventListener('change', async () => {
 
 function observeHeadings() {
   if (headingObserver) headingObserver.disconnect();
+  headingObserver = null;
+  markCurrentHeading = () => {};
   const headings = [...els.doc.querySelectorAll('.rfc-body h2, .rfc-body h3, .rfc-body h4, .rfc-body h5, .rfc-body h6')];
   if (!headings.length || !('IntersectionObserver' in window)) return;
-  const visible = new Set();
   const markCurrent = () => {
     let cur = null;
     const barBottom = 60;
@@ -635,20 +939,9 @@ function observeHeadings() {
       if (a) a.classList.add('current');
     }
   };
-  headingObserver = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((en) => (en.isIntersecting ? visible.add(en.target) : visible.delete(en.target)));
-      markCurrent();
-    },
-    { rootMargin: '-56px 0px 0px 0px' },
-  );
+  markCurrentHeading = markCurrent;
+  headingObserver = new IntersectionObserver(markCurrent, { rootMargin: '-56px 0px 0px 0px' });
   headings.forEach((h) => headingObserver.observe(h));
-  els.tocDrawer.addEventListener('transitionend', markCurrent, { once: true });
-  els.btnToc.addEventListener('click', () => {
-    markCurrent();
-    const cur = els.tocBody.querySelector('a.current');
-    if (cur) cur.scrollIntoView({ block: 'center' });
-  });
 }
 
 // ---------- スクロール ----------
@@ -666,8 +959,10 @@ window.addEventListener(
     if (!current) return;
     clearTimeout(scrollTimer);
     scrollTimer = setTimeout(() => {
+      if (!current) return;
       try {
-        localStorage.setItem(current.posKey, String(Math.round(window.scrollY)));
+        // スクロール量に加えて、言語や文字サイズに依らない位置 (何番目の要素か) も残す
+        localStorage.setItem(current.posKey, JSON.stringify({ y: Math.round(window.scrollY), ...readingAnchor() }));
       } catch {
         /* ignore */
       }
@@ -678,32 +973,41 @@ window.addEventListener(
 els.fab.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
 
 // ---------- ルーティング ----------
+const langParam = (v) => (v === 'ja' ? 'ja' : /^(orig|original|en|source)$/i.test(v || '') ? 'orig' : null);
+
 function parseLocation() {
   const params = new URLSearchParams(location.search);
+  const lang = langParam(params.get('lang'));
   const pdf = params.get('pdf');
-  if (pdf) return { n: null, pdf, hash: location.hash };
+  if (pdf) return { n: null, pdf, hash: location.hash, lang };
   let n = params.get('rfc');
   if (!n) {
     const m = /^#\/?rfc\/?(\d+)/i.exec(location.hash) || /^#rfc(\d+)$/i.exec(location.hash);
-    if (m) return { n: Number(m[1]), hash: '' };
+    if (m) return { n: Number(m[1]), hash: '', lang };
   }
-  if (!n) return { n: null, hash: location.hash };
+  if (!n) return { n: null, hash: location.hash, lang };
   n = Number(String(n).replace(/\D/g, ''));
-  return { n, hash: location.hash };
+  return { n, hash: location.hash, lang };
 }
 
 function route({ restore = true } = {}) {
   closeDrawers();
-  const { n, pdf, hash } = parseLocation();
+  const { n, pdf, hash, lang } = parseLocation();
   // 同じ文書の中のリンク (目次・節の参照) で戻る・進むときは、読み込み直さずにその位置へ移る
   if (current && ((pdf && current.pdfKey === pdf) || (!pdf && n && current.n === n))) {
+    if (lang && lang !== current.lang && current.tr?.ja) {
+      const anchor = hash ? undefined : readingAnchor();
+      current.lang = lang;
+      present({ hash, restore: false, anchor });
+      return;
+    }
     const target = hash && document.getElementById(decodeURIComponent(hash.slice(1)));
     if (target) target.scrollIntoView();
     else if (!hash) window.scrollTo(0, 0);
     return;
   }
-  if (pdf) showPdf(pdf, { hash, restore });
-  else if (n) showRfc(n, { hash, restore });
+  if (pdf) showPdf(pdf, { hash, restore, lang });
+  else if (n) showRfc(n, { hash, restore, lang });
   else showHome();
 }
 
@@ -742,7 +1046,8 @@ document.addEventListener('click', (e) => {
   if (current && current.n === n && u.hash) {
     const t = document.getElementById(decodeURIComponent(u.hash.slice(1)));
     if (t) {
-      history.pushState(null, '', `?rfc=${n}${u.hash}`);
+      const lang = new URLSearchParams(location.search).get('lang');
+      history.pushState(null, '', `?rfc=${n}${lang ? `&lang=${encodeURIComponent(lang)}` : ''}${u.hash}`);
       t.scrollIntoView();
       return;
     }
