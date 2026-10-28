@@ -130,6 +130,20 @@ node scripts/translation.mjs template rfc 7591   # 既存のファイルの訳�
 
 翻訳ファイルは、表示設定の「キャッシュを削除」や Issue の `delete rfc` / `clear rfcs` / `delete pdf` / `clear pdfs` では削除されません。不要になったら GitHub 上で削除してください。リポジトリが公開されていれば翻訳ファイルも誰でも読めるので、論文などを訳す場合は元の文書のライセンスを確認してください。
 
+### 収録済みの日本語訳
+
+このリポジトリには、次の 2 つの日本語訳を収録しています。どちらも全文を訳してあります。
+
+| 文書 | 翻訳ファイル | 原文の利用条件 |
+| --- | --- | --- |
+| [RFC 7591](https://www.rfc-editor.org/rfc/rfc7591) OAuth 2.0 Dynamic Client Registration Protocol | `rfcs/ja/rfc7591.json` | IETF Trust の Legal Provisions Relating to IETF Documents の条件で公開された文書で、翻訳を作ることが認められています |
+| [NIST SP 800-207](https://doi.org/10.6028/NIST.SP.800-207) Zero Trust Architecture（`pdfs/NIST.SP.800-207.pdf`） | `pdfs/ja/0290d6ece2487428.json` | 米国政府 (NIST) の刊行物で、米国内では著作権による保護を受けません |
+
+AI が作成した翻訳で、公式の訳ではありません。正確さが必要な場面では原文を参照してください。誤訳や不自然な箇所は、JSON の `dst` を直接直せます。
+
+- RFC 7591 の要件キーワードは「しなければならない (MUST)」のように原語を残してあり、原文と同じく太字で表示されます。
+- 参考文献の書誌情報（著者・題名・URL）と、略語・人名だけの項目は、原文のまま表示します。
+
 ## 本文の取得元
 
 次の順に試し、最初に成功したものを使います。
@@ -277,4 +291,4 @@ test/                 パーサー・レンダラー・保存処理・PDF 解析
 
 ## ライセンス
 
-このリポジトリのコードは MIT ライセンスです。`rfcs/` と `test/fixtures/` 以下の RFC 本文は IETF Trust の著作物で、RFC の再配布条件に従って無改変で収録しています。`pdfs/` に保存した PDF の権利はそれぞれの著作者にあります。`rfcs/ja/`・`pdfs/ja/` の翻訳ファイルは利用者が用意するもので、原文の著作権はそれぞれの権利者にあります。`test/fixtures/pdf/` の PDF はテスト用に作った架空の文書です。`vendor/pdfjs/` は Mozilla の PDF.js で、Apache License 2.0 です（`vendor/pdfjs/LICENSE`）。
+このリポジトリのコードは MIT ライセンスです。`rfcs/` と `test/fixtures/` 以下の RFC 本文は IETF Trust の著作物で、RFC の再配布条件に従って無改変で収録しています。`pdfs/` に保存した PDF の権利はそれぞれの著作者にあります。`rfcs/ja/`・`pdfs/ja/` の翻訳ファイルは利用者が用意するもので、原文の著作権はそれぞれの権利者にあります（収録している RFC 7591 と NIST SP 800-207 の日本語訳は、上の「収録済みの日本語訳」のとおり、原文の利用条件の範囲で作成したものです）。`test/fixtures/pdf/` の PDF はテスト用に作った架空の文書です。`vendor/pdfjs/` は Mozilla の PDF.js で、Apache License 2.0 です（`vendor/pdfjs/LICENSE`）。
