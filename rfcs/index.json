@@ -3,6 +3,9 @@
     "number": 7591,
     "title": "OAuth 2.0 Dynamic Client Registration Protocol",
     "date": "July 2015",
-    "category": "Standards Track"
+    "category": "Standards Track",
+    "translations": {
+      "ja": "OAuth 2.0 動的クライアント登録プロトコル"
+    }
   }
 ]
