@@ -16,6 +16,7 @@ NIST SP や論文などの PDF も、段組を解いて同じ形式で表示で�
 - **GitHub への保存**: 閲覧画面の「GitHub に保存」から、読んだ RFC のテキストをリポジトリの `rfcs/` に保存できます（Issue 経由、後述）。
 - **廃止・更新の表示**: rfc-editor.org のメタデータが取得できる場合、「この RFC は RFC XXXX により廃止されています」と先頭に表示します。
 - **PDF の再レイアウト**: 端末の PDF ファイル、PDF の URL、arXiv の ID から開き、2 段組や見出し・参考文献を解析して RFC と同じ表示にします。図・表・数式は元のページから切り出した画像で表示します。
+- **日本語訳への切り替え**: GitHub に翻訳ファイル (`rfcs/ja/`・`pdfs/ja/`) を置くと、RFC も PDF も原文と日本語訳を切り替えて読めます。見た目 (見出し・目次・コード・表・図) は原文と同じです（後述）。
 
 対応フォーマットは、ページ区切り付きの旧来形式（RFC 791 や RFC 2616 など）と、ページ区切りなしの xml2rfc v3 形式（RFC 8650 以降）の両方です。
 
@@ -67,6 +68,67 @@ node scripts/pdf-extract.mjs --html paper.pdf > a.html # HTML で出力
 node scripts/pdf-extract.mjs paper.pdf > paper.json    # 文字の位置情報 (テスト用データ)
 ```
 
+## 日本語訳を表示する
+
+GitHub に翻訳ファイルを置くと、その文書を原文と日本語訳で切り替えて読めます。翻訳ファイルは自分で用意します（アプリが翻訳することはありません）。
+
+| 文書 | 翻訳ファイルの場所 |
+| --- | --- |
+| RFC | `rfcs/ja/rfcNNNN.json`（例: `rfcs/ja/rfc7591.json`） |
+| PDF | `pdfs/ja/<ID>.json`。ID は PDF ファイルの SHA-256 の先頭 16 文字（小文字の 16 進）で、同じファイルなら URL から開いても端末のファイルとして開いても同じです |
+
+翻訳ファイルがある文書を開くと、上部のバーに「日本語」（日本語訳を表示中は「原文」）、題名の下に「原文 / 日本語訳」の切り替えが出ます。切り替えても読んでいた箇所はそのままです。次に翻訳のある文書を開くときは最後に選んだほうで表示します（表示設定の「日本語訳がある文書」でも選べます）。`?rfc=7591&lang=ja` のように URL で指定することもできます。
+
+### 見た目が原文と同じになる仕組み
+
+翻訳ファイルは、原文の見出し・段落・箇条書き・定義リスト・表のセル・図表の説明などの文字列 (`src`) と、その訳文 (`dst`) を並べた JSON です。表示するときは原文を解析した構造をそのまま使い、文字列だけを訳文に置き換えます。
+
+- 見出しの番号、目次、コードブロック、ASCII アート、表の組み方は原文と同じです。
+- PDF の図・表・数式は、元の PDF から切り出した画像をそのまま使います。
+- 参考文献、コード、著者の連絡先は訳さず、原文のまま表示します。
+- 訳文のない (`dst` が空の) 項目は原文のまま表示するので、少しずつ訳せます。題名の下に「翻訳済み 40%」のように表示されます。
+
+### 翻訳ファイルの作り方
+
+1. ひな形を作ります（どちらも同じものができます）。
+   - アプリ: 文書の末尾の「翻訳用ファイル (JSON) を書き出す」。PDF はこの方法が手軽です。
+   - コマンド: `node scripts/translation.mjs template rfc 7591`、`node scripts/translation.mjs template pdf paper.pdf`（URL も可）
+2. 各項目の `dst` に、`src` の訳文を書き込みます。`src` は変更しないでください。
+3. GitHub の `rfcs/ja/rfc7591.json`、`pdfs/ja/<ID>.json` に置きます（GitHub の画面の「Add file → Upload files」でも構いません）。サイトの再デプロイが終わると切り替えられるようになります。
+
+```json
+{
+  "format": "rfcreader-translation",
+  "version": 1,
+  "lang": "ja",
+  "source": { "type": "rfc", "number": 7591, "title": "OAuth 2.0 Dynamic Client Registration Protocol" },
+  "note": "（任意）題名の下に表示する注記。翻訳者や翻訳した日など",
+  "segments": [
+    {"src": "OAuth 2.0 Dynamic Client Registration Protocol", "dst": "OAuth 2.0 動的クライアント登録プロトコル"},
+    {"src": "Abstract", "dst": "概要"},
+    {"src": "This specification defines mechanisms for dynamically registering ...", "dst": "この仕様は、OAuth 2.0 クライアントを認可サーバーに動的に登録する仕組みを定義する。..."}
+  ]
+}
+```
+
+訳文の書き方:
+
+- `[RFC6749]` のような引用、`RFC 6749`、URL は、そのまま書けば原文と同じくリンクになります。
+- 節や図表への参照は「セクション 4.1」「4.1 節」「付録 A」「図 1」「表 2」と書くとリンクになります。ほかの RFC の節は「[RFC6749] のセクション 4.1」「RFC 6749 の 4.1 節」と書きます。
+- 要件のキーワードは「しなければならない (MUST)」のように原語を括弧で残すと、原文と同じく太字になります。
+- 改行を含む `src`（行ごとに並べた部分）は、`dst` も `\n` で区切ると行ごとに表示します。
+
+確認と更新:
+
+```sh
+node scripts/translation.mjs check               # 形式の誤りと、訳した項目の数を表示
+node scripts/translation.mjs template rfc 7591   # 既存のファイルの訳文を引き継いで、足りない項目を足す
+```
+
+`check` は、原文に見つからない訳文も一覧にします。アプリの更新で段落の区切りが変わった場合などに起こるので、`template` で作り直して足りない項目を訳してください（原文に見つからなくなった訳文も、作業が失われないようファイルの末尾に残ります）。
+
+翻訳ファイルは、表示設定の「キャッシュを削除」や Issue の `delete rfc` / `clear rfcs` では削除されません。不要になったら GitHub 上で削除してください。リポジトリが公開されていれば翻訳ファイルも誰でも読めるので、論文などを訳す場合は元の文書のライセンスを確認してください。
+
 ## 本文の取得元
 
 次の順に試し、最初に成功したものを使います。
@@ -81,7 +143,7 @@ node scripts/pdf-extract.mjs paper.pdf > paper.json    # 文字の位置情報 (
 ## GitHub に格納するパターン
 
 `rfcs/` ディレクトリに `rfcNNNN.txt` を置くと、ネットワークに関係なくそのテキストから表示します。
-`rfcs/index.json` に載っている RFC はホーム画面の「このサイトに保存済み」に一覧表示されます。
+`rfcs/index.json` に載っている RFC はホーム画面の「このサイトに保存済み」に一覧表示されます（日本語訳のあるものには「日本語訳」と付きます）。`index.json` は GitHub Pages に公開するときにも作り直すので、GitHub の画面から直接ファイルを置いた場合も一覧に出ます。
 
 ### 方法 0: アプリの「GitHub に保存」ボタン (Issue 経由、推奨)
 
@@ -133,15 +195,20 @@ src/pdf-extract.js    PDF (PDF.js) → 文字の位置・大きさ・書体、�
 src/pdf-layout.js     文字の位置 → RFC と同じ構造 (段組・見出し・段落・図表・参考文献の判定)
 src/pdf-reader.js     PDF.js の遅延読み込み、図の切り出し描画、端末内への保存 (IndexedDB)
 src/render.js         構造 → HTML (リンク化、目次生成)
-src/app.js            画面遷移、取得、設定、履歴、Service Worker 登録
+src/translation.js    翻訳ファイルの検査・ひな形の作成と、構造の文字列だけを訳文に置き換える処理
+src/app.js            画面遷移、取得、設定、原文と日本語訳の切り替え、履歴、Service Worker 登録
 vendor/pdfjs/         PDF.js 6.4.299 (legacy ビルド)
 sw.js                 オフラインキャッシュ
 rfcs/                 格納済みの RFC テキストと index.json
+rfcs/ja/              RFC の日本語訳 (rfcNNNN.json)
+pdfs/ja/              PDF の日本語訳 (<SHA-256 の先頭 16 文字>.json)
 scripts/fetch-rfc.mjs RFC テキストの取得・削除スクリプト
 scripts/issue-command.mjs  Issue タイトルをコマンドとして実行 (Actions から使用)
 scripts/lib/rfc-store.mjs  rfcs/ の保存・削除・index.json 更新
+scripts/translation.mjs    翻訳ファイルのひな形の作成・検査
+scripts/lib/translation-store.mjs  rfcs/ja/・pdfs/ja/ のひな形の作成・検査 (translation.mjs とテストから使用)
 scripts/pdf-extract.mjs    PDF の解析結果の確認、テスト用データの作成
-test/                 パーサー・レンダラー・保存処理・PDF 解析のテスト (test/fixtures/ にテスト用の RFC テキスト、fixtures/pdf/ に PDF とその生成スクリプト)
+test/                 パーサー・レンダラー・保存処理・PDF 解析・翻訳のテスト (test/fixtures/ にテスト用の RFC テキスト、fixtures/pdf/ に PDF とその生成スクリプト)
 .github/workflows/    GitHub Pages へのデプロイ、RFC 取得 (手動 / Issue 経由) ワークフロー
 ```
 
@@ -159,4 +226,4 @@ test/                 パーサー・レンダラー・保存処理・PDF 解析
 
 ## ライセンス
 
-このリポジトリのコードは MIT ライセンスです。`rfcs/` と `test/fixtures/` 以下の RFC 本文は IETF Trust の著作物で、RFC の再配布条件に従って無改変で収録しています。`test/fixtures/pdf/` の PDF はテスト用に作った架空の文書です。`vendor/pdfjs/` は Mozilla の PDF.js で、Apache License 2.0 です（`vendor/pdfjs/LICENSE`）。
+このリポジトリのコードは MIT ライセンスです。`rfcs/` と `test/fixtures/` 以下の RFC 本文は IETF Trust の著作物で、RFC の再配布条件に従って無改変で収録しています（`rfcs/ja/`・`pdfs/ja/` の翻訳ファイルは利用者が用意するもので、原文の著作権はそれぞれの権利者にあります）。`test/fixtures/pdf/` の PDF はテスト用に作った架空の文書です。`vendor/pdfjs/` は Mozilla の PDF.js で、Apache License 2.0 です（`vendor/pdfjs/LICENSE`）。

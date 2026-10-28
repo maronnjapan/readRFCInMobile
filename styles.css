@@ -182,6 +182,7 @@ main {
 .cardlist .num { font-weight: 700; color: var(--accent); margin-right: 0.5em; font-variant-numeric: tabular-nums; }
 .cardlist .ttl { display: block; font-size: 0.95em; }
 .cardlist .when { display: block; color: var(--muted); font-size: 0.8em; margin-top: 0.15em; }
+.cardlist .tag { display: inline-block; padding: 0 0.55em; border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-size: 0.75em; font-weight: 600; vertical-align: 0.1em; }
 .help { font-size: 0.9em; color: var(--muted); }
 .pdf-form { margin-bottom: 0.75rem; }
 .pdf-form input { font-size: 1rem; }
@@ -222,6 +223,14 @@ h1.rfc-title { font-size: 1.65rem; line-height: 1.3; margin: 0 0 0.6rem; letter-
 .btn.small { padding: 0.45rem 0.9rem; font-size: 0.9rem; display: inline-block; }
 .stored-badge { display: inline-flex; align-items: center; gap: 0.35em; font-size: 0.85rem; color: var(--muted); }
 .stored-badge::before { content: ""; width: 0.55em; height: 0.55em; border-radius: 50%; background: #1e8e3e; }
+/* 原文 / 日本語訳の切り替え */
+.lang-switch { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 0.75rem; margin: 0.5rem 0 0.75rem; }
+.lang-switch .seg button { font-size: 0.9rem; padding: 0.4rem 0.9rem; }
+.lang-switch .hint { font-size: 0.8rem; color: var(--muted); margin: 0; flex-basis: 100%; }
+.linkbtn { border: 0; padding: 0; background: none; color: var(--accent); cursor: pointer; font: inherit; text-align: left; }
+.linkbtn:hover { text-decoration: underline; }
+.docfoot .tr-foot { margin: 0.75rem 0 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.25rem 1em; }
+.docfoot code { font-family: var(--mono); font-size: 0.9em; background: var(--code-bg); padding: 0.05em 0.35em; border-radius: 4px; }
 .rawhead summary { cursor: pointer; color: var(--muted); font-size: 0.85rem; }
 .rawhead pre { font-size: 0.72em; }
 

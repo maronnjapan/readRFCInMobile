@@ -16,12 +16,38 @@ const INLINE_RE = new RegExp(
     String.raw`\b(Figure|Fig\.|Table)\s+(\d{1,3})\b`, // 8,9 図表参照
     String.raw`\b(${BCP14})\b`, // 10 BCP 14 キーワード
     String.raw`\[(\d{1,3}(?:\s*[,–-]\s*\d{1,3})+)\]`, // 11 論文の番号付き引用 ([3, 12] / [5–7])
+    // 日本語訳の中の参照
+    String.raw`(セクション|付録)\s?(${SEC_NUM}(?:\s*(?:,|、|と|および|及び|または|又は|から|〜|～)\s*${SEC_NUM})*)`, // 12,13 セクション 4.1 / 付録 A
+    String.raw`第?\s?(\d+(?:\.\d+)*)\s?節`, // 14 4.1 節
+    String.raw`(図|表)\s?(\d{1,3})(?!\d|\.\d)`, // 15,16 図 1 / 表 2
   ].join('|'),
   'g',
 );
 
 function secTarget(num, isAppendix) {
   return isAppendix || /^[A-Z]/.test(num) ? `appendix-${num}` : `section-${num}`;
+}
+
+// 日本語の参照の直前に "[RFC6749] の" / "RFC 6749 の" があれば、その RFC の節を指す
+const JA_EXT_RFC_RE = /(?:\[RFC\s?(\d{1,5})\]|RFC\s?(\d{1,5}))\s*の\s*$/;
+
+// 節・付録の番号 (複数並んでいてもよい) を、文書内またはほかの RFC の該当箇所へのリンクにする
+function linkSectionNums(nums, isAppendix, extRfc, ctx) {
+  const numRe = new RegExp(SEC_NUM, 'g');
+  let out = '';
+  let pos = 0;
+  let nm;
+  while ((nm = numRe.exec(nums))) {
+    out += esc(nums.slice(pos, nm.index));
+    pos = nm.index + nm[0].length;
+    const id = secTarget(nm[0], isAppendix);
+    if (extRfc && ctx.rfcHref && extRfc !== ctx.number) {
+      out += `<a class="xref" data-rfc="${extRfc}" href="${esc(ctx.rfcHref(extRfc, id))}">${esc(nm[0])}</a>`;
+    } else if (!extRfc && ctx.ids && ctx.ids.has(id)) {
+      out += `<a class="xref" href="#${id}">${esc(nm[0])}</a>`;
+    } else out += esc(nm[0]);
+  }
+  return out + esc(nums.slice(pos));
 }
 
 export function renderInline(text, ctx, mode = 'text') {
@@ -80,23 +106,27 @@ export function renderInline(text, ctx, mode = 'text') {
       const after = text.slice(last);
       const ofm = /^\s+(?:of|in)\s+(?:\[RFC\s?(\d{1,5})\]|RFC\s?(\d{1,5}))/.exec(after);
       const extRfc = ofm ? Number(ofm[1] || ofm[2]) : null;
-      const numRe = new RegExp(SEC_NUM, 'g');
-      let rendered = esc(m[6]) + esc(m[0].slice(m[6].length, m[0].length - m[7].length));
-      let pos = 0;
-      let nm;
-      const nums = m[7];
-      while ((nm = numRe.exec(nums))) {
-        rendered += esc(nums.slice(pos, nm.index));
-        pos = nm.index + nm[0].length;
-        const id = secTarget(nm[0], isAppendix);
-        if (extRfc && ctx.rfcHref && extRfc !== ctx.number) {
-          rendered += `<a class="xref" data-rfc="${extRfc}" href="${esc(ctx.rfcHref(extRfc, id))}">${esc(nm[0])}</a>`;
-        } else if (!extRfc && ctx.ids && ctx.ids.has(id)) {
-          rendered += `<a class="xref" href="#${id}">${esc(nm[0])}</a>`;
-        } else rendered += esc(nm[0]);
+      out += esc(m[6]) + esc(m[0].slice(m[6].length, m[0].length - m[7].length)) + linkSectionNums(m[7], isAppendix, extRfc, ctx);
+      continue;
+    }
+    if (m[12] || m[14]) {
+      if (mode === 'pre') {
+        out += esc(whole);
+        continue;
       }
-      rendered += esc(nums.slice(pos));
-      out += rendered;
+      const ofm = JA_EXT_RFC_RE.exec(text.slice(0, m.index));
+      const extRfc = ofm ? Number(ofm[1] || ofm[2]) : null;
+      if (m[12]) out += esc(m[12]) + esc(whole.slice(m[12].length, whole.length - m[13].length)) + linkSectionNums(m[13], m[12] === '付録', extRfc, ctx);
+      else {
+        const at = whole.indexOf(m[14]);
+        out += esc(whole.slice(0, at)) + linkSectionNums(m[14], false, extRfc, ctx) + esc(whole.slice(at + m[14].length));
+      }
+      continue;
+    }
+    if (m[15]) {
+      const ids = m[15] === '図' ? [`figure-${m[16]}`, `fig.-${m[16]}`] : [`table-${m[16]}`];
+      const id = mode !== 'pre' && ctx.ids ? ids.find((x) => ctx.ids.has(x)) : null;
+      out += id ? `<a class="xref" href="#${id}">${esc(whole)}</a>` : esc(whole);
       continue;
     }
     if (m[8]) {
@@ -219,7 +249,8 @@ export function renderBlocks(blocks, ctx) {
     switch (b.type) {
       case 'heading': {
         const lvl = Math.min(b.level + 1, 6);
-        const isToc = /^(table of )?contents$/i.test(b.text);
+        // 訳文の見出しでも、原文 (orig) で目次の見出しかを判定する
+        const isToc = /^(table of )?contents$/i.test(b.orig ?? b.text);
         out += `<h${lvl} id="${esc(b.id)}" class="sec"><a href="#${esc(b.id)}">${b.number ? `<span class="secno">${esc(b.number)}</span>` : ''}${renderInline(b.text, ctx)}</a></h${lvl}>`;
         if (isToc && ctx.tocHtml) out += `<details class="toc-inline"><summary>目次を開く</summary>${ctx.tocHtml}</details>`;
         break;

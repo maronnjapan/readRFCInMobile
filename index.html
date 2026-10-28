@@ -33,6 +33,7 @@
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v10h13V10"/></svg>
     </button>
     <div class="bar-title" id="bar-title">RFC Reader</div>
+    <button class="iconbtn" id="btn-lang" aria-label="日本語訳に切り替え" title="日本語訳に切り替え" hidden>日本語</button>
     <button class="iconbtn" id="btn-toc" aria-label="目次" title="目次" hidden>目次</button>
     <button class="iconbtn" id="btn-settings" aria-label="表示設定" title="表示設定">Aa</button>
     <div class="progress" id="progress"></div>
@@ -123,6 +124,14 @@
             <button data-wrap="off" aria-pressed="false">横スクロール</button>
           </div>
           <p class="hint">図表 (ASCII アート) は常に横スクロールで原文のまま表示します。</p>
+        </div>
+        <div class="setting">
+          <span class="label">日本語訳がある文書</span>
+          <div class="seg" id="lang-seg" role="group" aria-label="日本語訳がある文書の表示">
+            <button data-lang="orig" aria-pressed="true">原文を表示</button>
+            <button data-lang="ja" aria-pressed="false">日本語訳を表示</button>
+          </div>
+          <p class="hint">GitHub の <code>rfcs/ja/</code>・<code>pdfs/ja/</code> に翻訳ファイルを置いた文書は、閲覧画面の「日本語」「原文」で切り替えられます。最後に選んだほうで開きます。</p>
         </div>
         <div class="setting">
           <label class="label" for="source-input">取得元 URL テンプレート（任意）</label>

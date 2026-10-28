@@ -55,67 +55,111 @@ export async function openPdf(bytes, { onProgress } = {}) {
   return { pdf, doc, destroy: () => task.destroy() };
 }
 
-// 図・表・数式の領域を、画面に近づいたときにページから切り出して描く
-export function renderRegions(container, pdf) {
-  const els = [...container.querySelectorAll('.pdf-region[data-region]')];
-  if (!els.length) return () => {};
-  let alive = true;
-  const draw = async (el) => {
-    if (el.dataset.drawn) return;
-    el.dataset.drawn = '1';
-    try {
-      const page = await pdf.getPage(Number(el.dataset.page) + 1);
-      const [x0, y0, x1, y1] = el.dataset.region.split(',').map(Number);
-      const cssW = el.clientWidth || 360;
-      const dpr = window.devicePixelRatio || 1;
-      // 拡大表示 (タップ) しても読めるよう、表示幅の 2 倍程度の解像度で描く
-      const scale = Math.min(5, Math.max(1.5, ((cssW * 2) / (x1 - x0)) * Math.min(dpr, 2)));
-      const vp = page.getViewport({ scale, offsetX: -x0 * scale, offsetY: -y0 * scale });
-      const canvas = document.createElement('canvas');
-      canvas.width = Math.ceil((x1 - x0) * scale);
-      canvas.height = Math.ceil((y1 - y0) * scale);
-      const ctx = canvas.getContext('2d');
-      await page.render({ canvasContext: ctx, viewport: vp, background: '#ffffff' }).promise;
+// 解析結果の題名と取得元を、表示用に補う (題名が取れなければファイル名にする)。翻訳ファイルのひな形も同じ題名を使う
+export function completePdfMeta(doc, { name = '', url = '' } = {}) {
+  if (url) doc.meta.source = new URL(url).hostname;
+  if (!doc.meta.title) doc.meta.title = name.replace(/\.pdf$/i, '');
+  return doc;
+}
+
+// PDF の中身の SHA-256 (16 進)。日本語訳のファイル名 (先頭 16 文字) に使う。計算できない環境では空文字
+export async function sha256Hex(bytes) {
+  try {
+    const digest = await crypto.subtle.digest('SHA-256', bytes);
+    return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, '0')).join('');
+  } catch {
+    return '';
+  }
+}
+
+// ページの一部 (図・表・数式) を切り出して画像にし、その object URL を返す
+async function drawRegion(pdf, el) {
+  const page = await pdf.getPage(Number(el.dataset.page) + 1);
+  const [x0, y0, x1, y1] = el.dataset.region.split(',').map(Number);
+  const cssW = el.clientWidth || 360;
+  const dpr = window.devicePixelRatio || 1;
+  // 拡大表示 (タップ) しても読めるよう、表示幅の 2 倍程度の解像度で描く
+  const scale = Math.min(5, Math.max(1.5, ((cssW * 2) / (x1 - x0)) * Math.min(dpr, 2)));
+  const vp = page.getViewport({ scale, offsetX: -x0 * scale, offsetY: -y0 * scale });
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.ceil((x1 - x0) * scale);
+  canvas.height = Math.ceil((y1 - y0) * scale);
+  await page.render({ canvasContext: canvas.getContext('2d'), viewport: vp, background: '#ffffff' }).promise;
+  const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+  return blob ? URL.createObjectURL(blob) : null;
+}
+
+// 図・表・数式の領域を、画面に近づいたときにページから切り出して描く。
+// 原文と日本語訳を切り替えて描き直しても、同じ領域の画像は使い回す
+export function createRegionRenderer(pdf) {
+  const images = new Map(); // "ページ|領域" → Promise<object URL | null>
+  let detach = null;
+  const image = (el) => {
+    const key = `${el.dataset.page}|${el.dataset.region}`;
+    if (!images.has(key)) {
+      images.set(
+        key,
+        drawRegion(pdf, el).catch((e) => {
+          console.error(e);
+          return null;
+        }),
+      );
+    }
+    return images.get(key);
+  };
+  const attach = (container) => {
+    detach?.();
+    const els = [...container.querySelectorAll('.pdf-region[data-region]')];
+    let alive = true;
+    const show = async (el) => {
+      if (el.dataset.drawn) return;
+      el.dataset.drawn = '1';
+      const url = await image(el);
       if (!alive) return;
-      const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
-      if (!alive || !blob) return;
+      if (!url) {
+        el.classList.add('failed');
+        el.textContent = '図を描画できませんでした';
+        return;
+      }
       const img = new Image();
       img.alt = el.getAttribute('aria-label') || '';
       img.decoding = 'async';
-      img.src = URL.createObjectURL(blob);
+      img.src = url;
       el.replaceChildren(img);
       el.classList.add('drawn');
-    } catch (e) {
-      el.classList.add('failed');
-      el.textContent = '図を描画できませんでした';
-      console.error(e);
-    }
+    };
+    const io = 'IntersectionObserver' in window
+      ? new IntersectionObserver(
+          (entries) => {
+            entries.forEach((en) => {
+              if (en.isIntersecting) {
+                io.unobserve(en.target);
+                show(en.target);
+              }
+            });
+          },
+          { rootMargin: '800px 0px' },
+        )
+      : null;
+    els.forEach((el) => (io ? io.observe(el) : show(el)));
+    const onClick = (e) => {
+      const r = e.target.closest('.pdf-region.drawn');
+      if (r) r.classList.toggle('zoom');
+    };
+    container.addEventListener('click', onClick);
+    detach = () => {
+      alive = false;
+      io?.disconnect();
+      container.removeEventListener('click', onClick);
+    };
   };
-  const io = 'IntersectionObserver' in window
-    ? new IntersectionObserver(
-        (entries) => {
-          entries.forEach((en) => {
-            if (en.isIntersecting) {
-              io.unobserve(en.target);
-              draw(en.target);
-            }
-          });
-        },
-        { rootMargin: '800px 0px' },
-      )
-    : null;
-  els.forEach((el) => (io ? io.observe(el) : draw(el)));
-  const onClick = (e) => {
-    const r = e.target.closest('.pdf-region.drawn');
-    if (r) r.classList.toggle('zoom');
+  const destroy = () => {
+    detach?.();
+    detach = null;
+    for (const p of images.values()) p.then((url) => url && URL.revokeObjectURL(url));
+    images.clear();
   };
-  container.addEventListener('click', onClick);
-  return () => {
-    alive = false;
-    io?.disconnect();
-    container.removeEventListener('click', onClick);
-    container.querySelectorAll('.pdf-region img').forEach((img) => URL.revokeObjectURL(img.src));
-  };
+  return { attach, destroy };
 }
 
 // ---------- 端末内の保存 (IndexedDB) ----------
@@ -202,15 +246,12 @@ export const pdfStore = {
   },
 };
 
-// ファイルの内容から履歴用のキーを作る
+// ファイルの内容から履歴用のキーを作る (SHA-256 の先頭 16 文字。日本語訳のファイル名と同じ)
 export async function fileKey(bytes, file) {
-  try {
-    const digest = await crypto.subtle.digest('SHA-256', bytes);
-    return `local:${[...new Uint8Array(digest).slice(0, 8)].map((b) => b.toString(16).padStart(2, '0')).join('')}`;
-  } catch {
-    let h = 0;
-    const view = new Uint8Array(bytes);
-    for (let i = 0; i < view.length; i += 97) h = (h * 31 + view[i]) >>> 0;
-    return `local:${(file?.size || view.length).toString(16)}${h.toString(16)}`;
-  }
+  const hex = await sha256Hex(bytes);
+  if (hex) return `local:${hex.slice(0, 16)}`;
+  let h = 0;
+  const view = new Uint8Array(bytes);
+  for (let i = 0; i < view.length; i += 97) h = (h * 31 + view[i]) >>> 0;
+  return `local:${(file?.size || view.length).toString(16)}${h.toString(16)}`;
 }

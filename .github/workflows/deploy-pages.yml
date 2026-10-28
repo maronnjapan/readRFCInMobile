@@ -36,6 +36,11 @@ jobs:
         with:
           # Pages が未設定なら GitHub Actions ビルドとして有効化を試みる
           enablement: true
+      # GitHub の画面から rfcs/ に RFC テキストや日本語訳 (rfcs/ja/) を直接置いた場合も一覧に出るよう、公開する前に index.json を作り直す
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/fetch-rfc.mjs --reindex
       - uses: actions/upload-pages-artifact@v3
         with:
           path: .
