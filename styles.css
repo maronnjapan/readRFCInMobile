@@ -213,6 +213,11 @@ h1.rfc-title { font-size: 1.65rem; line-height: 1.3; margin: 0 0 0.6rem; letter-
 }
 .status-slot .notice.warn { background: #fdecc8; color: #4a3200; }
 :root[data-theme="dark"] .status-slot .notice.warn { background: #4a3a14; color: #ffe9b8; }
+.doc-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 0.75rem; margin: 0.5rem 0 0.75rem; }
+.doc-actions .hint { font-size: 0.8rem; color: var(--muted); margin: 0; flex-basis: 100%; }
+.btn.small { padding: 0.45rem 0.9rem; font-size: 0.9rem; display: inline-block; }
+.stored-badge { display: inline-flex; align-items: center; gap: 0.35em; font-size: 0.85rem; color: var(--muted); }
+.stored-badge::before { content: ""; width: 0.55em; height: 0.55em; border-radius: 50%; background: #1e8e3e; }
 .rawhead summary { cursor: pointer; color: var(--muted); font-size: 0.85rem; }
 .rawhead pre { font-size: 0.72em; }
 

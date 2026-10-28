@@ -6,6 +6,42 @@ const RECENT_KEY = 'rfcreader:recent';
 const POS_PREFIX = 'rfcreader:pos:';
 const MAX_RECENT = 20;
 
+// ---------- GitHub への保存 (Issue 経由) ----------
+// <meta name="github-repo"> か、github.io の URL から owner/repo を決める。
+function detectRepo() {
+  const meta = (document.querySelector('meta[name="github-repo"]')?.content || '').trim();
+  if (/^[\w.-]+\/[\w.-]+$/.test(meta)) return meta;
+  const m = /^([\w-]+)\.github\.io$/i.exec(location.hostname);
+  if (!m) return '';
+  const seg = location.pathname.split('/').filter(Boolean)[0];
+  return seg ? `${m[1]}/${seg}` : '';
+}
+const REPO = detectRepo();
+function issueUrl(title, body) {
+  return `https://github.com/${REPO}/issues/new?title=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}`;
+}
+function saveIssueUrl(n) {
+  return issueUrl(
+    `save rfc ${n}`,
+    `このまま「Submit new issue」を押すと、GitHub Actions が RFC ${n} の本文を rfc-editor.org から取得して \`rfcs/rfc${n}.txt\` に保存し、サイトを再デプロイします。完了するとこの Issue は自動で閉じられます。`,
+  );
+}
+function clearIssueUrl() {
+  return issueUrl(
+    'clear rfcs',
+    'このまま「Submit new issue」を押すと、GitHub Actions が `rfcs/` に保存されている RFC テキストをすべて削除し、サイトを再デプロイします。完了するとこの Issue は自動で閉じられます。',
+  );
+}
+function openInNewTab(url) {
+  const a = document.createElement('a');
+  a.href = url;
+  a.target = '_blank';
+  a.rel = 'noopener';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
+
 const $ = (sel) => document.querySelector(sel);
 const els = {
   home: $('#home'),
@@ -87,6 +123,11 @@ els.sourceInput.addEventListener('change', () => {
   saveSettings();
 });
 $('#clear-cache').addEventListener('click', async () => {
+  const msg = REPO
+    ? 'ブラウザのキャッシュと履歴を削除します。\nGitHub に保存した RFC テキストもすべて削除するため、Issue の作成画面を開きます。よろしいですか？'
+    : 'ブラウザのキャッシュと履歴を削除します。よろしいですか？';
+  if (!window.confirm(msg)) return;
+  if (REPO) openInNewTab(clearIssueUrl());
   try {
     if ('caches' in window) {
       const keys = await caches.keys();
@@ -96,7 +137,7 @@ $('#clear-cache').addEventListener('click', async () => {
       .filter((k) => k === RECENT_KEY || k.startsWith(POS_PREFIX))
       .forEach((k) => localStorage.removeItem(k));
     renderRecent();
-    showStatus('キャッシュと履歴を削除しました。', { autoHide: true });
+    showStatus(REPO ? 'ブラウザのキャッシュと履歴を削除しました。GitHub 上のファイルは、開いた Issue を送信すると削除されます。' : 'キャッシュと履歴を削除しました。', { autoHide: !REPO });
   } catch (e) {
     showStatus(`削除に失敗しました: ${e.message}`, { error: true });
   }
@@ -277,7 +318,7 @@ async function showRfc(n, { hash = '', restore = true } = {}) {
     showStatus(`<strong>RFC ${n} を読み込めませんでした。</strong>`, {
       error: true,
       details: e.details || [e.message],
-      actions: `<a class="btn secondary" href="https://www.rfc-editor.org/rfc/rfc${n}.html" target="_blank" rel="noopener">rfc-editor.org で開く</a><button class="btn secondary" id="retry">再試行</button>`,
+      actions: `${REPO ? `<a class="btn" href="${escapeHtml(saveIssueUrl(n))}" target="_blank" rel="noopener">GitHub に保存して読む</a>` : ''}<a class="btn secondary" href="https://www.rfc-editor.org/rfc/rfc${n}.html" target="_blank" rel="noopener">rfc-editor.org で開く</a><button class="btn secondary" id="retry">再試行</button>${REPO ? '<p class="help">「GitHub に保存して読む」は Issue の作成画面を開きます。送信すると GitHub Actions が本文を取得して保存するので、数分後にこのページを再読み込みしてください。</p>' : ''}`,
     });
     $('#retry')?.addEventListener('click', () => showRfc(n, { hash, restore }));
     return;
@@ -304,6 +345,14 @@ async function showRfc(n, { hash = '', restore = true } = {}) {
   const shortTitle = doc.meta.title && doc.meta.title !== `RFC ${n}` ? doc.meta.title : '';
   els.barTitle.innerHTML = `<small>RFC ${n}</small>${escapeHtml(shortTitle)}`;
   document.title = `RFC ${n}${shortTitle ? `: ${shortTitle}` : ''} - RFC Reader`;
+  const actions = document.createElement('p');
+  actions.className = 'doc-actions';
+  if (result.source.local) {
+    actions.innerHTML = '<span class="stored-badge">GitHub に保存済み</span>';
+  } else if (REPO) {
+    actions.innerHTML = `<a class="btn small" id="save-github" href="${escapeHtml(saveIssueUrl(n))}" target="_blank" rel="noopener">GitHub に保存</a><span class="hint">Issue の作成画面が開きます。送信すると GitHub Actions が本文を rfcs/ に保存します。</span>`;
+  }
+  if (actions.innerHTML) els.doc.querySelector('.rfc-head .status-slot')?.before(actions);
   els.tocBody.innerHTML = rendered.tocHtml || '<p class="empty">見出しを検出できませんでした。</p>';
   els.btnToc.hidden = false;
   pushRecent(n, shortTitle);

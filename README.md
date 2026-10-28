@@ -12,6 +12,7 @@ RFC 番号を入力すると rfc-editor.org から本文を取得し、固定幅
 - **リンク化**: `[RFC2119]` のような引用は参考文献へ、`RFC 9110` や `Section 4.1 of [RFC7231]` は該当 RFC・該当セクションへ飛べます。
 - **表示設定**: 文字サイズ、テーマ（自動 / ライト / ダーク / セピア）、コードブロックの折り返し。
 - **オフライン対応**: 一度読んだ RFC は Service Worker がキャッシュします。ホーム画面に追加して PWA として使えます。
+- **GitHub への保存**: 閲覧画面の「GitHub に保存」から、読んだ RFC のテキストをリポジトリの `rfcs/` に保存できます（Issue 経由、後述）。
 - **廃止・更新の表示**: rfc-editor.org のメタデータが取得できる場合、「この RFC は RFC XXXX により廃止されています」と先頭に表示します。
 
 対応フォーマットは、ページ区切り付きの旧来形式（RFC 791 や RFC 2616 など）と、ページ区切りなしの xml2rfc v3 形式（RFC 8650 以降）の両方です。
@@ -47,6 +48,25 @@ npm test           # パーサーとレンダラーのテスト (Node 18 以降�
 `rfcs/` ディレクトリに `rfcNNNN.txt` を置くと、ネットワークに関係なくそのテキストから表示します。
 `rfcs/index.json` に載っている RFC はホーム画面の「このサイトに保存済み」に一覧表示されます。
 
+### 方法 0: アプリの「GitHub に保存」ボタン (Issue 経由、推奨)
+
+1. 閲覧画面の「GitHub に保存」を押すと、タイトルに `save rfc 9110` が入った Issue の作成画面が開きます（読み込みに失敗した画面では「GitHub に保存して読む」）。
+2. 「Submit new issue」を押すと `.github/workflows/store-rfc.yml` が起動し、rfc-editor.org から本文を取得して `rfcs/rfc9110.txt` にコミットし、サイトを再デプロイして Issue を自動で閉じます。結果は Issue にコメントされます。
+3. 以後その RFC は `rfcs/` から読み込まれ、閲覧画面に「GitHub に保存済み」と表示されます。
+
+表示設定の「キャッシュを削除」を押すと、ブラウザのキャッシュと履歴を消すのに加えて、タイトルが `clear rfcs` の Issue 作成画面を開きます。送信すると `rfcs/` の RFC テキストが**すべて**（最初から同梱されているものも含めて）削除されます。
+
+Issue のタイトルで使えるコマンド:
+
+| タイトル | 動作 |
+| --- | --- |
+| `save rfc 9110` / `save rfc 9110, 6749` | 取得して保存 |
+| `delete rfc 9110` | 指定した RFC を削除 |
+| `clear rfcs` | すべて削除 |
+
+安全のため、リポジトリのオーナー・メンバー・コラボレーターが作成した Issue だけを処理します（他のユーザーの Issue は無視され、通常の Issue として残ります）。
+ブラウザ側にトークンは保存しません。Issue を作成するリポジトリは `index.html` の `<meta name="github-repo">` で指定します（空の場合は `*.github.io` の URL から推定します）。
+
 ### 方法 A: GitHub Actions から取得する
 
 **Actions → "Fetch RFC text into rfcs/" → Run workflow** を開き、RFC 番号（例: `9110 6749`）を入力して実行します。
@@ -55,8 +75,10 @@ rfc-editor.org から本文を取得して `rfcs/` にコミットします。
 ### 方法 B: 手元のスクリプトで取得する
 
 ```sh
-node scripts/fetch-rfc.mjs 9110 6749     # rfcs/rfc9110.txt などを保存し index.json を更新
-node scripts/fetch-rfc.mjs --reindex     # index.json だけ作り直す
+node scripts/fetch-rfc.mjs 9110 6749       # rfcs/rfc9110.txt などを保存し index.json を更新
+node scripts/fetch-rfc.mjs --delete 9110   # 削除
+node scripts/fetch-rfc.mjs --clear         # すべて削除
+node scripts/fetch-rfc.mjs --reindex       # index.json だけ作り直す
 ```
 
 取得した後に commit / push してください。
@@ -75,9 +97,11 @@ src/render.js         構造 → HTML (リンク化、目次生成)
 src/app.js            画面遷移、取得、設定、履歴、Service Worker 登録
 sw.js                 オフラインキャッシュ
 rfcs/                 格納済みの RFC テキストと index.json
-scripts/fetch-rfc.mjs RFC テキストの取得スクリプト
-test/                 パーサー・レンダラーのテスト
-.github/workflows/    GitHub Pages へのデプロイ、RFC 取得ワークフロー
+scripts/fetch-rfc.mjs RFC テキストの取得・削除スクリプト
+scripts/issue-command.mjs  Issue タイトルをコマンドとして実行 (Actions から使用)
+scripts/lib/rfc-store.mjs  rfcs/ の保存・削除・index.json 更新
+test/                 パーサー・レンダラー・保存処理のテスト
+.github/workflows/    GitHub Pages へのデプロイ、RFC 取得 (手動 / Issue 経由) ワークフロー
 ```
 
 ## 解析の仕組み (概要)

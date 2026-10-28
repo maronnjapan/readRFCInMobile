@@ -1,7 +1,7 @@
 name: Fetch RFC text into rfcs/
 
 # 「GitHub に格納するパターン」: Actions 画面から RFC 番号を入力すると、
-# rfc-editor.org から本文を取得して rfcs/ にコミットする。
+# rfc-editor.org から本文を取得して rfcs/ にコミットし、サイトを再デプロイする。
 on:
   workflow_dispatch:
     inputs:
@@ -12,6 +12,11 @@ on:
 
 permissions:
   contents: write
+  actions: write
+
+concurrency:
+  group: rfcs-store
+  cancel-in-progress: false
 
 jobs:
   fetch:
@@ -22,15 +27,29 @@ jobs:
         with:
           node-version: 22
       - name: Fetch RFC text
-        run: node scripts/fetch-rfc.mjs ${{ inputs.numbers }}
+        env:
+          NUMBERS: ${{ inputs.numbers }}
+        run: node scripts/fetch-rfc.mjs "$NUMBERS"
       - name: Commit and push
+        id: push
+        env:
+          NUMBERS: ${{ inputs.numbers }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add rfcs
           if git diff --cached --quiet; then
             echo "変更なし"
+            echo "changed=false" >> "$GITHUB_OUTPUT"
           else
-            git commit -m "Add RFC text: ${{ inputs.numbers }}"
-            git push
+            git commit -m "Store RFC text: $NUMBERS"
+            git pull --rebase origin "$GITHUB_REF_NAME"
+            git push origin "HEAD:$GITHUB_REF_NAME"
+            echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
+      - name: Redeploy site
+        if: steps.push.outputs.changed == 'true' && github.ref_name == 'main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: gh workflow run deploy-pages.yml --ref main

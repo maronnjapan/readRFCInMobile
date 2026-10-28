@@ -11,6 +11,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="RFC Reader">
   <title>RFC Reader</title>
+  <!-- 「GitHub に保存」と「キャッシュを削除」が Issue を作成するリポジトリ (owner/repo)。空なら github.io の URL から推定する -->
+  <meta name="github-repo" content="maronnjapan/readRFCInMobile">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
@@ -60,7 +62,7 @@
         <li><a href="?rfc=8259" data-rfc="8259"><span class="num">RFC 8259</span>The JavaScript Object Notation (JSON) Data Interchange Format</a></li>
         <li><a href="?rfc=2119" data-rfc="2119"><span class="num">RFC 2119</span>Key words for use in RFCs to Indicate Requirement Levels</a></li>
       </ul>
-      <p class="help">本文は rfc-editor.org から直接取得します。取得できない環境では、リポジトリの <code>rfcs/</code> に置いたテキストから読み込みます（詳しくは README を参照）。</p>
+      <p class="help">本文は rfc-editor.org から直接取得します。閲覧画面の「GitHub に保存」を押すと、リポジトリの <code>rfcs/</code> にテキストとして保存され、以後はそこから読み込みます（詳しくは README を参照）。</p>
     </section>
 
     <article id="doc" hidden></article>
@@ -122,7 +124,7 @@
         </div>
         <div class="setting">
           <button class="btn secondary" id="clear-cache">キャッシュを削除</button>
-          <p class="hint">保存した本文キャッシュと最近読んだ履歴を消します。</p>
+          <p class="hint">ブラウザに保存した本文キャッシュと最近読んだ履歴を消します。GitHub に保存した RFC テキストも、Issue 経由ですべて削除します。</p>
         </div>
       </div>
     </div>

@@ -1,0 +1,67 @@
+name: Store RFC via issue
+
+# アプリの「GitHub に保存」「キャッシュを削除」から開いた Issue を受け取り、
+# タイトルをコマンドとして実行する (save rfc 9110 / delete rfc 9110 / clear rfcs)。
+# リポジトリのオーナー・メンバー・コラボレーターが作成した Issue だけを処理する。
+on:
+  issues:
+    types: [opened, reopened]
+
+permissions:
+  contents: write
+  issues: write
+  actions: write
+
+concurrency:
+  group: rfcs-store
+  cancel-in-progress: false
+
+jobs:
+  store:
+    if: contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.issue.author_association)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run command from issue title
+        id: cmd
+        env:
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          SITE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
+        run: node scripts/issue-command.mjs
+      - name: Commit and push
+        if: steps.cmd.outputs.changed == 'true'
+        env:
+          COMMIT_MESSAGE: ${{ steps.cmd.outputs.commit_message }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add rfcs
+          git commit -m "$COMMIT_MESSAGE" -m "Requested in #$ISSUE_NUMBER"
+          git pull --rebase origin main
+          git push origin HEAD:main
+      - name: Redeploy site
+        # GITHUB_TOKEN による push は他のワークフローを起動しないので、明示的にデプロイを起動する
+        if: steps.cmd.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: gh workflow run deploy-pages.yml --ref main
+      - name: Reply and close the issue
+        if: steps.cmd.outputs.action != 'none'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          SUMMARY: ${{ steps.cmd.outputs.summary }}
+          OK: ${{ steps.cmd.outputs.ok }}
+        run: |
+          gh issue comment "$ISSUE_NUMBER" --body "$SUMMARY"
+          if [ "$OK" = "true" ]; then
+            gh issue close "$ISSUE_NUMBER" --reason completed
+          fi
