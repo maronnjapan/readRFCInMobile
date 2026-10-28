@@ -24,6 +24,12 @@
     "category": "Standards Track"
   },
   {
+    "number": 7591,
+    "title": "OAuth 2.0 Dynamic Client Registration Protocol",
+    "date": "July 2015",
+    "category": "Standards Track"
+  },
+  {
     "number": 8259,
     "title": "The JavaScript Object Notation (JSON) Data Interchange Format",
     "date": "December 2017",
