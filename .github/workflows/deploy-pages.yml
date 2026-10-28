@@ -32,6 +32,11 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # GitHub の画面などから pdfs/ に直接置いた PDF も一覧に出るよう、公開する index.json を pdfs/ の中身に合わせる
+      - run: node scripts/fetch-pdf.mjs --reindex
       - uses: actions/configure-pages@v5
         with:
           # Pages が未設定なら GitHub Actions ビルドとして有効化を試みる

@@ -8,7 +8,7 @@ import { parseRfc } from '../../src/rfc-parser.js';
 export const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 export const defaultDir = join(repoRoot, 'rfcs');
 
-const USER_AGENT = 'readRFCInMobile/1.0 (+https://github.com/maronnjapan/readRFCInMobile)';
+export const USER_AGENT = 'readRFCInMobile/1.0 (+https://github.com/maronnjapan/readRFCInMobile)';
 
 export function sourcesFor(n) {
   const list = [];

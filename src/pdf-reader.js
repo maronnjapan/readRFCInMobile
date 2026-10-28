@@ -202,6 +202,31 @@ export const pdfStore = {
   },
 };
 
+// ---------- GitHub に保存した PDF (pdfs/index.json) ----------
+// 一覧から開くときのキー: 元の URL があればそれ、なければ内容のハッシュ (ファイルとして開いたときの fileKey と同じ値)
+export function storedPdfKey(entry) {
+  return entry.url || `local:${String(entry.sha256 || '').slice(0, 16)}`;
+}
+
+export const storedPdfPath = (entry) => `pdfs/${encodeURIComponent(entry.file)}`;
+
+// キー (?pdf= の値) に当たる保存済みの PDF を探す。base は相対 URL の基準 (location.href)
+export function findStoredPdf(list, key, base) {
+  if (!Array.isArray(list) || !key) return null;
+  const local = /^local:([0-9a-f]{16})$/i.exec(key);
+  if (local) return list.find((e) => String(e.sha256 || '').startsWith(local[1].toLowerCase())) || null;
+  const abs = (u) => {
+    try {
+      return new URL(u, base).href;
+    } catch {
+      return '';
+    }
+  };
+  const url = normalizePdfInput(key);
+  const href = abs(key);
+  return list.find((e) => e.url && e.url === url) || (href && list.find((e) => e.file && abs(storedPdfPath(e)) === href)) || null;
+}
+
 // ファイルの内容から履歴用のキーを作る
 export async function fileKey(bytes, file) {
   try {
