@@ -9,7 +9,7 @@ const MONTH_RE = new RegExp(`\\b(?:${MONTHS})\\b`);
 const DATE_RE = new RegExp(`^(?:(?:\\d{1,2}\\s+)?(?:${MONTHS})\\s+\\d{4}|(?:${MONTHS})\\s+\\d{1,2},\\s+\\d{4})$`);
 
 const FOOTER_RE = /\[Page\s+(?:\d+|[ivxlc]+)\]\s*$/i;
-const LIST_RE = /^(\s*)(?:([-*o+•·])|(\d{1,3})[.)]|\((\d{1,3})\)|([a-zA-Z])[.)]|\(([a-zA-Z])\)|((?:x{0,3})(?:ix|iv|v?i{1,3}|v))[.)])(\s+)(\S.*)$/;
+const LIST_RE = /^(\s*)(?:([-*o+.•·])|(\d{1,3})[.)]|\((\d{1,3})\)|([a-zA-Z])[.)]|\(([a-zA-Z])\)|((?:x{0,3})(?:ix|iv|v?i{1,3}|v))[.)])(\s+)(\S.*)$/;
 const CAPTION_RE = /^\s{3,}((?:Figure|Fig\.|Table)\s+\d+)(?:\s*[:.]\s*(.*))?$/;
 const REF_RE = /^(\s*)\[([^\]\s]{1,40})\]\s+(\S.*)$/;
 const GRID_SEP_RE = /^\+[=+-]+\+$/;
@@ -543,7 +543,7 @@ function classifyBlock(block, ctx) {
     }
   }
 
-  if (LIST_RE.test(first) && !ctx.inAuthors) {
+  if (LIST_RE.test(first)) {
     const parsed = parseListBlock(block);
     if (parsed) {
       const list = {
