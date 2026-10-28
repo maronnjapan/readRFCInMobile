@@ -26,22 +26,6 @@ function saveIssueUrl(n) {
     `このまま「Submit new issue」を押すと、GitHub Actions が RFC ${n} の本文を rfc-editor.org から取得して \`rfcs/rfc${n}.txt\` に保存し、サイトを再デプロイします。完了するとこの Issue は自動で閉じられます。`,
   );
 }
-function clearIssueUrl() {
-  return issueUrl(
-    'clear rfcs',
-    'このまま「Submit new issue」を押すと、GitHub Actions が `rfcs/` に保存されている RFC テキストをすべて削除し、サイトを再デプロイします。完了するとこの Issue は自動で閉じられます。',
-  );
-}
-function openInNewTab(url) {
-  const a = document.createElement('a');
-  a.href = url;
-  a.target = '_blank';
-  a.rel = 'noopener';
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-}
-
 const $ = (sel) => document.querySelector(sel);
 const els = {
   home: $('#home'),
@@ -122,12 +106,9 @@ els.sourceInput.addEventListener('change', () => {
   settings.source = els.sourceInput.value.trim();
   saveSettings();
 });
+// 消すのはブラウザ側のキャッシュと履歴だけ。GitHub (rfcs/) に保存した RFC テキストは残し、引き続き表示する
 $('#clear-cache').addEventListener('click', async () => {
-  const msg = REPO
-    ? 'ブラウザのキャッシュと履歴を削除します。\nGitHub に保存した RFC テキストもすべて削除するため、Issue の作成画面を開きます。よろしいですか？'
-    : 'ブラウザのキャッシュと履歴を削除します。よろしいですか？';
-  if (!window.confirm(msg)) return;
-  if (REPO) openInNewTab(clearIssueUrl());
+  if (!window.confirm('ブラウザのキャッシュと最近読んだ履歴を削除します。\nGitHub に保存した RFC テキストは削除されず、引き続き表示されます。よろしいですか？')) return;
   try {
     if ('caches' in window) {
       const keys = await caches.keys();
@@ -137,7 +118,8 @@ $('#clear-cache').addEventListener('click', async () => {
       .filter((k) => k === RECENT_KEY || k.startsWith(POS_PREFIX))
       .forEach((k) => localStorage.removeItem(k));
     renderRecent();
-    showStatus(REPO ? 'ブラウザのキャッシュと履歴を削除しました。GitHub 上のファイルは、開いた Issue を送信すると削除されます。' : 'キャッシュと履歴を削除しました。', { autoHide: !REPO });
+    renderStored();
+    showStatus('キャッシュと履歴を削除しました。GitHub に保存した RFC はそのまま表示されます。', { autoHide: true });
   } catch (e) {
     showStatus(`削除に失敗しました: ${e.message}`, { error: true });
   }
@@ -183,7 +165,8 @@ async function fetchRfcText(n, onProgress) {
   for (const src of sources(n)) {
     onProgress?.(src);
     try {
-      const res = await fetch(src.url, { headers: { Accept: 'text/plain' } });
+      // rfcs/ は保存・削除で中身が変わるので、ブラウザの HTTP キャッシュ (GitHub Pages では 10 分) に頼らずサーバーに確認する
+      const res = await fetch(src.url, { headers: { Accept: 'text/plain' }, cache: src.local ? 'no-cache' : 'default' });
       if (!res.ok) {
         errors.push(`${src.name}: HTTP ${res.status}`);
         continue;
@@ -258,11 +241,12 @@ function renderRecent() {
 }
 async function renderStored() {
   try {
-    const res = await fetch('rfcs/index.json');
+    // 保存した直後でも一覧に出るよう、HTTP キャッシュに頼らずサーバーに確認する
+    const res = await fetch('rfcs/index.json', { cache: 'no-cache' });
     if (!res.ok) return;
     const list = await res.json();
-    if (!Array.isArray(list) || !list.length) return;
-    els.storedWrap.hidden = false;
+    els.storedWrap.hidden = !Array.isArray(list) || !list.length;
+    if (els.storedWrap.hidden) return;
     els.storedList.innerHTML = list
       .map(
         (r) =>
