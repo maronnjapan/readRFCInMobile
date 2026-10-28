@@ -38,14 +38,15 @@ const server = createServer((req, res) => {
   }
 });
 await new Promise((r) => server.listen(0, '127.0.0.1', r));
-process.env.RFC_SOURCE_URL = `http://127.0.0.1:${server.address().port}/rfc{n}.txt`;
+// ネットワークに出ないよう、取得元をローカルサーバーだけに限定する
+const sources = (n) => [`http://127.0.0.1:${server.address().port}/rfc${n}.txt`];
 after(() => {
   server.close();
   rmSync(dir, { recursive: true, force: true });
 });
 
 test('storeRfcs saves the text, skips existing files, reports failures, and updates index.json', async () => {
-  const r1 = await storeRfcs([99999, 42, 7], { dir });
+  const r1 = await storeRfcs([99999, 42, 7], { dir, sources });
   assert.deepEqual(r1.saved, [99999]);
   assert.equal(r1.failed.length, 2, 'non-RFC content and missing files both fail');
   assert.ok(existsSync(join(dir, 'rfc99999.txt')));
@@ -55,7 +56,7 @@ test('storeRfcs saves the text, skips existing files, reports failures, and upda
   assert.equal(index[0].number, 99999);
   assert.equal(index[0].title, 'A Sample Protocol in RFCXML v3 Text');
 
-  const r2 = await storeRfcs([99999], { dir });
+  const r2 = await storeRfcs([99999], { dir, sources });
   assert.deepEqual(r2.skipped, [99999]);
   assert.deepEqual(r2.saved, []);
 });

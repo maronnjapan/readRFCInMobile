@@ -22,9 +22,9 @@ export function looksLikeRfc(text) {
   return /Request for Comments|RFC\s*:?\s*\d|Network Working Group|Internet Engineering Task Force/i.test(text.slice(0, 4000));
 }
 
-export async function fetchText(n, { log = () => {} } = {}) {
+export async function fetchText(n, { log = () => {}, sources = sourcesFor } = {}) {
   let lastErr;
-  for (const url of sourcesFor(n)) {
+  for (const url of sources(n)) {
     try {
       const res = await fetch(url, { headers: { 'User-Agent': USER_AGENT } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -57,7 +57,7 @@ export function reindex(dir = defaultDir) {
   return list;
 }
 
-export async function storeRfcs(numbers, { dir = defaultDir, force = false, log = () => {} } = {}) {
+export async function storeRfcs(numbers, { dir = defaultDir, force = false, log = () => {}, sources = sourcesFor } = {}) {
   mkdirSync(dir, { recursive: true });
   const result = { saved: [], skipped: [], failed: [] };
   for (const n of numbers) {
@@ -69,7 +69,7 @@ export async function storeRfcs(numbers, { dir = defaultDir, force = false, log 
     }
     log(`RFC ${n} を取得中…`);
     try {
-      writeFileSync(file, await fetchText(n, { log }));
+      writeFileSync(file, await fetchText(n, { log, sources }));
       log(`  -> ${file}`);
       result.saved.push(n);
     } catch (e) {
