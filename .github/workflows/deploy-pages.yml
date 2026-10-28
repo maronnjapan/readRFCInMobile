@@ -33,6 +33,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/configure-pages@v5
+        with:
+          # Pages が未設定なら GitHub Actions ビルドとして有効化を試みる
+          enablement: true
       - uses: actions/upload-pages-artifact@v3
         with:
           path: .
