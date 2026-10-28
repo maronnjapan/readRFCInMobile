@@ -1,0 +1,16 @@
+{
+  "name": "read-rfc-in-mobile",
+  "version": "1.0.0",
+  "description": "RFC をスマートフォンで読みやすく表示する静的サイト",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "test": "node --test",
+    "serve": "python3 -m http.server 8080",
+    "fetch": "node scripts/fetch-rfc.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT"
+}

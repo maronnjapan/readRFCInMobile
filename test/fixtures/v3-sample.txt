@@ -1,0 +1,156 @@
+Internet Engineering Task Force (IETF)                        A. Example
+Request for Comments: 99999                                  Example Org
+Obsoletes: 1234                                                 B. Tester
+Category: Standards Track                                     Testing Inc
+ISSN: 2070-1721                                                 June 2026
+
+
+                    A Sample Protocol in RFCXML v3 Text
+
+Abstract
+
+   This document is a synthetic sample used to test the parser against
+   the unpaginated text layout produced by xml2rfc version 3.  It has
+   a table, nested lists, a definition list, and a figure.
+
+Status of This Memo
+
+   This is an Internet Standards Track document.
+
+Table of Contents
+
+   1.  Introduction
+     1.1.  Requirements Language
+   2.  Protocol Overview
+   3.  Data Types
+   4.  IANA Considerations
+   5.  References
+     5.1.  Normative References
+   Appendix A.  Example Exchange
+   Authors' Addresses
+
+1.  Introduction
+
+   The Sample Protocol (SP) is a stateless request/response protocol
+   that is described here only to exercise the parser.  See Section 2
+   for an overview and Appendix A for an example.  It builds on
+   [RFC9110] and RFC 2119.
+
+1.1.  Requirements Language
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
+   "OPTIONAL" in this document are to be interpreted as described in
+   BCP 14 [RFC2119] [RFC8174] when, and only when, they appear in all
+   capitals, as shown here.
+
+2.  Protocol Overview
+
+   A client sends a request and receives a response:
+
+   *  Requests carry a method and a target.
+
+      -  The method is one of the tokens in Table 1.
+
+      -  The target is a URI reference (Section 4.1 of [RFC3986]).
+
+   *  Responses carry a three-digit status code.
+
+   The following table lists the methods:
+
+   +=========+===========================+===========+
+   | Method  | Description               | Reference |
+   +=========+===========================+===========+
+   | FETCH   | Retrieve a representation | Section 3 |
+   +---------+---------------------------+-----------+
+   | STORE   | Replace a representation; | Section 3 |
+   |         | wraps onto two lines      |           |
+   +---------+---------------------------+-----------+
+
+                           Table 1: SP Methods
+
+   Figure 1 shows the message flow.
+
+          +--------+            request            +--------+
+          |        | ----------------------------> |        |
+          | Client |                               | Server |
+          |        | <---------------------------- |        |
+          +--------+            response           +--------+
+
+                         Figure 1: Message Flow
+
+3.  Data Types
+
+   Messages are described with the following ABNF:
+
+   message       = start-line CRLF *( header CRLF ) CRLF [ body ]
+   start-line    = method SP target SP version
+   header        = field-name ":" OWS field-value OWS
+
+   Example request:
+
+   FETCH /items/42 SP/1.0
+   Host: example.com
+   Accept: application/json
+
+   Field definitions:
+
+   method:  One of FETCH or STORE.  Implementations MUST reject other
+      tokens.
+
+   target:  The resource identifier.
+
+   version:  Always "SP/1.0" in this version of the protocol.
+
+4.  IANA Considerations
+
+   This document has no IANA actions.
+
+5.  References
+
+5.1.  Normative References
+
+   [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
+              Requirement Levels", BCP 14, RFC 2119,
+              DOI 10.17487/RFC2119, March 1997,
+              <https://www.rfc-editor.org/info/rfc2119>.
+
+   [RFC3986]  Berners-Lee, T., Fielding, R., and L. Masinter, "Uniform
+              Resource Identifier (URI): Generic Syntax", STD 66,
+              RFC 3986, DOI 10.17487/RFC3986, January 2005,
+              <https://www.rfc-editor.org/info/rfc3986>.
+
+   [RFC8174]  Leiba, B., "Ambiguity of Uppercase vs Lowercase in RFC
+              2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
+              May 2017, <https://www.rfc-editor.org/info/rfc8174>.
+
+   [RFC9110]  Fielding, R., Ed., Nottingham, M., Ed., and J. Reschke,
+              Ed., "HTTP Semantics", STD 97, RFC 9110,
+              DOI 10.17487/RFC9110, June 2022,
+              <https://www.rfc-editor.org/info/rfc9110>.
+
+Appendix A.  Example Exchange
+
+   A complete exchange looks like this:
+
+   {
+     "method": "FETCH",
+     "target": "/items/42",
+     "status": 200
+   }
+
+Authors' Addresses
+
+   Alice Example
+   Example Org
+   123 Example Street
+   Example City
+   Japan
+
+   Email: alice@example.org
+
+
+   Bob Tester
+   Testing Inc
+
+   Email: bob@example.net

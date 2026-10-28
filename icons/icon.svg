@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" rx="112" fill="#0b57d0"/>
+  <rect x="120" y="96" width="272" height="320" rx="28" fill="#ffffff"/>
+  <rect x="160" y="150" width="192" height="22" rx="11" fill="#0b57d0"/>
+  <rect x="160" y="200" width="192" height="16" rx="8" fill="#9db9ef"/>
+  <rect x="160" y="236" width="160" height="16" rx="8" fill="#9db9ef"/>
+  <rect x="160" y="272" width="192" height="16" rx="8" fill="#9db9ef"/>
+  <text x="256" y="378" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-weight="700" font-size="64" fill="#0b57d0">RFC</text>
+</svg>

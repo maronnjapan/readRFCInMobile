@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#121316" media="(prefers-color-scheme: dark)">
+  <meta name="description" content="RFC をスマートフォンで読みやすく表示するリーダー">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="RFC Reader">
+  <title>RFC Reader</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    // 初期描画のちらつきを避けるため、保存済みの設定を先に適用する
+    try {
+      const s = JSON.parse(localStorage.getItem('rfcreader:settings') || '{}');
+      if (s.theme && s.theme !== 'system') document.documentElement.dataset.theme = s.theme;
+      if (s.fs) document.documentElement.style.setProperty('--fs', s.fs + 'px');
+      if (s.wrap !== false) document.documentElement.dataset.wrap = 'on';
+    } catch (e) {}
+  </script>
+</head>
+<body>
+  <header class="topbar">
+    <button class="iconbtn" id="btn-home" aria-label="ホーム" title="ホーム">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v10h13V10"/></svg>
+    </button>
+    <div class="bar-title" id="bar-title">RFC Reader</div>
+    <button class="iconbtn" id="btn-toc" aria-label="目次" title="目次" hidden>目次</button>
+    <button class="iconbtn" id="btn-settings" aria-label="表示設定" title="表示設定">Aa</button>
+    <div class="progress" id="progress"></div>
+  </header>
+
+  <main id="main">
+    <section class="home" id="home">
+      <h1>RFC Reader</h1>
+      <p class="lead">RFC 番号を入力すると、スマートフォンでも読みやすいレイアウトで表示します。</p>
+      <form class="rfc-form" id="rfc-form" autocomplete="off">
+        <span class="prefix">RFC</span>
+        <input id="rfc-input" name="rfc" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="例: 9110" aria-label="RFC 番号" required>
+        <button class="btn" type="submit">読む</button>
+      </form>
+      <div id="home-recent" hidden>
+        <h2>最近読んだ RFC</h2>
+        <ul class="cardlist" id="recent-list"></ul>
+      </div>
+      <div id="home-stored" hidden>
+        <h2>このサイトに保存済み</h2>
+        <ul class="cardlist" id="stored-list"></ul>
+      </div>
+      <h2>例</h2>
+      <ul class="cardlist" id="example-list">
+        <li><a href="?rfc=9110" data-rfc="9110"><span class="num">RFC 9110</span>HTTP Semantics</a></li>
+        <li><a href="?rfc=6749" data-rfc="6749"><span class="num">RFC 6749</span>The OAuth 2.0 Authorization Framework</a></li>
+        <li><a href="?rfc=8259" data-rfc="8259"><span class="num">RFC 8259</span>The JavaScript Object Notation (JSON) Data Interchange Format</a></li>
+        <li><a href="?rfc=2119" data-rfc="2119"><span class="num">RFC 2119</span>Key words for use in RFCs to Indicate Requirement Levels</a></li>
+      </ul>
+      <p class="help">本文は rfc-editor.org から直接取得します。取得できない環境では、リポジトリの <code>rfcs/</code> に置いたテキストから読み込みます（詳しくは README を参照）。</p>
+    </section>
+
+    <article id="doc" hidden></article>
+    <div id="status" hidden></div>
+  </main>
+
+  <button class="fab" id="fab-top" aria-label="先頭へ戻る" title="先頭へ戻る">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V6"/><path d="m5 12 7-7 7 7"/></svg>
+  </button>
+
+  <div class="drawer" id="toc-drawer" hidden role="dialog" aria-modal="true" aria-labelledby="toc-title">
+    <div class="scrim" data-close></div>
+    <div class="sheet">
+      <div class="sheet-head">
+        <h2 id="toc-title">目次</h2>
+        <button class="iconbtn" data-close aria-label="閉じる">閉じる</button>
+      </div>
+      <div class="sheet-body" id="toc-body"></div>
+    </div>
+  </div>
+
+  <div class="drawer" id="settings-drawer" hidden role="dialog" aria-modal="true" aria-labelledby="settings-title">
+    <div class="scrim" data-close></div>
+    <div class="sheet">
+      <div class="sheet-head">
+        <h2 id="settings-title">表示設定</h2>
+        <button class="iconbtn" data-close aria-label="閉じる">閉じる</button>
+      </div>
+      <div class="sheet-body">
+        <div class="setting">
+          <span class="label">文字サイズ</span>
+          <div class="fs-row">
+            <button class="btn secondary" id="fs-dec" aria-label="小さく">A−</button>
+            <output id="fs-out">17px</output>
+            <button class="btn secondary" id="fs-inc" aria-label="大きく">A＋</button>
+          </div>
+        </div>
+        <div class="setting">
+          <span class="label">テーマ</span>
+          <div class="seg" id="theme-seg" role="group" aria-label="テーマ">
+            <button data-theme="system" aria-pressed="true">自動</button>
+            <button data-theme="light" aria-pressed="false">ライト</button>
+            <button data-theme="dark" aria-pressed="false">ダーク</button>
+            <button data-theme="sepia" aria-pressed="false">セピア</button>
+          </div>
+        </div>
+        <div class="setting">
+          <span class="label">コードブロック</span>
+          <div class="seg" id="wrap-seg" role="group" aria-label="コードの折り返し">
+            <button data-wrap="on" aria-pressed="true">折り返す</button>
+            <button data-wrap="off" aria-pressed="false">横スクロール</button>
+          </div>
+          <p class="hint">図表 (ASCII アート) は常に横スクロールで原文のまま表示します。</p>
+        </div>
+        <div class="setting">
+          <label class="label" for="source-input">取得元 URL テンプレート（任意）</label>
+          <input type="url" id="source-input" placeholder="https://example.com/rfc/rfc{n}.txt">
+          <p class="hint"><code>{n}</code> が RFC 番号に置き換わります。独自のミラーやプロキシを使う場合に設定します。</p>
+        </div>
+        <div class="setting">
+          <button class="btn secondary" id="clear-cache">キャッシュを削除</button>
+          <p class="hint">保存した本文キャッシュと最近読んだ履歴を消します。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="src/app.js"></script>
+</body>
+</html>
