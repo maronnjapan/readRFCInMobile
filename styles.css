@@ -183,6 +183,10 @@ main {
 .cardlist .ttl { display: block; font-size: 0.95em; }
 .cardlist .when { display: block; color: var(--muted); font-size: 0.8em; margin-top: 0.15em; }
 .help { font-size: 0.9em; color: var(--muted); }
+.pdf-form { margin-bottom: 0.75rem; }
+.pdf-form input { font-size: 1rem; }
+.file-btn { display: inline-block; position: relative; overflow: hidden; }
+.file-btn input { position: absolute; inset: 0; opacity: 0; cursor: pointer; font-size: 0; }
 .help code { font-family: var(--mono); font-size: 0.9em; background: var(--code-bg); padding: 0.05em 0.35em; border-radius: 4px; }
 
 /* ---------- 読み込み状態 ---------- */
@@ -285,6 +289,15 @@ tr:last-child td { border-bottom: 0; }
 .rfc-body dd > p:last-child { margin-bottom: 0; }
 .rfc-body dl.refs dt { font-family: var(--mono); font-size: 0.85em; margin-top: 0.9em; scroll-margin-top: calc(var(--topbar-h) + 0.75rem); }
 .rfc-body dl.refs dd { font-size: 0.95em; }
+.rfc-body p.note { font-size: 0.85em; color: var(--muted); border-left: 2px solid var(--line); padding-left: 0.75em; }
+/* PDF から切り出した図・表・数式 */
+figure.pdf-fig { margin: 0 0 1.25em; }
+.pdf-region { width: 100%; margin: 0 auto 0.35em; background: #fff; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.pdf-region img { display: block; width: 100%; height: 100%; cursor: zoom-in; }
+.pdf-region.zoom { max-width: none !important; aspect-ratio: auto !important; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.pdf-region.zoom img { width: 220%; height: auto; max-width: none; cursor: zoom-out; }
+.pdf-region.failed { display: flex; align-items: center; justify-content: center; color: #666; font-size: 0.85em; }
+.docfoot .hint { margin: 0.5rem 0 0; font-size: 0.8rem; }
 .toc-inline { margin: 0 0 1.5em; }
 .toc-inline summary { cursor: pointer; color: var(--accent); font-weight: 600; }
 

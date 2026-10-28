@@ -2,6 +2,7 @@
 
 RFC をスマートフォンでも読みやすく表示する、ビルド不要の静的サイトです。
 RFC 番号を入力すると rfc-editor.org から本文を取得し、固定幅 72 桁のプレーンテキストを構造解析してスマホ向けに再レイアウトします。
+NIST SP や論文などの PDF も、段組を解いて同じ形式で表示できます（後述）。
 
 ## できること
 
@@ -14,6 +15,7 @@ RFC 番号を入力すると rfc-editor.org から本文を取得し、固定幅
 - **オフライン対応**: 一度読んだ RFC は Service Worker がキャッシュします。ホーム画面に追加して PWA として使えます。
 - **GitHub への保存**: 閲覧画面の「GitHub に保存」から、読んだ RFC のテキストをリポジトリの `rfcs/` に保存できます（Issue 経由、後述）。
 - **廃止・更新の表示**: rfc-editor.org のメタデータが取得できる場合、「この RFC は RFC XXXX により廃止されています」と先頭に表示します。
+- **PDF の再レイアウト**: 端末の PDF ファイル、PDF の URL、arXiv の ID から開き、2 段組や見出し・参考文献を解析して RFC と同じ表示にします。図・表・数式は元のページから切り出した画像で表示します。
 
 対応フォーマットは、ページ区切り付きの旧来形式（RFC 791 や RFC 2616 など）と、ページ区切りなしの xml2rfc v3 形式（RFC 8650 以降）の両方です。
 
@@ -30,6 +32,39 @@ RFC 番号を入力すると rfc-editor.org から本文を取得し、固定幅
 ```sh
 npm run serve      # http://localhost:8080 で静的配信 (python3 が必要)
 npm test           # パーサーとレンダラーのテスト (Node 18 以降、依存パッケージなし)
+```
+
+## PDF を読む
+
+ホーム画面の「PDF を読む」から開きます。
+
+- **PDF ファイルを選ぶ**: 端末に保存した PDF を開きます。どのサイトの PDF でも確実に開ける方法です。
+- **URL / arXiv ID**: `https://arxiv.org/abs/1706.03762` や `1706.03762`、`arXiv:1706.03762` のように入力します。arXiv はブラウザからの直接取得を許可しているので、そのまま開けます。ほかのサイト（NIST など）はブラウザからの取得を許可していないことが多く、その場合は PDF を端末に保存してからファイルとして開いてください。
+- 開いた PDF は端末内 (IndexedDB) に最大 12 件保存され、「最近読んだもの」から開き直せます。表示設定の「キャッシュを削除」で消えます。URL は `?pdf=<URL>`（ファイルは `?pdf=local:<ID>`）の形になります。
+
+主な対象は、2 段組の論文（IEEE・ACM・USENIX・arXiv の LaTeX）と、NIST SP のような Word 由来の 1 段組の文書です。
+
+- 段組（段間の縦の空白）を見つけて、左の段 → 右の段の順に読みます。題名や全幅の図など段をまたぐ行はその位置のまま残します。
+- 見出しは PDF のしおり（アウトライン）、Tagged PDF のタグ（H1〜H6）、文字の大きさ・書体・番号（`2.1` `IV.` `A.`）の順に手がかりにします。
+- 毎ページ同じ位置に出る行（ランニングヘッダー、ページ番号、NIST の「This publication is available free of charge…」）は取り除きます。
+- 段・ページをまたいだ段落をつなぎ、行末のハイフンで分かれた語を直します（`attacker-controlled` のような複合語は残します）。
+- 参考文献（`[1]` `[SP800-63]` など）を解析し、本文の `[3]` `[3, 12]` から飛べるようにします。脚注は小さな注として表示します。
+- 図・表・数式は、キャプション（`Figure 1:` `Table 2.` など）と周りの余白から範囲を決め、元のページを切り出した画像で表示します。画像はタップで拡大できます。Tagged PDF の表は HTML の表にします。
+
+苦手なもの:
+
+- スキャンした画像だけの PDF（文字の情報がないので表示できません）。
+- 段落中の数式（記号が崩れることがあります）、3 段以上の段組、段落の横に置かれた注。
+- 自動判定なので、文書によっては見出しや段落の区切りを誤ることがあります。その場合はページ末尾のリンクから元の PDF を参照してください。
+
+PDF の読み込みには [PDF.js](https://mozilla.github.io/pdf.js/)（`vendor/pdfjs/`、Apache License 2.0）を使い、PDF を開いたときにだけ読み込みます。日本語などの CMap を使う PDF では、必要なデータを jsDelivr から取得します。
+
+解析結果を手元で確認するには:
+
+```sh
+node scripts/pdf-extract.mjs --text paper.pdf          # 解析結果をテキストで表示
+node scripts/pdf-extract.mjs --html paper.pdf > a.html # HTML で出力
+node scripts/pdf-extract.mjs paper.pdf > paper.json    # 文字の位置情報 (テスト用データ)
 ```
 
 ## 本文の取得元
@@ -93,14 +128,19 @@ node scripts/fetch-rfc.mjs --reindex       # index.json だけ作り直す
 index.html            アプリのシェル (ホーム画面・リーダー・設定シート)
 styles.css            モバイルファーストのスタイル (ライト / ダーク / セピア)
 src/rfc-parser.js     RFC テキスト → 構造 (見出し・段落・リスト・図表・参考文献)
+src/pdf-extract.js    PDF (PDF.js) → 文字の位置・大きさ・書体、タグ構造、しおり
+src/pdf-layout.js     文字の位置 → RFC と同じ構造 (段組・見出し・段落・図表・参考文献の判定)
+src/pdf-reader.js     PDF.js の遅延読み込み、図の切り出し描画、端末内への保存 (IndexedDB)
 src/render.js         構造 → HTML (リンク化、目次生成)
 src/app.js            画面遷移、取得、設定、履歴、Service Worker 登録
+vendor/pdfjs/         PDF.js 6.4.299 (legacy ビルド)
 sw.js                 オフラインキャッシュ
 rfcs/                 格納済みの RFC テキストと index.json
 scripts/fetch-rfc.mjs RFC テキストの取得・削除スクリプト
 scripts/issue-command.mjs  Issue タイトルをコマンドとして実行 (Actions から使用)
 scripts/lib/rfc-store.mjs  rfcs/ の保存・削除・index.json 更新
-test/                 パーサー・レンダラー・保存処理のテスト (test/fixtures/ にテスト用の RFC テキスト)
+scripts/pdf-extract.mjs    PDF の解析結果の確認、テスト用データの作成
+test/                 パーサー・レンダラー・保存処理・PDF 解析のテスト (test/fixtures/ にテスト用の RFC テキスト、fixtures/pdf/ に PDF とその生成スクリプト)
 .github/workflows/    GitHub Pages へのデプロイ、RFC 取得 (手動 / Issue 経由) ワークフロー
 ```
 
@@ -118,4 +158,4 @@ test/                 パーサー・レンダラー・保存処理のテスト 
 
 ## ライセンス
 
-このリポジトリのコードは MIT ライセンスです。`rfcs/` と `test/fixtures/` 以下の RFC 本文は IETF Trust の著作物で、RFC の再配布条件に従って無改変で収録しています。
+このリポジトリのコードは MIT ライセンスです。`rfcs/` と `test/fixtures/` 以下の RFC 本文は IETF Trust の著作物で、RFC の再配布条件に従って無改変で収録しています。`test/fixtures/pdf/` の PDF はテスト用に作った架空の文書です。`vendor/pdfjs/` は Mozilla の PDF.js で、Apache License 2.0 です（`vendor/pdfjs/LICENSE`）。

@@ -6,7 +6,7 @@
   <meta name="color-scheme" content="light dark">
   <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#121316" media="(prefers-color-scheme: dark)">
-  <meta name="description" content="RFC をスマートフォンで読みやすく表示するリーダー">
+  <meta name="description" content="RFC や論文・NIST の PDF をスマートフォンで読みやすく表示するリーダー">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="RFC Reader">
@@ -41,14 +41,21 @@
   <main id="main">
     <section class="home" id="home">
       <h1>RFC Reader</h1>
-      <p class="lead">RFC 番号を入力すると、スマートフォンでも読みやすいレイアウトで表示します。</p>
+      <p class="lead">RFC 番号や PDF を、スマートフォンでも読みやすいレイアウトで表示します。</p>
       <form class="rfc-form" id="rfc-form" autocomplete="off">
         <span class="prefix">RFC</span>
         <input id="rfc-input" name="rfc" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="例: 9110" aria-label="RFC 番号" required>
         <button class="btn" type="submit">読む</button>
       </form>
+      <h2>PDF を読む</h2>
+      <form class="rfc-form pdf-form" id="pdf-form" autocomplete="off">
+        <input id="pdf-input" name="pdf" type="text" inputmode="url" placeholder="PDF の URL または arXiv ID" aria-label="PDF の URL または arXiv ID" required>
+        <button class="btn" type="submit">開く</button>
+      </form>
+      <label class="btn secondary file-btn">PDF ファイルを選ぶ<input type="file" id="pdf-file" accept="application/pdf,.pdf"></label>
+      <p class="help">NIST SP や論文の PDF を、段組を解いてスマホ向けに組み直します。arXiv は URL か ID (例: 1706.03762) で開けます。ブラウザからの取得を許可していないサイトの PDF は、端末に保存してからファイルとして開いてください。</p>
       <div id="home-recent" hidden>
-        <h2>最近読んだ RFC</h2>
+        <h2>最近読んだもの</h2>
         <ul class="cardlist" id="recent-list"></ul>
       </div>
       <div id="home-stored" hidden>

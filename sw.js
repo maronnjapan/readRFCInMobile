@@ -1,9 +1,10 @@
 // Service Worker: アプリ本体はネットワーク優先 + キャッシュフォールバック、
 // RFC 本文 (不変) はキャッシュ優先で保存し、オフラインでも再読できるようにする。
-const VERSION = 'v1';
+const VERSION = 'v2';
 const SHELL_CACHE = `rfcreader-shell-${VERSION}`;
 const TEXT_CACHE = 'rfcreader-texts';
-const SHELL = ['./', './index.html', './styles.css', './manifest.webmanifest', './src/app.js', './src/rfc-parser.js', './src/render.js', './icons/icon.svg'];
+// pdf.js (vendor/) は PDF を初めて開いたときに取得し、下のネットワーク優先の処理でキャッシュする
+const SHELL = ['./', './index.html', './styles.css', './manifest.webmanifest', './src/app.js', './src/rfc-parser.js', './src/render.js', './src/pdf-reader.js', './src/pdf-extract.js', './src/pdf-layout.js', './icons/icon.svg'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
