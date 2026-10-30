@@ -73,6 +73,8 @@ t.segments.forEach((s, i) => {
 - 英数字と和文の間と、半角括弧の外側には半角スペースを入れます。例: `JWT を`、`OAuth 2.0 [RFC6749] の`、`認可サーバー (AS) によって`。句読点の直前には入れません。例: `(MUST)。`
 - 数字は半角で書きます。例: `2 つ`、`1 つ以上`、`セクション 4.1`
 - 語末の長音は付けます。例: サーバー、パラメーター、ユーザー、プロバイダー、インターフェース
+- 「その他の」は漢字で書きます（「そのほかの」とは書きません）。
+- 同じ名詞句に「を」が続けて 2 つかからないよう、語順を入れ替えます。例: 「セキュリティドメインをまたいで情報を共有する」
 - 原文が「:」で終わる文（リストや例を導く文）は、訳も半角の「:」で終えます。
 - `src` が改行で区切られた項目は、`dst` も同じ行数にして `\n` で区切ります。
 
@@ -155,6 +157,8 @@ t.segments.forEach((s, i) => {
 - `For example,`・`e.g.,` → `たとえば、`
 - `i.e.,` → `つまり、`
 - `a.k.a.` → `…とも呼ばれる`
+- `This specification profiles X to define ...` → `この仕様は、X のプロファイルとして、…を定義する`
+- `encrypted to the authorization server` → `認可サーバー向けに暗号化する`
 
 その他:
 
@@ -191,6 +195,7 @@ t.segments.forEach((s, i) => {
 | intended audience | 意図されたオーディエンス |
 | principal | プリンシパル |
 | party | 当事者 |
+| third party / third-party | 第三者（例: 第三者のクライアント） |
 | trust relationship | 信頼関係 |
 | digitally signed | デジタル署名されている |
 | Message Authentication Code (MAC) | 英語のまま |
@@ -202,5 +207,6 @@ t.segments.forEach((s, i) => {
 | out of band | アウトオブバンド |
 | document / specification | 文書 / 仕様 |
 | default | 既定値 |
+| semantics | セマンティクス（JWT の構造とセマンティクスのような技術用語として）。「値の意味」のような普通の意味なら「意味」 |
 | registry | レジストリ |
 | non-normative | 非規範的 |
