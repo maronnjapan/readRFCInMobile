@@ -132,10 +132,11 @@ node scripts/translation.mjs template rfc 7591   # 既存のファイルの訳�
 
 ### 収録済みの日本語訳
 
-このリポジトリには、次の 3 つの日本語訳を収録しています。どれも全文を訳してあります。
+このリポジトリには、次の 4 つの日本語訳を収録しています。どれも全文を訳してあります。
 
 | 文書 | 翻訳ファイル | 原文の利用条件 |
 | --- | --- | --- |
+| [RFC 7521](https://www.rfc-editor.org/rfc/rfc7521) Assertion Framework for OAuth 2.0 Client Authentication and Authorization Grants | `rfcs/ja/rfc7521.json` | IETF Trust の Legal Provisions Relating to IETF Documents の条件で公開された文書で、翻訳を作ることが認められています |
 | [RFC 7523](https://www.rfc-editor.org/rfc/rfc7523) JSON Web Token (JWT) Profile for OAuth 2.0 Client Authentication and Authorization Grants | `rfcs/ja/rfc7523.json` | IETF Trust の Legal Provisions Relating to IETF Documents の条件で公開された文書で、翻訳を作ることが認められています |
 | [RFC 7591](https://www.rfc-editor.org/rfc/rfc7591) OAuth 2.0 Dynamic Client Registration Protocol | `rfcs/ja/rfc7591.json` | IETF Trust の Legal Provisions Relating to IETF Documents の条件で公開された文書で、翻訳を作ることが認められています |
 | [NIST SP 800-207](https://doi.org/10.6028/NIST.SP.800-207) Zero Trust Architecture（`pdfs/NIST.SP.800-207.pdf`） | `pdfs/ja/0290d6ece2487428.json` | 米国政府 (NIST) の刊行物で、米国内では著作権による保護を受けません |
@@ -292,4 +293,4 @@ test/                 パーサー・レンダラー・保存処理・PDF 解析
 
 ## ライセンス
 
-このリポジトリのコードは MIT ライセンスです。`rfcs/` と `test/fixtures/` 以下の RFC 本文は IETF Trust の著作物で、RFC の再配布条件に従って無改変で収録しています。`pdfs/` に保存した PDF の権利はそれぞれの著作者にあります。`rfcs/ja/`・`pdfs/ja/` の翻訳ファイルは利用者が用意するもので、原文の著作権はそれぞれの権利者にあります（収録している RFC 7523・RFC 7591 と NIST SP 800-207 の日本語訳は、上の「収録済みの日本語訳」のとおり、原文の利用条件の範囲で作成したものです）。`test/fixtures/pdf/` の PDF はテスト用に作った架空の文書です。`vendor/pdfjs/` は Mozilla の PDF.js で、Apache License 2.0 です（`vendor/pdfjs/LICENSE`）。
+このリポジトリのコードは MIT ライセンスです。`rfcs/` と `test/fixtures/` 以下の RFC 本文は IETF Trust の著作物で、RFC の再配布条件に従って無改変で収録しています。`pdfs/` に保存した PDF の権利はそれぞれの著作者にあります。`rfcs/ja/`・`pdfs/ja/` の翻訳ファイルは利用者が用意するもので、原文の著作権はそれぞれの権利者にあります（収録している RFC 7521・RFC 7523・RFC 7591 と NIST SP 800-207 の日本語訳は、上の「収録済みの日本語訳」のとおり、原文の利用条件の範囲で作成したものです）。`test/fixtures/pdf/` の PDF はテスト用に作った架空の文書です。`vendor/pdfjs/` は Mozilla の PDF.js で、Apache License 2.0 です（`vendor/pdfjs/LICENSE`）。

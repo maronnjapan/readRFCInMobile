@@ -3,7 +3,10 @@
     "number": 7521,
     "title": "Assertion Framework for OAuth 2.0 Client Authentication and Authorization Grants",
     "date": "May 2015",
-    "category": "Standards Track"
+    "category": "Standards Track",
+    "translations": {
+      "ja": "OAuth 2.0 のクライアント認証および認可グラントのためのアサーションフレームワーク"
+    }
   },
   {
     "number": 7523,
