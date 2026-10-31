@@ -1,5 +1,11 @@
 [
   {
+    "number": 7521,
+    "title": "Assertion Framework for OAuth 2.0 Client Authentication and Authorization Grants",
+    "date": "May 2015",
+    "category": "Standards Track"
+  },
+  {
     "number": 7523,
     "title": "JSON Web Token (JWT) Profile for OAuth 2.0 Client Authentication and Authorization Grants",
     "date": "May 2015",
