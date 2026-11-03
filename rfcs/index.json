@@ -30,6 +30,9 @@
     "number": 9126,
     "title": "OAuth 2.0 Pushed Authorization Requests",
     "date": "September 2021",
-    "category": "Standards Track"
+    "category": "Standards Track",
+    "translations": {
+      "ja": "OAuth 2.0 プッシュ型認可リクエスト"
+    }
   }
 ]
