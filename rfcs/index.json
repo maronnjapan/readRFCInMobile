@@ -25,5 +25,11 @@
     "translations": {
       "ja": "OAuth 2.0 動的クライアント登録プロトコル"
     }
+  },
+  {
+    "number": 9126,
+    "title": "OAuth 2.0 Pushed Authorization Requests",
+    "date": "September 2021",
+    "category": "Standards Track"
   }
 ]
