@@ -30,7 +30,10 @@
     "number": 9101,
     "title": "The OAuth 2.0 Authorization Framework: JWT-Secured Authorization Request (JAR)",
     "date": "August 2021",
-    "category": "Standards Track"
+    "category": "Standards Track",
+    "translations": {
+      "ja": "OAuth 2.0 認可フレームワーク: JWT で保護された認可リクエスト (JAR)"
+    }
   },
   {
     "number": 9126,
