@@ -178,6 +178,12 @@ export function depaginate(lines) {
 
 const HEAD_HINT_RE = /^(Network Working Group|Internet Engineering Task Force|Request for Comments|RFC:?\s*\d|Internet-Draft|Independent Submission|Internet Research Task Force|Internet Architecture Board|Category:|Obsoletes:|Updates:|Stream:|ISSN:|STD:|BCP:|FYI:|.*(Working|Research) Group)/i;
 
+// 題名の行は 72 桁の中央に寄せてある。ほぼ 72 桁いっぱいの行は 0〜3 桁目から始まる (RFC 9101 の 1 行目など)
+function isTitleLine(l) {
+  const indent = indentOf(l);
+  return indent >= 4 || Math.abs(2 * indent + l.trim().length - 72) <= 2;
+}
+
 function parseFrontMatter(lines) {
   let i = 0;
   while (i < lines.length && lines[i].trim() === '') i++;
@@ -191,7 +197,7 @@ function parseFrontMatter(lines) {
   let k = j;
   while (k < lines.length && lines[k].trim() === '') k++;
   const titleLines = [];
-  while (k < lines.length && lines[k].trim() !== '' && indentOf(lines[k]) >= 4 && titleLines.length < 6) {
+  while (k < lines.length && lines[k].trim() !== '' && isTitleLine(lines[k]) && titleLines.length < 6) {
     titleLines.push(lines[k].trim());
     k++;
   }

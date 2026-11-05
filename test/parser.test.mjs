@@ -148,6 +148,28 @@ test('classic text (RFC 6749): figures get captions, lists and definitions', () 
   assert.ok(collect(doc, 'dl').some((d) => d.items.some((it) => /^grant_type$/.test(it.term) || /^client_id$/.test(it.term))), 'parameter definitions as dl');
 });
 
+test('a centered title whose first line fills all 72 columns is still the title', () => {
+  // RFC 9101 の題名: 1 行目が 72 桁ちょうどで 0 桁目から始まる
+  const text = [
+    'Internet Engineering Task Force (IETF)                       N. Sakimura',
+    'Request for Comments: 9101                                NAT.Consulting',
+    'Category: Standards Track                                    August 2021',
+    '',
+    '',
+    'The OAuth 2.0 Authorization Framework: JWT-Secured Authorization Request',
+    '                                 (JAR)',
+    '',
+    'Abstract',
+    '',
+    '   This document introduces the ability to send request parameters in a',
+    '   JSON Web Token (JWT) instead.',
+  ].join('\n');
+  const doc = parseRfc(text);
+  assert.equal(doc.meta.title, 'The OAuth 2.0 Authorization Framework: JWT-Secured Authorization Request (JAR)');
+  assert.deepEqual(collect(doc, 'para').map((p) => p.text), ['This document introduces the ability to send request parameters in a JSON Web Token (JWT) instead.']);
+  assert.equal(collect(doc, 'heading')[0].text, 'Abstract');
+});
+
 test('very old RFC (791): roman-numeral page footers and two-line headers removed', () => {
   const doc = parseRfc(read('fixtures/rfc791.txt'));
   assert.equal(doc.meta.number, 791);
