@@ -27,6 +27,12 @@
     }
   },
   {
+    "number": 9101,
+    "title": "RFC 9101",
+    "date": "August 2021",
+    "category": "Standards Track"
+  },
+  {
     "number": 9126,
     "title": "OAuth 2.0 Pushed Authorization Requests",
     "date": "September 2021",
