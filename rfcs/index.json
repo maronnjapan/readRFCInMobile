@@ -43,5 +43,11 @@
     "translations": {
       "ja": "OAuth 2.0 プッシュ型認可リクエスト"
     }
+  },
+  {
+    "number": 10070,
+    "title": "Updates to OAuth 2.0 JSON Web Token (JWT) Client Authentication and Assertion-Based Authorization Grants",
+    "date": "November 2026",
+    "category": "Standards Track"
   }
 ]
