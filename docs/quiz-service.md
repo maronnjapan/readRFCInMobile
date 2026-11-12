@@ -14,7 +14,7 @@
 | `.authoring-work/` | 固定コミットで取得したコード。Git 管理・静的配信の対象外 |
 | D1 | 問題セットの固定版、利用者ごとの回答、選択式の点数、非同期採点ジョブ、採点理由・出典・実行設定の履歴 |
 
-問題ファイルでは `questions` と `solutions` を分離する。静的配信の `dist/` には問題ファイルや採点基準をコピーせず、出題 API も回答前に正解・採点基準・出典本文を返さない。公開問題リポジトリ自体には解答があるため、練習用の設計である。
+問題ファイルでは `questions` と `solutions` を分離する。静的配信の `dist/` には問題ファイルや採点基準をコピーせず、出題 API も各問題への回答前にその正解・採点基準・出典本文を返さない。公開問題リポジトリ自体には解答があるため、練習用の設計である。
 
 ## Cloudflare Workers Paid の初期設定
 
@@ -50,6 +50,8 @@ npx wrangler secret put AI_EXECUTOR_API_KEY # 共通 AI API が発行する呼�
 npx wrangler secret put AI_CALLBACK_SECRET   # ランダムな32文字以上。例: openssl rand -hex 32
 npm run deploy:workers
 ```
+
+既存環境の更新時も、Worker の公開前に `npm run db:migrate:remote` を実行する。`0002_choice_answers.sql` は1問ごとの回答と採点結果を保存するテーブルを追加し、保存済みの回答を保持する。
 
 `AI_EXECUTOR_API_KEY` は共通 AI API へのサーバー間認証にだけ使用し、`Authorization: Bearer` で送る。Claude キーは **共通 AI API 側だけ**に登録する。共通 API はキーごとに許可操作・利用上限を管理し、推論完了を待たず依頼を永続化して `202` を返し、完了時に別リクエストで結果を返す。
 
@@ -116,9 +118,11 @@ GitHub Actions の **Author or publish a quiz (manual)** でも実行できる�
 
 ## 回答・採点
 
-`/quiz` から公開セットを選択し、選択式・記述式を回答する。本文画面の「問題を解く」は対応する仕様 ID で一覧を絞る。
+`/quiz` から公開セットを選択する。選択式は1問ずつ表示し、「採点する」で回答を保存して、即座に正誤・点数・解説を表示する。「次の問題へ」で結果を確認しながら進み、選択式が終わったら記述式の回答に進む。本文画面の「問題を解く」は対応する仕様 ID で一覧を絞る。
 
-選択式は保存済み正解との照合で採点する。記述式は回答保存の後、独立した採点依頼 API で Queue に投入し、共通 AI API が保存済み採点基準と出典本文から採点する。受付・結果受信・利用者の回答送信はすべて別エンドポイント。画面は準備状況を確認し、採点が終わると点数・理由・根拠を表示する。
+選択式は1問ごとの API で保存済み正解と照合し、記述式や残りの問題の回答を待たず、同じリクエストで結果を返す。未回答の問題の正解・解説は返さない。選択式だけのセットは最後の1問で採点が完了する。途中で画面を閉じても、回答済みの結果と未回答の続きへ戻れる。
+
+記述式はまとめて回答を保存した後、独立した採点依頼 API で Queue に投入し、共通 AI API が保存済み採点基準と出典本文から採点する。記述式だけのセットも利用できる。受付・結果受信・利用者の回答送信はすべて別エンドポイント。画面は準備状況を確認し、採点が終わると点数・理由・根拠を表示する。
 
 回答は Access の subject と出題セット ID にひも付く。同じ利用者は別ブラウザでも前の回答・結果を確認できる。送信後の内容変更は `409`、同じ内容の再送は同じ結果になる。再回答する場合は新しい回答を開始する。記述式の失敗時も回答を保持し、利用者が採点を再依頼できる。採点結果・profile・promptVersion・実際のモデル・利用量・参照版を履歴に保存する。
 
@@ -153,10 +157,13 @@ npx wrangler secret put GITHUB_APP_PRIVATE_KEY
 | `POST /api/authoring/requests` | 作問権限で生成を依頼、`202` |
 | `GET /api/authoring/requests/:id` | 作問権限で候補・状態を取得 |
 | `GET/POST /api/question-sets/:id/attempts` | 自分の回答履歴／回答開始 |
-| `GET /api/attempts/:id` | 自分の回答・採点結果 |
-| `POST /api/attempts/:id/answers` | 回答保存・選択式採点 |
+| `GET /api/attempts/:id` | 自分の回答・途中経過・採点結果 |
+| `POST /api/attempts/:id/choice-answers` | 選択式を1問保存し即時採点。`{ "questionId": "client-sub", "answer": 0 }` |
+| `POST /api/attempts/:id/answers` | 選択式の完了後、記述式の回答を保存 |
 | `POST /api/attempts/:id/grading-requests` | 記述式の非同期採点依頼、`202` |
 | `POST /api/ai/results` | ジョブ専用トークンで AI の結果を受付 |
+
+選択式はセット内の選択式の順番で受け付け、同じ回答の再送は同じ結果を返す。回答後の変更や未回答の選択式を飛ばす送信は `409`。`GET /api/attempts/:id` の `answers` と `results` は途中経過も返し、`completed` が全問の回答保存済み、`status: graded` が全問の採点完了を表す。
 
 新しい AI ジョブは利用者ごとに60秒あたり5回の近似上限（Cloudflare の各拠点）を設ける。共通 API 側のモデル・頻度・支出制限も併用する。Workers Paid、D1、Queues、Claude の費用はそれぞれの契約に従う。
 

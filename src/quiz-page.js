@@ -7,6 +7,8 @@ let timer;
 let stopped = false;
 let pollingSince = 0;
 let busy = false;
+let view = params.get('question') ? 'choice' : null;
+let questionId = params.get('question');
 const stateLabels = { proposed: '提案中', adopted: '採用済み', draft: '草案', obsolete: '廃止済み' };
 
 function element(tag, value, className) {
@@ -47,7 +49,46 @@ function references(set, ids) {
   }
   return details;
 }
-function present(data) {
+const answered = (data, id) => Object.hasOwn(data.answers || {}, id);
+function updateLocation() {
+  const query = new URLSearchParams({ attempt: attemptId });
+  if (view === 'choice') query.set('question', questionId);
+  history.replaceState(null, '', `?${query}`);
+}
+function questionField(data, q) {
+  const saved = q.type === 'choice' ? answered(data, q.id) : data.completed;
+  const fieldset = element('fieldset'); fieldset.disabled = saved;
+  const number = data.set.questions.findIndex((v) => v.id === q.id) + 1;
+  const prompt = element('p', q.prompt, 'quiz-question'); prompt.tabIndex = -1;
+  fieldset.append(element('legend', `問題 ${number} · ${q.type === 'choice' ? '選択式' : '記述式'} · ${q.points}点`), prompt);
+  const result = data.results?.find((r) => r.questionId === q.id);
+  if (q.type === 'choice') {
+    q.options.forEach((option, index) => {
+      const label = element('label', undefined, 'quiz-choice');
+      const input = element('input'); input.type = 'radio'; input.name = q.id; input.value = String(index); input.required = true;
+      input.checked = data.answers?.[q.id] === index;
+      if (result?.answer === index) label.classList.add('is-correct');
+      label.append(input, element('span', `${String.fromCharCode(65 + index)}. ${option}`)); fieldset.append(label);
+    });
+  } else {
+    const label = element('label', 'あなたの回答'); label.htmlFor = `answer-${q.id}`;
+    const input = element('textarea'); input.id = label.htmlFor; input.name = q.id; input.rows = 5; input.maxLength = 8000; input.required = true;
+    input.value = data.answers?.[q.id] || '';
+    fieldset.append(label, input);
+  }
+  if (result) {
+    const feedback = element('div', undefined, 'quiz-feedback');
+    feedback.tabIndex = -1;
+    if (result.status === 'graded') {
+      const outcome = q.type === 'choice' ? (data.answers[q.id] === result.answer ? '正解 · ' : `不正解（正解: ${String.fromCharCode(65 + result.answer)}）· `) : '';
+      feedback.append(element('strong', `${outcome}${result.score} / ${result.maxScore}点`), element('p', result.reason));
+    } else feedback.append(element('p', data.status === 'grading_failed' ? '採点を完了できませんでした。回答は保存済みです。' : '記述式は採点待ちです。'));
+    fieldset.append(feedback);
+  }
+  fieldset.append(references(data.set, [...new Set([...q.referenceIds, ...(result?.referenceIds || [])])]));
+  return fieldset;
+}
+function present(data, { focusFeedback = false, focusQuestion = false } = {}) {
   const wasGraded = current?.status === 'graded';
   current = data;
   setId = data.set.id;
@@ -56,56 +97,59 @@ function present(data) {
   $('setup').hidden = true;
   $('set-list').hidden = true;
   $('retention').hidden = false;
-  $('answer-form').hidden = false;
-  const saved = Boolean(data.answers);
-  const list = $('questions'); list.replaceChildren();
-  data.set.questions.forEach((q, i) => {
-    const fieldset = element('fieldset'); fieldset.disabled = saved;
-    fieldset.append(element('legend', `問題 ${i + 1} · ${q.type === 'choice' ? '選択式' : '記述式'} · ${q.points}点`), element('p', q.prompt, 'quiz-question'));
-    if (q.type === 'choice') {
-      q.options.forEach((option, index) => {
-        const label = element('label', undefined, 'quiz-choice');
-        const input = element('input'); input.type = 'radio'; input.name = q.id; input.value = String(index); input.required = true;
-        input.checked = data.answers?.[q.id] === index;
-        const result = data.results?.find((r) => r.questionId === q.id);
-        if (result?.answer === index) label.classList.add('is-correct');
-        label.append(input, element('span', `${String.fromCharCode(65 + index)}. ${option}`)); fieldset.append(label);
-      });
-    } else {
-      const label = element('label', 'あなたの回答');
-      label.htmlFor = `answer-${q.id}`;
-      const input = element('textarea'); input.id = label.htmlFor; input.name = q.id; input.rows = 5; input.maxLength = 8000; input.required = true;
-      input.value = data.answers?.[q.id] || '';
-      fieldset.append(label, input);
-    }
-    const result = data.results?.find((r) => r.questionId === q.id);
-    if (result) {
-      const feedback = element('div', undefined, 'quiz-feedback');
-      if (result.status === 'graded') {
-        feedback.append(element('strong', `${result.score} / ${result.maxScore}点`), element('p', result.reason));
-      } else feedback.append(element('p', data.status === 'grading_failed' ? '採点を完了できませんでした。回答は保存済みです。' : '記述式は採点待ちです。'));
-      fieldset.append(feedback);
-    }
-    fieldset.append(references(data.set, [...new Set([...q.referenceIds, ...(result?.referenceIds || [])])]));
-    list.append(fieldset);
-  });
-  if (data.set.inconsistencies?.length) {
-    const notice = element('aside', undefined, 'status');
-    notice.append(element('strong', '仕様と実装の不整合'));
-    data.set.inconsistencies.forEach((v) => notice.append(element('p', v.description), references(data.set, v.referenceIds)));
-    list.append(notice);
+  const choices = data.set.questions.filter((q) => q.type === 'choice');
+  const written = data.set.questions.filter((q) => q.type === 'written');
+  const next = choices.find((q) => !answered(data, q.id));
+  if (!view) view = data.completed ? 'results' : next ? 'choice' : 'written';
+  if (view === 'choice') {
+    const requested = choices.find((q) => q.id === questionId);
+    if (!requested || (!answered(data, requested.id) && requested.id !== next?.id)) questionId = (next || choices.at(-1))?.id;
+    if (!questionId) view = data.completed ? 'results' : 'written';
   }
-  $('submit-answer').hidden = saved;
+  if (view === 'written' && next) { view = 'choice'; questionId = next.id; }
+  const question = choices.find((q) => q.id === questionId);
+  const shown = view === 'choice' ? [question] : written;
+  const list = $('questions'); list.replaceChildren();
+  shown.forEach((q) => list.append(questionField(data, q)));
+  $('answer-form').hidden = shown.length === 0;
+  $('question-progress').hidden = view !== 'choice';
+  if (view === 'choice') $('question-progress').textContent = `選択式 ${choices.indexOf(question) + 1} / ${choices.length}`;
+  const saved = view === 'choice' ? answered(data, questionId) : data.completed;
+  $('submit-answer').hidden = saved || shown.length === 0;
+  $('submit-answer').textContent = view === 'choice' ? '採点する' : '記述式の回答を送信';
+  $('next-question').hidden = view !== 'choice' || !saved;
+  if (view === 'choice') $('next-question').textContent = choices.indexOf(question) < choices.length - 1 ? '次の問題へ' : data.completed ? '結果を見る' : '記述式へ進む';
+  $('choice-summary').hidden = view !== 'results' || choices.length === 0;
+  $('choice-results').replaceChildren();
+  if (view === 'results') {
+    choices.forEach((q, index) => {
+      const result = data.results?.find((r) => r.questionId === q.id);
+      if (!result) return;
+      const li = element('li');
+      const button = element('button', `選択式 ${index + 1}: ${data.answers[q.id] === result.answer ? '正解' : '不正解'}（${result.score} / ${q.points}点）を確認`, 'linkbtn');
+      button.type = 'button';
+      button.addEventListener('click', () => { view = 'choice'; questionId = q.id; updateLocation(); present(current, { focusQuestion: true }); });
+      li.append(button); $('choice-results').append(li);
+    });
+    if (data.set.inconsistencies?.length) {
+      const notice = element('aside', undefined, 'status');
+      notice.append(element('strong', '仕様と実装の不整合'));
+      data.set.inconsistencies.forEach((v) => notice.append(element('p', v.description), references(data.set, v.referenceIds)));
+      list.append(notice);
+    }
+  }
   $('pending').hidden = data.status !== 'grading';
   $('request-grade').hidden = !['saved', 'grading_failed'].includes(data.status);
   $('refresh').hidden = data.status !== 'grading';
-  $('score').hidden = !data.results;
-  if (data.results) {
+  $('score').hidden = !data.completed || view !== 'results';
+  if (data.completed) {
     const points = data.results.reduce((sum, r) => sum + (r.score || 0), 0);
     const maximum = data.set.questions.reduce((sum, q) => sum + q.points, 0);
     $('score').textContent = data.status === 'graded' ? `${points} / ${maximum}点` : `${points}点獲得 · 記述式は採点待ち`;
-    if (data.status === 'graded' && !wasGraded) $('score').focus();
+    if (view === 'results' && data.status === 'graded' && !wasGraded) $('score').focus();
   }
+  if (focusFeedback) list.querySelector('.quiz-feedback')?.focus();
+  else if (focusQuestion) (list.querySelector('.quiz-question') || $('score')).focus();
 }
 async function poll() {
   clearTimeout(timer);
@@ -132,23 +176,45 @@ $('start').addEventListener('click', async () => {
   $('start').disabled = true;
   try {
     const data = await api(`question-sets/${setId}/attempts`, { method: 'POST', body: {} });
-    attemptId = data.id; history.replaceState(null, '', `?attempt=${attemptId}`); present(data);
+    attemptId = data.id; view = null; questionId = null; current = null; updateLocation(); present(data);
   } catch (e) { error(e.message); } finally { $('start').disabled = false; }
+});
+$('next-question').addEventListener('click', () => {
+  if (busy || view !== 'choice' || !answered(current, questionId)) return;
+  const choices = current.set.questions.filter((q) => q.type === 'choice');
+  const next = choices[choices.findIndex((q) => q.id === questionId) + 1];
+  if (next) questionId = next.id;
+  else view = current.completed ? 'results' : 'written';
+  updateLocation(); present(current, { focusQuestion: true });
 });
 $('answer-form').addEventListener('submit', async (event) => {
   event.preventDefault();
-  if (busy || current.answers) return;
+  if (busy || (view === 'choice' ? answered(current, questionId) : current.completed)) return;
   busy = true; $('submit-answer').disabled = true;
+  const form = new FormData(event.currentTarget);
+  document.querySelectorAll('#questions fieldset').forEach((f) => { f.disabled = true; });
   try {
-    const form = new FormData(event.currentTarget);
-    if (current.set.questions.some((q) => form.get(q.id) === null)) throw new Error('すべての問題に回答してください。');
-    const answers = Object.fromEntries(current.set.questions.map((q) => [q.id, q.type === 'choice' ? Number(form.get(q.id)) : form.get(q.id)]));
-    const data = await api(`attempts/${attemptId}/answers`, { method: 'POST', body: { answers } });
-    present(data);
-    busy = false;
-    if (data.status === 'saved') await grade();
+    if (view === 'choice') {
+      const value = form.get(questionId);
+      if (value === null) throw new Error('選択肢を選んでください。');
+      updateLocation();
+      const data = await api(`attempts/${attemptId}/choice-answers`, { method: 'POST', body: { questionId, answer: Number(value) } });
+      present(data, { focusFeedback: true });
+    } else {
+      const written = current.set.questions.filter((q) => q.type === 'written');
+      if (written.some((q) => form.get(q.id) === null)) throw new Error('すべての記述式に回答してください。');
+      const answers = Object.fromEntries(written.map((q) => [q.id, form.get(q.id)]));
+      const data = await api(`attempts/${attemptId}/answers`, { method: 'POST', body: { answers } });
+      view = 'results'; updateLocation(); present(data);
+      busy = false;
+      if (data.status === 'saved') await grade();
+    }
   } catch (e) { error(e.message); }
-  finally { busy = false; $('submit-answer').disabled = false; }
+  finally {
+    busy = false; $('submit-answer').disabled = false;
+    const saved = view === 'choice' ? answered(current, questionId) : current.completed;
+    document.querySelectorAll('#questions fieldset').forEach((f) => { f.disabled = saved; });
+  }
 });
 window.addEventListener('pagehide', () => { stopped = true; clearTimeout(timer); });
 window.addEventListener('pageshow', (e) => { stopped = false; if (e.persisted && current?.status === 'grading') { pollingSince = Date.now(); poll(); } });
@@ -159,7 +225,7 @@ async function initialize() {
     if (attemptId) { pollingSince = Date.now(); await poll(); return; }
     if (setId) {
       const set = await api(`question-sets/${setId}`); setHeading(set);
-      $('set-description').textContent = `全${set.questions.length}問。選択式はその場で、記述式は回答を保存してから採点します。`;
+      $('set-description').textContent = `全${set.questions.length}問。選択式は1問ずつ回答してすぐに採点し、その後に記述式へ進みます。`;
       const history = await api(`question-sets/${setId}/attempts`);
       for (const attempt of history.attempts) {
         const link = element('a', `${attempt.status === 'graded' ? '採点結果を見る' : '前の回答を開く'} (${new Date(attempt.created_at * 1000).toLocaleDateString('ja-JP')})`);

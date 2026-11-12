@@ -1,6 +1,6 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { startQuizWorker, fixture, accessToken, executorApiKey } from '../test-support/quiz-worker.mjs';
+import { startQuizWorker, fixture, accessToken, executorApiKey, submitAttemptAnswers } from '../test-support/quiz-worker.mjs';
 import workerHandler from '../worker/index.js';
 import { randomUUID } from 'node:crypto';
 
@@ -52,9 +52,21 @@ test('choice scoring is immediate; written answers are saved before a separate g
   const { call, set, attempt: state } = run;
   assert.equal(state.set.id, set.id);
   assert.equal(state.results, null);
-  const invalid = await call(`/api/attempts/${state.id}/answers`, { method: 'POST', body: { answers: { 'client-sub': 0 } } });
+  const premature = await call(`/api/attempts/${state.id}/answers`, { method: 'POST', body: { answers } });
+  assert.equal(premature.status, 409);
+  const choice = await call(`/api/attempts/${state.id}/choice-answers`, { method: 'POST', body: { questionId: 'client-sub', answer: 0 } });
+  assert.equal(choice.status, 200);
+  const immediate = await choice.json();
+  assert.equal(immediate.completed, false);
+  assert.equal(immediate.status, 'answering');
+  assert.deepEqual(immediate.answers, { 'client-sub': 0 });
+  assert.equal(immediate.results.length, 1);
+  assert.equal(immediate.results[0].score, 1);
+  assert.ok(immediate.results[0].reason);
+  assert.equal(worker.executions.size, 0, 'choice scoring does not call AI');
+  const invalid = await call(`/api/attempts/${state.id}/answers`, { method: 'POST', body: { answers: {} } });
   assert.equal(invalid.status, 400);
-  const response = await call(`/api/attempts/${state.id}/answers`, { method: 'POST', body: { answers } });
+  const response = await submitAttemptAnswers(call, state.id, answers);
   assert.equal(response.status, 200);
   const saved = await response.json();
   assert.equal(saved.status, 'saved');
@@ -90,12 +102,12 @@ test('attempts belong to the authenticated user and cannot be changed after subm
   assert.equal((await worker.client('other')(`/api/attempts/${state.id}/answers`, { method: 'POST', body: { answers } })).status, 404);
   assert.equal((await call(`/api/attempts/${state.id}/answers`, { method: 'POST', body: { answers }, headers: { Origin: 'https://evil.test' } })).status, 403);
   const responses = await Promise.all([
-    call(`/api/attempts/${state.id}/answers`, { method: 'POST', body: { answers } }),
-    call(`/api/attempts/${state.id}/answers`, { method: 'POST', body: { answers: { ...answers, 'client-sub': 1 } } }),
+    submitAttemptAnswers(call, state.id, answers),
+    submitAttemptAnswers(call, state.id, { ...answers, 'client-sub': 1 }),
   ]);
   assert.deepEqual(responses.map((r) => r.status).sort(), [200, 409]);
   const saved = await (await call(`/api/attempts/${state.id}`)).json();
-  assert.equal((await call(`/api/attempts/${state.id}/answers`, { method: 'POST', body: { answers: saved.answers } })).status, 200);
+  assert.equal((await submitAttemptAnswers(call, state.id, saved.answers)).status, 200);
 });
 
 test('generation uses an asynchronous common API and produces an unpublished review artifact', async () => {
@@ -125,7 +137,7 @@ test('generation uses an asynchronous common API and produces an unpublished rev
 
 test('forged results are rejected; invalid grades are recorded as failed and can be retried', async () => {
   const { call, attempt: state } = await attempt('retry-user');
-  await call(`/api/attempts/${state.id}/answers`, { method: 'POST', body: { answers } });
+  await submitAttemptAnswers(call, state.id, answers);
   const job = await (await call(`/api/attempts/${state.id}/grading-requests`, { method: 'POST', body: {} })).json();
   await worker.waitForExecution(job.id);
   const forged = await worker.mf.dispatchFetch('https://reader.test/api/ai/results', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer wrong' }, body: JSON.stringify({ requestId: job.id }) });
@@ -140,7 +152,7 @@ test('forged results are rejected; invalid grades are recorded as failed and can
 
 test('duplicate grading requests share one job and an early callback is retained', async () => {
   const { call, attempt: state } = await attempt('early-user');
-  await call(`/api/attempts/${state.id}/answers`, { method: 'POST', body: { answers } });
+  await submitAttemptAnswers(call, state.id, answers);
   worker.behavior.earlyCallback = true;
   try {
     const replies = await Promise.all([call(`/api/attempts/${state.id}/grading-requests`, { method: 'POST', body: {} }), call(`/api/attempts/${state.id}/grading-requests`, { method: 'POST', body: {} })]);
@@ -158,7 +170,7 @@ test('duplicate grading requests share one job and an early callback is retained
 
 test('the outbox recovers queued work and times out stale grading without losing answers', async () => {
   const { call, set, attempt: state } = await attempt('recovery-user');
-  await call(`/api/attempts/${state.id}/answers`, { method: 'POST', body: { answers } });
+  await submitAttemptAnswers(call, state.id, answers);
   const timestamp = Math.floor(Date.now() / 1000);
   const oldId = randomUUID(), queuedId = randomUUID();
   await worker.db.prepare("INSERT INTO ai_jobs (id, operation, target_id, owner, status, profile, input_json, context_json, created_at, updated_at) VALUES (?, 'answers.grade', ?, 'recovery-user', 'submitted', 'test', '{}', ?, ?, ?)")
@@ -211,7 +223,7 @@ test('explicit private Service binding transport remains available independently
     const set = await app.publish();
     const call = app.client();
     const state = await (await call(`/api/question-sets/${set.id}/attempts`, { method: 'POST', body: {} })).json();
-    await call(`/api/attempts/${state.id}/answers`, { method: 'POST', body: { answers } });
+    await submitAttemptAnswers(call, state.id, answers);
     const job = await (await call(`/api/attempts/${state.id}/grading-requests`, { method: 'POST', body: {} })).json();
     await app.waitForExecution(job.id);
     assert.equal(app.executorRequests[0].authorization, null);
