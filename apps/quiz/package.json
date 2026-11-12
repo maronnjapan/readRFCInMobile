@@ -11,8 +11,9 @@
     "db:migrate:local": "wrangler d1 migrations apply DB --local",
     "db:migrate:remote": "wrangler d1 migrations apply DB --remote",
     "check:workers": "npm run build && wrangler deploy --dry-run",
-    "deploy:workers": "npm run build && wrangler deploy",
-    "author": "node tools/authoring/quiz.mjs"
+    "deploy:workers": "node scripts/deploy.mjs",
+    "author": "node tools/authoring/quiz.mjs",
+    "destroy:workers": "node scripts/destroy.mjs"
   },
   "engines": {
     "node": ">=22"

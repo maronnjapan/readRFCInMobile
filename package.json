@@ -13,8 +13,9 @@
     "db:migrate:local": "npm run db:migrate:local --workspace @rfc-reader/quiz",
     "db:migrate:remote": "npm run db:migrate:remote --workspace @rfc-reader/quiz",
     "check:workers": "npm run check:workers --workspace @rfc-reader/quiz",
-    "deploy:workers": "npm run deploy:workers --workspace @rfc-reader/quiz",
-    "test:reader": "node --test test/*.test.mjs"
+    "deploy:workers": "npm run deploy:workers --workspace @rfc-reader/quiz --",
+    "test:reader": "node --test test/*.test.mjs",
+    "destroy:workers": "npm run destroy:workers --workspace @rfc-reader/quiz --"
   },
   "engines": {
     "node": ">=22"

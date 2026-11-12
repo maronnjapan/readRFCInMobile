@@ -35,7 +35,9 @@ npm test
 npm run check:workers    # デプロイせずビルドを確認
 ```
 
-初期設定、Access 認証、D1・Queue・共通 AI API の接続、手動作問・公開、PR のリンクと Check は [出題サービスの運用手順](apps/quiz/docs/quiz-service.md) を参照してください。共通 API 側の実装担当者向けには [非同期 AI 実行契約](apps/quiz/docs/ai-executor-contract.md) を用意しています。
+リポジトリの Secret `CLOUDFLARE_API_TOKEN` を使い、`main` 更新時にテスト → D1・Queue作成／再利用 → DBマイグレーション → Worker公開を実行します。手元でも `npm run deploy:workers` で同じ処理を実行できます。削除対象の確認は `npm run destroy:workers`、実際の削除は `npm run destroy:workers -- --confirm spec-understanding-quiz` です。このデプロイが作成したDBを削除すると回答・採点結果も失われます。
+
+トークン権限、CI設定、削除・途中失敗からの復旧は [デプロイとデストロイ](apps/quiz/docs/deployment.md)、Access 認証・共通 AI API の接続、手動作問・公開、PR のリンクと Check は [出題サービスの運用手順](apps/quiz/docs/quiz-service.md) を参照してください。共通 API 側の実装担当者向けには [非同期 AI 実行契約](apps/quiz/docs/ai-executor-contract.md) を用意しています。
 
 ### 2. GitHub Pages で閲覧機能を公開する
 
@@ -298,7 +300,7 @@ scripts/lib/translation-index.mjs  index.json に載せる日本語訳の題名�
 scripts/pdf-extract.mjs    PDF の解析結果の確認、テスト用データの作成
 scripts/build-assets.mjs  配信する静的ファイルを dist/ にコピー
 test/                 パーサー・レンダラー・保存処理・PDF 解析・翻訳のテスト (test/fixtures/ にテスト用の RFC テキスト、fixtures/pdf/ に PDF とその生成スクリプト)
-.github/workflows/    GitHub Pages へのデプロイ、RFC の取得 (手動)、RFC・PDF の保存 (Issue 経由) ワークフロー
+.github/workflows/    Workers・Pagesへのデプロイ、Workersの手動削除、手動作問、RFC・PDFの保存ワークフロー
 ```
 
 ## 解析の仕組み (概要)

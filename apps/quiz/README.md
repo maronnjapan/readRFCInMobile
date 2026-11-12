@@ -26,6 +26,8 @@ Cloudflare Workers Paid・Hono・D1・Queuesで動く問題アプリ。API、ス
 | `questions/` | 正解・採点基準・出典付きの問題ファイル |
 | `specs/`, `mappings/`, `code-sources.yaml` | 対象仕様とコード参照の設定 |
 | `migrations/` | D1マイグレーション |
+| `scripts/deploy.mjs`, `scripts/destroy.mjs` | D1・Queues・Workerの一括デプロイ／作成リソースの削除 |
+| `scripts/deployment.mjs`, `scripts/cloudflare.mjs` | Cloudflare API、所有情報の保存、Wrangler実行 |
 | `test/`, `test-support/` | 単体テスト、Workers・D1・Queuesの統合テスト |
 | `wrangler.jsonc`, `.dev.vars.example` | Workersの設定とローカル設定の例 |
 
@@ -54,7 +56,7 @@ npm run author -- check --path apps/quiz/questions/spec/rfc-7591.json
 npm run author -- publish --commit <40文字のSHA> --path apps/quiz/questions/spec/rfc-7591.json
 ```
 
-初期設定・公開・APIの一覧は[運用手順](docs/quiz-service.md)、外部AI APIとの接続と認証差し替えは[非同期AI実行契約](docs/ai-executor-contract.md)を参照する。
+本番への公開と削除は[デプロイとデストロイ](docs/deployment.md)、Access・作問・APIの一覧は[運用手順](docs/quiz-service.md)、外部AI APIとの接続と認証差し替えは[非同期AI実行契約](docs/ai-executor-contract.md)を参照する。
 
 
 ## プロンプトの責務

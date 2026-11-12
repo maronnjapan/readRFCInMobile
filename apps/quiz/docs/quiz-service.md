@@ -37,20 +37,15 @@
 
 ## Cloudflare Workers Paid の初期設定
 
-Node.js 22 以降を使用する。
+Node.js 22 以降を使用する。リポジトリのSecret `CLOUDFLARE_API_TOKEN` を登録すると、`main` の更新時にD1・Queues・Workerをデプロイする。手元で実行する場合も、トークンを環境変数へ設定して以下を実行する。リソースの手動作成や `database_id` の書き換えは不要。
 
 ```sh
 npm ci             # リポジトリのルートで実行
-cd apps/quiz
-npx wrangler login
-npx wrangler d1 create spec-understanding-quiz
-npx wrangler queues create spec-quiz-ai
-npx wrangler queues create spec-quiz-ai-dead
+npm run deploy:workers
 ```
 
-`wrangler.jsonc` で以下を設定する。
+[デプロイとデストロイ](deployment.md)にトークン権限、CIのVariables・Secrets、削除、途中失敗からの復旧手順をまとめている。D1の実ID入り設定は `.wrangler/quiz-deploy/` へ生成する。以下のWorker設定はCIのVariablesまたはCloudflareの管理画面で設定でき、再デプロイ時も維持する。既定値を変更する場合は `wrangler.jsonc` を編集する。
 
-- D1 作成結果の `database_id`
 - `APP_ORIGIN`: 公開する出題サービスの HTTPS オリジン
 - `AI_EXECUTOR_URL`: 共通 AI API の HTTPS エンドポイント（例: `https://ai-api.example.com/v1/requests`）
 - `AI_EXECUTOR_TRANSPORT=https`, `AI_EXECUTOR_AUTH=api-key`: 現在の共通 AI API 呼び出し方式
@@ -64,14 +59,9 @@ npx wrangler queues create spec-quiz-ai-dead
 
 Cloudflare Access に許可利用者の Allow ポリシーと、作問用 Service Token の Service Auth ポリシーを設定する。保護対象には `/quiz`・`/quiz/*` の画面と `/api/*` を含める。`/api/ai/results` だけは別アプリ／ポリシーで Bypass し、Worker 内のジョブ専用トークン認証を使う。それ以外の画面・APIはAccess JWTの署名・issuer・audience・有効期限・subjectをWorker自身でも検証する。未設定時・未認証時に匿名の有料実行へフォールバックしない。
 
-```sh
-npm run db:migrate:remote
-npx wrangler secret put AI_EXECUTOR_API_KEY # 共通 AI API が発行する呼び出し元用キー
-npx wrangler secret put AI_CALLBACK_SECRET   # ランダムな32文字以上。例: openssl rand -hex 32
-npm run deploy:workers
-```
+`AI_EXECUTOR_API_KEY` はCIのSecretまたはCloudflareのWorker Secretへ登録する。`AI_CALLBACK_SECRET` は初回デプロイでランダムな64桁のhex値を生成し、Worker Secretへ保存する。既存の値は更新しない。自分で指定する場合は32文字以上のSecretを設定する。
 
-既存環境の更新時も、Worker の公開前に `npm run db:migrate:remote` を実行する。`0002_choice_answers.sql` は1問ごとの選択式回答を保存し、`0003_instant_answers.sql` は選択式・並べ替えに共通のJSON回答テーブルを追加して旧回答を引き継ぐ。更新中に旧 Worker が保存した回答も、次の読み込み時に引き継ぐ。
+`npm run deploy:workers` は既存環境の更新時もWorkerの公開前にリモートDBマイグレーションを実行する。`0002_choice_answers.sql` は1問ごとの選択式回答を保存し、`0003_instant_answers.sql` は選択式・並べ替えに共通のJSON回答テーブルを追加して旧回答を引き継ぐ。更新中に旧 Worker が保存した回答も、次の読み込み時に引き継ぐ。
 
 `AI_EXECUTOR_API_KEY` は共通 AI API へのサーバー間認証にだけ使用し、`Authorization: Bearer` で送る。Claude キーは **共通 AI API 側だけ**に登録する。共通 API はキーごとに許可操作・利用上限を管理し、推論完了を待たず依頼を永続化して `202` を返し、完了時に別リクエストで結果を返す。
 

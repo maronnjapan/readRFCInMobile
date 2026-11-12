@@ -1,0 +1,97 @@
+name: Deploy quiz to Cloudflare Workers
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/quiz/**'
+      - 'src/**'
+      - 'scripts/build-assets.mjs'
+      - 'rfcs/**'
+      - 'pdfs/**'
+      - 'icons/**'
+      - 'vendor/**'
+      - 'index.html'
+      - 'styles.css'
+      - 'sw.js'
+      - 'manifest.webmanifest'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/deploy-workers.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# デプロイとデストロイを同時実行しない。DBの変更中も途中キャンセルしない。
+concurrency:
+  group: quiz-workers-production
+  cancel-in-progress: false
+
+env:
+  WRANGLER_SEND_METRICS: 'false'
+
+jobs:
+  check:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run check:workers
+
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    needs: check
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: quiz-production
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Provision, migrate and deploy
+        id: deploy
+        run: npm run deploy:workers
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID || secrets.CLOUDFLARE_ACCOUNT_ID }}
+          QUIZ_WORKER_NAME: ${{ vars.QUIZ_WORKER_NAME }}
+          APP_ORIGIN: ${{ vars.QUIZ_APP_ORIGIN || vars.QUIZ_API_URL }}
+          ACCESS_ISSUER: ${{ vars.ACCESS_ISSUER }}
+          ACCESS_AUD: ${{ vars.ACCESS_AUD }}
+          AUTHOR_SUBJECTS: ${{ vars.AUTHOR_SUBJECTS }}
+          AUTHOR_EMAILS: ${{ vars.AUTHOR_EMAILS }}
+          AI_EXECUTOR_URL: ${{ vars.AI_EXECUTOR_URL }}
+          AI_EXECUTOR_TRANSPORT: ${{ vars.AI_EXECUTOR_TRANSPORT }}
+          AI_EXECUTOR_AUTH: ${{ vars.AI_EXECUTOR_AUTH }}
+          CODE_REPOSITORIES: ${{ vars.CODE_REPOSITORIES }}
+          QUESTION_REPOSITORY: ${{ github.repository }}
+          QUESTION_DEFAULT_BRANCH: ${{ vars.QUESTION_DEFAULT_BRANCH }}
+          AUTHORING_PROFILE: ${{ vars.AUTHORING_PROFILE }}
+          GRADING_PROFILE: ${{ vars.GRADING_PROFILE }}
+          AI_EXECUTOR_API_KEY: ${{ secrets.AI_EXECUTOR_API_KEY }}
+          AI_CALLBACK_SECRET: ${{ secrets.AI_CALLBACK_SECRET }}
+          QUIZ_GITHUB_APP_ID: ${{ secrets.QUIZ_GITHUB_APP_ID }}
+          QUIZ_GITHUB_INSTALLATION_ID: ${{ secrets.QUIZ_GITHUB_INSTALLATION_ID }}
+          QUIZ_GITHUB_APP_PRIVATE_KEY: ${{ secrets.QUIZ_GITHUB_APP_PRIVATE_KEY }}
+      - name: Save deployment state for recovery
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: quiz-deployment-state-${{ github.run_id }}
+          path: apps/quiz/.wrangler/quiz-deploy/*.state.json
+          include-hidden-files: true
+          if-no-files-found: ignore
+          retention-days: 30
