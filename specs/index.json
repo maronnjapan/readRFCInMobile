@@ -1,0 +1,9 @@
+[
+  {
+    "id": "rfc-7523",
+    "title": "RFC 7523: JWT による認可グラントとクライアント認証",
+    "status": "adopted",
+    "path": "rfcs/rfc7523.txt",
+    "mapping": "mappings/rfc-7523.json"
+  }
+]

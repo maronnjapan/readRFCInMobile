@@ -22,6 +22,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - run: npm ci
       - run: npm test
 
   deploy:
@@ -40,12 +41,13 @@ jobs:
       - run: node scripts/fetch-pdf.mjs --reindex
       # rfcs/ に直接置いた RFC テキストや日本語訳 (rfcs/ja/) も一覧に出るよう、rfcs/index.json も作り直す
       - run: node scripts/fetch-rfc.mjs --reindex
+      - run: npm run build
       - uses: actions/configure-pages@v5
         with:
           # Pages が未設定なら GitHub Actions ビルドとして有効化を試みる
           enablement: true
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: dist
       - id: deployment
         uses: actions/deploy-pages@v4

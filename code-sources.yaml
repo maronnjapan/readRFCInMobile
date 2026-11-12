@@ -1,0 +1,9 @@
+sources:
+  - id: reader
+    repository: maronnjapan/readRFCInMobile
+    branch: main
+    specIds:
+      - rfc-7523
+    paths:
+      - src/
+      - test/

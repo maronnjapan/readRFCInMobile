@@ -1,6 +1,6 @@
 # readRFCInMobile
 
-RFC をスマートフォンでも読みやすく表示する、ビルド不要の静的サイトです。
+RFC をスマートフォンでも読みやすく表示するリーダーです。閲覧機能はビルド不要の静的サイトとして使えます。Cloudflare Workers Paid で動かすと、読んだ文書から AI に理解度確認の問題を作らせ、回答・採点できます。
 RFC 番号を入力すると rfc-editor.org から本文を取得し、固定幅 72 桁のプレーンテキストを構造解析してスマホ向けに再レイアウトします。
 NIST SP や論文などの PDF も、段組を解いて同じ形式で表示できます（後述）。
 
@@ -17,23 +17,41 @@ NIST SP や論文などの PDF も、段組を解いて同じ形式で表示で�
 - **廃止・更新の表示**: rfc-editor.org のメタデータが取得できる場合、「この RFC は RFC XXXX により廃止されています」と先頭に表示します。
 - **PDF の再レイアウト**: 端末の PDF ファイル、PDF の URL、arXiv の ID から開き、2 段組や見出し・参考文献を解析して RFC と同じ表示にします。図・表・数式は元のページから切り出した画像で表示します。
 - **日本語訳への切り替え**: GitHub に翻訳ファイル (`rfcs/ja/`・`pdfs/ja/`) を置くと、RFC も PDF も原文と日本語訳を切り替えて読めます。見た目 (見出し・目次・コード・表・図) は原文と同じです（後述）。
+- **理解度を確認** (Workers 版): 文書の「問題を解く」や PR のリンクから、公開済みの選択式・記述式問題に回答できます。回答・採点結果・根拠は問題セットの版にひも付けて保存します。
 
 対応フォーマットは、ページ区切り付きの旧来形式（RFC 791 や RFC 2616 など）と、ページ区切りなしの xml2rfc v3 形式（RFC 8650 以降）の両方です。
 
 ## 使い方
 
-### 1. GitHub Pages で公開する（推奨）
+### 1. Cloudflare Workers Paid で出題・採点する
+
+問題側のサービスをこのリポジトリで管理します。仕様のみの問題と PR 固有の問題、選択式と記述式に対応し、問題・仕様・コードの版をコミット SHA で固定します。記述式は回答を保存してから非同期で採点します。
+
+Claude は別サービスの共通 AI 実行 API を Service binding 経由で呼びます。このサービスやブラウザには Claude キーを置きません。AI 実行の依頼と結果の受信は別エンドポイントです。
+
+```sh
+npm ci
+npm test
+npm run check:workers    # デプロイせずビルドを確認
+```
+
+初期設定、Access 認証、D1・Queue・共通 AI API の接続、手動作問・公開、PR のリンクと Check は [出題サービスの運用手順](docs/quiz-service.md) を参照してください。共通 API 側の実装担当者向けには [非同期 AI 実行契約](docs/ai-executor-contract.md) を用意しています。
+
+### 2. GitHub Pages で閲覧機能を公開する
 
 1. リポジトリの **Settings → Pages → Build and deployment → Source** を **GitHub Actions** にします。
 2. `main` ブランチに push すると `.github/workflows/deploy-pages.yml` がテストを実行し、サイトを公開します。
 3. `https://<ユーザー名>.github.io/readRFCInMobile/?rfc=9110` のように開きます。
 
-### 2. 手元で動かす
+### 3. 閲覧機能だけを手元で動かす
 
 ```sh
 npm run serve      # http://localhost:8080 で静的配信 (python3 が必要)
-npm test           # パーサーとレンダラーのテスト (Node 18 以降、依存パッケージなし)
+npm ci             # テスト・Workers 開発用の依存パッケージ (Node 22 以降)
+npm test           # パーサー・レンダラー・出題 API などのテスト
 ```
+
+GitHub Pages や `npm run serve` では静的な閲覧機能を利用できます。出題 API を使う場合は上記の Workers 版を起動してください。
 
 ## PDF を読む
 
@@ -262,6 +280,15 @@ src/pdf-reader.js     PDF.js の遅延読み込み、図の切り出し描画、
 src/render.js         構造 → HTML (リンク化、目次生成)
 src/translation.js    翻訳ファイルの検査・ひな形の作成と、構造の文字列だけを訳文に置き換える処理
 src/app.js            画面遷移、取得、設定、原文と日本語訳の切り替え、履歴、Service Worker 登録
+quiz.html / quiz.css   シンプルな出題・回答・採点結果の画面
+src/quiz-page.js       問題セットの選択、回答保存、選択式・記述式の結果表示
+worker/               Workers の出題 API、Access 認証、Queue、AI 結果受付、GitHub App 連携
+migrations/           問題・利用者ごとの回答・AI ジョブ・採点履歴を保存する D1 のスキーマ
+wrangler.jsonc        Workers Paid・Static Assets・D1・Queues・Service binding・Rate Limiting・Cron の設定
+questions/            正解・採点基準・固定 SHA の出典を含む問題ファイル (静的配信から除外)
+specs/ / mappings/    仕様の ID・状態・パスと、仕様・コードの対応
+code-sources.yaml     公開コードの参照先、標準ブランチ、許可するパス
+tools/authoring/      手動作問・レビュー・SHA 固定での公開用ツール
 vendor/pdfjs/         PDF.js 6.4.299 (legacy ビルド)
 sw.js                 オフラインキャッシュ
 rfcs/                 格納済みの RFC テキストと index.json
@@ -277,6 +304,8 @@ scripts/translation.mjs    翻訳ファイルのひな形の作成・検査
 scripts/lib/translation-store.mjs  rfcs/ja/・pdfs/ja/ のひな形の作成・検査 (translation.mjs とテストから使用)
 scripts/lib/translation-index.mjs  index.json に載せる日本語訳の題名の読み込み
 scripts/pdf-extract.mjs    PDF の解析結果の確認、テスト用データの作成
+scripts/build-assets.mjs  配信する静的ファイルを dist/ にコピー
+test-support/         AI の通信を置き換える Workers 統合テスト用ヘルパー
 test/                 パーサー・レンダラー・保存処理・PDF 解析・翻訳のテスト (test/fixtures/ にテスト用の RFC テキスト、fixtures/pdf/ に PDF とその生成スクリプト)
 .github/workflows/    GitHub Pages へのデプロイ、RFC の取得 (手動)、RFC・PDF の保存 (Issue 経由) ワークフロー
 ```

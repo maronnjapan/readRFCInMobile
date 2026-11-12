@@ -1,0 +1,79 @@
+{
+  "format": "spec-understanding-quiz",
+  "version": 1,
+  "id": "rfc-7523-claims",
+  "title": "RFC 7523: JWT クレームの理解",
+  "status": "published",
+  "spec": {
+    "id": "rfc-7523",
+    "status": "adopted",
+    "repository": "maronnjapan/readRFCInMobile",
+    "commit": "c1a331628736fc9b3dfd438b424dff1453a0c519",
+    "path": "rfcs/rfc7523.txt"
+  },
+  "references": [
+    {
+      "id": "jwt-claims",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "c1a331628736fc9b3dfd438b424dff1453a0c519",
+      "path": "rfcs/rfc7523.txt",
+      "startLine": 287,
+      "endLine": 321,
+      "reason": "JWT の sub・aud クレームに対する要件",
+      "excerpt": "\n\nRFC 7523              OAuth JWT Assertion Profiles              May 2015\n\n\n   1.   The JWT MUST contain an \"iss\" (issuer) claim that contains a\n        unique identifier for the entity that issued the JWT.  In the\n        absence of an application profile specifying otherwise,\n        compliant applications MUST compare issuer values using the\n        Simple String Comparison method defined in Section 6.2.1 of RFC\n        3986 [RFC3986].\n\n   2.   The JWT MUST contain a \"sub\" (subject) claim identifying the\n        principal that is the subject of the JWT.  Two cases need to be\n        differentiated:\n\n        A.  For the authorization grant, the subject typically\n            identifies an authorized accessor for which the access token\n            is being requested (i.e., the resource owner or an\n            authorized delegate), but in some cases, may be a\n            pseudonymous identifier or other value denoting an anonymous\n            user.\n\n        B.  For client authentication, the subject MUST be the\n            \"client_id\" of the OAuth client.\n\n   3.   The JWT MUST contain an \"aud\" (audience) claim containing a\n        value that identifies the authorization server as an intended\n        audience.  The token endpoint URL of the authorization server\n        MAY be used as a value for an \"aud\" element to identify the\n        authorization server as an intended audience of the JWT.  The\n        authorization server MUST reject any JWT that does not contain\n        its own identity as the intended audience.  In the absence of an\n        application profile specifying otherwise, compliant applications\n        MUST compare the audience values using the Simple String"
+    }
+  ],
+  "questions": [
+    {
+      "id": "client-sub",
+      "type": "choice",
+      "prompt": "クライアント認証に使う JWT の sub クレームには、何を設定する必要がありますか？",
+      "options": [
+        "クライアントの client_id",
+        "認可サーバーの URL",
+        "任意の利用者名",
+        "JWT の発行時刻"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "jwt-claims"
+      ]
+    },
+    {
+      "id": "audience-validation",
+      "type": "written",
+      "prompt": "認可サーバーが、自身を意図された受信者として含まない aud クレームの JWT を受け取った場合、どう扱う必要がありますか？ 受信者を確認する理由も説明してください。",
+      "points": 2,
+      "referenceIds": [
+        "jwt-claims"
+      ]
+    }
+  ],
+  "solutions": {
+    "client-sub": {
+      "answer": 0,
+      "explanation": "RFC 7523 のセクション 3、項目 2.B は、クライアント認証では sub を OAuth クライアントの client_id とすることを要求しています。"
+    },
+    "audience-validation": {
+      "explanation": "セクション 3、項目 3 は、認可サーバー自身が意図された受信者に含まれない JWT の拒否を要求します。別の受信者向けに発行された JWT を、このサーバー向けの証明として扱わないためです。",
+      "rubric": [
+        {
+          "criterion": "認可サーバー自身を意図された受信者として含まない JWT は拒否する、と説明する。",
+          "points": 1,
+          "referenceIds": [
+            "jwt-claims"
+          ]
+        },
+        {
+          "criterion": "aud は意図された受信者を識別し、別の受信者向けの JWT を受け入れないために確認する、と説明する。",
+          "points": 1,
+          "referenceIds": [
+            "jwt-claims"
+          ]
+        }
+      ]
+    }
+  },
+  "inconsistencies": []
+}

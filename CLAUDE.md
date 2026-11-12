@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-RFC と PDF をスマホで読むための、ビルド不要の静的サイトです（詳しくは README.md）。依存パッケージはなく、テストは `npm test`（Node 18 以降）で動きます。`main` に push すると `.github/workflows/deploy-pages.yml` がテストを実行してから GitHub Pages に公開します。
+RFC と PDF をスマホで読むためのリーダーです（詳しくは README.md）。閲覧機能はビルド不要の静的サイトとして、AI の理解度確認問題は Cloudflare Workers Paid + D1 で動きます。`npm ci` の後、テストは `npm test`（Node 22 以降）、Workers の検査は `npm run check:workers` で実行します。`main` に push すると `.github/workflows/deploy-pages.yml` がテスト後に閲覧用の静的ファイルを GitHub Pages に公開します。Workers の公開は `npm run deploy:workers` です。
 
 ## 日本語訳の作り方
 

@@ -553,7 +553,7 @@ function recentEntry() {
 }
 
 function headActionsHtml(cur) {
-  let html = '';
+  let html = '<p class="doc-actions"><button type="button" class="btn secondary small" id="open-quiz">問題を解く</button></p>';
   if (cur.kind === 'rfc') {
     if (cur.source.local) html += '<p class="doc-actions"><span class="stored-badge">GitHub に保存済み</span></p>';
     else if (REPO) html += `<p class="doc-actions"><a class="btn small" id="save-github" href="${escapeHtml(saveIssueUrl(cur.n))}" target="_blank" rel="noopener">GitHub に保存</a><span class="hint">Issue の作成画面が開きます。送信すると GitHub Actions が本文を rfcs/ に保存します。</span></p>`;
@@ -658,6 +658,12 @@ function present({ hash = '', restore = true, anchor } = {}) {
 }
 
 els.doc.addEventListener('click', (e) => {
+  if (e.target.closest('#open-quiz') && current) {
+    const url = new URL('quiz.html', location.href);
+    url.searchParams.set('spec', current.kind === 'rfc' ? `rfc-${current.n}` : `pdf-${current.pdfId}`);
+    location.assign(url);
+    return;
+  }
   const lb = e.target.closest('.lang-switch [data-lang]');
   if (lb) {
     setLang(lb.dataset.lang);

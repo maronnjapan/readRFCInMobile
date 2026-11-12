@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
+  <meta name="referrer" content="same-origin">
+  <title>理解度を確認 - RFC Reader</title>
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="quiz.css">
+  <script>
+    try {
+      const s = JSON.parse(localStorage.getItem('rfcreader:settings') || '{}');
+      if (s.theme && s.theme !== 'system') document.documentElement.dataset.theme = s.theme;
+      if (s.fs) document.documentElement.style.setProperty('--fs', s.fs + 'px');
+    } catch (e) {}
+  </script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="quiz-back" id="back-link" href="./">← 本文に戻る</a>
+    <span class="bar-title">RFC Reader</span>
+  </header>
+  <main class="quiz-page">
+    <h1 id="quiz-title">理解度を確認</h1>
+    <p class="quiz-source" id="source-title"></p>
+    <section id="set-list" hidden><h2>問題を選ぶ</h2><ul class="cardlist" id="sets"></ul></section>
+    <section id="setup" hidden>
+      <p id="set-description"></p>
+      <div id="previous-attempts"></div>
+      <button class="btn" id="start" type="button">回答を始める</button>
+    </section>
+    <p id="pending" role="status" hidden><span class="spinner" aria-hidden="true"></span><span id="pending-text">記述式を採点しています。回答は保存済みです。</span></p>
+    <p class="quiz-error" id="error" role="alert" hidden></p>
+    <div class="quiz-actions">
+      <button class="btn secondary" id="request-grade" type="button" hidden>記述式の採点を依頼</button>
+      <button class="btn secondary" id="refresh" type="button" hidden>採点状況を確認</button>
+    </div>
+    <h2 id="score" tabindex="-1" hidden></h2>
+    <form id="answer-form" hidden>
+      <div id="questions"></div>
+      <button class="btn" id="submit-answer" type="submit">回答を送信</button>
+    </form>
+    <p class="help" id="retention" hidden>回答はログイン中の利用者と、この問題セットの版にひも付けて保存されます。記述式のAI採点には誤りが含まれることがあります。</p>
+  </main>
+  <script type="module" src="src/quiz-page.js"></script>
+</body>
+</html>

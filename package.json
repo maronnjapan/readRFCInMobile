@@ -1,16 +1,27 @@
 {
   "name": "read-rfc-in-mobile",
   "version": "1.0.0",
-  "description": "RFC をスマートフォンで読みやすく表示する静的サイト",
+  "description": "RFC/PDF リーダーと Cloudflare Workers で動く理解度確認問題",
   "type": "module",
   "private": true,
   "scripts": {
     "test": "node --test",
     "serve": "python3 -m http.server 8080",
-    "fetch": "node scripts/fetch-rfc.mjs"
+    "fetch": "node scripts/fetch-rfc.mjs",
+    "build": "node scripts/build-assets.mjs",
+    "dev": "npm run build && wrangler dev",
+    "db:migrate:local": "wrangler d1 migrations apply DB --local",
+    "db:migrate:remote": "wrangler d1 migrations apply DB --remote",
+    "check:workers": "npm run build && wrangler deploy --dry-run",
+    "deploy:workers": "npm run build && wrangler deploy"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=22"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "miniflare": "^5.20261110.1-beta",
+    "wrangler": "^4.160.1",
+    "yaml": "^2.9.1"
+  }
 }
