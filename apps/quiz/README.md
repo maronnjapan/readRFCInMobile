@@ -2,6 +2,19 @@
 
 Cloudflare Workers Paid・Hono・D1・Queuesで動く問題アプリ。API、スマホ向け画面、作問ツール、問題データ、設定、テストをこのディレクトリで管理する。
 
+## 収録している DPoP 問題集
+
+[RFC 9449 DPoP の問題集（80 問）](docs/rfc-9449-dpop.md)は、保存済みの `rfcs/rfc9449.txt` を使った 4 セットです。選択式 68 問・並べ替え 4 問・記述式 8 問に、解説・採点基準・コミット固定の出典を付けています。自習用ページでは解答を折りたたんで表示します。
+
+| セット | 問題データ |
+| --- | --- |
+| 1. 基本概念と proof の読み方 | [rfc-9449-01-foundations.json](questions/spec/rfc-9449-01-foundations.json) |
+| 2. トークン発行と受信時の検証 | [rfc-9449-02-validation.json](questions/spec/rfc-9449-02-validation.json) |
+| 3. nonce・認可コード・PAR | [rfc-9449-03-nonce-code.json](questions/spec/rfc-9449-03-nonce-code.json) |
+| 4. 攻撃シナリオと実装レビュー | [rfc-9449-04-security.json](questions/spec/rfc-9449-04-security.json) |
+
+仕様 ID は共通の `rfc-9449` です。main に保存した後、4 ファイルをそれぞれ固定 SHA で出題サービスへ取り込むと、`/quiz?spec=rfc-9449` に並びます。公開コマンドは[問題集の手順](docs/rfc-9449-dpop.md#問題アプリで使う場合)を参照してください。
+
 ## コードの入口
 
 まず `worker/app.js` を読むと、画面・APIと認証の適用範囲が分かる。`worker/index.js` はWorkersのfetch・queue・scheduledの接続だけを担当する。

@@ -11,5 +11,11 @@
     "title": "RFC 7591: OAuth 2.0 クライアントの動的登録",
     "status": "adopted",
     "path": "rfcs/rfc7591.txt"
+  },
+  {
+    "id": "rfc-9449",
+    "title": "RFC 9449: DPoP によるトークンの送信者制約",
+    "status": "adopted",
+    "path": "rfcs/rfc9449.txt"
   }
 ]
