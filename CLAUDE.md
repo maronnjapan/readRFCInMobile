@@ -2,6 +2,10 @@
 
 RFC と PDF をスマホで読むためのリーダーです（詳しくは README.md）。閲覧機能はビルド不要の静的サイトとして動きます。問題アプリは `apps/quiz/` に集約し、画面・APIともHono + Cloudflare Workers Paid + D1で動き、画面はHono JSX、ブラウザの並べ替えはHono JSX DOMで構成します。作問・採点の完成済みプロンプトは問題アプリで組み立て、共通AI APIへ渡します。構成の入口は `apps/quiz/README.md` と `apps/quiz/worker/app.js` です。`npm ci` の後、テストは `npm test`（Node 22 以降）、Workers の検査は `npm run check:workers` で実行します。ルートのこれらのコマンドは問題アプリのworkspaceへ処理を委譲します。`main` 更新時は `deploy-pages.yml` が静的ファイルをGitHub Pagesへ、`deploy-workers.yml` がD1・Queues作成とマイグレーション後にHonoアプリをWorkersへ公開します。Workersの手動公開は `npm run deploy:workers`、削除計画は `npm run destroy:workers`、作成済みリソースの削除は `-- --confirm <Worker名>` を付けます。手順と所有情報の保存先は `apps/quiz/docs/deployment.md` を参照してください。
 
+## 問題を作成・変更する場合
+
+共通の `skills/quiz-authoring/SKILL.md` を参照してください。利用可能な7カテゴリ・4回答方式、PC向け実装問題とスマホ向けコード読解、採点基準、固定版の出典を定義しています。`.agents/skills/quiz-authoring` と `.claude/skills/quiz-authoring` は同じ実体へのリンクです。問題形式を変更したら、skill と `apps/quiz/worker/prompts.js` も更新します。
+
 ## 日本語訳の作り方
 
 RFC・PDF の日本語訳 (`rfcs/ja/rfcNNNN.json`・`pdfs/ja/<ID>.json`) を頼まれたら、毎回この手順と表記ルールに従ってください。これまでの訳 (RFC 7523、RFC 7591、NIST SP 800-207) はすべてこの型で作っています。ここに書いていないことは、既存の訳（特に `rfcs/ja/rfc7591.json`）の表現に合わせます。

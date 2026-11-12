@@ -11,7 +11,7 @@ after(async () => { await worker?.mf.dispose(); });
 async function answerWithoutLogin(app, call) {
   const list = await call('/api/question-sets?spec=rfc-7591');
   assert.equal(list.status, 200);
-  const set = (await list.json()).sets[0];
+  const set = (await list.json()).sets.find((entry) => entry.revision.path.endsWith('/rfc-7591.json'));
   assert.ok(set, 'GitHub files are available without an import');
   const response = await call(`/api/question-sets/${set.id}/attempts`, { method: 'POST', body: {} });
   assert.equal(response.status, 201);

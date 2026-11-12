@@ -4,9 +4,11 @@ import { fileURLToPath } from 'node:url';
 import { generateKeyPairSync, createSign } from 'node:crypto';
 import { build } from 'esbuild';
 import { questionFilePath } from '../shared/question-paths.js';
+import { isImmediate, needsGrading } from '../shared/quiz-types.js';
 
 export const fixture = JSON.parse(await readFile(new URL('../questions/spec/rfc-7523.json', import.meta.url), 'utf8'));
 export const patternsFixture = JSON.parse(await readFile(new URL('../questions/spec/rfc-7591.json', import.meta.url), 'utf8'));
+export const implementationFixture = JSON.parse(await readFile(new URL('../questions/spec/rfc-7591-implementation.json', import.meta.url), 'utf8'));
 export const callbackSecret = 'test-callback-secret-with-at-least-32-characters';
 export const executorApiKey = 'test-only-ai-executor-api-key';
 export function multipleChoiceFixture({ written = true } = {}) {
@@ -126,11 +128,11 @@ export async function startQuizWorker({ assets = false, port = 0, github = false
 export async function submitAttemptAnswers(call, id, answers) {
   const state = await (await call(`/api/attempts/${id}`)).json();
   let response;
-  for (const q of state.set.questions.filter((q) => q.type !== 'written')) {
+  for (const q of state.set.questions.filter(isImmediate)) {
     response = await call(`/api/attempts/${id}/instant-answers`, { method: 'POST', body: { questionId: q.id, answer: answers[q.id] } });
     if (!response.ok) return response;
   }
-  const written = state.set.questions.filter((q) => q.type === 'written');
+  const written = state.set.questions.filter(needsGrading);
   return written.length ? call(`/api/attempts/${id}/answers`, { method: 'POST', body: { answers: Object.fromEntries(written.map((q) => [q.id, answers[q.id]])) } }) : response;
 }
 

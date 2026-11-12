@@ -1,6 +1,6 @@
 import { HttpError, uuid } from '../contracts.js';
 import { getSet, parseSet, getAttempt, attemptView, listQuestionSets, listAttempts } from '../store.js';
-import { isImmediate } from '../../shared/quiz-types.js';
+import { isImmediate, needsGrading } from '../../shared/quiz-types.js';
 
 export function attemptScreen(data, requested) {
   const immediate = data.set.questions.filter(isImmediate);
@@ -8,7 +8,7 @@ export function attemptScreen(data, requested) {
   const next = immediate.find((q) => !answered(q));
   const selected = immediate.find((q) => q.id === requested && (answered(q) || q.id === next?.id));
   const question = selected || (!data.completed ? next : null);
-  return { data, immediate, question, written: data.set.questions.filter((q) => q.type === 'written'), view: question ? 'instant' : data.completed ? 'results' : 'written' };
+  return { data, immediate, question, written: data.set.questions.filter(needsGrading), view: question ? 'instant' : data.completed ? 'results' : 'written' };
 }
 
 export async function loadPage(env, user, params) {

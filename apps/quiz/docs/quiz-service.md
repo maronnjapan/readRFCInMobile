@@ -30,12 +30,34 @@
 | `design` | ユースケースの制約を満たす設計と理由を答える | 記述式、または設計案の選択式 |
 | `debugging` | 不具合・仕様違反を見つけ、原因や修正を特定する | 選択式 |
 | `comparison` | 似た概念・方式を比較し、使い分ける | 選択式 |
+| `implementation` | 具体的なケース・制約・入出力例を満たす関数を実装する | PCではコード実装、スマホではコード読解・選択式 |
 
-`questions[].type` は `choice` / `ordering` / `written`。旧ファイルで `category` がない場合は `knowledge` として扱う。`vocabulary` には `term`、`design` と `debugging` には具体的な `scenario` が必要。記述式には任意の `answerHint` を付けられる。設計の採点基準では文章量を評価せず、短い箇条書きや制約を満たす代替案も評価する。
+`questions[].type` は `choice` / `ordering` / `written` / `implementation`。旧ファイルで `category` がない場合は `knowledge` として扱う。`vocabulary` には `term`、`design`・`debugging`・`implementation` には具体的な `scenario` が必要。記述式・実装には任意の `answerHint` を付けられる。設計の採点基準では文章量を評価せず、短い箇条書きや制約を満たす代替案も評価する。
 
 並べ替えは `items: [{ "id": "send", "text": "登録要求を送る" }, ...]` に2〜8個の異なる項目を持ち、`solutions[id].answer` に全項目IDの正しい順序を保存する。同じ制約を満たす複数の順序がある場合は、追加の完全な順序を `acceptedOrders` に列挙できる。いずれかに一致すれば満点、それ以外は0点。正解・許容順序は採点前の出題データに含めない。
 
 画面はスマホを主な利用環境とし、1列表示、44px以上のタッチ領域、16px以上の入力文字を使う。並べ替えは候補をタップして順に追加し、上下ボタン・「外す」で修正できる。ドラッグ操作は不要で、キーボードでも操作可能。途中の並べ替えは同じタブの下書きへ保存し、採点済み回答はサーバーから復元する。長い用語も画面幅で折り返す。
+
+### 実装問題
+
+`category`・`type`はともに`implementation`とし、`scenario`にケースと制約を、`prompt`に実装する関数やエラー処理を指定する。`implementation`には次を持たせる。
+
+| 項目 | 内容 |
+| --- | --- |
+| `language` | `javascript` / `typescript` / `python` |
+| `starterCode` | 関数のひな形（1〜12000文字） |
+| `cases` | 1〜8件の`{name,input,expected}`。名前は重複させず、入出力を文字列で具体的に示す |
+| `mobile` | `{prompt,code,options}`。同じケースを題材に、コードを読んで関数や処理を2〜8個の選択肢から選ぶ |
+
+`solutions[id]`には`explanation`、配点の合計が問題の配点に一致する`rubric`、`referenceCode`（参考実装）、`mobileAnswer`（0始まり）、`mobileExplanation`を保存する。これらは未回答の出題データや静的アセットに含めない。全項目を含む例は [RFC 7591の実装問題](../questions/spec/rfc-7591-implementation.json)を参照する。
+
+PCではCodeMirror 6を遅延読込し、構文強調・ローカル変数や組み込み関数の補完・字下げ・括弧補完を提供する。Ctrl+Spaceで補完、Tabで字下げ、Escの後にTabでエディタから移動できる。下書きはタブ内のsessionStorageに保存し、送信成功時に削除する。JavaScriptなし、またはエディタを読み込めない場合はPCの通常入力欄で回答できる。提出コードは16000文字まで、全回答のJSONは40000文字まで。
+
+幅767px以下では「コード読解・選択式で始める」を表示し、コード入力を求めず1問ずつ即時採点する。開始時に`implementationMode`（`code` / `reading`、APIの既定値は`code`）をD1に保存する。再開時も同じ形式を使い、PC形式の回答をスマホで開いた場合は、読解形式の新しい回答を始める導線を表示する。`0005_implementation_mode.sql`で既存回答は`code`として引き継ぐ。
+
+PCの実装は記述式と一緒に保存し、独立した採点依頼で既存の共通AI APIに渡す。AIはケース・制約・採点基準・出典に照らしてコードを静的に評価し、参考実装と異なる有効なコードも認める。コードを実行するテスト環境は含まないため、実行成功やテスト合格を保証する採点ではない。コードの保存は匿名でも利用でき、AI採点にはログインが必要。
+
+AI向けの作問手順はルートの [共通skill](../../../skills/quiz-authoring/SKILL.md)にまとめている。`.agents/skills/quiz-authoring`と`.claude/skills/quiz-authoring`は同じ実体へのシンボリックリンクなので、問題形式を変更したときは実体だけを更新する。
 
 ## Cloudflare Workers Paid の初期設定
 
@@ -96,8 +118,9 @@ Service binding を使用する場合は、標準の HTTPS 設定から明示的
 
 ```sh
 node tools/authoring/quiz.mjs generate --spec rfc-7523
-# 既定は6問・全6カテゴリ。カテゴリを絞る場合:
+# 既定は7問・全7カテゴリ。カテゴリを絞る場合:
 node tools/authoring/quiz.mjs generate --spec rfc-7591 --count 3 --categories vocabulary,knowledge,flow
+node tools/authoring/quiz.mjs generate --spec rfc-7591 --count 2 --categories knowledge,implementation
 ```
 
 公開コードや PR も参照する場合:
@@ -132,7 +155,7 @@ node tools/authoring/quiz.mjs publish --commit <40文字のSHA> --path apps/quiz
 # PR の場合: --path apps/quiz/questions/pr/owner/repository/42.json
 ```
 
-取り込みは同じリポジトリ・コミット・パスなら同じ出題セットになり、後からブランチやファイルを変更しても既存回答の版は変わらない。更新版は新しいセットとして公開する。ファイル移動前の `questions/spec/`・`questions/pr/` のパスも、固定SHAによる取り込みに対応する。RFC 7523 の従来形式と、全6カテゴリ・3回答方式を含む [RFC 7591 のサンプル](../questions/spec/rfc-7591.json) を収録している。
+取り込みは同じリポジトリ・コミット・パスなら同じ出題セットになり、後からブランチやファイルを変更しても既存回答の版は変わらない。更新版は新しいセットとして公開する。ファイル移動前の `questions/spec/`・`questions/pr/` のパスも、固定SHAによる取り込みに対応する。RFC 7523の従来形式、従来6カテゴリの [RFC 7591サンプル](../questions/spec/rfc-7591.json)、ケースに基づく [RFC 7591実装問題](../questions/spec/rfc-7591-implementation.json)を収録している。
 
 GitHub Actions の **Author or publish a quiz (manual)** でも実行できる。`quiz-authoring` Environment を作成し、承認する担当者・main のブランチ制限と上記 Access の2つの Secrets、`QUIZ_API_URL` の Variable を設定する。ワークフロー自身も main 上での `workflow_dispatch` だけを許可する。生成候補は `quiz/generated-<run>-<attempt>` ブランチへ保存する。公開は別の手動実行で SHA を指定する。
 
@@ -142,9 +165,9 @@ GitHub Actions の **Author or publish a quiz (manual)** でも実行できる�
 
 `/quiz` からログインなしで公開セットを選択する。選択式・並べ替えは1問ずつ表示し、「採点する」で回答を保存して、即座に正誤・点数・解説を表示する。「次の問題へ」で結果を確認しながら進み、即時採点の問題が終わったら記述式の回答に進む。本文画面の「問題を解く」は対応する仕様 ID で一覧を絞る。
 
-選択式・並べ替えは1問ごとの API で保存済み正解と照合し、記述式や残りの問題の回答を待たず、同じリクエストで結果を返す。未回答の問題の正解・解説は返さない。記述式のないセットは最後の1問で採点が完了する。途中で画面を閉じても、回答済みの結果と未回答の続きへ戻れる。
+選択式・並べ替えとスマホ向けのコード読解は1問ごとのAPIで保存済み正解と照合し、記述式・実装や残りの問題の回答を待たず、同じリクエストで結果を返す。未回答の問題の正解・解説は返さない。AI採点が必要な問題のないセットは最後の1問で採点が完了する。途中で画面を閉じても、回答済みの結果と未回答の続きへ戻れる。
 
-記述式もログインなしでまとめて回答を保存できる。保存やログインだけではAIを実行しない。AI採点を希望する場合は「ログインして記述式をAI採点」から認証・認可し、引き継いだ回答を確認して「記述式のAI採点を依頼」を押す。認証済みの採点依頼APIでQueueに投入し、GitHubの採点基準・出典本文・回答を含むプロンプトを問題アプリが組み立て、共通AI APIがそのままClaudeへ渡して採点する。Access未設定時は回答保存済みとAI採点が利用できない旨を表示する。記述式だけのセットも利用できる。受付・結果受信・利用者の回答送信はすべて別エンドポイント。
+記述式・実装もログインなしでまとめて回答を保存できる。保存やログインだけではAIを実行しない。AI採点を希望する場合は「ログインして記述式・実装をAI採点」から認証・認可し、引き継いだ回答を確認して「記述式・実装のAI採点を依頼」を押す。認証済みの採点依頼APIでQueueに投入し、GitHubの採点基準・出典本文・回答を含むプロンプトを問題アプリが組み立て、共通AI APIがそのままClaudeへ渡して採点する。Access未設定時は回答保存済みとAI採点が利用できない旨を表示する。記述式だけ・実装だけのセットも利用できる。受付・結果受信・利用者の回答送信はすべて別エンドポイント。
 
 匿名回答は32バイトのランダムな `__Host-quiz-session` Cookie（Secure・HttpOnly・SameSite=Lax）で所有者を確認し、Cookie値のSHA-256だけをDBへ保存する。同じブラウザで回答・結果へ戻れ、Cookieを削除すると匿名回答は開けなくなる。別の匿名セッションやIDだけを知る利用者には回答を返さない。AI採点の初回依頼では所有している匿名回答をAccessのsubjectへひも付け、認証済みの本人は別ブラウザからも開ける。元のブラウザからも引き続き結果を確認できる。送信後の内容変更は `409`、同じ内容の再送は同じ結果になる。再回答する場合は新しい回答を開始する。記述式の失敗時も回答を保持し、利用者が採点を再依頼できる。採点結果・profile・promptVersion・実際のモデル・利用量・参照版を履歴に保存する。
 
@@ -177,7 +200,7 @@ npx wrangler secret put GITHUB_APP_PRIVATE_KEY
 | `GET /quiz?attempt=ID[&question=ID]` | 1問の出題・即時採点の解説・記述式・結果 |
 | `POST /quiz/attempts` | 回答開始 |
 | `POST /quiz/attempts/:id/instant-answers` | 選択式・並べ替えの回答と即時採点 |
-| `POST /quiz/attempts/:id/answers` | 記述式の保存 |
+| `POST /quiz/attempts/:id/answers` | 記述式・実装コードの保存 |
 | `GET /quiz/ai-grading?attempt=ID` | AI採点のためにログインし、自分の保存済み回答を表示 |
 | `POST /quiz/attempts/:id/grading-requests` | 認証・認可が必要な非同期AI採点依頼 |
 
@@ -193,12 +216,12 @@ npx wrangler secret put GITHUB_APP_PRIVATE_KEY
 | `POST /api/question-sets/import` | 作問権限でレビュー済み固定版を公開 |
 | `POST /api/authoring/requests` | 作問権限で生成を依頼、`202` |
 | `GET /api/authoring/requests/:id` | 作問権限で候補・状態を取得 |
-| `GET/POST /api/question-sets/:id/attempts` | 自分の回答履歴／回答開始 |
+| `GET/POST /api/question-sets/:id/attempts` | 自分の回答履歴／回答開始。POSTは任意の`{"implementationMode":"code"}` / `{"implementationMode":"reading"}`で実装問題の形式を指定 |
 | `GET /api/attempts/:id` | 自分の回答・途中経過・採点結果 |
 | `POST /api/attempts/:id/instant-answers` | 選択式・並べ替えを1問保存し即時採点。`{ "questionId": "client-sub", "answer": 0 }` / `{ "questionId": "registration-order", "answer": ["prepare", "send", "register", "receive"] }` |
 | `POST /api/attempts/:id/choice-answers` | 既存クライアント用の互換エンドポイント（同じ処理） |
-| `POST /api/attempts/:id/answers` | 選択式・並べ替えの完了後、記述式の回答を保存 |
-| `POST /api/attempts/:id/grading-requests` | 認証・認可が必要な記述式の非同期採点依頼、`202` |
+| `POST /api/attempts/:id/answers` | 選択式・並べ替え・コード読解の完了後、記述式・実装コードを保存 |
+| `POST /api/attempts/:id/grading-requests` | 認証・認可が必要な記述式・実装の非同期採点依頼、`202` |
 | `POST /api/ai/results` | ジョブ専用トークンで AI の結果を受付 |
 
 選択式・並べ替えはセット内の即時採点の問題順に受け付け、同じ回答の再送は同じ結果を返す。並べ替えは全項目が1回ずつ含まれることも検証する。回答後の変更や未回答の問題を飛ばす送信は `409`。`GET /api/attempts/:id` の `answers` と `results` は途中経過も返し、`completed` が全問の回答保存済み、`status: graded` が全問の採点完了を表す。

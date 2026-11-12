@@ -1,5 +1,6 @@
 import { QUESTION_CATEGORIES, ANSWER_TYPES, categoryOf, isImmediate } from '../../shared/quiz-types.js';
 import { OrderingEditor } from './ordering.jsx';
+import { Implementation } from './implementation.jsx';
 
 export const correct = (result) => result.correct ?? result.score === result.maxScore;
 
@@ -16,7 +17,7 @@ export function References({ set, ids }) {
 
 function Feedback({ data, question, result }) {
   if (!result) return null;
-  if (result.status !== 'graded') return <div class="quiz-feedback" tabindex="-1"><p>{data.status === 'grading_failed' ? '採点を完了できませんでした。回答は保存済みです。' : '記述式は採点待ちです。'}</p></div>;
+  if (result.status !== 'graded') return <div class="quiz-feedback" tabindex="-1"><p>{data.status === 'grading_failed' ? '採点を完了できませんでした。回答は保存済みです。' : '記述式・実装は採点待ちです。'}</p></div>;
   const outcome = isImmediate(question) ? correct(result) ? '正解 · ' : question.type === 'choice' ? `不正解（正解: ${String.fromCharCode(65 + result.answer)}）· ` : '不正解 · ' : '';
   return <div class="quiz-feedback" tabindex="-1">
     <strong>{outcome}{result.score} / {result.maxScore}点</strong><p>{result.reason}</p>
@@ -29,11 +30,12 @@ export function Question({ data, question: q }) {
   const result = data.results?.find((item) => item.questionId === q.id);
   const number = data.set.questions.findIndex((item) => item.id === q.id) + 1;
   return <fieldset disabled={saved}>
-    <legend>問題 {number} · {QUESTION_CATEGORIES[categoryOf(q)]} · {ANSWER_TYPES[q.type]} · {q.points}点</legend>
+    <legend>問題 {number} · {QUESTION_CATEGORIES[categoryOf(q)]} · {q.implementationMode === 'reading' ? 'コード読解・選択式' : ANSWER_TYPES[q.type]} · {q.points}点</legend>
     {q.term && <p class="quiz-term">{q.term}</p>}
     {q.scenario && <p class="quiz-scenario">{q.scenario}</p>}
     <p class="quiz-question" tabindex="-1">{q.prompt}</p>
-    {q.type === 'choice' && q.options.map((option, index) => <label class={`quiz-choice${result?.answer === index ? ' is-correct' : ''}`}>
+    {q.implementation && <Implementation data={data} question={q} saved={saved} />}
+    {q.type === 'choice' && q.options.map((option, index) => <label class={`quiz-choice${q.implementation ? ' quiz-code-choice' : ''}${result?.answer === index ? ' is-correct' : ''}`}>
       <input type="radio" name={q.id} value={index} required checked={data.answers?.[q.id] === index} />
       <span>{String.fromCharCode(65 + index)}. {option}</span>
     </label>)}

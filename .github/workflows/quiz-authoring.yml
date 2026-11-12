@@ -16,10 +16,10 @@ on:
         description: 対象 PR 番号 (任意。code_source が必要)
       question_count:
         description: 問題数 (2〜10。選択したカテゴリ数以上)
-        default: '6'
+        default: '7'
       question_categories:
         description: 出題カテゴリ (カンマ区切り)
-        default: vocabulary,knowledge,flow,design,debugging,comparison
+        default: vocabulary,knowledge,flow,design,debugging,comparison,implementation
       commit:
         description: 公開する問題ファイルの固定コミット (publish の場合)
       path:

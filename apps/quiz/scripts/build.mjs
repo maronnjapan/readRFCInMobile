@@ -12,9 +12,9 @@ await buildQuestionCatalog();
 await buildReaderAssets(output);
 await cp(new URL('web/quiz.css', app), new URL('quiz.css', output));
 await build({
-  entryPoints: [fileURLToPath(new URL('web/client.jsx', app))],
-  outfile: fileURLToPath(new URL('src/quiz-page.js', output)),
-  bundle: true, format: 'esm', target: 'es2022',
+  entryPoints: { 'quiz-page': fileURLToPath(new URL('web/client.jsx', app)) },
+  outdir: fileURLToPath(new URL('src/', output)),
+  bundle: true, minify: true, splitting: true, chunkNames: 'chunks/[name]-[hash]', format: 'esm', target: 'es2022',
   tsconfigRaw: { compilerOptions: { jsx: 'react-jsx', jsxImportSource: 'hono/jsx/dom' } },
 });
 // worker/・questions/・採点基準・設定・秘密情報は配信しない。

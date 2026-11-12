@@ -2,7 +2,7 @@ import { HttpError, fail, uuid, validateSet, validateGrades } from '../contracts
 import { categoryOf } from '../../shared/quiz-types.js';
 import { verifyCallback } from '../auth.js';
 import { readJson, now } from '../http.js';
-import { parseSet, getSet } from '../store.js';
+import { parseAttemptSet, getSet } from '../store.js';
 import { failJob, requestPullRequestSync } from './ai-jobs.js';
 
 export async function receiveAiResult(request, env) {
@@ -25,7 +25,7 @@ export async function receiveAiResult(request, env) {
       if (output.questions.length !== requested.questionCount || (requested.questionCategories || []).some((category) => !output.questions.some((q) => categoryOf(q) === category))) fail('指定した問題数・カテゴリではありません。');
     } else {
       const attempt = await env.DB.prepare('SELECT * FROM attempts WHERE id = ?').bind(job.target_id).first();
-      const set = parseSet(await getSet(env, attempt.set_id));
+      const set = parseAttemptSet(await getSet(env, attempt.set_id), attempt);
       const grades = validateGrades(completion, set);
       const results = JSON.parse(attempt.results_json).map((r) => grades.find((g) => g.questionId === r.questionId) || r);
       const settings = { profile: job.profile, promptVersion: JSON.parse(job.input_json).promptVersion || 1, requestedMaxOutputTokens: 8000, model: typeof body.model === 'string' ? body.model.slice(0, 200) : 'unspecified', usage: body.usage || null, jobId: job.id, gradedAt: now() };

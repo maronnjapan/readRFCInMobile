@@ -1,7 +1,7 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { promptData, startQuizWorker, patternsFixture, fixture } from '../test-support/quiz-worker.mjs';
+import { promptData, startQuizWorker, patternsFixture, fixture, implementationFixture } from '../test-support/quiz-worker.mjs';
 import { validateSet, validateAnswers, validateCategories, initialResults } from '../worker/contracts.js';
 import { QUESTION_CATEGORIES, isImmediate } from '../shared/quiz-types.js';
 
@@ -19,7 +19,7 @@ test('six learning categories have independent response types and keep answer ke
   value.solutions[flowId].acceptedOrders = [[...correctOrder].reverse()];
   value.questions.find((q) => q.id === flowId).items[0].secret = 'private';
   const { public: set } = validateSet(value, { published: true });
-  assert.deepEqual(new Set(set.questions.map((q) => q.category)), new Set(Object.keys(QUESTION_CATEGORIES)));
+  assert.deepEqual(new Set(set.questions.map((q) => q.category)), new Set(Object.keys(QUESTION_CATEGORIES).filter((c) => c !== 'implementation')));
   assert.equal(set.questions.filter(isImmediate).length, 5);
   assert.equal(set.questions.find((q) => q.category === 'design').type, 'written');
   assert.equal(set.questions.find((q) => q.category === 'vocabulary').term, 'redirect_uris');
@@ -113,14 +113,14 @@ test('mixed categories preserve one-question progress and ordering feedback befo
   const job = await (await call(`/api/attempts/${state.id}/grading-requests`, { method: 'POST', body: {} })).json();
   const execution = await worker.waitForExecution(job.id);
   assert.equal(promptData(execution).questions.length, 1);
-  assert.equal(promptData(execution).promptVersion, 3);
+  assert.equal(promptData(execution).promptVersion, 4);
   assert.equal(promptData(execution).questions[0].category, 'design');
   assert.equal(promptData(execution).questions[0].answer, written['public-client-design']);
   assert.ok(promptData(execution).questions[0].solution.rubric);
   await worker.complete(job.id);
   const graded = await (await call(`/api/attempts/${state.id}`)).json();
   assert.equal(graded.status, 'graded');
-  assert.equal(graded.grading.promptVersion, 3);
+  assert.equal(graded.grading.promptVersion, 4);
 });
 
 test('concurrent final ordering answers keep one immutable result and finish atomically', async () => {
@@ -150,16 +150,20 @@ test('partial choices written by an old Worker survive migration and can continu
 test('authoring specifies category coverage and rejects missing categories in AI output', async () => {
   const author = worker.client('author');
   const context = { ...patternsFixture, id: 'all-categories' };
-  const body = { context, material: '出典の本文を参照', questionCount: 6, questionCategories: Object.keys(QUESTION_CATEGORIES) };
+  const full = structuredClone(patternsFixture);
+  full.references.push(...implementationFixture.references);
+  full.questions.push(...implementationFixture.questions);
+  Object.assign(full.solutions, implementationFixture.solutions);
+  const body = { context: { ...context, references: full.references }, material: '出典の本文を参照', questionCount: 7, questionCategories: Object.keys(QUESTION_CATEGORIES) };
   assert.equal((await author('/api/authoring/requests', { method: 'POST', body: { ...body, questionCount: 4 } })).status, 400);
   assert.equal((await author('/api/authoring/requests', { method: 'POST', body: { ...body, questionCategories: ['translation'] } })).status, 400);
   const job = await (await author('/api/authoring/requests', { method: 'POST', body })).json();
   const execution = await worker.waitForExecution(job.id);
   assert.deepEqual(promptData(execution).questionCategories, Object.keys(QUESTION_CATEGORIES));
-  await worker.complete(job.id, { output: patternsFixture });
+  await worker.complete(job.id, { output: full });
   assert.equal((await (await author(`/api/authoring/requests/${job.id}`)).json()).status, 'completed');
-  const missingJob = await (await author('/api/authoring/requests', { method: 'POST', body: { ...body, context: { ...context, id: 'missing-category' } } })).json();
-  const missing = structuredClone(patternsFixture);
+  const missingJob = await (await author('/api/authoring/requests', { method: 'POST', body: { ...body, context: { ...body.context, id: 'missing-category' } } })).json();
+  const missing = structuredClone(full);
   missing.questions[0].category = 'knowledge';
   await worker.complete(missingJob.id, { output: missing });
   assert.equal((await (await author(`/api/authoring/requests/${missingJob.id}`)).json()).status, 'failed');

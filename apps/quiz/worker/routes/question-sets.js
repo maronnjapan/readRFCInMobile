@@ -26,5 +26,6 @@ questionSetRoutes.get('/:id/attempts', requireDatabase, setId, async (c) => {
 });
 
 questionSetRoutes.post('/:id/attempts', requireDatabase, setId, async (c) => {
-  return c.json(await startAttempt(c.env, c.get('user'), c.req.param('id')), 201);
+  const body = c.req.raw.body ? await readJson(c.req.raw) : {};
+  return c.json(await startAttempt(c.env, c.get('user'), c.req.param('id'), body?.implementationMode), 201);
 });

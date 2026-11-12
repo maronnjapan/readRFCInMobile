@@ -1,4 +1,4 @@
-import { QUESTION_CATEGORIES, ANSWER_TYPES, categoryOf, isImmediate, sameAnswer } from '../shared/quiz-types.js';
+import { QUESTION_CATEGORIES, ANSWER_TYPES, CODE_LANGUAGES, categoryOf, isImmediate, needsGrading, sameAnswer } from '../shared/quiz-types.js';
 
 export class HttpError extends Error {
   constructor(status, message) { super(message); this.status = status; }
@@ -34,6 +34,24 @@ export function validateContext(c) {
 const refsValid = (ids, allowed) => Array.isArray(ids) && ids.length > 0 && ids.every((id) => allowed.has(id));
 const permutation = (value, items) => Array.isArray(value) && value.length === items.length
   && new Set(value).size === items.length && value.every((id) => items.some((item) => item.id === id));
+const validOptions = (options) => Array.isArray(options) && options.length >= 2 && options.length <= 8
+  && options.every((o) => text(o, 2000)) && new Set(options.map((o) => o.trim())).size === options.length;
+
+export function validateImplementationMode(value = 'code') {
+  if (!['code', 'reading'].includes(value)) fail('実装問題の回答形式は code または reading を指定してください。');
+  return value;
+}
+
+function validateImplementation(q, solution) {
+  const code = q.implementation;
+  if (!code || typeof code.language !== 'string' || !Object.hasOwn(CODE_LANGUAGES, code.language) || !text(code.starterCode, 12000)
+      || !Array.isArray(code.cases) || code.cases.length < 1 || code.cases.length > 8
+      || code.cases.some((c) => !c || !text(c.name, 200) || !text(c.input, 2000) || !text(c.expected, 2000))
+      || new Set(code.cases.map((c) => c.name.trim())).size !== code.cases.length) fail('実装問題の言語・初期コード・入出力ケースを確認してください。');
+  if (!code.mobile || !text(code.mobile.prompt, 4000) || !text(code.mobile.code, 12000) || !validOptions(code.mobile.options)
+      || !Number.isInteger(solution.mobileAnswer) || solution.mobileAnswer < 0 || solution.mobileAnswer >= code.mobile.options.length
+      || !text(solution.mobileExplanation, 6000) || !text(solution.referenceCode, 16000)) fail('スマホ向けのコード読解問題・選択肢・正解・解説と、参考実装が必要です。');
+}
 
 export function validateCategories(value, count) {
   if (value === undefined) return [];
@@ -54,14 +72,14 @@ export function validateSet(value, { published = false } = {}) {
         || typeof categoryOf(q) !== 'string' || !Object.hasOwn(QUESTION_CATEGORIES, categoryOf(q)) || !text(q.prompt, 4000)
         || !Number.isInteger(q.points) || q.points < 1 || q.points > 20 || !refsValid(q.referenceIds, refs)) fail('問題の形式・配点・出典を確認してください。');
     if ((categoryOf(q) === 'vocabulary' && !text(q.term, 200)) || (categoryOf(q) === 'flow' && q.type !== 'ordering')
-        || (['design', 'debugging'].includes(categoryOf(q)) && !text(q.scenario, 6000))
+        || (['design', 'debugging', 'implementation'].includes(categoryOf(q)) && !text(q.scenario, 6000))
+        || ((categoryOf(q) === 'implementation') !== (q.type === 'implementation'))
         || (q.scenario !== undefined && !text(q.scenario, 6000)) || (q.answerHint !== undefined && !text(q.answerHint, 2000))) fail('カテゴリに必要な用語・ユースケース・回答のヒントを確認してください。');
     ids.add(q.id);
     const s = value.solutions[q.id];
     if (!s || !text(s.explanation, 6000)) fail('各問題の解説が必要です。');
     if (q.type === 'choice') {
-      if (!Array.isArray(q.options) || q.options.length < 2 || q.options.length > 8 || !q.options.every((o) => text(o, 2000))
-          || new Set(q.options.map((o) => o.trim())).size !== q.options.length || !Number.isInteger(s.answer) || s.answer < 0 || s.answer >= q.options.length) fail('選択肢と正解を確認してください。');
+      if (!validOptions(q.options) || !Number.isInteger(s.answer) || s.answer < 0 || s.answer >= q.options.length) fail('選択肢と正解を確認してください。');
     } else if (q.type === 'ordering') {
       if (!Array.isArray(q.items) || q.items.length < 2 || q.items.length > 8
           || q.items.some((item) => !item || !slug(item.id) || !text(item.text, 800))
@@ -70,8 +88,9 @@ export function validateSet(value, { published = false } = {}) {
           || !permutation(s.answer, q.items)
           || (s.acceptedOrders !== undefined && (!Array.isArray(s.acceptedOrders) || s.acceptedOrders.length > 8 || s.acceptedOrders.some((order) => !permutation(order, q.items))))) fail('並べ替えの項目と正しい順序を確認してください。');
     } else {
+      if (q.type === 'implementation') validateImplementation(q, s);
       if (!Array.isArray(s.rubric) || !s.rubric.length || s.rubric.length > 10
-          || s.rubric.some((r) => !text(r.criterion, 2000) || !Number.isInteger(r.points) || r.points < 1 || !refsValid(r.referenceIds, refs))
+          || s.rubric.some((r) => !r || !text(r.criterion, 2000) || !Number.isInteger(r.points) || r.points < 1 || !refsValid(r.referenceIds, refs))
           || s.rubric.reduce((n, r) => n + r.points, 0) !== q.points) fail('記述式の採点基準と配点を確認してください。');
     }
   }
@@ -88,6 +107,11 @@ export function validateSet(value, { published = false } = {}) {
       questions: value.questions.map((q) => ({ id: q.id, type: q.type, category: categoryOf(q), prompt: q.prompt, points: q.points, referenceIds: q.referenceIds,
         ...(q.type === 'choice' ? { options: q.options } : {}),
         ...(q.type === 'ordering' ? { items: q.items.map(({ id, text }) => ({ id, text })) } : {}),
+        ...(q.type === 'implementation' ? { implementation: {
+          language: q.implementation.language, starterCode: q.implementation.starterCode,
+          cases: q.implementation.cases.map(({ name, input, expected }) => ({ name, input, expected })),
+          mobile: { prompt: q.implementation.mobile.prompt, code: q.implementation.mobile.code, options: q.implementation.mobile.options },
+        } } : {}),
         ...(categoryOf(q) === 'vocabulary' ? { term: q.term } : {}),
         ...(q.scenario ? { scenario: q.scenario } : {}), ...(q.answerHint ? { answerHint: q.answerHint } : {}),
       })),
@@ -104,8 +128,8 @@ export function validateAnswers(answers, set) {
   for (const q of set.questions) {
     const a = answers[q.id];
     const valid = q.type === 'choice' ? Number.isInteger(a) && a >= 0 && a < q.options.length
-      : q.type === 'ordering' ? permutation(a, q.items) : text(a, 8000);
-    if (!valid) fail('選択肢・並び順・記述式の回答を確認してください。');
+      : q.type === 'ordering' ? permutation(a, q.items) : text(a, q.type === 'implementation' ? 16000 : 8000);
+    if (!valid) fail('選択肢・並び順・記述式・コードの回答を確認してください。');
     result[q.id] = a;
   }
   if (JSON.stringify(result).length > 40000) fail('回答全体が長すぎます。');
@@ -115,7 +139,8 @@ export function validateAnswers(answers, set) {
 export function initialResults(set, solutions, answers) {
   return set.questions.map((q) => {
     if (!isImmediate(q)) return { questionId: q.id, status: 'pending', score: null, maxScore: q.points };
-    const solution = solutions[q.id];
+    const source = solutions[q.id];
+    const solution = q.implementationMode === 'reading' ? { answer: source.mobileAnswer, explanation: source.mobileExplanation } : source;
     const correct = [solution.answer, ...(q.type === 'ordering' ? solution.acceptedOrders || [] : [])].some((value) => sameAnswer(answers[q.id], value));
     return { questionId: q.id, status: 'graded', correct, score: correct ? q.points : 0, maxScore: q.points,
       answer: solution.answer, reason: solution.explanation, referenceIds: q.referenceIds };
@@ -123,7 +148,7 @@ export function initialResults(set, solutions, answers) {
 }
 
 export function validateGrades(output, set) {
-  const written = set.questions.filter((q) => q.type === 'written');
+  const written = set.questions.filter(needsGrading);
   if (!output || !Array.isArray(output.grades) || output.grades.length !== written.length) fail('採点結果の件数が正しくありません。');
   return written.map((q) => {
     const found = output.grades.filter((g) => g.questionId === q.id);

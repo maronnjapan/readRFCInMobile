@@ -1,0 +1,75 @@
+{
+  "format": "spec-understanding-quiz",
+  "version": 1,
+  "id": "rfc-7591-auth-method-implementation",
+  "title": "RFC 7591: 認証方式の既定値を実装する",
+  "status": "published",
+  "spec": {
+    "id": "rfc-7591",
+    "status": "adopted",
+    "repository": "maronnjapan/readRFCInMobile",
+    "commit": "c1a331628736fc9b3dfd438b424dff1453a0c519",
+    "path": "rfcs/rfc7591.txt"
+  },
+  "references": [
+    {
+      "id": "auth-method-metadata",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "c1a331628736fc9b3dfd438b424dff1453a0c519",
+      "path": "rfcs/rfc7591.txt",
+      "startLine": 426,
+      "endLine": 444,
+      "reason": "認証方式の型・拡張値と、省略した場合の既定値",
+      "excerpt": "   token_endpoint_auth_method\n      String indicator of the requested authentication method for the\n      token endpoint.  Values defined by this specification are:\n\n      *  \"none\": The client is a public client as defined in OAuth 2.0,\n         Section 2.1, and does not have a client secret.\n\n      *  \"client_secret_post\": The client uses the HTTP POST parameters\n         as defined in OAuth 2.0, Section 2.3.1.\n\n      *  \"client_secret_basic\": The client uses HTTP Basic as defined in\n         OAuth 2.0, Section 2.3.1.\n\n      Additional values can be defined via the IANA \"OAuth Token\n      Endpoint Authentication Methods\" registry established in\n      Section 4.2.  Absolute URIs can also be used as values for this\n      parameter without being registered.  If unspecified or omitted,\n      the default is \"client_secret_basic\", denoting the HTTP Basic\n      authentication scheme as specified in Section 2.3.1 of OAuth 2.0."
+    }
+  ],
+  "questions": [
+    {
+      "id": "resolve-auth-method",
+      "type": "implementation",
+      "category": "implementation",
+      "scenario": "登録メタデータからトークンエンドポイント認証方式を取り出す関数を作ります。入力metadataはJSONオブジェクトで、呼び出し元が認証方式をサポートしているかを別途確認します。この課題では、値が省略された場合だけ既定値を返し、明示された値は空でない文字列ならそのまま返してください。null・数値・空文字列などは、この関数の入力制約としてTypeErrorにします。",
+      "prompt": "次のケースを満たすresolveAuthMethod(metadata)を実装してください。拡張方式のURIも受け入れ、省略と不正な値を区別してください。入力オブジェクトを変更してはいけません。",
+      "answerHint": "キーの存在と値の型を別々に確認すると、省略とnullを区別できます。",
+      "points": 3,
+      "referenceIds": ["auth-method-metadata"],
+      "implementation": {
+        "language": "javascript",
+        "starterCode": "function resolveAuthMethod(metadata) {\n  // ケースと制約を満たす処理を書いてください。\n}\n",
+        "cases": [
+          { "name": "省略した場合", "input": "{}", "expected": "\"client_secret_basic\"" },
+          { "name": "公開クライアントの明示値", "input": "{\"token_endpoint_auth_method\":\"none\"}", "expected": "\"none\"" },
+          { "name": "拡張方式のURI", "input": "{\"token_endpoint_auth_method\":\"https://example.com/custom-auth\"}", "expected": "\"https://example.com/custom-auth\"" },
+          { "name": "明示したnull", "input": "{\"token_endpoint_auth_method\":null}", "expected": "TypeErrorを投げる" },
+          { "name": "数値は拒否する", "input": "{\"token_endpoint_auth_method\":42}", "expected": "TypeErrorを投げる" },
+          { "name": "空文字列は拒否する", "input": "{\"token_endpoint_auth_method\":\"\"}", "expected": "TypeErrorを投げる" }
+        ],
+        "mobile": {
+          "prompt": "以下のコードで呼び出すisValidMethodとして、すべてのケースを満たす関数はどれですか？",
+          "code": "function resolveAuthMethod(metadata) {\n  if (!Object.hasOwn(metadata, \"token_endpoint_auth_method\")) {\n    return \"client_secret_basic\";\n  }\n  const value = metadata.token_endpoint_auth_method;\n  if (!isValidMethod(value)) {\n    throw new TypeError(\"Invalid authentication method\");\n  }\n  return value;\n}",
+          "options": [
+            "function isValidMethod(value) { return typeof value === \"string\" && value.length > 0; }",
+            "function isValidMethod(value) { return Boolean(value); }",
+            "function isValidMethod(value) { return [\"none\", \"client_secret_post\", \"client_secret_basic\"].includes(value); }",
+            "function isValidMethod(value) { return value === null || typeof value === \"string\"; }"
+          ]
+        }
+      }
+    }
+  ],
+  "solutions": {
+    "resolve-auth-method": {
+      "explanation": "省略時だけclient_secret_basicを返します。拡張方式も文字列として扱い、課題で指定した不正入力を拒否します。nullを省略とみなす処理や、定義済みの3方式だけを認める処理では全ケースを満たしません。",
+      "referenceCode": "function resolveAuthMethod(metadata) {\n  if (!Object.hasOwn(metadata, \"token_endpoint_auth_method\")) {\n    return \"client_secret_basic\";\n  }\n  const value = metadata.token_endpoint_auth_method;\n  if (typeof value !== \"string\" || value.length === 0) {\n    throw new TypeError(\"Invalid authentication method\");\n  }\n  return value;\n}",
+      "mobileAnswer": 0,
+      "mobileExplanation": "Aは空でない文字列だけを認め、拡張方式のURIも保持します。Bは数値42も認め、Cは拡張方式を拒否し、Dはnullと空文字列を認めるため、この課題のケースを満たしません。",
+      "rubric": [
+        { "criterion": "キーが省略された場合だけclient_secret_basicを返す。nullを省略として扱わない。", "points": 1, "referenceIds": ["auth-method-metadata"] },
+        { "criterion": "noneや拡張方式のURIを含む空でない文字列を変更せず返す。入力オブジェクトを変更しない。", "points": 1, "referenceIds": ["auth-method-metadata"] },
+        { "criterion": "課題の入力制約に従い、明示されたnull・数値・空文字列をTypeErrorで拒否する。", "points": 1, "referenceIds": ["auth-method-metadata"] }
+      ]
+    }
+  },
+  "inconsistencies": []
+}

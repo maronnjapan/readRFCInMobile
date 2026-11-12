@@ -1,6 +1,10 @@
 # 仕様理解クイズ
 
-Cloudflare Workers Paid・Hono・D1・Queuesで動く問題アプリ。API、スマホ向け画面、作問ツール、問題データ、設定、テストをこのディレクトリで管理する。
+Cloudflare Workers Paid・Hono・D1・Queuesで動く問題アプリ。API、PC・スマホ向け画面、作問ツール、問題データ、設定、テストをこのディレクトリで管理する。
+
+7カテゴリ・4回答方式（選択式・並べ替え・記述式・コード実装）に対応する。実装問題はケース・制約・入出力例を提示し、PCではCodeMirror 6の補完・シンタックスハイライト付きエディタでコードを書く。JavaScript・TypeScript・Pythonに対応し、スマホ幅では同じ題材のコード読解・関数選択問題に切り替えて出題する。[実装問題のサンプル](questions/spec/rfc-7591-implementation.json)と[形式・採点の説明](docs/quiz-service.md#実装問題)を参照する。
+
+AIが作問するときの共通skillはリポジトリ直下の [skills/quiz-authoring/SKILL.md](../../skills/quiz-authoring/SKILL.md)。`.agents/skills/quiz-authoring`・`.claude/skills/quiz-authoring`の両方から同じファイルを参照する。
 
 ## 収録している DPoP 問題集
 
@@ -25,7 +29,7 @@ Cloudflare Workers Paid・Hono・D1・Queuesで動く問題アプリ。API、ス
 | `worker/middleware.js` | Access認証、作問権限、同一オリジン確認、ID検証 |
 | `worker/routes/pages.jsx` | Honoの画面ルートとフォーム操作。出題・結果のHTMLを返す |
 | `worker/routes/` | 問題セット、回答、作問依頼、AI結果のJSON API |
-| `worker/services/` | 問題公開、即時採点、記述式採点依頼、AI結果保存 |
+| `worker/services/` | 問題公開、即時採点、記述式・実装採点依頼、AI結果保存 |
 | `worker/jobs/` | QueueによるAI依頼とCronによる未完了ジョブの回復 |
 | `worker/store.js`, `worker/question-files.js` | GitHubの問題ファイル・固定版メタデータとD1の回答取得 |
 | `worker/contracts.js` | 問題・回答・採点結果の検証 |
@@ -34,6 +38,7 @@ Cloudflare Workers Paid・Hono・D1・Queuesで動く問題アプリ。API、ス
 | `web/document.jsx`, `web/pages.jsx` | Hono JSXで描画するレイアウト・問題一覧・出題・結果画面 |
 | `web/components/` | Hono JSXの問題表示・出典・並べ替えコンポーネント |
 | `web/client.jsx` | Hono JSX DOMによる並べ替え操作と、フォーム送信・採点状況の更新 |
+| `web/code-editor.js` | 遅延読込するCodeMirrorエディタ、コードの構文強調、タブ内の下書き保存 |
 | `shared/` | サーバー・画面・作問ツールで共有する定義 |
 | `tools/authoring/` | 固定版の仕様・公開コードからの手動作問と公開 |
 | `questions/` | GitHubで管理する正解・採点基準・出典付きの問題ファイル（出題の正本） |

@@ -44,4 +44,41 @@
 #score { font-size: 1.25rem; margin: 1.5rem 0; }
 #pending { margin: 2rem 0; }
 #retention { margin-top: 1.5rem; }
+.quiz-start-reading, .quiz-mobile-resume { display: none; }
+.quiz-code-input { max-width: 100%; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; font-size: 16px; }
+.quiz-code-input:focus-within { outline: 2px solid var(--accent); outline-offset: 1px; }
+.quiz-code-input textarea { font-family: var(--mono); white-space: pre; overflow: auto; }
+.quiz-code-input textarea[hidden] { display: none; }
+.quiz-code-mount { min-width: 0; }
+.quiz-code-preview, .quiz-cases pre { white-space: pre-wrap; overflow-wrap: anywhere; background: var(--code-bg); color: var(--code-fg); padding: 0.8rem; border-radius: 6px; font-family: var(--mono); font-size: 16px; }
+.quiz-code-preview { line-height: 1.6; tab-size: 2; }
+.quiz-code-choice span { font-family: var(--mono); }
+.quiz-cases { padding-left: 1.5rem; color: var(--fg); }
+.quiz-cases li { margin-bottom: 1rem; }
+.quiz-cases dl { margin: 0.4rem 0; }
+.quiz-cases dt { color: var(--muted); font-size: 0.85rem; }
+.quiz-cases dd { margin: 0; }
+.quiz-cases pre { margin: 0.2rem 0 0.5rem; }
+.quiz-implementation .tok-keyword { color: #8b38a9; }
+.quiz-implementation .tok-string, .quiz-implementation .tok-string2 { color: #166a38; }
+.quiz-implementation .tok-number, .quiz-implementation .tok-bool, .quiz-implementation .tok-null { color: #925014; }
+.quiz-implementation .tok-comment { color: var(--muted); font-style: italic; }
+.quiz-implementation .tok-variableName.tok-definition, .quiz-implementation .tok-propertyName, .quiz-implementation .tok-typeName { color: var(--accent); }
+:root[data-theme="dark"] .quiz-implementation .tok-keyword { color: #dda0f3; }
+:root[data-theme="dark"] .quiz-implementation .tok-string { color: #9bdfa8; }
+:root[data-theme="dark"] .quiz-implementation .tok-number { color: #efbd8c; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]):not([data-theme="sepia"]) .quiz-implementation .tok-keyword { color: #dda0f3; }
+  :root:not([data-theme="light"]):not([data-theme="sepia"]) .quiz-implementation .tok-string { color: #9bdfa8; }
+  :root:not([data-theme="light"]):not([data-theme="sepia"]) .quiz-implementation .tok-number { color: #efbd8c; }
+}
+@media (min-width: 768px) {
+  .quiz-page-code { max-width: 60rem; }
+  .quiz-page-code .quiz-cases { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 2rem; }
+}
+@media (max-width: 767px) {
+  .quiz-start-code, .quiz-code-form, .quiz-code-desktop { display: none; }
+  .quiz-start-reading, .quiz-mobile-resume { display: block; }
+  .quiz-mobile-resume { padding: 1rem; background: var(--accent-soft); border-radius: 8px; margin-bottom: 1rem; }
+}
 @media (prefers-reduced-motion: reduce) { .quiz-page .spinner { animation: none; } }

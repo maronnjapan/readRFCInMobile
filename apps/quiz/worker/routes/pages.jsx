@@ -39,7 +39,7 @@ pageRoutes.post('/attempts', async (c) => {
   const form = await readForm(c.req.raw);
   const setId = form.get('setId');
   if (!/^[a-f0-9]{64}$/.test(setId)) fail('問題セットを指定してください。');
-  const data = await startAttempt(c.env, c.get('user'), setId);
+  const data = await startAttempt(c.env, c.get('user'), setId, form.get('implementationMode') ?? 'code');
   return navigate(c, attemptUrl(data.id));
 });
 

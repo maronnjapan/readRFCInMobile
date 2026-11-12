@@ -1,7 +1,9 @@
 import { HttpError } from './contracts.js';
 import { bundledSets, loadFileSet } from './question-files.js';
+import { setForAttempt } from '../shared/quiz-types.js';
 
 export const parseSet = (row) => ({ id: row.id, revision: JSON.parse(row.revision_json), ...JSON.parse(row.public_json) });
+export const parseAttemptSet = (row, attempt) => setForAttempt(parseSet(row), attempt.implementation_mode);
 export const getSet = async (env, id) => {
   const bundled = bundledSets(env).find((row) => row.id === id);
   if (bundled) return bundled;
@@ -22,7 +24,7 @@ export async function listQuestionSets(env, spec) {
 }
 export async function listAttempts(env, setId, user) {
   if (!env.DB) return [];
-  const rows = await env.DB.prepare('SELECT id, status, created_at FROM attempts WHERE set_id = ? AND (owner = ? OR anonymous_owner = ?) ORDER BY created_at DESC LIMIT 20')
+  const rows = await env.DB.prepare('SELECT id, status, created_at, implementation_mode FROM attempts WHERE set_id = ? AND (owner = ? OR anonymous_owner = ?) ORDER BY created_at DESC LIMIT 20')
     .bind(setId, user.id, user.anonymousId || user.id).all();
   return rows.results;
 }
@@ -44,9 +46,9 @@ export async function instantProgress(env, row, set) {
   };
 }
 export async function attemptView(env, row) {
-  const set = parseSet(await getSet(env, row.set_id));
+  const set = parseAttemptSet(await getSet(env, row.set_id), row);
   const progress = row.answers_json ? null : await instantProgress(env, row, set);
-  return { id: row.id, status: row.status, completed: Boolean(row.answers_json), set,
+  return { id: row.id, status: row.status, implementationMode: row.implementation_mode, completed: Boolean(row.answers_json), set,
     answers: row.answers_json ? JSON.parse(row.answers_json) : progress.results.length ? progress.answers : null,
     results: row.results_json ? JSON.parse(row.results_json) : progress.results.length ? progress.results : null,
     grading: row.grading_json ? JSON.parse(row.grading_json) : null };

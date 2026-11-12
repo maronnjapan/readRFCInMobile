@@ -15,11 +15,24 @@ if (ordering) render(<OrderingEditor {...JSON.parse(ordering.textContent)} fallb
   button.disabled = !complete;
 }} />, document.getElementById('ordering-editor'));
 
+if (document.querySelector('[data-code-input], [data-code-preview]')) {
+  import('./code-editor.js').then(({ initializeCode }) => initializeCode()).catch(() => {
+    showError('コードエディタを読み込めませんでした。PCでは入力欄で回答できます。再読み込みでエディタを再試行できます。');
+  });
+}
+
 let busy = false;
 for (const form of document.querySelectorAll('form[data-mutation]')) form.addEventListener('submit', async (event) => {
   event.preventDefault();
   if (busy) return;
-  const body = new URLSearchParams(new FormData(form));
+  for (const input of form.querySelectorAll('[data-code-input] textarea')) {
+    if (!input.value.trim() || input.value.length > input.maxLength) {
+      showError('コードは1〜16000文字で入力してください。');
+      input.closest('[data-code-input]').querySelector('.cm-content')?.focus();
+      return;
+    }
+  }
+  const body = new URLSearchParams(new FormData(form, event.submitter));
   const controls = [...form.querySelectorAll('button, fieldset')].map((control) => [control, control.disabled]);
   busy = true;
   showError('');
@@ -28,6 +41,9 @@ for (const form of document.querySelectorAll('form[data-mutation]')) form.addEve
     const response = await fetch(form.action, { method: 'POST', headers: { Accept: 'application/json' }, body, credentials: 'same-origin', cache: 'no-store', signal: AbortSignal.timeout(30000) });
     const result = await readResponse(response);
     if (!response.ok) throw new Error(result.message || '通信できませんでした。');
+    for (const input of form.querySelectorAll('[data-code-input]')) {
+      try { sessionStorage.removeItem(input.dataset.draftKey); } catch {}
+    }
     location.assign(result.location);
   } catch (cause) {
     showError(cause.message || '通信できませんでした。');

@@ -31,7 +31,7 @@ async function service(path, body) {
 
 try {
   if (command === 'generate') {
-    const questionCount = Number(options.count || 6);
+    const questionCount = Number(options.count || Object.keys(QUESTION_CATEGORIES).length);
     if (!Number.isInteger(questionCount) || questionCount < 2 || questionCount > 10) throw new Error('--count は2〜10問で指定してください。');
     const questionCategories = validateCategories(options.categories ? options.categories.split(',').map((v) => v.trim()) : Object.keys(QUESTION_CATEGORIES), questionCount);
     const payload = await buildContext({ root, configRoot: appRoot, specId: options.spec, codeSource: options.source, prNumber: options.pr, codeRef: options.ref,
@@ -64,5 +64,5 @@ try {
     if (!filePath(options.path)) throw new Error('--path が必要です。');
     validateSet(JSON.parse(await readFile(resolve(root, options.path), 'utf8')));
     console.log('問題形式・採点基準・出典: OK');
-  } else throw new Error('generate --spec ID [--count 6] [--categories vocabulary,knowledge,flow,design,debugging,comparison] [--source ID] [--pr N] / check --path PATH / publish --commit SHA --path PATH');
+  } else throw new Error('generate --spec ID [--count 7] [--categories vocabulary,knowledge,flow,design,debugging,comparison,implementation] [--source ID] [--pr N] / check --path PATH / publish --commit SHA --path PATH');
 } catch (error) { console.error(error.message); process.exitCode = 1; }
