@@ -1,40 +1,25 @@
 import { createExecutorAuth } from './ai-executor-auth.js';
 
-// auth.authorize({ url, method, signal }) -> HeadersInit
-// auth.onResponse?({ url, method, signal, response }) -> boolean (認証 challenge の再送を要求)
-// URL・method の確定後に毎回認証し、proof を Queue や D1 に保持しない。
+// auth.fetch(request, send) -> Promise<Response>
+// 認証付きの通信全体をアダプタへ委譲し、出題・採点処理から独立させる。
 export function createExecutorClient({ endpoint, auth, fetcher = fetch, timeoutMs = 20000 }) {
   let url;
   try { url = new URL(endpoint); } catch { throw new Error('AI executor URL is not configured'); }
   if (url.protocol !== 'https:' || url.username || url.password || url.hash) throw new Error('AI executor requires an HTTPS endpoint without URL credentials or fragment');
-  if (typeof auth?.authorize !== 'function') throw new Error('AI executor authentication provider is required');
+  if (typeof auth?.fetch !== 'function') throw new Error('AI executor authentication adapter is required');
 
   return {
     async submit(payload) {
-      const body = JSON.stringify(payload);
-      const signal = AbortSignal.timeout(timeoutMs);
-      for (let attempt = 0; attempt < 2; attempt++) {
-        const request = new Request(url.href, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' }, body, signal,
-          // API キー・将来の access token / DPoP proof を別の宛先へ転送しない。
-          redirect: 'manual',
-        });
-        const context = Object.freeze({ url: request.url, method: request.method, signal: request.signal });
-        const headers = new Headers(await auth.authorize(context));
-        headers.forEach((value, name) => request.headers.set(name, value));
-        const response = await fetcher(request);
-        if (response.status >= 300 && response.status < 400) {
-          await response.body?.cancel();
-          throw new Error('AI executor redirects are not allowed');
-        }
-        const retry = await auth.onResponse?.({ ...context, response });
-        // DPoP nonce や OAuth token 更新用の再認証は1回だけ。正常な受付は再送しない。
-        if (attempt === 0 && retry === true && [400, 401].includes(response.status)) {
-          await response.body?.cancel();
-          continue;
-        }
-        return response;
+      const request = new Request(url.href, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
+        signal: AbortSignal.timeout(timeoutMs), redirect: 'manual',
+      });
+      const response = await auth.fetch(request, fetcher);
+      if (response.status >= 300 && response.status < 400) {
+        await response.body?.cancel();
+        throw new Error('AI executor redirects are not allowed');
       }
+      return response;
     },
   };
 }

@@ -53,7 +53,7 @@ npm run deploy:workers
 
 `AI_EXECUTOR_API_KEY` は共通 AI API へのサーバー間認証にだけ使用し、`Authorization: Bearer` で送る。Claude キーは **共通 AI API 側だけ**に登録する。共通 API はキーごとに許可操作・利用上限を管理し、推論完了を待たず依頼を永続化して `202` を返し、完了時に別リクエストで結果を返す。
 
-将来は `worker/ai-executor-auth.js` の認証 provider を OAuth + DPoP 用へ差し替える。送信ごとの認証ヘッダー生成と、nonce challenge に対する1回の再認証が可能なインターフェースを用意している。詳細は [移行点](ai-executor-contract.md#oauth--dpop-への移行点) を参照する。
+認証アダプタは `fetch(request, send) -> Promise<Response>` の契約で差し替える。OAuth + DPoP の実装は利用側が用意し、`worker/ai-executor-auth.js` へ接続する。詳細は [差し替え契約](ai-executor-contract.md#認証アダプタの差し替え) を参照する。
 
 Service binding を使用する場合は、標準の HTTPS 設定から明示的に変更する。
 
@@ -166,4 +166,4 @@ npm run check:workers
 node tools/authoring/quiz.mjs check --path questions/spec/rfc-7523.json
 ```
 
-統合テストは workerd・D1・Queue・HTTPS / Service binding・Access の実際の署名検証を使い、共通 AI API と GitHub のネットワーク応答を置き換える。API キーの送信、将来用の認証 provider 差し替え、nonce challenge の再送上限も検証する。実際の Claude 実行や本番 Access / GitHub App の接続確認は、各サービスの設定後に実施する。静的ファイルの公開対象は `scripts/build-assets.mjs` の許可リストで管理する。
+統合テストは workerd・D1・Queue・HTTPS / Service binding・Access の実際の署名検証を使い、共通 AI API と GitHub のネットワーク応答を置き換える。API キーの送信と、認証アダプタの差し替えも検証する。実際の Claude 実行や本番 Access / GitHub App の接続確認は、各サービスの設定後に実施する。静的ファイルの公開対象は `scripts/build-assets.mjs` の許可リストで管理する。
