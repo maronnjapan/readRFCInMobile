@@ -45,6 +45,12 @@
     }
   },
   {
+    "number": 9449,
+    "title": "OAuth 2.0 Demonstrating Proof of Possession (DPoP)",
+    "date": "September 2023",
+    "category": "Standards Track"
+  },
+  {
     "number": 10070,
     "title": "Updates to OAuth 2.0 JSON Web Token (JWT) Client Authentication and Assertion-Based Authorization Grants",
     "date": "November 2026",
