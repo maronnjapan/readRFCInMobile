@@ -5,6 +5,7 @@ import { generateKeyPairSync, createSign } from 'node:crypto';
 
 export const fixture = JSON.parse(await readFile(new URL('../questions/spec/rfc-7523.json', import.meta.url), 'utf8'));
 export const callbackSecret = 'test-callback-secret-with-at-least-32-characters';
+export const executorApiKey = 'test-only-ai-executor-api-key';
 const root = fileURLToPath(new URL('../', import.meta.url));
 const { publicKey, privateKey } = generateKeyPairSync('rsa', { modulusLength: 2048 });
 const jwk = { ...publicKey.export({ format: 'jwk' }), kid: 'quiz-test-key' };
@@ -15,30 +16,37 @@ export function accessToken(subject = 'reader', overrides = {}) {
   return `${data}.${createSign('RSA-SHA256').update(data).sign(privateKey).toString('base64url')}`;
 }
 
-export async function startQuizWorker({ assets = false, port = 0, github = false } = {}) {
+export async function startQuizWorker({ assets = false, port = 0, github = false, executorTransport = 'https', executorAuth = 'api-key' } = {}) {
   const executions = new Map();
+  const executorRequests = [];
   const githubWrites = [];
   const behavior = { executorStatus: 202, artifact: structuredClone(fixture), earlyCallback: false };
   let mf;
+  async function execute(request) {
+    const authorization = request.headers.get('authorization');
+    executorRequests.push({ url: request.url, method: request.method, authorization, redirect: request.redirect });
+    if (executorAuth === 'api-key' && authorization !== `Bearer ${executorApiKey}`) return WorkerResponse.json({ error: 'unauthorized' }, { status: 401 });
+    const body = await request.json();
+    executions.set(body.requestId, body);
+    if (behavior.earlyCallback) await complete(body.requestId);
+    return WorkerResponse.json({ accepted: true }, { status: behavior.executorStatus });
+  }
   const options = convertV4MiniflareOptions({
     name: 'quiz-test-worker',
-    modules: ['worker/index.js', 'worker/contracts.js', 'worker/auth.js', 'worker/github.js'].map((path) => ({ type: 'ESModule', path: `${root}${path}` })),
+    modules: ['worker/index.js', 'worker/contracts.js', 'worker/auth.js', 'worker/github.js', 'worker/ai-executor.js', 'worker/ai-executor-auth.js'].map((path) => ({ type: 'ESModule', path: `${root}${path}` })),
     modulesRoot: root, compatibilityDate: '2026-11-01', cf: false, port,
     d1Databases: ['DB'],
     bindings: { APP_ORIGIN: 'https://reader.test', QUESTION_REPOSITORY: 'maronnjapan/readRFCInMobile', CODE_REPOSITORIES: 'example/product',
       ACCESS_ISSUER: issuer, ACCESS_AUD: 'quiz-test', AUTHOR_SUBJECTS: 'author,service:author.access', AUTHOR_EMAILS: 'author@example.com', AI_CALLBACK_SECRET: callbackSecret,
+      AI_EXECUTOR_TRANSPORT: executorTransport, AI_EXECUTOR_AUTH: executorAuth, AI_EXECUTOR_API_KEY: executorApiKey, AI_EXECUTOR_URL: 'https://ai-executor.test/v1/requests',
       ...(github ? { GITHUB_APP_ID: '1', GITHUB_INSTALLATION_ID: '2', GITHUB_APP_PRIVATE_KEY: privateKey.export({ type: 'pkcs8', format: 'pem' }) } : {}) },
     ratelimits: { AI_RATE_LIMITER: { namespace_id: '1001', simple: { limit: 5, period: 60 } } },
     queueProducers: { AI_JOBS: 'spec-quiz-ai' }, queueConsumers: { 'spec-quiz-ai': { maxBatchSize: 1, maxBatchTimeout: 0 } },
-    serviceBindings: { AI_EXECUTOR: async (request) => {
-      const body = await request.json();
-      executions.set(body.requestId, body);
-      if (behavior.earlyCallback) await complete(body.requestId);
-      return WorkerResponse.json({ accepted: true }, { status: behavior.executorStatus });
-    } },
+    ...(executorTransport === 'service-binding' ? { serviceBindings: { AI_EXECUTOR: execute } } : {}),
     ...(assets ? { assets: { directory: `${root}dist`, binding: 'ASSETS', run_worker_first: ['/api/*'], routerConfig: { has_user_worker: true }, assetConfig: { html_handling: 'auto-trailing-slash', not_found_handling: 'none' } } } : {}),
     outboundService: async (request) => {
       const url = new URL(request.url);
+      if (url.origin === 'https://ai-executor.test') return execute(request);
       if (url.origin === issuer) return WorkerResponse.json({ keys: [jwk] });
       if (url.hostname === 'raw.githubusercontent.com') return WorkerResponse.json(behavior.artifact);
       if (url.origin === 'https://api.github.com') {
@@ -79,5 +87,5 @@ export async function startQuizWorker({ assets = false, port = 0, github = false
     if (!response.ok) throw new Error(`Publish ${response.status}: ${await response.text()}`);
     return response.json();
   }
-  return { mf, db, client, publish, executions, complete, waitForExecution, behavior, githubWrites };
+  return { mf, db, client, publish, executions, executorRequests, complete, waitForExecution, behavior, githubWrites };
 }

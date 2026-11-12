@@ -32,23 +32,39 @@ npx wrangler queues create spec-quiz-ai-dead
 
 - D1 作成結果の `database_id`
 - `APP_ORIGIN`: 公開する出題サービスの HTTPS オリジン
+- `AI_EXECUTOR_URL`: 共通 AI API の HTTPS エンドポイント（例: `https://ai-api.example.com/v1/requests`）
+- `AI_EXECUTOR_TRANSPORT=https`, `AI_EXECUTOR_AUTH=api-key`: 現在の共通 AI API 呼び出し方式
 - `QUESTION_REPOSITORY`: 問題を読む公開リポジトリ
 - `QUESTION_DEFAULT_BRANCH`: 定番問題を管理する標準ブランチ（既定 `main`）。仕様問題の公開時は、そのコミットが標準ブランチの履歴に含まれることを確認する
 - `CODE_REPOSITORIES`: PR 連携を許可する公開リポジトリ（カンマ区切り）
 - `ACCESS_ISSUER`, `ACCESS_AUD`: Cloudflare Access アプリの issuer と Application Audience
 - `AUTHOR_SUBJECTS` または `AUTHOR_EMAILS`: 作問・公開を許可する Access の subject／メールアドレス。Access Service Token は JWT の `sub` が空なので、署名検証した `common_name` に `service:` を付けた値（例: `service:abc123.access`）を `AUTHOR_SUBJECTS` に含める
-- `AI_EXECUTOR` の接続先: [共通 AI 実行契約](ai-executor-contract.md) に対応した別 Worker
+- 共通 AI API の接続先は [非同期 AI 実行契約](ai-executor-contract.md) に対応させる
 - `AUTHORING_PROFILE`, `GRADING_PROFILE`: 共通 API 側で承認された Claude の実行設定
 
 Cloudflare Access に許可利用者の Allow ポリシーと、作問用 Service Token の Service Auth ポリシーを設定する。`/api/ai/results` だけは別アプリ／ポリシーで Bypass し、Worker 内のジョブ専用トークン認証を使う。それ以外の API は Access JWT の署名・issuer・audience・有効期限・subject を Worker 自身でも検証する。未設定時・未認証時に匿名の有料実行へフォールバックしない。
 
 ```sh
 npm run db:migrate:remote
+npx wrangler secret put AI_EXECUTOR_API_KEY # 共通 AI API が発行する呼び出し元用キー
 npx wrangler secret put AI_CALLBACK_SECRET   # ランダムな32文字以上。例: openssl rand -hex 32
 npm run deploy:workers
 ```
 
-Claude キーは **共通 AI API 側だけ**に登録する。Service binding は外部ブラウザに実行権限を渡さない。共通 API は推論完了を待たず依頼を永続化して `202` を返し、完了時に別リクエストで結果を返す必要がある。
+`AI_EXECUTOR_API_KEY` は共通 AI API へのサーバー間認証にだけ使用し、`Authorization: Bearer` で送る。Claude キーは **共通 AI API 側だけ**に登録する。共通 API はキーごとに許可操作・利用上限を管理し、推論完了を待たず依頼を永続化して `202` を返し、完了時に別リクエストで結果を返す。
+
+将来は `worker/ai-executor-auth.js` の認証 provider を OAuth + DPoP 用へ差し替える。送信ごとの認証ヘッダー生成と、nonce challenge に対する1回の再認証が可能なインターフェースを用意している。詳細は [移行点](ai-executor-contract.md#oauth--dpop-への移行点) を参照する。
+
+Service binding を使用する場合は、標準の HTTPS 設定から明示的に変更する。
+
+```json
+{
+  "services": [{ "binding": "AI_EXECUTOR", "service": "ai-execution-api" }],
+  "vars": { "AI_EXECUTOR_TRANSPORT": "service-binding", "AI_EXECUTOR_AUTH": "service-binding" }
+}
+```
+
+上記は `wrangler.jsonc` へ追加・統合する設定差分。共通 API を非公開 Worker とし、binding で許可した実行元だけを受け付ける。API キー未設定や認証方式の誤記を理由にこの方式へ自動変更することはない。
 
 ローカル開発は `.dev.vars.example` を `.dev.vars` にコピーして設定し、`npm run db:migrate:local` と `npm run dev` を使う。Access JWT を発行する実環境と共通 AI Worker の接続が必要な操作は、対応する開発環境に接続する。依存サービスを使用せず確認する場合は、統合テストのモックを使う。認証を省略する本番コード用スイッチは設けていない。
 
@@ -150,4 +166,4 @@ npm run check:workers
 node tools/authoring/quiz.mjs check --path questions/spec/rfc-7523.json
 ```
 
-統合テストは workerd・D1・Queue・Service binding・Access の実際の署名検証を使い、共通 AI API と GitHub のネットワーク応答を置き換える。実際の Claude 実行や本番 Access / GitHub App の接続確認は、各サービスの設定後に実施する。静的ファイルの公開対象は `scripts/build-assets.mjs` の許可リストで管理する。
+統合テストは workerd・D1・Queue・HTTPS / Service binding・Access の実際の署名検証を使い、共通 AI API と GitHub のネットワーク応答を置き換える。API キーの送信、将来用の認証 provider 差し替え、nonce challenge の再送上限も検証する。実際の Claude 実行や本番 Access / GitHub App の接続確認は、各サービスの設定後に実施する。静的ファイルの公開対象は `scripts/build-assets.mjs` の許可リストで管理する。

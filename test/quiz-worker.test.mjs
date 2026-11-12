@@ -1,6 +1,6 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { startQuizWorker, fixture, accessToken } from '../test-support/quiz-worker.mjs';
+import { startQuizWorker, fixture, accessToken, executorApiKey } from '../test-support/quiz-worker.mjs';
 import workerHandler from '../worker/index.js';
 import { randomUUID } from 'node:crypto';
 
@@ -109,6 +109,12 @@ test('generation uses an asynchronous common API and produces an unpublished rev
   assert.equal(execution.operation, 'questions.generate');
   assert.equal(execution.profile, 'quiz-generate-v1');
   assert.equal(execution.maxOutputTokens, 8000);
+  const request = worker.executorRequests.at(-1);
+  assert.equal(request.url, 'https://ai-executor.test/v1/requests');
+  assert.equal(request.authorization, `Bearer ${executorApiKey}`);
+  assert.equal(JSON.stringify(execution).includes(executorApiKey), false);
+  const stored = await worker.db.prepare('SELECT input_json, context_json FROM ai_jobs WHERE id = ?').bind(job.id).first();
+  assert.equal(JSON.stringify(stored).includes(executorApiKey), false);
   assert.equal((await worker.complete(job.id)).status, 200);
   const result = await (await call(`/api/authoring/requests/${job.id}`)).json();
   assert.equal(result.status, 'completed');
@@ -196,5 +202,20 @@ test('PR publishing records an immutable diff and posts an informational link an
     const comment = app.githubWrites.find((w) => w.path.endsWith('/comments'));
     assert.ok(comment.body.body.includes(set.id));
     assert.ok(comment.body.body.includes('参考情報'));
+  } finally { await app.mf.dispose(); }
+});
+
+test('explicit private Service binding transport remains available independently of HTTP API key auth', async () => {
+  const app = await startQuizWorker({ executorTransport: 'service-binding', executorAuth: 'service-binding' });
+  try {
+    const set = await app.publish();
+    const call = app.client();
+    const state = await (await call(`/api/question-sets/${set.id}/attempts`, { method: 'POST', body: {} })).json();
+    await call(`/api/attempts/${state.id}/answers`, { method: 'POST', body: { answers } });
+    const job = await (await call(`/api/attempts/${state.id}/grading-requests`, { method: 'POST', body: {} })).json();
+    await app.waitForExecution(job.id);
+    assert.equal(app.executorRequests[0].authorization, null);
+    await app.complete(job.id);
+    assert.equal((await (await call(`/api/attempts/${state.id}`)).json()).status, 'graded');
   } finally { await app.mf.dispose(); }
 });

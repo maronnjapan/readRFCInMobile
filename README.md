@@ -27,7 +27,7 @@ NIST SP や論文などの PDF も、段組を解いて同じ形式で表示で�
 
 問題側のサービスをこのリポジトリで管理します。仕様のみの問題と PR 固有の問題、選択式と記述式に対応し、問題・仕様・コードの版をコミット SHA で固定します。記述式は回答を保存してから非同期で採点します。
 
-Claude は別サービスの共通 AI 実行 API を Service binding 経由で呼びます。このサービスやブラウザには Claude キーを置きません。AI 実行の依頼と結果の受信は別エンドポイントです。
+Claude は別サービスの共通 AI 実行 API を HTTPS + API キーで呼びます。呼び出し認証は独立したアダプタにし、将来の OAuth + DPoP へ差し替えられる構成です。共通 API 用のキーはサーバーの Secrets に保存し、Claude キーは共通 API 側だけに置きます。AI 実行の依頼と結果の受信は別エンドポイントです。
 
 ```sh
 npm ci
@@ -284,7 +284,7 @@ quiz.html / quiz.css   シンプルな出題・回答・採点結果の画面
 src/quiz-page.js       問題セットの選択、回答保存、選択式・記述式の結果表示
 worker/               Workers の出題 API、Access 認証、Queue、AI 結果受付、GitHub App 連携
 migrations/           問題・利用者ごとの回答・AI ジョブ・採点履歴を保存する D1 のスキーマ
-wrangler.jsonc        Workers Paid・Static Assets・D1・Queues・Service binding・Rate Limiting・Cron の設定
+wrangler.jsonc        Workers Paid・Static Assets・D1・Queues・AI API 接続先・Rate Limiting・Cron の設定
 questions/            正解・採点基準・固定 SHA の出典を含む問題ファイル (静的配信から除外)
 specs/ / mappings/    仕様の ID・状態・パスと、仕様・コードの対応
 code-sources.yaml     公開コードの参照先、標準ブランチ、許可するパス

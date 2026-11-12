@@ -1,6 +1,7 @@
 import { HttpError, fail, text, uuid, validateContext, validateSet, validateAnswers, initialResults, validateGrades, generationInstructions, gradingInstructions } from './contracts.js';
 import { identity, isAuthor, requireAuthor, callbackToken, verifyCallback } from './auth.js';
 import { publicQuestionFile, githubConfigured, syncPullRequest } from './github.js';
+import { executorClient } from './ai-executor.js';
 
 const now = () => Math.floor(Date.now() / 1000);
 const json = (body, status = 200) => Response.json(body, { status, headers: { 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' } });
@@ -235,11 +236,8 @@ export default {
       if (!claim.meta.changes) { message.ack(); continue; }
       try {
         const token = await callbackToken(job.id, env.AI_CALLBACK_SECRET);
-        const response = await env.AI_EXECUTOR.fetch('https://ai-executor.internal/v1/requests', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: AbortSignal.timeout(20000),
-          body: JSON.stringify({ requestId: job.id, operation: job.operation, profile: job.profile, input: JSON.parse(job.input_json),
-            maxOutputTokens: 8000, callback: { url: `${env.APP_ORIGIN}/api/ai/results`, token } }),
-        });
+        const response = await executorClient(env).submit({ requestId: job.id, operation: job.operation, profile: job.profile, input: JSON.parse(job.input_json),
+          maxOutputTokens: 8000, callback: { url: `${env.APP_ORIGIN}/api/ai/results`, token } });
         if (!response.ok) throw new Error('AI executor rejected request');
         await env.DB.prepare("UPDATE ai_jobs SET status = 'submitted', updated_at = ? WHERE id = ? AND status = 'dispatching'").bind(now(), job.id).run();
         console.log('quiz_ai_submitted', { id: job.id, operation: job.operation, profile: job.profile });
