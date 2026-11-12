@@ -14,6 +14,12 @@ on:
         description: code-sources.yaml の ID (空なら仕様のみ)
       pr_number:
         description: 対象 PR 番号 (任意。code_source が必要)
+      question_count:
+        description: 問題数 (2〜10。選択したカテゴリ数以上)
+        default: '6'
+      question_categories:
+        description: 出題カテゴリ (カンマ区切り)
+        default: vocabulary,knowledge,flow,design,debugging,comparison
       commit:
         description: 公開する問題ファイルの固定コミット (publish の場合)
       path:
@@ -38,6 +44,8 @@ jobs:
       SPEC_ID: ${{ inputs.spec_id }}
       CODE_SOURCE: ${{ inputs.code_source }}
       PR_NUMBER: ${{ inputs.pr_number }}
+      QUESTION_COUNT: ${{ inputs.question_count }}
+      QUESTION_CATEGORIES: ${{ inputs.question_categories }}
       PUBLISH_COMMIT: ${{ inputs.commit }}
       PUBLISH_PATH: ${{ inputs.path }}
     steps:
@@ -53,7 +61,7 @@ jobs:
         if: env.OPERATION == 'generate'
         shell: bash
         run: |
-          args=(generate --spec "$SPEC_ID")
+          args=(generate --spec "$SPEC_ID" --count "$QUESTION_COUNT" --categories "$QUESTION_CATEGORIES")
           if [[ -n "$CODE_SOURCE" ]]; then args+=(--source "$CODE_SOURCE"); fi
           if [[ -n "$PR_NUMBER" ]]; then args+=(--pr "$PR_NUMBER"); fi
           node tools/authoring/quiz.mjs "${args[@]}"

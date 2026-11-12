@@ -17,6 +17,7 @@
   "profile": "quiz-written-v1",
   "input": {
     "instructions": "保存済みの採点基準と出典だけを使って…",
+    "promptVersion": 2,
     "revision": { "repository": "owner/questions", "commit": "40文字のSHA", "path": "questions/spec/example.json" },
     "references": [],
     "sourceMaterials": { "reference-id": "固定した版から取得した出典本文" },
@@ -27,7 +28,7 @@
 }
 ```
 
-操作は `questions.generate` と `answers.grade`。作問の `input` は `instructions`, `questionCount`, `context`, `material` を持つ。`context` には仕様・PR の固定版と、取得した各出典の本文 `references[].excerpt` が含まれる。
+操作は `questions.generate` と `answers.grade`。作問の `input` は `instructions`, `questionCount`, `questionCategories`, `context`, `material` を持つ。`questionCategories` は `vocabulary`, `knowledge`, `flow`, `design`, `debugging`, `comparison` の指定リストで、各カテゴリを1問以上含む候補を作る。空リストの場合はカテゴリを制限しない。`context` には仕様・PR の固定版と、取得した各出典の本文 `references[].excerpt` が含まれる。
 
 共通 API は**推論が完了する前に**永続的に依頼を受け付け、`202` を返す。問題側は受付の HTTP 通信だけを20秒でタイムアウトさせる。長い Claude 呼び出しをこの接続や `waitUntil` の寿命に依存させない。共通 API 側でも Queues / Workflows などにより実行を継続する。
 
@@ -70,7 +71,7 @@ Content-Type: application/json
 }
 ```
 
-作問結果の `output` は `title`, `questions`, `solutions`, `inconsistencies`。形式は `worker/contracts.js` と `questions/spec/rfc-7523.json` を参照する。仕様・参照先などのメタデータはサーバーが元の依頼から復元し、モデルの出力で置き換えない。
+作問結果の `output` は `title`, `questions`, `solutions`, `inconsistencies`。形式は `worker/contracts.js` と全6カテゴリの `questions/spec/rfc-7591.json` を参照する。問題の `type` は `choice` / `ordering` / `written`。並べ替えは `items` のIDを正解順にした配列を解答とし、記述式だけをAI採点へ送る。仕様・参照先などのメタデータはサーバーが元の依頼から復元し、モデルの出力で置き換えない。
 
 失敗時は同じ `requestId`, `operation` と `status: "failed"` を送る。エラーの生本文・秘密情報は送り返さない。
 

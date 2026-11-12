@@ -4,6 +4,7 @@ import { promisify } from 'node:util';
 import { join } from 'node:path';
 import { parse } from 'yaml';
 import { repository, sha, filePath, validateContext } from '../../worker/contracts.js';
+import { QUESTION_CATEGORIES } from '../../src/quiz-types.js';
 
 const exec = promisify(execFile);
 const reject = (message) => { throw new Error(message); };
@@ -110,5 +111,5 @@ export async function buildContext({ root, specId, codeSource, prNumber, codeRef
     }
   }
   validateContext(context);
-  return { context, material: 'references の excerpt が取得・検索した資料本文です。範囲外のコードや省略された箇所は確認済みとして扱わないでください。', questionCount: 4 };
+  return { context, material: 'references の excerpt が取得・検索した資料本文です。範囲外のコードや省略された箇所は確認済みとして扱わないでください。', questionCount: 6, questionCategories: Object.keys(QUESTION_CATEGORIES) };
 }

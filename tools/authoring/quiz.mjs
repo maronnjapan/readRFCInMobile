@@ -2,7 +2,8 @@ import { readFile, mkdir, writeFile, appendFile } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildContext } from './context.mjs';
-import { validateSet, sha, filePath } from '../../worker/contracts.js';
+import { validateSet, validateCategories, sha, filePath } from '../../worker/contracts.js';
+import { QUESTION_CATEGORIES } from '../../src/quiz-types.js';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const args = process.argv.slice(2);
@@ -28,9 +29,12 @@ async function service(path, body) {
 
 try {
   if (command === 'generate') {
+    const questionCount = Number(options.count || 6);
+    if (!Number.isInteger(questionCount) || questionCount < 2 || questionCount > 10) throw new Error('--count は2〜10問で指定してください。');
+    const questionCategories = validateCategories(options.categories ? options.categories.split(',').map((v) => v.trim()) : Object.keys(QUESTION_CATEGORIES), questionCount);
     const payload = await buildContext({ root, specId: options.spec, codeSource: options.source, prNumber: options.pr, codeRef: options.ref,
       specRef: options['spec-ref'] || 'HEAD', questionRepository: process.env.QUESTION_REPOSITORY || 'maronnjapan/readRFCInMobile' });
-    payload.questionCount = Number(options.count || 4);
+    Object.assign(payload, { questionCount, questionCategories });
     if (Buffer.byteLength(JSON.stringify(payload)) > 290000) throw new Error('資料が大きすぎます。参照パスを絞ってください。');
     const submitted = await service('authoring/requests', payload);
     console.log(`作問ジョブ: ${submitted.id}`);
@@ -58,5 +62,5 @@ try {
     if (!filePath(options.path)) throw new Error('--path が必要です。');
     validateSet(JSON.parse(await readFile(resolve(root, options.path), 'utf8')));
     console.log('問題形式・採点基準・出典: OK');
-  } else throw new Error('generate --spec ID [--source ID] [--pr N] / check --path PATH / publish --commit SHA --path PATH');
+  } else throw new Error('generate --spec ID [--count 6] [--categories vocabulary,knowledge,flow,design,debugging,comparison] [--source ID] [--pr N] / check --path PATH / publish --commit SHA --path PATH');
 } catch (error) { console.error(error.message); process.exitCode = 1; }

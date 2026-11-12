@@ -73,7 +73,7 @@ test('simultaneous different choice answers record one immutable result', async 
   const { state, choice } = await start();
   const responses = await Promise.all([choice('client-sub', 0), choice('client-sub', 2)]);
   assert.deepEqual(responses.map((r) => r.status).sort(), [200, 409]);
-  const count = await worker.db.prepare('SELECT COUNT(*) AS count FROM choice_answers WHERE attempt_id = ?').bind(state.id).first();
+  const count = await worker.db.prepare('SELECT COUNT(*) AS count FROM instant_answers WHERE attempt_id = ?').bind(state.id).first();
   assert.equal(count.count, 1);
 });
 

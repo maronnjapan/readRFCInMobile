@@ -1,10 +1,10 @@
 // Service Worker: アプリ本体と日本語訳 (rfcs/ja/・pdfs/ja/、書き直すことがある) はネットワーク優先 + キャッシュフォールバック、
 // RFC 本文 (不変) はキャッシュ優先で保存し、オフラインでも再読できるようにする。
-const VERSION = 'v4';
+const VERSION = 'v5';
 const SHELL_CACHE = `rfcreader-shell-${VERSION}`;
 const TEXT_CACHE = 'rfcreader-texts';
 // pdf.js (vendor/) は PDF を初めて開いたときに取得し、下のネットワーク優先の処理でキャッシュする
-const SHELL = ['./', './index.html', './quiz.html', './styles.css', './quiz.css', './manifest.webmanifest', './src/app.js', './src/quiz-page.js', './src/rfc-parser.js', './src/render.js', './src/pdf-reader.js', './src/pdf-extract.js', './src/pdf-layout.js', './src/translation.js', './icons/icon.svg'];
+const SHELL = ['./', './index.html', './quiz.html', './styles.css', './quiz.css', './manifest.webmanifest', './src/app.js', './src/quiz-page.js', './src/quiz-types.js', './src/quiz-ordering.js', './src/rfc-parser.js', './src/render.js', './src/pdf-reader.js', './src/pdf-extract.js', './src/pdf-layout.js', './src/translation.js', './icons/icon.svg'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(

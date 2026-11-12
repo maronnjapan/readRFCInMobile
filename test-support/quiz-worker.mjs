@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { generateKeyPairSync, createSign } from 'node:crypto';
 
 export const fixture = JSON.parse(await readFile(new URL('../questions/spec/rfc-7523.json', import.meta.url), 'utf8'));
+export const patternsFixture = JSON.parse(await readFile(new URL('../questions/spec/rfc-7591.json', import.meta.url), 'utf8'));
 export const callbackSecret = 'test-callback-secret-with-at-least-32-characters';
 export const executorApiKey = 'test-only-ai-executor-api-key';
 export function multipleChoiceFixture({ written = true } = {}) {
@@ -42,7 +43,7 @@ export async function startQuizWorker({ assets = false, port = 0, github = false
   }
   const options = convertV4MiniflareOptions({
     name: 'quiz-test-worker',
-    modules: ['worker/index.js', 'worker/contracts.js', 'worker/auth.js', 'worker/github.js', 'worker/ai-executor.js', 'worker/ai-executor-auth.js'].map((path) => ({ type: 'ESModule', path: `${root}${path}` })),
+    modules: ['worker/index.js', 'worker/contracts.js', 'worker/auth.js', 'worker/github.js', 'worker/ai-executor.js', 'worker/ai-executor-auth.js', 'src/quiz-types.js'].map((path) => ({ type: 'ESModule', path: `${root}${path}` })),
     modulesRoot: root, compatibilityDate: '2026-11-01', cf: false, port,
     d1Databases: ['DB'],
     bindings: { APP_ORIGIN: 'https://reader.test', QUESTION_REPOSITORY: 'maronnjapan/readRFCInMobile', CODE_REPOSITORIES: 'example/product',
@@ -104,8 +105,8 @@ export async function startQuizWorker({ assets = false, port = 0, github = false
 export async function submitAttemptAnswers(call, id, answers) {
   const state = await (await call(`/api/attempts/${id}`)).json();
   let response;
-  for (const q of state.set.questions.filter((q) => q.type === 'choice')) {
-    response = await call(`/api/attempts/${id}/choice-answers`, { method: 'POST', body: { questionId: q.id, answer: answers[q.id] } });
+  for (const q of state.set.questions.filter((q) => q.type !== 'written')) {
+    response = await call(`/api/attempts/${id}/instant-answers`, { method: 'POST', body: { questionId: q.id, answer: answers[q.id] } });
     if (!response.ok) return response;
   }
   const written = state.set.questions.filter((q) => q.type === 'written');

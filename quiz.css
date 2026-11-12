@@ -1,4 +1,13 @@
-.quiz-page { max-width: 38rem; }
+.quiz-page { max-width: 38rem; overflow-wrap: anywhere; }
+.quiz-page button, .quiz-page summary, .quiz-page a { min-height: 44px; }
+.quiz-page button, .quiz-page textarea { font-size: max(16px, 1rem); }
+.quiz-page button { white-space: normal; }
+.quiz-page a { display: inline-flex; align-items: center; }
+.quiz-page summary { display: flex; align-items: center; cursor: pointer; }
+.quiz-page summary::before { content: '▸'; margin-right: 0.5em; }
+.quiz-page details[open] summary::before { content: '▾'; }
+.quiz-term { font-family: monospace; font-size: 1.25rem; margin-bottom: 0.5rem; }
+.quiz-scenario { white-space: pre-wrap; padding: 1rem; border-left: 3px solid var(--line); background: var(--accent-soft); }
 .quiz-page h1 { font-size: 1.6rem; margin: 1rem 0 0.4rem; }
 .quiz-source { color: var(--muted); margin: 0 0 1.75rem; }
 .quiz-back { display: inline-flex; align-items: center; min-height: 2.75rem; padding: 0 0.5rem; font-size: 0.9rem; }
@@ -11,6 +20,14 @@
 .quiz-choice:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
 .quiz-choice input { flex: 0 0 auto; margin: 0.4rem 0 0; accent-color: var(--accent); }
 .quiz-choice span { white-space: pre-wrap; min-width: 0; }
+.quiz-choice { box-sizing: border-box; min-height: 44px; }
+.quiz-order-selected { padding-left: 1.75rem; }
+.quiz-order-selected li { padding: 0.6rem 0.5rem; border-bottom: 1px solid var(--line); }
+.quiz-order-selected p { margin: 0 0 0.5rem; white-space: pre-wrap; }
+.quiz-order-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.quiz-order-actions button { min-width: 44px; padding: 0.4rem 0.7rem; }
+.quiz-order-candidates { display: grid; gap: 0.6rem; }
+.quiz-order-candidates button { width: 100%; text-align: left; white-space: pre-wrap; }
 .quiz-page fieldset:disabled .quiz-choice { cursor: default; }
 .quiz-choice.is-correct { border-width: 2px; border-color: var(--accent); }
 .quiz-feedback { border-top: 1px solid var(--line); padding-top: 0.8rem; margin-top: 1rem; }
@@ -18,7 +35,7 @@
 .quiz-feedback blockquote { color: var(--muted); font-size: 0.9rem; border-left: 3px solid var(--line); margin: 0.8rem 0; padding-left: 0.8rem; white-space: pre-wrap; }
 .quiz-error { color: var(--fg); border-left: 3px solid #d93025; padding-left: 0.8rem; }
 .quiz-actions { display: flex; flex-wrap: wrap; gap: 0.6rem; }
-.quiz-page button:disabled { opacity: 0.6; cursor: wait; }
+.quiz-page button:disabled { opacity: 0.6; cursor: default; }
 .quiz-page textarea { display: block; width: 100%; box-sizing: border-box; margin-top: 0.5rem; padding: 0.75rem; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--fg); font: inherit; resize: vertical; }
 .quiz-page textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
 .quiz-page details { margin-top: 0.8rem; font-size: 0.9rem; color: var(--muted); }

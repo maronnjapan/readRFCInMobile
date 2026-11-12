@@ -1,4 +1,5 @@
-import { HttpError, fail, text, uuid, validateContext, validateSet, validateAnswers, initialResults, validateGrades, generationInstructions, gradingInstructions } from './contracts.js';
+import { HttpError, fail, text, uuid, validateContext, validateSet, validateCategories, validateAnswers, initialResults, validateGrades, generationInstructions, gradingInstructions, gradingPromptVersion } from './contracts.js';
+import { categoryOf, isImmediate, sameAnswer } from '../src/quiz-types.js';
 import { identity, isAuthor, requireAuthor, callbackToken, verifyCallback } from './auth.js';
 import { publicQuestionFile, githubConfigured, syncPullRequest } from './github.js';
 import { executorClient } from './ai-executor.js';
@@ -33,10 +34,12 @@ async function getAttempt(env, id, user) {
   if (!row) throw new HttpError(404, '回答が見つかりません。');
   return row;
 }
-async function choiceProgress(env, row, set) {
-  const rows = await env.DB.prepare('SELECT question_id, answer, result_json FROM choice_answers WHERE attempt_id = ?').bind(row.id).all();
+async function instantProgress(env, row, set) {
+  // マイグレーション後、旧 Worker の切り替えまでに保存された選択式も引き継ぐ。
+  await env.DB.prepare('INSERT OR IGNORE INTO instant_answers (attempt_id, question_id, answer_json, result_json, created_at) SELECT attempt_id, question_id, CAST(answer AS TEXT), result_json, created_at FROM choice_answers WHERE attempt_id = ?').bind(row.id).run();
+  const rows = await env.DB.prepare('SELECT question_id, answer_json, result_json FROM instant_answers WHERE attempt_id = ?').bind(row.id).all();
   return {
-    answers: Object.fromEntries(rows.results.map((r) => [r.question_id, r.answer])),
+    answers: Object.fromEntries(rows.results.map((r) => [r.question_id, JSON.parse(r.answer_json)])),
     results: set.questions.flatMap((q) => {
       const saved = rows.results.find((r) => r.question_id === q.id);
       return saved ? [JSON.parse(saved.result_json)] : [];
@@ -45,7 +48,7 @@ async function choiceProgress(env, row, set) {
 }
 async function attemptView(env, row) {
   const set = parseSet(await getSet(env, row.set_id));
-  const progress = row.answers_json ? null : await choiceProgress(env, row, set);
+  const progress = row.answers_json ? null : await instantProgress(env, row, set);
   return { id: row.id, status: row.status, completed: Boolean(row.answers_json), set,
     answers: row.answers_json ? JSON.parse(row.answers_json) : progress.results.length ? progress.answers : null,
     results: row.results_json ? JSON.parse(row.results_json) : progress.results.length ? progress.results : null,
@@ -90,11 +93,13 @@ async function importSet(request, env) {
 
 async function authorRequest(request, env, user) {
   const body = await readJson(request);
-  const context = validateContext(body.context);
+  const { id: logicalId, title, spec, references, pullRequest } = validateContext(body.context);
+  const context = { id: logicalId, title, spec, references, ...(pullRequest ? { pullRequest } : {}) };
   if (!text(body.material, 100000) || !Number.isInteger(body.questionCount) || body.questionCount < 2 || body.questionCount > 10) fail('資料と問題数（2〜10問）が必要です。');
+  const questionCategories = validateCategories(body.questionCategories, body.questionCount);
   await limited(env, user);
   const id = await newJob(env, { operation: 'questions.generate', target: context.id, owner: user.id,
-    input: { instructions: generationInstructions, questionCount: body.questionCount, context, material: body.material }, context,
+    input: { instructions: generationInstructions, questionCount: body.questionCount, questionCategories, context, material: body.material }, context,
     profile: env.AUTHORING_PROFILE || 'quiz-generate-v1' });
   return json({ id, status: 'queued' }, 202);
 }
@@ -113,39 +118,39 @@ async function completeAnswers(env, row, setRow, submitted) {
   return json(await attemptView(env, saved));
 }
 
-async function saveChoice(request, env, user, id) {
+async function saveInstant(request, env, user, id) {
   const row = await getAttempt(env, id, user);
   const setRow = await getSet(env, row.set_id);
   const set = parseSet(setRow);
   const body = await readJson(request);
-  const question = set.questions.find((q) => q.id === body?.questionId && q.type === 'choice');
-  if (!question) fail('選択式の問題を指定してください。');
+  const question = set.questions.find((q) => q.id === body?.questionId && isImmediate(q));
+  if (!question) fail('選択式または並べ替えの問題を指定してください。');
   const answer = validateAnswers({ [question.id]: body.answer }, { questions: [question] })[question.id];
   if (row.answers_json) {
-    if (JSON.parse(row.answers_json)[question.id] !== answer) throw new HttpError(409, 'この問題は回答済みです。');
+    if (!sameAnswer(JSON.parse(row.answers_json)[question.id], answer)) throw new HttpError(409, 'この問題は回答済みです。');
     return json(await attemptView(env, row));
   }
-  const choices = set.questions.filter((q) => q.type === 'choice');
-  const progress = await choiceProgress(env, row, set);
+  const choices = set.questions.filter(isImmediate);
+  const progress = await instantProgress(env, row, set);
   if (!Object.hasOwn(progress.answers, question.id)) {
     const next = choices.find((q) => !Object.hasOwn(progress.answers, q.id));
     if (next?.id !== question.id) throw new HttpError(409, '表示中の問題から順番に回答してください。');
     const result = initialResults({ questions: [question] }, JSON.parse(setRow.solutions_json), { [question.id]: answer })[0];
-    const insert = env.DB.prepare('INSERT OR IGNORE INTO choice_answers (attempt_id, question_id, answer, result_json, created_at) VALUES (?, ?, ?, ?, ?)')
-      .bind(id, question.id, answer, JSON.stringify(result), now());
+    const insert = env.DB.prepare('INSERT OR IGNORE INTO instant_answers (attempt_id, question_id, answer_json, result_json, created_at) VALUES (?, ?, ?, ?, ?)')
+      .bind(id, question.id, JSON.stringify(answer), JSON.stringify(result), now());
     const proposed = { ...progress.answers, [question.id]: answer };
     if (!set.questions.some((q) => q.type === 'written') && choices.every((q) => Object.hasOwn(proposed, q.id))) {
       const answers = validateAnswers(proposed, set);
       const results = initialResults(set, JSON.parse(setRow.solutions_json), answers);
       // 最後の1問と全体の完了状態を一緒に保存する。競合で負けた回答では完了させない。
       await env.DB.batch([insert,
-        env.DB.prepare("UPDATE attempts SET answers_json = ?, results_json = ?, status = 'graded', updated_at = ? WHERE id = ? AND answers_json IS NULL AND (SELECT COUNT(*) FROM choice_answers WHERE attempt_id = ?) = ? AND EXISTS (SELECT 1 FROM choice_answers WHERE attempt_id = ? AND question_id = ? AND answer = ?)")
-          .bind(JSON.stringify(answers), JSON.stringify(results), now(), id, id, choices.length, id, question.id, answer),
+        env.DB.prepare("UPDATE attempts SET answers_json = ?, results_json = ?, status = 'graded', updated_at = ? WHERE id = ? AND answers_json IS NULL AND (SELECT COUNT(*) FROM instant_answers WHERE attempt_id = ?) = ? AND EXISTS (SELECT 1 FROM instant_answers WHERE attempt_id = ? AND question_id = ? AND answer_json = ?)")
+          .bind(JSON.stringify(answers), JSON.stringify(results), now(), id, id, choices.length, id, question.id, JSON.stringify(answer)),
       ]);
     } else await insert.run();
   }
-  const saved = await choiceProgress(env, row, set);
-  if (saved.answers[question.id] !== answer) throw new HttpError(409, 'この問題は回答済みです。');
+  const saved = await instantProgress(env, row, set);
+  if (!sameAnswer(saved.answers[question.id], answer)) throw new HttpError(409, 'この問題は回答済みです。');
   if (!set.questions.some((q) => q.type === 'written') && choices.every((q) => Object.hasOwn(saved.answers, q.id))) {
     return completeAnswers(env, row, setRow, saved.answers);
   }
@@ -159,13 +164,13 @@ async function saveAnswers(request, env, user, id) {
   const set = parseSet(setRow);
   const submitted = (await readJson(request))?.answers;
   if (!submitted || typeof submitted !== 'object' || Array.isArray(submitted)) fail('回答を指定してください。');
-  const progress = row.answers_json ? { answers: JSON.parse(row.answers_json) } : await choiceProgress(env, row, set);
-  for (const question of set.questions.filter((q) => q.type === 'choice')) {
-    if (!Object.hasOwn(progress.answers, question.id)) throw new HttpError(409, '先に選択式の問題を1問ずつ回答してください。');
-    if (Object.hasOwn(submitted, question.id) && submitted[question.id] !== progress.answers[question.id]) throw new HttpError(409, '選択式の回答は変更できません。');
+  const progress = row.answers_json ? { answers: JSON.parse(row.answers_json) } : await instantProgress(env, row, set);
+  for (const question of set.questions.filter(isImmediate)) {
+    if (!Object.hasOwn(progress.answers, question.id)) throw new HttpError(409, '先に選択式・並べ替えの問題を1問ずつ回答してください。');
+    if (Object.hasOwn(submitted, question.id) && !sameAnswer(submitted[question.id], progress.answers[question.id])) throw new HttpError(409, '採点済みの回答は変更できません。');
   }
-  // 記述式を一括保存する。回答済み選択式を含む従来形式の再送も、内容が同じなら許可する。
-  const choices = Object.fromEntries(set.questions.filter((q) => q.type === 'choice').map((q) => [q.id, progress.answers[q.id]]));
+  // 記述式を一括保存する。採点済みの回答を含む再送も、内容が同じなら許可する。
+  const choices = Object.fromEntries(set.questions.filter(isImmediate).map((q) => [q.id, progress.answers[q.id]]));
   return completeAnswers(env, row, setRow, { ...choices, ...submitted });
 }
 
@@ -180,7 +185,7 @@ async function requestGrade(env, user, id) {
   if (existing) return json({ id: existing.id, status: 'queued' }, 202);
   await limited(env, user);
   const jobId = await newJob(env, { operation: 'answers.grade', target: id, owner: user.id, context: { setId: set.id, revision: set.revision },
-    input: { instructions: gradingInstructions, revision: set.revision, references: set.references, sourceMaterials: JSON.parse(row.materials_json),
+    input: { instructions: gradingInstructions, promptVersion: gradingPromptVersion, revision: set.revision, references: set.references, sourceMaterials: JSON.parse(row.materials_json),
       questions: set.questions.filter((q) => q.type === 'written').map((q) => ({ ...q, solution: solutions[q.id], answer: JSON.parse(attempt.answers_json)[q.id] })) },
     profile: env.GRADING_PROFILE || 'quiz-written-v1' });
   await env.DB.prepare("UPDATE attempts SET status = 'grading', updated_at = ? WHERE id = ? AND status IN ('saved', 'grading_failed')").bind(now(), id).run();
@@ -209,14 +214,14 @@ async function receiveResult(request, env) {
       const context = JSON.parse(job.context_json);
       output = { ...body.output, ...context, title: body.output?.title || context.title, format: 'spec-understanding-quiz', version: 1, status: 'draft' };
       validateSet(output);
-      const requested = JSON.parse(job.input_json).questionCount;
-      if (output.questions.length !== requested || !output.questions.some((q) => q.type === 'choice') || !output.questions.some((q) => q.type === 'written')) fail('指定した問題数・形式ではありません。');
+      const requested = JSON.parse(job.input_json);
+      if (output.questions.length !== requested.questionCount || (requested.questionCategories || []).some((category) => !output.questions.some((q) => categoryOf(q) === category))) fail('指定した問題数・カテゴリではありません。');
     } else {
       const attempt = await env.DB.prepare('SELECT * FROM attempts WHERE id = ?').bind(job.target_id).first();
       const set = parseSet(await getSet(env, attempt.set_id));
       const grades = validateGrades(body.output, set);
       const results = JSON.parse(attempt.results_json).map((r) => grades.find((g) => g.questionId === r.questionId) || r);
-      const settings = { profile: job.profile, promptVersion: 1, requestedMaxOutputTokens: 8000, model: typeof body.model === 'string' ? body.model.slice(0, 200) : 'unspecified', usage: body.usage || null, jobId: job.id, gradedAt: now() };
+      const settings = { profile: job.profile, promptVersion: JSON.parse(job.input_json).promptVersion || 1, requestedMaxOutputTokens: 8000, model: typeof body.model === 'string' ? body.model.slice(0, 200) : 'unspecified', usage: body.usage || null, jobId: job.id, gradedAt: now() };
       output = { results, settings };
     }
   } catch { await failJob(env, job, 'AI の出力形式・採点基準・出典を確認できませんでした。'); return json({ received: true }); }
@@ -277,10 +282,10 @@ export default {
           return json(await attemptView(env, await getAttempt(env, id, user)), 201);
         }
       }
-      const attempt = /^\/api\/attempts\/([a-f0-9-]{36})(\/(?:answers|choice-answers|grading-requests))?$/.exec(path);
+      const attempt = /^\/api\/attempts\/([a-f0-9-]{36})(\/(?:answers|instant-answers|choice-answers|grading-requests))?$/.exec(path);
       if (attempt && uuid(attempt[1])) {
         if (!attempt[2] && request.method === 'GET') return json(await attemptView(env, await getAttempt(env, attempt[1], user)));
-        if (attempt[2] === '/choice-answers' && request.method === 'POST') return await saveChoice(request, env, user, attempt[1]);
+        if (['/instant-answers', '/choice-answers'].includes(attempt[2]) && request.method === 'POST') return await saveInstant(request, env, user, attempt[1]);
         if (attempt[2] === '/answers' && request.method === 'POST') return await saveAnswers(request, env, user, attempt[1]);
         if (attempt[2] === '/grading-requests' && request.method === 'POST') return await requestGrade(env, user, attempt[1]);
       }

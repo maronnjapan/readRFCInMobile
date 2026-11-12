@@ -5,5 +5,11 @@
     "status": "adopted",
     "path": "rfcs/rfc7523.txt",
     "mapping": "mappings/rfc-7523.json"
+  },
+  {
+    "id": "rfc-7591",
+    "title": "RFC 7591: OAuth 2.0 クライアントの動的登録",
+    "status": "adopted",
+    "path": "rfcs/rfc7591.txt"
   }
 ]

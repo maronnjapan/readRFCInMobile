@@ -12,9 +12,28 @@
 | `questions/spec/` | main で管理する仕様そのものの問題 |
 | `questions/pr/` | 専用ブランチに保存する PR 固有の問題 |
 | `.authoring-work/` | 固定コミットで取得したコード。Git 管理・静的配信の対象外 |
-| D1 | 問題セットの固定版、利用者ごとの回答、選択式の点数、非同期採点ジョブ、採点理由・出典・実行設定の履歴 |
+| D1 | 問題セットの固定版、利用者ごとの回答、選択式・並べ替えの点数、非同期採点ジョブ、採点理由・出典・実行設定の履歴 |
 
 問題ファイルでは `questions` と `solutions` を分離する。静的配信の `dist/` には問題ファイルや採点基準をコピーせず、出題 API も各問題への回答前にその正解・採点基準・出典本文を返さない。公開問題リポジトリ自体には解答があるため、練習用の設計である。
+
+## 問題のカテゴリと回答方式
+
+カテゴリ（何を確かめるか）と回答方式（どう答えるか）を分ける。
+
+| category | 目的・例 | 基本の回答方式 |
+| --- | --- | --- |
+| `vocabulary` | 用語を平易な説明に置き換える。例: redirect_uri → 認可コードなどを渡すリダイレクト先のURL。対訳・翻訳問題にはしない | 選択式 |
+| `knowledge` | 要件・概念・条件を確認する | 選択式 |
+| `flow` | 手順・処理フローを組み立てる | 並べ替え |
+| `design` | ユースケースの制約を満たす設計と理由を答える | 記述式、または設計案の選択式 |
+| `debugging` | 不具合・仕様違反を見つけ、原因や修正を特定する | 選択式 |
+| `comparison` | 似た概念・方式を比較し、使い分ける | 選択式 |
+
+`questions[].type` は `choice` / `ordering` / `written`。旧ファイルで `category` がない場合は `knowledge` として扱う。`vocabulary` には `term`、`design` と `debugging` には具体的な `scenario` が必要。記述式には任意の `answerHint` を付けられる。設計の採点基準では文章量を評価せず、短い箇条書きや制約を満たす代替案も評価する。
+
+並べ替えは `items: [{ "id": "send", "text": "登録要求を送る" }, ...]` に2〜8個の異なる項目を持ち、`solutions[id].answer` に全項目IDの正しい順序を保存する。同じ制約を満たす複数の順序がある場合は、追加の完全な順序を `acceptedOrders` に列挙できる。いずれかに一致すれば満点、それ以外は0点。正解・許容順序は採点前の出題データに含めない。
+
+画面はスマホを主な利用環境とし、1列表示、44px以上のタッチ領域、16px以上の入力文字を使う。並べ替えは候補をタップして順に追加し、上下ボタン・「外す」で修正できる。ドラッグ操作は不要で、キーボードでも操作可能。途中の並べ替えは同じタブの下書きへ保存し、採点済み回答はサーバーから復元する。長い用語も画面幅で折り返す。
 
 ## Cloudflare Workers Paid の初期設定
 
@@ -51,7 +70,7 @@ npx wrangler secret put AI_CALLBACK_SECRET   # ランダムな32文字以上。�
 npm run deploy:workers
 ```
 
-既存環境の更新時も、Worker の公開前に `npm run db:migrate:remote` を実行する。`0002_choice_answers.sql` は1問ごとの回答と採点結果を保存するテーブルを追加し、保存済みの回答を保持する。
+既存環境の更新時も、Worker の公開前に `npm run db:migrate:remote` を実行する。`0002_choice_answers.sql` は1問ごとの選択式回答を保存し、`0003_instant_answers.sql` は選択式・並べ替えに共通のJSON回答テーブルを追加して旧回答を引き継ぐ。更新中に旧 Worker が保存した回答も、次の読み込み時に引き継ぐ。
 
 `AI_EXECUTOR_API_KEY` は共通 AI API へのサーバー間認証にだけ使用し、`Authorization: Bearer` で送る。Claude キーは **共通 AI API 側だけ**に登録する。共通 API はキーごとに許可操作・利用上限を管理し、推論完了を待たず依頼を永続化して `202` を返し、完了時に別リクエストで結果を返す。
 
@@ -76,6 +95,8 @@ Service binding を使用する場合は、標準の HTTPS 設定から明示的
 
 ```sh
 node tools/authoring/quiz.mjs generate --spec rfc-7523
+# 既定は6問・全6カテゴリ。カテゴリを絞る場合:
+node tools/authoring/quiz.mjs generate --spec rfc-7591 --count 3 --categories vocabulary,knowledge,flow
 ```
 
 公開コードや PR も参照する場合:
@@ -96,7 +117,7 @@ node tools/authoring/quiz.mjs generate --spec rfc-7523 --source reader --pr 42
 
 初期版では資料のサイズを制限し、仕様は先頭から最大40,000文字、コード候補は最大10ファイル、差分と変更前は最大6ファイルを読む。対象外の箇所や API が省略した差分を確認済みにしない。大きい PR は参照パスを絞るか対象を分割する。変更前が許可パス外になる rename も自動取得しない。ベクトル化・ベクトル DB は使用しない。
 
-生成候補には選択式・記述式、正解、配点付き採点基準、解説、固定版の出典と参照理由、仕様・実装の不整合を記録する。出典は GitHub のコミット固定リンクで確認できる。候補は `draft` で保存し、自動公開しない。
+生成候補にはカテゴリ、回答方式、正解、配点付き採点基準、解説、固定版の出典と参照理由、仕様・実装の不整合を記録する。指定カテゴリを各1問以上含むことを結果受信時に検証する。問題数は2〜10問、指定カテゴリ数以上とする。出典は GitHub のコミット固定リンクで確認できる。候補は `draft` で保存し、自動公開しない。
 
 ## レビュー・固定版の公開
 
@@ -110,7 +131,7 @@ node tools/authoring/quiz.mjs publish --commit <40文字のSHA> --path questions
 # PR の場合: --path questions/pr/owner/repository/42.json
 ```
 
-取り込みは同じリポジトリ・コミット・パスなら同じ出題セットになり、後からブランチやファイルを変更しても既存回答の版は変わらない。更新版は新しいセットとして公開する。RFC 7523 のクレームについての選択式・記述式サンプルを収録している。
+取り込みは同じリポジトリ・コミット・パスなら同じ出題セットになり、後からブランチやファイルを変更しても既存回答の版は変わらない。更新版は新しいセットとして公開する。RFC 7523 の従来形式と、全6カテゴリ・3回答方式を含む [RFC 7591 のサンプル](../questions/spec/rfc-7591.json) を収録している。
 
 GitHub Actions の **Author or publish a quiz (manual)** でも実行できる。`quiz-authoring` Environment を作成し、承認する担当者・main のブランチ制限と上記 Access の2つの Secrets、`QUIZ_API_URL` の Variable を設定する。ワークフロー自身も main 上での `workflow_dispatch` だけを許可する。生成候補は `quiz/generated-<run>-<attempt>` ブランチへ保存する。公開は別の手動実行で SHA を指定する。
 
@@ -118,9 +139,9 @@ GitHub Actions の **Author or publish a quiz (manual)** でも実行できる�
 
 ## 回答・採点
 
-`/quiz` から公開セットを選択する。選択式は1問ずつ表示し、「採点する」で回答を保存して、即座に正誤・点数・解説を表示する。「次の問題へ」で結果を確認しながら進み、選択式が終わったら記述式の回答に進む。本文画面の「問題を解く」は対応する仕様 ID で一覧を絞る。
+`/quiz` から公開セットを選択する。選択式・並べ替えは1問ずつ表示し、「採点する」で回答を保存して、即座に正誤・点数・解説を表示する。「次の問題へ」で結果を確認しながら進み、即時採点の問題が終わったら記述式の回答に進む。本文画面の「問題を解く」は対応する仕様 ID で一覧を絞る。
 
-選択式は1問ごとの API で保存済み正解と照合し、記述式や残りの問題の回答を待たず、同じリクエストで結果を返す。未回答の問題の正解・解説は返さない。選択式だけのセットは最後の1問で採点が完了する。途中で画面を閉じても、回答済みの結果と未回答の続きへ戻れる。
+選択式・並べ替えは1問ごとの API で保存済み正解と照合し、記述式や残りの問題の回答を待たず、同じリクエストで結果を返す。未回答の問題の正解・解説は返さない。記述式のないセットは最後の1問で採点が完了する。途中で画面を閉じても、回答済みの結果と未回答の続きへ戻れる。
 
 記述式はまとめて回答を保存した後、独立した採点依頼 API で Queue に投入し、共通 AI API が保存済み採点基準と出典本文から採点する。記述式だけのセットも利用できる。受付・結果受信・利用者の回答送信はすべて別エンドポイント。画面は準備状況を確認し、採点が終わると点数・理由・根拠を表示する。
 
@@ -158,12 +179,13 @@ npx wrangler secret put GITHUB_APP_PRIVATE_KEY
 | `GET /api/authoring/requests/:id` | 作問権限で候補・状態を取得 |
 | `GET/POST /api/question-sets/:id/attempts` | 自分の回答履歴／回答開始 |
 | `GET /api/attempts/:id` | 自分の回答・途中経過・採点結果 |
-| `POST /api/attempts/:id/choice-answers` | 選択式を1問保存し即時採点。`{ "questionId": "client-sub", "answer": 0 }` |
-| `POST /api/attempts/:id/answers` | 選択式の完了後、記述式の回答を保存 |
+| `POST /api/attempts/:id/instant-answers` | 選択式・並べ替えを1問保存し即時採点。`{ "questionId": "client-sub", "answer": 0 }` / `{ "questionId": "registration-order", "answer": ["prepare", "send", "register", "receive"] }` |
+| `POST /api/attempts/:id/choice-answers` | 既存クライアント用の互換エンドポイント（同じ処理） |
+| `POST /api/attempts/:id/answers` | 選択式・並べ替えの完了後、記述式の回答を保存 |
 | `POST /api/attempts/:id/grading-requests` | 記述式の非同期採点依頼、`202` |
 | `POST /api/ai/results` | ジョブ専用トークンで AI の結果を受付 |
 
-選択式はセット内の選択式の順番で受け付け、同じ回答の再送は同じ結果を返す。回答後の変更や未回答の選択式を飛ばす送信は `409`。`GET /api/attempts/:id` の `answers` と `results` は途中経過も返し、`completed` が全問の回答保存済み、`status: graded` が全問の採点完了を表す。
+選択式・並べ替えはセット内の即時採点の問題順に受け付け、同じ回答の再送は同じ結果を返す。並べ替えは全項目が1回ずつ含まれることも検証する。回答後の変更や未回答の問題を飛ばす送信は `409`。`GET /api/attempts/:id` の `answers` と `results` は途中経過も返し、`completed` が全問の回答保存済み、`status: graded` が全問の採点完了を表す。
 
 新しい AI ジョブは利用者ごとに60秒あたり5回の近似上限（Cloudflare の各拠点）を設ける。共通 API 側のモデル・頻度・支出制限も併用する。Workers Paid、D1、Queues、Claude の費用はそれぞれの契約に従う。
 
@@ -171,6 +193,7 @@ npx wrangler secret put GITHUB_APP_PRIVATE_KEY
 npm test
 npm run check:workers
 node tools/authoring/quiz.mjs check --path questions/spec/rfc-7523.json
+node tools/authoring/quiz.mjs check --path questions/spec/rfc-7591.json
 ```
 
 統合テストは workerd・D1・Queue・HTTPS / Service binding・Access の実際の署名検証を使い、共通 AI API と GitHub のネットワーク応答を置き換える。API キーの送信と、認証アダプタの差し替えも検証する。実際の Claude 実行や本番 Access / GitHub App の接続確認は、各サービスの設定後に実施する。静的ファイルの公開対象は `scripts/build-assets.mjs` の許可リストで管理する。
