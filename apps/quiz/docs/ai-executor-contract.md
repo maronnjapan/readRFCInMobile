@@ -1,6 +1,6 @@
 # 共通 AI 実行 API との非同期契約 v1
 
-このリポジトリは計画書の A1〜A3（問題側）を実装する。C1（Claude を呼ぶ共通実行 API）と B 系統（チャット）は独立したサービスで、このリポジトリでは実装しない。問題側のテストはこの契約のモックを使用する。
+`apps/quiz/` は計画書の A1〜A3（問題側）を実装する。C1（Claude を呼ぶ共通実行 API）と B 系統（チャット）は独立したサービスで、このリポジトリでは実装しない。問題側のテストはこの契約のモックを使用する。
 
 ## 依頼
 
@@ -18,7 +18,7 @@
   "input": {
     "instructions": "保存済みの採点基準と出典だけを使って…",
     "promptVersion": 2,
-    "revision": { "repository": "owner/questions", "commit": "40文字のSHA", "path": "questions/spec/example.json" },
+    "revision": { "repository": "owner/questions", "commit": "40文字のSHA", "path": "apps/quiz/questions/spec/example.json" },
     "references": [],
     "sourceMaterials": { "reference-id": "固定した版から取得した出典本文" },
     "questions": [{ "id": "question-id", "type": "written", "prompt": "…", "points": 2, "answer": "利用者の回答", "solution": { "explanation": "…", "rubric": [] } }]

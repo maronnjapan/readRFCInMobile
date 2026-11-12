@@ -2,6 +2,7 @@ import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { startQuizWorker, fixture, accessToken, executorApiKey, submitAttemptAnswers } from '../test-support/quiz-worker.mjs';
 import workerHandler from '../worker/index.js';
+import { app } from '../worker/app.js';
 import { randomUUID } from 'node:crypto';
 
 let worker;
@@ -29,6 +30,43 @@ test('Access JWT validation and author permissions reject unauthorized callers',
   assert.equal((await worker.client()('/api/quiz/config', { headers: { 'cf-access-jwt-assertion': `${token.slice(0, -10)}abcdefghij` } })).status, 401);
 });
 
+test('Hono middleware keeps API errors private and enforces origin and content limits', async () => {
+  const author = worker.client('author');
+  const responses = [
+    [await author('/api/question-sets', { method: 'PUT' }), 404],
+    [await author('/api/attempts/not-a-uuid'), 404],
+    [await author('/api/does-not-exist'), 404],
+    [await author('/api/authoring/requests', { method: 'POST', body: {}, headers: { origin: 'https://untrusted.test' } }), 403],
+    [await author('/api/authoring/requests', { method: 'POST', body: {}, headers: { 'sec-fetch-site': 'cross-site' } }), 403],
+    [await author('/api/authoring/requests', { method: 'POST', body: {}, headers: { 'Content-Type': 'text/plain' } }), 415],
+    [await author('/api/authoring/requests', { method: 'POST', body: { material: 'x'.repeat(300001) } }), 413],
+    [await worker.mf.dispatchFetch('https://reader.test/api/authoring/requests', {
+      method: 'POST', body: '{', headers: { 'content-type': 'application/json', 'cf-access-jwt-assertion': accessToken('author') },
+    }), 400],
+    [await worker.mf.dispatchFetch('https://reader.test/api/ai/results'), 401],
+  ];
+  for (const [response, status] of responses) {
+    assert.equal(response.status, status);
+    assert.equal(response.headers.get('cache-control'), 'no-store');
+    assert.equal(response.headers.get('x-content-type-options'), 'nosniff');
+    assert.equal(typeof (await response.json()).message, 'string');
+  }
+});
+
+test('static reader and quiz requests reach Assets without requiring an API identity or DB', async () => {
+  const paths = [];
+  const env = { ASSETS: { fetch: async (request) => {
+    paths.push(new URL(request.url).pathname);
+    return new Response('static content', { headers: { 'content-type': 'text/html' } });
+  } } };
+  for (const path of ['/', '/quiz', '/src/quiz-page.js']) {
+    const response = await app.request(`https://reader.test${path}`, {}, env);
+    assert.equal(response.status, 200);
+    assert.equal(await response.text(), 'static content');
+  }
+  assert.deepEqual(paths, ['/', '/quiz', '/src/quiz-page.js']);
+});
+
 test('published sets are pinned, exclude grading secrets, and support spec-only discovery', async () => {
   const published = await worker.publish();
   const call = worker.client();
@@ -36,6 +74,7 @@ test('published sets are pinned, exclude grading secrets, and support spec-only 
   assert.equal(response.headers.get('cache-control'), 'no-store');
   const set = await response.json();
   assert.equal(set.revision.commit, 'a'.repeat(40));
+  assert.equal(set.revision.path, 'apps/quiz/questions/spec/rfc-7523.json');
   assert.equal(set.solutions, undefined);
   assert.equal(set.questions[0].answer, undefined);
   assert.equal(set.references[0].excerpt, undefined);
@@ -230,4 +269,17 @@ test('explicit private Service binding transport remains available independently
     await app.complete(job.id);
     assert.equal((await (await call(`/api/attempts/${state.id}`)).json()).status, 'graded');
   } finally { await app.mf.dispose(); }
+});
+
+
+test('publishing a fixed revision from the former question directory remains supported', async () => {
+  worker.behavior.artifact = structuredClone(fixture);
+  const response = await worker.client('author')('/api/question-sets/import', { method: 'POST', body: {
+    repository: 'maronnjapan/readRFCInMobile', commit: '8'.repeat(40), path: 'questions/spec/rfc-7523.json',
+  } });
+  assert.equal(response.status, 200);
+  const published = await response.json();
+  const set = await (await worker.client()(`/api/question-sets/${published.id}`)).json();
+  assert.equal(set.revision.path, 'questions/spec/rfc-7523.json');
+  assert.equal(set.revision.commit, '8'.repeat(40));
 });

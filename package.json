@@ -5,23 +5,22 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "test": "node --test",
+    "test": "npm run test:reader && npm run test --workspace @rfc-reader/quiz",
     "serve": "python3 -m http.server 8080",
     "fetch": "node scripts/fetch-rfc.mjs",
     "build": "node scripts/build-assets.mjs",
-    "dev": "npm run build && wrangler dev",
-    "db:migrate:local": "wrangler d1 migrations apply DB --local",
-    "db:migrate:remote": "wrangler d1 migrations apply DB --remote",
-    "check:workers": "npm run build && wrangler deploy --dry-run",
-    "deploy:workers": "npm run build && wrangler deploy"
+    "dev": "npm run dev --workspace @rfc-reader/quiz",
+    "db:migrate:local": "npm run db:migrate:local --workspace @rfc-reader/quiz",
+    "db:migrate:remote": "npm run db:migrate:remote --workspace @rfc-reader/quiz",
+    "check:workers": "npm run check:workers --workspace @rfc-reader/quiz",
+    "deploy:workers": "npm run deploy:workers --workspace @rfc-reader/quiz",
+    "test:reader": "node --test test/*.test.mjs"
   },
   "engines": {
     "node": ">=22"
   },
   "license": "MIT",
-  "devDependencies": {
-    "miniflare": "^5.20261110.1-beta",
-    "wrangler": "^4.160.1",
-    "yaml": "^2.9.1"
-  }
+  "workspaces": [
+    "apps/quiz"
+  ]
 }

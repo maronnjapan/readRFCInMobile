@@ -1,0 +1,29 @@
+{
+  "name": "@rfc-reader/quiz",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Cloudflare WorkersとHonoで動く仕様理解クイズ",
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "build": "node scripts/build.mjs",
+    "dev": "npm run build && wrangler dev",
+    "db:migrate:local": "wrangler d1 migrations apply DB --local",
+    "db:migrate:remote": "wrangler d1 migrations apply DB --remote",
+    "check:workers": "npm run build && wrangler deploy --dry-run",
+    "deploy:workers": "npm run build && wrangler deploy",
+    "author": "node tools/authoring/quiz.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "hono": "^4.13.18"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2",
+    "miniflare": "^5.20261110.1-beta",
+    "wrangler": "^4.160.1",
+    "yaml": "^2.9.1"
+  }
+}

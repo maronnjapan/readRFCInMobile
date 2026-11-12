@@ -2,7 +2,7 @@
 
 ## 実装範囲と配置
 
-このリポジトリを仕様書・問題リポジトリとし、問題側のサービスもここで管理する。既存の RFC/PDF は移動せず、`specs/index.json` から ID・状態・版を定義する。サービスは `worker/`、作問ツールは `tools/authoring/` に分離した。チャットや Claude キーは含めない。
+問題アプリは `apps/quiz/` に集約し、APIはHonoで構成する。配置と処理の入口は [アプリのREADME](../README.md) を参照する。この文書のファイルパスとコマンドは、特記しない限り `apps/quiz/` を起点とする。`--path` と出典のファイルパスはリポジトリのルートから指定する。既存の RFC/PDF は共通資料としてルートに置き、`specs/index.json` で ID・状態・版を定義する。チャットや Claude キーは含めない。
 
 | 保存先 | 内容 |
 | --- | --- |
@@ -40,7 +40,8 @@
 Node.js 22 以降を使用する。
 
 ```sh
-npm ci
+npm ci             # リポジトリのルートで実行
+cd apps/quiz
 npx wrangler login
 npx wrangler d1 create spec-understanding-quiz
 npx wrangler queues create spec-quiz-ai
@@ -122,16 +123,16 @@ node tools/authoring/quiz.mjs generate --spec rfc-7523 --source reader --pr 42
 ## レビュー・固定版の公開
 
 1. 候補の問題、選択肢、正解、記述式の配点・採点基準、出典の行、不整合を確認する。
-2. `node tools/authoring/quiz.mjs check --path questions/spec/rfc-7523.json` で形式を検査する。
+2. `node tools/authoring/quiz.mjs check --path apps/quiz/questions/spec/rfc-7523.json` で形式を検査する。
 3. レビュー後に `status` を `published` にする。定番問題は main、PR 固有の問題は専用ブランチへコミット・push する。
 4. その **40文字のコミット SHA** とパスを指定して取り込む。
 
 ```sh
-node tools/authoring/quiz.mjs publish --commit <40文字のSHA> --path questions/spec/rfc-7523.json
-# PR の場合: --path questions/pr/owner/repository/42.json
+node tools/authoring/quiz.mjs publish --commit <40文字のSHA> --path apps/quiz/questions/spec/rfc-7523.json
+# PR の場合: --path apps/quiz/questions/pr/owner/repository/42.json
 ```
 
-取り込みは同じリポジトリ・コミット・パスなら同じ出題セットになり、後からブランチやファイルを変更しても既存回答の版は変わらない。更新版は新しいセットとして公開する。RFC 7523 の従来形式と、全6カテゴリ・3回答方式を含む [RFC 7591 のサンプル](../questions/spec/rfc-7591.json) を収録している。
+取り込みは同じリポジトリ・コミット・パスなら同じ出題セットになり、後からブランチやファイルを変更しても既存回答の版は変わらない。更新版は新しいセットとして公開する。ファイル移動前の `questions/spec/`・`questions/pr/` のパスも、固定SHAによる取り込みに対応する。RFC 7523 の従来形式と、全6カテゴリ・3回答方式を含む [RFC 7591 のサンプル](../questions/spec/rfc-7591.json) を収録している。
 
 GitHub Actions の **Author or publish a quiz (manual)** でも実行できる。`quiz-authoring` Environment を作成し、承認する担当者・main のブランチ制限と上記 Access の2つの Secrets、`QUIZ_API_URL` の Variable を設定する。ワークフロー自身も main 上での `workflow_dispatch` だけを許可する。生成候補は `quiz/generated-<run>-<attempt>` ブランチへ保存する。公開は別の手動実行で SHA を指定する。
 
@@ -192,8 +193,8 @@ npx wrangler secret put GITHUB_APP_PRIVATE_KEY
 ```sh
 npm test
 npm run check:workers
-node tools/authoring/quiz.mjs check --path questions/spec/rfc-7523.json
-node tools/authoring/quiz.mjs check --path questions/spec/rfc-7591.json
+node tools/authoring/quiz.mjs check --path apps/quiz/questions/spec/rfc-7523.json
+node tools/authoring/quiz.mjs check --path apps/quiz/questions/spec/rfc-7591.json
 ```
 
-統合テストは workerd・D1・Queue・HTTPS / Service binding・Access の実際の署名検証を使い、共通 AI API と GitHub のネットワーク応答を置き換える。API キーの送信と、認証アダプタの差し替えも検証する。実際の Claude 実行や本番 Access / GitHub App の接続確認は、各サービスの設定後に実施する。静的ファイルの公開対象は `scripts/build-assets.mjs` の許可リストで管理する。
+統合テストは workerd・D1・Queue・HTTPS / Service binding・Access の実際の署名検証を使い、共通 AI API と GitHub のネットワーク応答を置き換える。API キーの送信と、認証アダプタの差し替えも検証する。実際の Claude 実行や本番 Access / GitHub App の接続確認は、各サービスの設定後に実施する。問題アプリの配信対象は `scripts/build.mjs` の許可リストで管理し、リーダーの公開ファイルはルートの `scripts/build-assets.mjs` から組み立てる。

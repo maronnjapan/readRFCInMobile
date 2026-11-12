@@ -2,6 +2,8 @@ import { Miniflare, convertV4MiniflareOptions, Response as WorkerResponse } from
 import { readFile, readdir } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { generateKeyPairSync, createSign } from 'node:crypto';
+import { build } from 'esbuild';
+import { questionFilePath } from '../shared/question-paths.js';
 
 export const fixture = JSON.parse(await readFile(new URL('../questions/spec/rfc-7523.json', import.meta.url), 'utf8'));
 export const patternsFixture = JSON.parse(await readFile(new URL('../questions/spec/rfc-7591.json', import.meta.url), 'utf8'));
@@ -17,6 +19,7 @@ export function multipleChoiceFixture({ written = true } = {}) {
   return value;
 }
 const root = fileURLToPath(new URL('../', import.meta.url));
+const workerBundle = build({ entryPoints: [`${root}worker/index.js`], bundle: true, format: 'esm', target: 'es2022', write: false });
 const { publicKey, privateKey } = generateKeyPairSync('rsa', { modulusLength: 2048 });
 const jwk = { ...publicKey.export({ format: 'jwk' }), kid: 'quiz-test-key' };
 const issuer = 'https://quiz-test.cloudflareaccess.com';
@@ -43,7 +46,7 @@ export async function startQuizWorker({ assets = false, port = 0, github = false
   }
   const options = convertV4MiniflareOptions({
     name: 'quiz-test-worker',
-    modules: ['worker/index.js', 'worker/contracts.js', 'worker/auth.js', 'worker/github.js', 'worker/ai-executor.js', 'worker/ai-executor-auth.js', 'src/quiz-types.js'].map((path) => ({ type: 'ESModule', path: `${root}${path}` })),
+    modules: [{ type: 'ESModule', path: `${root}worker/index.js`, contents: (await workerBundle).outputFiles[0].text }],
     modulesRoot: root, compatibilityDate: '2026-11-01', cf: false, port,
     d1Databases: ['DB'],
     bindings: { APP_ORIGIN: 'https://reader.test', QUESTION_REPOSITORY: 'maronnjapan/readRFCInMobile', CODE_REPOSITORIES: 'example/product',
@@ -95,7 +98,7 @@ export async function startQuizWorker({ assets = false, port = 0, github = false
   }
   async function publish(artifact = fixture, commit = 'a'.repeat(40)) {
     behavior.artifact = structuredClone(artifact);
-    const response = await client('author')('/api/question-sets/import', { method: 'POST', body: { repository: 'maronnjapan/readRFCInMobile', commit, path: artifact.pullRequest ? 'questions/pr/example/product/42.json' : 'questions/spec/rfc-7523.json' } });
+    const response = await client('author')('/api/question-sets/import', { method: 'POST', body: { repository: 'maronnjapan/readRFCInMobile', commit, path: questionFilePath(artifact) } });
     if (!response.ok) throw new Error(`Publish ${response.status}: ${await response.text()}`);
     return response.json();
   }

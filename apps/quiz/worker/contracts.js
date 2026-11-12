@@ -1,4 +1,4 @@
-import { QUESTION_CATEGORIES, ANSWER_TYPES, categoryOf, isImmediate, sameAnswer } from '../src/quiz-types.js';
+import { QUESTION_CATEGORIES, ANSWER_TYPES, categoryOf, isImmediate, sameAnswer } from '../shared/quiz-types.js';
 
 export class HttpError extends Error {
   constructor(status, message) { super(message); this.status = status; }

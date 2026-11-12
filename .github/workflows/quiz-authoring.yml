@@ -8,10 +8,10 @@ on:
         options: [generate, publish]
         required: true
       spec_id:
-        description: specs/index.json の ID
+        description: apps/quiz/specs/index.json の ID
         default: rfc-7523
       code_source:
-        description: code-sources.yaml の ID (空なら仕様のみ)
+        description: apps/quiz/code-sources.yaml の ID (空なら仕様のみ)
       pr_number:
         description: 対象 PR 番号 (任意。code_source が必要)
       question_count:
@@ -23,7 +23,7 @@ on:
       commit:
         description: 公開する問題ファイルの固定コミット (publish の場合)
       path:
-        description: 公開する questions/spec/ または questions/pr/ 内の JSON (publish の場合)
+        description: 公開する apps/quiz/questions/spec/ または pr/ 内の JSON (publish の場合)
 
 permissions:
   contents: write
@@ -64,7 +64,7 @@ jobs:
           args=(generate --spec "$SPEC_ID" --count "$QUESTION_COUNT" --categories "$QUESTION_CATEGORIES")
           if [[ -n "$CODE_SOURCE" ]]; then args+=(--source "$CODE_SOURCE"); fi
           if [[ -n "$PR_NUMBER" ]]; then args+=(--pr "$PR_NUMBER"); fi
-          node tools/authoring/quiz.mjs "${args[@]}"
+          node apps/quiz/tools/authoring/quiz.mjs "${args[@]}"
       - if: env.OPERATION == 'generate'
         env:
           GENERATED_PATH: ${{ steps.generate.outputs.path }}
@@ -76,4 +76,4 @@ jobs:
           git commit -m 'Generate draft quiz for review'
           git push origin HEAD
       - if: env.OPERATION == 'publish'
-        run: node tools/authoring/quiz.mjs publish --commit "$PUBLISH_COMMIT" --path "$PUBLISH_PATH"
+        run: node apps/quiz/tools/authoring/quiz.mjs publish --commit "$PUBLISH_COMMIT" --path "$PUBLISH_PATH"

@@ -4,7 +4,7 @@ import { promisify } from 'node:util';
 import { join } from 'node:path';
 import { parse } from 'yaml';
 import { repository, sha, filePath, validateContext } from '../../worker/contracts.js';
-import { QUESTION_CATEGORIES } from '../../src/quiz-types.js';
+import { QUESTION_CATEGORIES } from '../../shared/quiz-types.js';
 
 const exec = promisify(execFile);
 const reject = (message) => { throw new Error(message); };
@@ -30,9 +30,9 @@ export function githubClient(token = process.env.GITHUB_TOKEN) {
   };
 }
 
-export async function buildContext({ root, specId, codeSource, prNumber, codeRef, specRef = 'HEAD', questionRepository, github = githubClient() }) {
+export async function buildContext({ root, configRoot = root, specId, codeSource, prNumber, codeRef, specRef = 'HEAD', questionRepository, github = githubClient() }) {
   if (!repository(questionRepository)) reject('QUESTION_REPOSITORY が正しくありません。');
-  const specs = JSON.parse(await readFile(join(root, 'specs/index.json'), 'utf8'));
+  const specs = JSON.parse(await readFile(join(configRoot, 'specs/index.json'), 'utf8'));
   const spec = specs.find((s) => s.id === specId);
   if (!spec || !filePath(spec.path)) reject('specs/index.json に対象仕様がありません。');
   const specCommit = await git(root, ['rev-parse', '--verify', '--end-of-options', `${specRef}^{commit}`]);
@@ -50,8 +50,8 @@ export async function buildContext({ root, specId, codeSource, prNumber, codeRef
   }
   const context = { id: spec.id, title: spec.title, spec: { id: spec.id, status: spec.status, repository: questionRepository, commit: specCommit, path: spec.path }, references };
   if (codeSource || prNumber) {
-    const config = parse(await readFile(join(root, 'code-sources.yaml'), 'utf8'));
-    const mapping = spec.mapping ? JSON.parse(await readFile(join(root, spec.mapping), 'utf8')) : {};
+    const config = parse(await readFile(join(configRoot, 'code-sources.yaml'), 'utf8'));
+    const mapping = spec.mapping ? JSON.parse(await readFile(join(configRoot, spec.mapping), 'utf8')) : {};
     const source = config.sources?.find((s) => s.id === (codeSource || mapping.codeSource));
     if (!source || !repository(source.repository) || !source.specIds?.includes(spec.id) || !Array.isArray(source.paths) || !source.paths.length
         || source.paths.some((p) => !filePath(p.replace(/\/$/, '')))) reject('参照先リポジトリ・仕様 ID・対象パスの設定が必要です。');
@@ -76,7 +76,7 @@ export async function buildContext({ root, specId, codeSource, prNumber, codeRef
     } else commit = (await github(`/repos/${repo}/commits/${encodeURIComponent(codeRef || source.branch)}`)).sha;
     if (!sha(commit)) reject('コードのコミットを確定できません。');
     const terms = (mapping.searchTerms || []).filter((t) => typeof t === 'string' && t.length < 100);
-    const cache = join(root, '.authoring-work', repo.replace('/', '_'));
+    const cache = join(configRoot, '.authoring-work', repo.replace('/', '_'));
     async function codeFile(path, ref) {
       if (!inScope(path, source.paths) || !sha(ref)) reject('参照対象外のコードです。');
       const data = await github(`/repos/${repo}/contents/${path.split('/').map(encodeURIComponent).join('/')}?ref=${ref}`);

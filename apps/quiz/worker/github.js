@@ -1,14 +1,15 @@
 import { HttpError, repository, sha, filePath } from './contracts.js';
+import { questionKind } from '../shared/question-paths.js';
 
 const api = 'https://api.github.com';
 const headers = { Accept: 'application/vnd.github+json', 'User-Agent': 'spec-understanding-quiz', 'X-GitHub-Api-Version': '2022-11-28' };
 const pathUrl = (path) => path.split('/').map(encodeURIComponent).join('/');
 
 export async function publicQuestionFile(env, repo, commit, path) {
-  if (!repository(repo) || repo !== env.QUESTION_REPOSITORY || !sha(commit) || !filePath(path) || !/^questions\/(spec|pr)\/.+\.json$/.test(path)) throw new HttpError(400, '許可された問題リポジトリの固定コミットを指定してください。');
+  if (!repository(repo) || repo !== env.QUESTION_REPOSITORY || !sha(commit) || !filePath(path) || !questionKind(path)) throw new HttpError(400, '許可された問題リポジトリの固定コミットを指定してください。');
   const info = await fetch(`${api}/repos/${repo}`, { headers, signal: AbortSignal.timeout(10000) });
   if (!info.ok || (await info.json()).private !== false) throw new HttpError(400, '公開された問題リポジトリだけを取り込めます。');
-  if (path.startsWith('questions/spec/')) {
+  if (questionKind(path) === 'spec') {
     const comparison = await fetch(`${api}/repos/${repo}/compare/${commit}...${encodeURIComponent(env.QUESTION_DEFAULT_BRANCH || 'main')}`, { headers, signal: AbortSignal.timeout(10000) });
     if (!comparison.ok || !['ahead', 'identical'].includes((await comparison.json()).status)) throw new HttpError(400, '仕様の定番問題は標準ブランチに取り込んでから公開してください。');
   }

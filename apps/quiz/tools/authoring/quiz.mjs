@@ -3,9 +3,11 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildContext } from './context.mjs';
 import { validateSet, validateCategories, sha, filePath } from '../../worker/contracts.js';
-import { QUESTION_CATEGORIES } from '../../src/quiz-types.js';
+import { QUESTION_CATEGORIES } from '../../shared/quiz-types.js';
+import { questionKind, questionFilePath } from '../../shared/question-paths.js';
 
-const root = fileURLToPath(new URL('../../', import.meta.url));
+const appRoot = fileURLToPath(new URL('../../', import.meta.url));
+const root = fileURLToPath(new URL('../../../../', import.meta.url));
 const args = process.argv.slice(2);
 const command = args.shift();
 const options = {};
@@ -32,7 +34,7 @@ try {
     const questionCount = Number(options.count || 6);
     if (!Number.isInteger(questionCount) || questionCount < 2 || questionCount > 10) throw new Error('--count は2〜10問で指定してください。');
     const questionCategories = validateCategories(options.categories ? options.categories.split(',').map((v) => v.trim()) : Object.keys(QUESTION_CATEGORIES), questionCount);
-    const payload = await buildContext({ root, specId: options.spec, codeSource: options.source, prNumber: options.pr, codeRef: options.ref,
+    const payload = await buildContext({ root, configRoot: appRoot, specId: options.spec, codeSource: options.source, prNumber: options.pr, codeRef: options.ref,
       specRef: options['spec-ref'] || 'HEAD', questionRepository: process.env.QUESTION_REPOSITORY || 'maronnjapan/readRFCInMobile' });
     Object.assign(payload, { questionCount, questionCategories });
     if (Buffer.byteLength(JSON.stringify(payload)) > 290000) throw new Error('資料が大きすぎます。参照パスを絞ってください。');
@@ -47,14 +49,14 @@ try {
     }
     if (!artifact) throw new Error('作問が時間内に完了しませんでした。ジョブの状態を確認してください。');
     validateSet(artifact);
-    const path = artifact.pullRequest ? `questions/pr/${artifact.pullRequest.repository}/${artifact.pullRequest.number}.json` : `questions/spec/${artifact.spec.id}.json`;
+    const path = questionFilePath(artifact);
     const target = resolve(root, path);
     await mkdir(dirname(target), { recursive: true });
     await writeFile(target, `${JSON.stringify(artifact, null, 2)}\n`);
     console.log(`候補を保存: ${path} (draft)。正解・採点基準・出典・不整合をレビューしてください。`);
     if (process.env.GITHUB_OUTPUT) await appendFile(process.env.GITHUB_OUTPUT, `path=${path}\n`);
   } else if (command === 'publish') {
-    if (!sha(options.commit) || !filePath(options.path) || !/^questions\/(spec|pr)\/.+\.json$/.test(options.path)) throw new Error('固定コミットと問題ファイルのパスが必要です。');
+    if (!sha(options.commit) || !filePath(options.path) || !questionKind(options.path)) throw new Error('固定コミットと問題ファイルのパスが必要です。');
     const result = await service('question-sets/import', { repository: process.env.QUESTION_REPOSITORY || 'maronnjapan/readRFCInMobile', commit: options.commit, path: options.path });
     console.log(`出題 URL: ${result.url}`);
     console.log(`PR 連携: ${result.prIntegration}`);

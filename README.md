@@ -25,7 +25,7 @@ NIST SP や論文などの PDF も、段組を解いて同じ形式で表示で�
 
 ### 1. Cloudflare Workers Paid で出題・採点する
 
-問題側のサービスをこのリポジトリで管理します。仕様のみの問題と PR 固有の問題に対応し、問題・仕様・コードの版をコミット SHA で固定します。選択式・並べ替えは1問ずつ出題して回答のたびに即時採点し、記述式は回答を保存してから非同期で採点します。並べ替えはタップと上下ボタンで操作でき、設計の記述は短い箇条書きでも回答できます。
+問題アプリのコード・設定・画面・問題データ・作問ツール・テストは [apps/quiz/](apps/quiz/README.md) にまとめています。APIはHonoで構成します。仕様のみの問題と PR 固有の問題に対応し、問題・仕様・コードの版をコミット SHA で固定します。選択式・並べ替えは1問ずつ出題して回答のたびに即時採点し、記述式は回答を保存してから非同期で採点します。並べ替えはタップと上下ボタンで操作でき、設計の記述は短い箇条書きでも回答できます。
 
 Claude は別サービスの共通 AI 実行 API を HTTPS + API キーで呼びます。呼び出し認証は独立したアダプタにし、将来の OAuth + DPoP へ差し替えられる構成です。共通 API 用のキーはサーバーの Secrets に保存し、Claude キーは共通 API 側だけに置きます。AI 実行の依頼と結果の受信は別エンドポイントです。
 
@@ -35,7 +35,7 @@ npm test
 npm run check:workers    # デプロイせずビルドを確認
 ```
 
-初期設定、Access 認証、D1・Queue・共通 AI API の接続、手動作問・公開、PR のリンクと Check は [出題サービスの運用手順](docs/quiz-service.md) を参照してください。共通 API 側の実装担当者向けには [非同期 AI 実行契約](docs/ai-executor-contract.md) を用意しています。
+初期設定、Access 認証、D1・Queue・共通 AI API の接続、手動作問・公開、PR のリンクと Check は [出題サービスの運用手順](apps/quiz/docs/quiz-service.md) を参照してください。共通 API 側の実装担当者向けには [非同期 AI 実行契約](apps/quiz/docs/ai-executor-contract.md) を用意しています。
 
 ### 2. GitHub Pages で閲覧機能を公開する
 
@@ -280,17 +280,7 @@ src/pdf-reader.js     PDF.js の遅延読み込み、図の切り出し描画、
 src/render.js         構造 → HTML (リンク化、目次生成)
 src/translation.js    翻訳ファイルの検査・ひな形の作成と、構造の文字列だけを訳文に置き換える処理
 src/app.js            画面遷移、取得、設定、原文と日本語訳の切り替え、履歴、Service Worker 登録
-quiz.html / quiz.css   シンプルな出題・回答・採点結果の画面
-src/quiz-page.js       問題セットの選択、回答保存、即時採点・記述式の結果表示
-src/quiz-ordering.js   スマホのタップ・上下ボタンによる並べ替え
-src/quiz-types.js      問題カテゴリと回答方式の共通定義
-worker/               Workers の出題 API、Access 認証、Queue、AI 結果受付、GitHub App 連携
-migrations/           問題・利用者ごとの回答・AI ジョブ・採点履歴を保存する D1 のスキーマ
-wrangler.jsonc        Workers Paid・Static Assets・D1・Queues・AI API 接続先・Rate Limiting・Cron の設定
-questions/            正解・採点基準・固定 SHA の出典を含む問題ファイル (静的配信から除外)
-specs/ / mappings/    仕様の ID・状態・パスと、仕様・コードの対応
-code-sources.yaml     公開コードの参照先、標準ブランチ、許可するパス
-tools/authoring/      手動作問・レビュー・SHA 固定での公開用ツール
+apps/quiz/            Hono + Workers の問題アプリ（画面・API・設定・作問・問題・テスト）
 vendor/pdfjs/         PDF.js 6.4.299 (legacy ビルド)
 sw.js                 オフラインキャッシュ
 rfcs/                 格納済みの RFC テキストと index.json
@@ -307,7 +297,6 @@ scripts/lib/translation-store.mjs  rfcs/ja/・pdfs/ja/ のひな形の作成・�
 scripts/lib/translation-index.mjs  index.json に載せる日本語訳の題名の読み込み
 scripts/pdf-extract.mjs    PDF の解析結果の確認、テスト用データの作成
 scripts/build-assets.mjs  配信する静的ファイルを dist/ にコピー
-test-support/         AI の通信を置き換える Workers 統合テスト用ヘルパー
 test/                 パーサー・レンダラー・保存処理・PDF 解析・翻訳のテスト (test/fixtures/ にテスト用の RFC テキスト、fixtures/pdf/ に PDF とその生成スクリプト)
 .github/workflows/    GitHub Pages へのデプロイ、RFC の取得 (手動)、RFC・PDF の保存 (Issue 経由) ワークフロー
 ```

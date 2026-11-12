@@ -9,15 +9,17 @@ import { buildContext } from '../tools/authoring/context.mjs';
 
 test('authoring reads a fixed spec and public PR base/head code from a separate repository', async () => {
   const root = await mkdtemp(join(tmpdir(), 'quiz-authoring-'));
+  const configRoot = join(root, 'apps/quiz');
   const exec = promisify(execFile);
   const git = (...args) => exec('git', args, { cwd: root });
   try {
     await mkdir(join(root, 'specs'));
+    await mkdir(join(configRoot, 'specs'), { recursive: true });
     await writeFile(join(root, '.gitignore'), '.authoring-work/\n');
-    await writeFile(join(root, 'specs/index.json'), JSON.stringify([{ id: 'jwt', title: 'JWT audience', status: 'proposed', path: 'specs/jwt.txt', mapping: 'mapping.json' }]));
+    await writeFile(join(configRoot, 'specs/index.json'), JSON.stringify([{ id: 'jwt', title: 'JWT audience', status: 'proposed', path: 'specs/jwt.txt', mapping: 'mapping.json' }]));
     await writeFile(join(root, 'specs/jwt.txt'), 'The server MUST validate the audience.\n');
-    await writeFile(join(root, 'mapping.json'), JSON.stringify({ searchTerms: ['audience'] }));
-    await writeFile(join(root, 'code-sources.yaml'), 'sources:\n  - id: product\n    repository: example/product\n    branch: main\n    specIds: [jwt]\n    paths: [src/, test/]\n');
+    await writeFile(join(configRoot, 'mapping.json'), JSON.stringify({ searchTerms: ['audience'] }));
+    await writeFile(join(configRoot, 'code-sources.yaml'), 'sources:\n  - id: product\n    repository: example/product\n    branch: main\n    specIds: [jwt]\n    paths: [src/, test/]\n');
     await git('init', '--quiet'); await git('config', 'user.name', 'Quiz test'); await git('config', 'user.email', 'quiz@example.com');
     await git('add', '.'); await git('commit', '--quiet', '-m', 'Add specification');
     await writeFile(join(root, 'specs/jwt.txt'), 'UNCOMMITTED CONTENT MUST NOT BE USED');
@@ -35,7 +37,7 @@ test('authoring reads a fixed spec and public PR base/head code from a separate 
       }
       throw new Error(`Unexpected GitHub request ${path}`);
     };
-    const payload = await buildContext({ root, specId: 'jwt', codeSource: 'product', prNumber: 7, questionRepository: 'example/specifications', github });
+    const payload = await buildContext({ root, configRoot, specId: 'jwt', codeSource: 'product', prNumber: 7, questionRepository: 'example/specifications', github });
     assert.equal(payload.context.spec.repository, 'example/specifications');
     assert.equal(payload.context.spec.status, 'proposed');
     assert.equal(payload.context.pullRequest.headSha, head);
@@ -45,8 +47,8 @@ test('authoring reads a fixed spec and public PR base/head code from a separate 
     assert.ok(payload.context.references.some((r) => r.kind === 'code' && r.commit === base));
     assert.ok(payload.context.references.some((r) => r.path.startsWith('test/')));
     assert.equal(calls.some((p) => p.includes('private/')), false);
-    assert.ok((await readFile(join(root, '.authoring-work/example_product', head, 'src/auth.js'), 'utf8')).includes('untrusted code'));
-    assert.match((await git('check-ignore', '.authoring-work/example_product')).stdout, /authoring-work/);
-    await assert.rejects(buildContext({ root, specId: 'jwt', codeSource: 'product', questionRepository: 'example/specifications', github: async () => ({ private: true }) }), /公開コード/);
+    assert.ok((await readFile(join(configRoot, '.authoring-work/example_product', head, 'src/auth.js'), 'utf8')).includes('untrusted code'));
+    assert.match((await git('check-ignore', 'apps/quiz/.authoring-work/example_product')).stdout, /authoring-work/);
+    await assert.rejects(buildContext({ root, configRoot, specId: 'jwt', codeSource: 'product', questionRepository: 'example/specifications', github: async () => ({ private: true }) }), /公開コード/);
   } finally { await rm(root, { recursive: true, force: true }); }
 });

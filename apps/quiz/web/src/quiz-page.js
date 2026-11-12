@@ -1,4 +1,4 @@
-import { QUESTION_CATEGORIES, ANSWER_TYPES, categoryOf, isImmediate } from './quiz-types.js';
+import { QUESTION_CATEGORIES, ANSWER_TYPES, categoryOf, isImmediate } from '../../shared/quiz-types.js';
 import { orderingInput } from './quiz-ordering.js';
 
 const $ = (id) => document.getElementById(id);

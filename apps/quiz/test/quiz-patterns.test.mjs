@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { startQuizWorker, patternsFixture, fixture } from '../test-support/quiz-worker.mjs';
 import { validateSet, validateAnswers, validateCategories, initialResults } from '../worker/contracts.js';
-import { QUESTION_CATEGORIES, isImmediate } from '../src/quiz-types.js';
+import { QUESTION_CATEGORIES, isImmediate } from '../shared/quiz-types.js';
 
 const flowId = 'registration-order';
 const correctOrder = patternsFixture.solutions[flowId].answer;
@@ -29,7 +29,7 @@ test('six learning categories have independent response types and keep answer ke
   assert.equal(set.solutions, undefined);
   assert.equal(validateSet(fixture).public.questions[0].category, 'knowledge', 'old files remain supported');
   for (const ref of patternsFixture.references) {
-    const source = (await readFile(new URL(`../${ref.path}`, import.meta.url), 'utf8')).split('\n');
+    const source = (await readFile(new URL(`../../../${ref.path}`, import.meta.url), 'utf8')).split('\n');
     assert.equal(ref.excerpt, source.slice(ref.startLine - 1, ref.endLine).join('\n'), 'sample citations use actual source lines');
   }
 });
