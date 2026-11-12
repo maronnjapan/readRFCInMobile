@@ -1,8 +1,17 @@
-import { HttpError, fail, validateAnswers, initialResults, gradingInstructions, gradingPromptVersion } from '../contracts.js';
+import { gradingInstructions, gradingPromptVersion } from '../prompts.js';
+import { HttpError, fail, validateAnswers, initialResults } from '../contracts.js';
 import { isImmediate, sameAnswer } from '../../shared/quiz-types.js';
 import { now } from '../http.js';
 import { parseSet, getSet, getAttempt, instantProgress, attemptView } from '../store.js';
 import { createAiJob, enforceAiLimit, requestPullRequestSync } from './ai-jobs.js';
+
+export async function startAttempt(env, user, setId) {
+  const set = await getSet(env, setId);
+  const id = crypto.randomUUID();
+  await env.DB.prepare('INSERT INTO attempts (id, set_id, owner, created_at, updated_at) VALUES (?, ?, ?, ?, ?)')
+    .bind(id, set.id, user.id, now(), now()).run();
+  return attemptView(env, await getAttempt(env, id, user));
+}
 
 async function completeAnswers(env, row, setRow, submitted) {
   const set = parseSet(setRow);

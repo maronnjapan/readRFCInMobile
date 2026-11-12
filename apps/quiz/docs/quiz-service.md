@@ -2,7 +2,7 @@
 
 ## 実装範囲と配置
 
-問題アプリは `apps/quiz/` に集約し、APIはHonoで構成する。配置と処理の入口は [アプリのREADME](../README.md) を参照する。この文書のファイルパスとコマンドは、特記しない限り `apps/quiz/` を起点とする。`--path` と出典のファイルパスはリポジトリのルートから指定する。既存の RFC/PDF は共通資料としてルートに置き、`specs/index.json` で ID・状態・版を定義する。チャットや Claude キーは含めない。
+問題アプリは `apps/quiz/` に集約し、画面・フォーム操作・APIをHonoで構成する。画面HTMLはHono JSXでサーバー描画し、並べ替えはHono JSX DOMで操作する。配置と処理の入口は [アプリのREADME](../README.md) を参照する。この文書のファイルパスとコマンドは、特記しない限り `apps/quiz/` を起点とする。`--path` と出典のファイルパスはリポジトリのルートから指定する。既存の RFC/PDF は共通資料としてルートに置き、`specs/index.json` で ID・状態・版を定義する。チャットや Claude キーは含めない。
 
 | 保存先 | 内容 |
 | --- | --- |
@@ -62,7 +62,7 @@ npx wrangler queues create spec-quiz-ai-dead
 - 共通 AI API の接続先は [非同期 AI 実行契約](ai-executor-contract.md) に対応させる
 - `AUTHORING_PROFILE`, `GRADING_PROFILE`: 共通 API 側で承認された Claude の実行設定
 
-Cloudflare Access に許可利用者の Allow ポリシーと、作問用 Service Token の Service Auth ポリシーを設定する。`/api/ai/results` だけは別アプリ／ポリシーで Bypass し、Worker 内のジョブ専用トークン認証を使う。それ以外の API は Access JWT の署名・issuer・audience・有効期限・subject を Worker 自身でも検証する。未設定時・未認証時に匿名の有料実行へフォールバックしない。
+Cloudflare Access に許可利用者の Allow ポリシーと、作問用 Service Token の Service Auth ポリシーを設定する。保護対象には `/quiz`・`/quiz/*` の画面と `/api/*` を含める。`/api/ai/results` だけは別アプリ／ポリシーで Bypass し、Worker 内のジョブ専用トークン認証を使う。それ以外の画面・APIはAccess JWTの署名・issuer・audience・有効期限・subjectをWorker自身でも検証する。未設定時・未認証時に匿名の有料実行へフォールバックしない。
 
 ```sh
 npm run db:migrate:remote
@@ -144,11 +144,11 @@ GitHub Actions の **Author or publish a quiz (manual)** でも実行できる�
 
 選択式・並べ替えは1問ごとの API で保存済み正解と照合し、記述式や残りの問題の回答を待たず、同じリクエストで結果を返す。未回答の問題の正解・解説は返さない。記述式のないセットは最後の1問で採点が完了する。途中で画面を閉じても、回答済みの結果と未回答の続きへ戻れる。
 
-記述式はまとめて回答を保存した後、独立した採点依頼 API で Queue に投入し、共通 AI API が保存済み採点基準と出典本文から採点する。記述式だけのセットも利用できる。受付・結果受信・利用者の回答送信はすべて別エンドポイント。画面は準備状況を確認し、採点が終わると点数・理由・根拠を表示する。
+記述式はまとめて回答を保存した後、独立した採点依頼 API で Queue に投入し、問題アプリが保存済み採点基準・出典本文・回答を含むプロンプトを組み立て、共通AI APIがそのままClaudeへ渡して採点する。記述式だけのセットも利用できる。受付・結果受信・利用者の回答送信はすべて別エンドポイント。画面は準備状況を確認し、採点が終わると点数・理由・根拠を表示する。
 
 回答は Access の subject と出題セット ID にひも付く。同じ利用者は別ブラウザでも前の回答・結果を確認できる。送信後の内容変更は `409`、同じ内容の再送は同じ結果になる。再回答する場合は新しい回答を開始する。記述式の失敗時も回答を保持し、利用者が採点を再依頼できる。採点結果・profile・promptVersion・実際のモデル・利用量・参照版を履歴に保存する。
 
-採点は参考情報であり、マージ条件として強制しない。AI の点数や理由は出典と照合できるようにしている。API 応答は `no-store` とし、Service Worker も `/api/` をキャッシュしない。
+採点は参考情報であり、マージ条件として強制しない。AI の点数や理由は出典と照合できるようにしている。API応答と利用者ごとの画面HTMLは `no-store` とし、Service Workerも `/api/`・`/quiz` をキャッシュしない。
 
 ## PR のリンク・Check
 
@@ -167,6 +167,20 @@ npx wrangler secret put GITHUB_APP_PRIVATE_KEY
 - 公開するのは集計件数だけで、利用者名や記述式の回答本文は投稿しない。
 - コメントと Check は識別子を記録して更新する。再配信時も既存 ID／マーカーから再利用する。
 - GitHub App 未設定時でも出題・採点は独立して利用可能。公開 API は `prIntegration: not_configured` を返す。PR 連携を使う運用では必ず App を設定する。
+
+## Honoの画面ルート
+
+| 画面ルート | 動作 |
+| --- | --- |
+| `GET /quiz[?spec=ID]` | 問題一覧のHTML |
+| `GET /quiz?set=ID` | 問題セットと自分の回答履歴 |
+| `GET /quiz?attempt=ID[&question=ID]` | 1問の出題・即時採点の解説・記述式・結果 |
+| `POST /quiz/attempts` | 回答開始 |
+| `POST /quiz/attempts/:id/instant-answers` | 選択式・並べ替えの回答と即時採点 |
+| `POST /quiz/attempts/:id/answers` | 記述式の保存 |
+| `POST /quiz/attempts/:id/grading-requests` | 独立した非同期採点依頼 |
+
+画面もAccess認証と所有者確認を通す。通常のフォームには303リダイレクトを返し、ブラウザの送信補助には遷移先JSONを返す。画面の状態とHTMLはHonoが描画する。静的な `quiz.html` は生成せず、旧URLは `/quiz` へリダイレクトする。
 
 ## API と検証
 
@@ -197,4 +211,4 @@ node tools/authoring/quiz.mjs check --path apps/quiz/questions/spec/rfc-7523.jso
 node tools/authoring/quiz.mjs check --path apps/quiz/questions/spec/rfc-7591.json
 ```
 
-統合テストは workerd・D1・Queue・HTTPS / Service binding・Access の実際の署名検証を使い、共通 AI API と GitHub のネットワーク応答を置き換える。API キーの送信と、認証アダプタの差し替えも検証する。実際の Claude 実行や本番 Access / GitHub App の接続確認は、各サービスの設定後に実施する。問題アプリの配信対象は `scripts/build.mjs` の許可リストで管理し、リーダーの公開ファイルはルートの `scripts/build-assets.mjs` から組み立てる。
+統合テストは workerd・D1・Queue・HTTPS / Service binding・Access の実際の署名検証を使い、共通 AI API と GitHub のネットワーク応答を置き換える。API キーの送信と、認証アダプタの差し替えも検証する。実際の Claude 実行や本番 Access / GitHub App の接続確認は、各サービスの設定後に実施する。画面HTMLはHonoが描画する。CSS・ブラウザ用JavaScriptなどの配信対象は `scripts/build.mjs` で管理し、リーダーの公開ファイルはルートの `scripts/build-assets.mjs` から組み立てる。

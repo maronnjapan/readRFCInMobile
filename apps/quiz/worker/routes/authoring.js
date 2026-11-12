@@ -1,5 +1,6 @@
+import { generationInstructions } from '../prompts.js';
 import { Hono } from 'hono';
-import { HttpError, fail, text, uuid, validateContext, validateCategories, generationInstructions } from '../contracts.js';
+import { HttpError, fail, text, uuid, validateContext, validateCategories } from '../contracts.js';
 import { authorOnly, validId } from '../middleware.js';
 import { readJson } from '../http.js';
 import { enforceAiLimit, createAiJob } from '../services/ai-jobs.js';

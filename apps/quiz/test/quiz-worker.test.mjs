@@ -1,8 +1,7 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { startQuizWorker, fixture, accessToken, executorApiKey, submitAttemptAnswers } from '../test-support/quiz-worker.mjs';
-import workerHandler from '../worker/index.js';
-import { app } from '../worker/app.js';
+import { promptData, startQuizWorker, fixture, accessToken, executorApiKey, submitAttemptAnswers } from '../test-support/quiz-worker.mjs';
+import { recoverJobs } from '../worker/jobs/recovery.js';
 import { randomUUID } from 'node:crypto';
 
 let worker;
@@ -53,18 +52,13 @@ test('Hono middleware keeps API errors private and enforces origin and content l
   }
 });
 
-test('static reader and quiz requests reach Assets without requiring an API identity or DB', async () => {
-  const paths = [];
-  const env = { ASSETS: { fetch: async (request) => {
-    paths.push(new URL(request.url).pathname);
-    return new Response('static content', { headers: { 'content-type': 'text/html' } });
-  } } };
-  for (const path of ['/', '/quiz', '/src/quiz-page.js']) {
-    const response = await app.request(`https://reader.test${path}`, {}, env);
+test('static reader assets remain available while the Hono quiz screen requires an identity', async () => {
+  for (const path of ['/', '/styles.css', '/src/quiz-page.js']) {
+    const response = await worker.mf.dispatchFetch(`https://reader.test${path}`);
     assert.equal(response.status, 200);
     assert.equal(await response.text(), 'static content');
   }
-  assert.deepEqual(paths, ['/', '/quiz', '/src/quiz-page.js']);
+  assert.equal((await worker.mf.dispatchFetch('https://reader.test/quiz')).status, 401);
 });
 
 test('published sets are pinned, exclude grading secrets, and support spec-only discovery', async () => {
@@ -117,9 +111,9 @@ test('choice scoring is immediate; written answers are saved before a separate g
   const job = await grade.json();
   const execution = await worker.waitForExecution(job.id);
   assert.equal(execution.operation, 'answers.grade');
-  assert.ok(execution.input.sourceMaterials['jwt-claims'].includes('client_id'));
-  assert.equal(execution.input.questions[0].answer, answers['audience-validation']);
-  assert.ok(execution.input.questions[0].solution.rubric);
+  assert.ok(promptData(execution).sourceMaterials['jwt-claims'].includes('client_id'));
+  assert.equal(promptData(execution).questions[0].answer, answers['audience-validation']);
+  assert.ok(promptData(execution).questions[0].solution.rubric);
   assert.ok(execution.callback.url.endsWith('/api/ai/results'));
   assert.equal((await worker.complete(job.id)).status, 200);
   const graded = await (await call(`/api/attempts/${state.id}`)).json();
@@ -217,7 +211,7 @@ test('the outbox recovers queued work and times out stale grading without losing
   await worker.db.prepare("INSERT INTO ai_jobs (id, operation, target_id, owner, profile, input_json, context_json, created_at, updated_at) VALUES (?, 'questions.generate', 'outbox-recovery', 'author', 'test', '{}', '{}', ?, ?)")
     .bind(queuedId, timestamp, timestamp - 120).run();
   const sent = [], pending = [];
-  await workerHandler.scheduled({}, { DB: worker.db, AI_JOBS: { send: async (body) => { sent.push(body); } } }, { waitUntil: (p) => pending.push(p) });
+  recoverJobs({}, { DB: worker.db, AI_JOBS: { send: async (body) => { sent.push(body); } } }, { waitUntil: (p) => pending.push(p) });
   await Promise.all(pending);
   assert.ok(sent.some((b) => b.id === queuedId));
   const saved = await (await call(`/api/attempts/${state.id}`)).json();

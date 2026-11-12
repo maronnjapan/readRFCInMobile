@@ -19,7 +19,7 @@ export function multipleChoiceFixture({ written = true } = {}) {
   return value;
 }
 const root = fileURLToPath(new URL('../', import.meta.url));
-const workerBundle = build({ entryPoints: [`${root}worker/index.js`], bundle: true, format: 'esm', target: 'es2022', write: false });
+const workerBundle = build({ entryPoints: [`${root}worker/index.js`], bundle: true, format: 'esm', target: 'es2022', jsx: 'automatic', jsxImportSource: 'hono/jsx', write: false });
 const { publicKey, privateKey } = generateKeyPairSync('rsa', { modulusLength: 2048 });
 const jwk = { ...publicKey.export({ format: 'jwk' }), kid: 'quiz-test-key' };
 const issuer = 'https://quiz-test.cloudflareaccess.com';
@@ -55,8 +55,8 @@ export async function startQuizWorker({ assets = false, port = 0, github = false
       ...(github ? { GITHUB_APP_ID: '1', GITHUB_INSTALLATION_ID: '2', GITHUB_APP_PRIVATE_KEY: privateKey.export({ type: 'pkcs8', format: 'pem' }) } : {}) },
     ratelimits: { AI_RATE_LIMITER: { namespace_id: '1001', simple: { limit: 5, period: 60 } } },
     queueProducers: { AI_JOBS: 'spec-quiz-ai' }, queueConsumers: { 'spec-quiz-ai': { maxBatchSize: 1, maxBatchTimeout: 0 } },
-    ...(executorTransport === 'service-binding' ? { serviceBindings: { AI_EXECUTOR: execute } } : {}),
-    ...(assets ? { assets: { directory: `${root}dist`, binding: 'ASSETS', run_worker_first: ['/api/*'], routerConfig: { has_user_worker: true }, assetConfig: { html_handling: 'auto-trailing-slash', not_found_handling: 'none' } } } : {}),
+    serviceBindings: { ...(executorTransport === 'service-binding' ? { AI_EXECUTOR: execute } : {}), ...(!assets ? { ASSETS: async () => new WorkerResponse('static content') } : {}) },
+    ...(assets ? { assets: { directory: `${root}dist`, binding: 'ASSETS', run_worker_first: true, routerConfig: { has_user_worker: true }, assetConfig: { html_handling: 'auto-trailing-slash', not_found_handling: 'none' } } } : {}),
     outboundService: async (request) => {
       const url = new URL(request.url);
       if (url.origin === 'https://ai-executor.test') return execute(request);
@@ -92,7 +92,7 @@ export async function startQuizWorker({ assets = false, port = 0, github = false
   async function complete(id, patch = {}) {
     const execution = executions.get(id) || await waitForExecution(id);
     const output = execution.operation === 'questions.generate' ? structuredClone(behavior.artifact)
-      : { grades: execution.input.questions.map((q) => ({ questionId: q.id, score: q.points, reason: '保存された採点基準と出典の要件を満たしています。', referenceIds: q.referenceIds })) };
+      : { grades: promptData(execution).questions.map((q) => ({ questionId: q.id, score: q.points, reason: '保存された採点基準と出典の要件を満たしています。', referenceIds: q.referenceIds })) };
     return mf.dispatchFetch('https://reader.test/api/ai/results', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${execution.callback.token}` },
       body: JSON.stringify({ requestId: id, operation: execution.operation, status: 'completed', output, model: 'claude-test-model', usage: { inputTokens: 100, outputTokens: 50 }, ...patch }) });
   }
@@ -114,4 +114,8 @@ export async function submitAttemptAnswers(call, id, answers) {
   }
   const written = state.set.questions.filter((q) => q.type === 'written');
   return written.length ? call(`/api/attempts/${id}/answers`, { method: 'POST', body: { answers: Object.fromEntries(written.map((q) => [q.id, answers[q.id]])) } }) : response;
+}
+
+export function promptData(execution) {
+  return JSON.parse(execution.input.messages[0].content).data;
 }

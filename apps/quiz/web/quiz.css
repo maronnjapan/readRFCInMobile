@@ -38,6 +38,7 @@
 .quiz-page button:disabled { opacity: 0.6; cursor: default; }
 .quiz-page textarea { display: block; width: 100%; box-sizing: border-box; margin-top: 0.5rem; padding: 0.75rem; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--fg); font: inherit; resize: vertical; }
 .quiz-page textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.quiz-page select { display: block; min-height: 44px; width: 100%; font: inherit; font-size: max(16px, 1rem); margin: 0.5rem 0; }
 .quiz-page details { margin-top: 0.8rem; font-size: 0.9rem; color: var(--muted); }
 .quiz-page details p { overflow-wrap: anywhere; }
 #score { font-size: 1.25rem; margin: 1.5rem 0; }

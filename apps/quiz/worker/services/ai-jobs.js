@@ -1,6 +1,7 @@
 import { HttpError } from '../contracts.js';
 import { now } from '../http.js';
 import { githubConfigured } from '../github.js';
+import { buildAiInput } from '../prompts.js';
 
 export async function enforceAiLimit(env, user) {
   const { success } = await env.AI_RATE_LIMITER.limit({ key: user.id });
@@ -17,8 +18,10 @@ export async function requestPullRequestSync(env, setId) {
 }
 export async function createAiJob(env, { operation, target, owner, input, context, profile }) {
   const id = crypto.randomUUID();
+  const prepared = { executorInput: buildAiInput(operation, input),
+    questionCount: input.questionCount, questionCategories: input.questionCategories, promptVersion: input.promptVersion };
   const result = await env.DB.prepare('INSERT OR IGNORE INTO ai_jobs (id, operation, target_id, owner, profile, input_json, context_json, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)')
-    .bind(id, operation, target, owner, profile, JSON.stringify(input), JSON.stringify(context), now(), now()).run();
+    .bind(id, operation, target, owner, profile, JSON.stringify(prepared), JSON.stringify(context), now(), now()).run();
   const saved = result.meta.changes ? id : (await env.DB.prepare("SELECT id FROM ai_jobs WHERE operation = ? AND target_id = ? AND status IN ('queued', 'dispatching', 'submitted')").bind(operation, target).first()).id;
   await enqueueJob(env, saved);
   return saved;

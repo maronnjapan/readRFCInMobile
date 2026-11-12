@@ -6,6 +6,19 @@ export const getSet = async (env, id) => {
   if (!row) throw new HttpError(404, '問題セットが見つかりません。');
   return row;
 };
+export async function listQuestionSets(env, spec) {
+  const query = spec
+    ? env.DB.prepare('SELECT * FROM question_sets WHERE spec_id = ? ORDER BY created_at DESC LIMIT 100').bind(spec)
+    : env.DB.prepare('SELECT * FROM question_sets ORDER BY created_at DESC LIMIT 100');
+  const rows = await query.all();
+  return rows.results.map((row) => ({ id: row.id, title: row.title, spec: JSON.parse(row.public_json).spec,
+    pullRequest: JSON.parse(row.pr_json || 'null'), revision: JSON.parse(row.revision_json) }));
+}
+export async function listAttempts(env, setId, owner) {
+  const rows = await env.DB.prepare('SELECT id, status, created_at FROM attempts WHERE set_id = ? AND owner = ? ORDER BY created_at DESC LIMIT 20')
+    .bind(setId, owner).all();
+  return rows.results;
+}
 export async function getAttempt(env, id, user) {
   const row = await env.DB.prepare('SELECT * FROM attempts WHERE id = ? AND owner = ?').bind(id, user.id).first();
   if (!row) throw new HttpError(404, '回答が見つかりません。');

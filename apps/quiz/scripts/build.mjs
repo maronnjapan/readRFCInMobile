@@ -8,10 +8,11 @@ const output = new URL('dist/', app);
 
 // 本文へ戻れるよう、公開用リーダーと問題画面を同じオリジンに配置する。
 await buildReaderAssets(output);
-for (const path of ['quiz.html', 'quiz.css']) await cp(new URL(`web/${path}`, app), new URL(path, output));
+await cp(new URL('web/quiz.css', app), new URL('quiz.css', output));
 await build({
-  entryPoints: [fileURLToPath(new URL('web/src/quiz-page.js', app))],
+  entryPoints: [fileURLToPath(new URL('web/client.jsx', app))],
   outfile: fileURLToPath(new URL('src/quiz-page.js', output)),
   bundle: true, format: 'esm', target: 'es2022',
+  tsconfigRaw: { compilerOptions: { jsx: 'react-jsx', jsxImportSource: 'hono/jsx/dom' } },
 });
 // worker/・questions/・採点基準・設定・秘密情報は配信しない。

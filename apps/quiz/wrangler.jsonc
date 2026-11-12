@@ -2,11 +2,12 @@
   "$schema": "../../node_modules/wrangler/config-schema.json",
   "name": "spec-understanding-quiz",
   "main": "worker/index.js",
+  "tsconfig": "tsconfig.json",
   "compatibility_date": "2026-11-01",
   "assets": {
     "directory": "./dist", "binding": "ASSETS",
     "html_handling": "auto-trailing-slash", "not_found_handling": "none",
-    "run_worker_first": ["/api/*"]
+    "run_worker_first": true
   },
   "d1_databases": [{
     "binding": "DB", "database_name": "spec-understanding-quiz",

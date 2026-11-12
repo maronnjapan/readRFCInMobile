@@ -3,6 +3,14 @@ import { HttpError, fail } from './contracts.js';
 export const now = () => Math.floor(Date.now() / 1000);
 export async function readJson(request) {
   if (!(request.headers.get('content-type') || '').toLowerCase().startsWith('application/json')) throw new HttpError(415, 'JSON で送信してください。');
+  const body = await readText(request);
+  try { return JSON.parse(body); } catch { fail('JSON が正しくありません。'); }
+}
+export async function readForm(request) {
+  if (!(request.headers.get('content-type') || '').toLowerCase().startsWith('application/x-www-form-urlencoded')) throw new HttpError(415, 'フォームで送信してください。');
+  return new URLSearchParams(await readText(request));
+}
+async function readText(request) {
   if (Number(request.headers.get('content-length')) > 300000) throw new HttpError(413, '入力が大きすぎます。');
   const reader = request.body?.getReader();
   if (!reader) fail('本文が必要です。');
@@ -16,5 +24,5 @@ export async function readJson(request) {
     body += decoder.decode(value, { stream: true });
   }
   body += decoder.decode();
-  try { return JSON.parse(body); } catch { fail('JSON が正しくありません。'); }
+  return body;
 }

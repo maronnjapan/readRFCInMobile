@@ -6,6 +6,9 @@ import { questionSetRoutes } from './routes/question-sets.js';
 import { attemptRoutes } from './routes/attempts.js';
 import { authoringRoutes } from './routes/authoring.js';
 import { aiResultRoutes } from './routes/ai-results.js';
+import { pageRoutes } from './routes/pages.jsx';
+import { ErrorPage } from '../web/document.jsx';
+import { jsx } from 'hono/jsx';
 
 const apiHeaders = { 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' };
 const api = new Hono();
@@ -32,10 +35,15 @@ api.route('/', authenticated);
 
 export const app = new Hono();
 app.route('/api', api);
+app.route('/quiz', pageRoutes);
+app.get('/quiz.html', (c) => c.redirect(`/quiz${new URL(c.req.url).search}`, 308));
 app.all('*', (c) => c.env.ASSETS.fetch(c.req.raw));
 app.onError((error, c) => {
   if (!(error instanceof HttpError)) console.error('quiz_api_error', { path: c.req.path, name: error.name });
   const status = error instanceof HttpError ? error.status : 500;
   const message = error instanceof HttpError ? error.message : '処理できませんでした。もう一度お試しください。';
+  if (c.req.path.startsWith('/quiz') && !c.req.header('accept')?.includes('application/json')) {
+    return c.html(jsx(ErrorPage, { message }), status, { 'Cache-Control': 'private, no-store', 'X-Content-Type-Options': 'nosniff' });
+  }
   return c.json({ message }, status, apiHeaders);
 });

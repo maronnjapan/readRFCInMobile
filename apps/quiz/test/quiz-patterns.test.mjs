@@ -1,7 +1,7 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { startQuizWorker, patternsFixture, fixture } from '../test-support/quiz-worker.mjs';
+import { promptData, startQuizWorker, patternsFixture, fixture } from '../test-support/quiz-worker.mjs';
 import { validateSet, validateAnswers, validateCategories, initialResults } from '../worker/contracts.js';
 import { QUESTION_CATEGORIES, isImmediate } from '../shared/quiz-types.js';
 
@@ -112,15 +112,15 @@ test('mixed categories preserve one-question progress and ordering feedback befo
   assert.equal(worker.executions.size, 0, 'instant answers and saving written answers do not call AI');
   const job = await (await call(`/api/attempts/${state.id}/grading-requests`, { method: 'POST', body: {} })).json();
   const execution = await worker.waitForExecution(job.id);
-  assert.equal(execution.input.questions.length, 1);
-  assert.equal(execution.input.promptVersion, 2);
-  assert.equal(execution.input.questions[0].category, 'design');
-  assert.equal(execution.input.questions[0].answer, written['public-client-design']);
-  assert.ok(execution.input.questions[0].solution.rubric);
+  assert.equal(promptData(execution).questions.length, 1);
+  assert.equal(promptData(execution).promptVersion, 3);
+  assert.equal(promptData(execution).questions[0].category, 'design');
+  assert.equal(promptData(execution).questions[0].answer, written['public-client-design']);
+  assert.ok(promptData(execution).questions[0].solution.rubric);
   await worker.complete(job.id);
   const graded = await (await call(`/api/attempts/${state.id}`)).json();
   assert.equal(graded.status, 'graded');
-  assert.equal(graded.grading.promptVersion, 2);
+  assert.equal(graded.grading.promptVersion, 3);
 });
 
 test('concurrent final ordering answers keep one immutable result and finish atomically', async () => {
@@ -155,7 +155,7 @@ test('authoring specifies category coverage and rejects missing categories in AI
   assert.equal((await author('/api/authoring/requests', { method: 'POST', body: { ...body, questionCategories: ['translation'] } })).status, 400);
   const job = await (await author('/api/authoring/requests', { method: 'POST', body })).json();
   const execution = await worker.waitForExecution(job.id);
-  assert.deepEqual(execution.input.questionCategories, Object.keys(QUESTION_CATEGORIES));
+  assert.deepEqual(promptData(execution).questionCategories, Object.keys(QUESTION_CATEGORIES));
   await worker.complete(job.id, { output: patternsFixture });
   assert.equal((await (await author(`/api/authoring/requests/${job.id}`)).json()).status, 'completed');
   const missingJob = await (await author('/api/authoring/requests', { method: 'POST', body: { ...body, context: { ...context, id: 'missing-category' } } })).json();

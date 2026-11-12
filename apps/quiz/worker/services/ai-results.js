@@ -16,16 +16,17 @@ export async function receiveAiResult(request, env) {
   if (body.status === 'failed') { await failJob(env, job, 'AI の処理に失敗しました。'); return { received: true }; }
   let output;
   try {
+    const completion = typeof body.output === 'string' ? JSON.parse(body.output) : body.output;
     if (job.operation === 'questions.generate') {
       const context = JSON.parse(job.context_json);
-      output = { ...body.output, ...context, title: body.output?.title || context.title, format: 'spec-understanding-quiz', version: 1, status: 'draft' };
+      output = { ...completion, ...context, title: completion?.title || context.title, format: 'spec-understanding-quiz', version: 1, status: 'draft' };
       validateSet(output);
       const requested = JSON.parse(job.input_json);
       if (output.questions.length !== requested.questionCount || (requested.questionCategories || []).some((category) => !output.questions.some((q) => categoryOf(q) === category))) fail('指定した問題数・カテゴリではありません。');
     } else {
       const attempt = await env.DB.prepare('SELECT * FROM attempts WHERE id = ?').bind(job.target_id).first();
       const set = parseSet(await getSet(env, attempt.set_id));
-      const grades = validateGrades(body.output, set);
+      const grades = validateGrades(completion, set);
       const results = JSON.parse(attempt.results_json).map((r) => grades.find((g) => g.questionId === r.questionId) || r);
       const settings = { profile: job.profile, promptVersion: JSON.parse(job.input_json).promptVersion || 1, requestedMaxOutputTokens: 8000, model: typeof body.model === 'string' ? body.model.slice(0, 200) : 'unspecified', usage: body.usage || null, jobId: job.id, gradedAt: now() };
       output = { results, settings };

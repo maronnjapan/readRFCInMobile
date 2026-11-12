@@ -16,19 +16,19 @@
   "operation": "answers.grade",
   "profile": "quiz-written-v1",
   "input": {
-    "instructions": "保存済みの採点基準と出典だけを使って…",
-    "promptVersion": 2,
-    "revision": { "repository": "owner/questions", "commit": "40文字のSHA", "path": "apps/quiz/questions/spec/example.json" },
-    "references": [],
-    "sourceMaterials": { "reference-id": "固定した版から取得した出典本文" },
-    "questions": [{ "id": "question-id", "type": "written", "prompt": "…", "points": 2, "answer": "利用者の回答", "solution": { "explanation": "…", "rubric": [] } }]
+    "system": "問題アプリが組み立てた採点指示・出力形式・資料の扱い方を含む全文",
+    "messages": [{ "role": "user", "content": "問題アプリが採点対象・利用者の回答・採点基準・出典本文を埋め込んだ完成済みプロンプト" }]
   },
   "maxOutputTokens": 8000,
   "callback": { "url": "https://quiz.example.com/api/ai/results", "token": "ジョブ専用の認証トークン" }
 }
 ```
 
-操作は `questions.generate` と `answers.grade`。作問の `input` は `instructions`, `questionCount`, `questionCategories`, `context`, `material` を持つ。`questionCategories` は `vocabulary`, `knowledge`, `flow`, `design`, `debugging`, `comparison` の指定リストで、各カテゴリを1問以上含む候補を作る。空リストの場合はカテゴリを制限しない。`context` には仕様・PR の固定版と、取得した各出典の本文 `references[].excerpt` が含まれる。
+操作は `questions.generate` と `answers.grade`。**作問・採点のドメイン知識とプロンプト構築は、すべて問題アプリの `worker/prompts.js` が担当する。** 問題数、カテゴリ、参照版、出典本文、回答、採点基準、JSON出力形式まで `input.system` と `input.messages[].content` に埋め込んで渡す。共通 API へは、これらの文字列と通常のメッセージ構造だけを渡す。
+
+共通 API は `input.system` と `input.messages` を、そのままClaudeのsystemとmessagesへ渡す。作問・採点のテンプレートを持たず、カテゴリ・出典・採点基準を解釈したり、ドメイン固有の指示を追加したりしない。`operation` は認可・監査、`profile` は承認済みモデル・実行制限の識別子とし、プロンプトを選ぶ用途には使わない。
+
+完成済みプロンプトはジョブ作成時にD1へ保存し、再送も同じ本文を使う。旧形式の未送信ジョブがあれば問題アプリ側で変換して保存するため、共通 API に互換用のプロンプト構築は不要。
 
 共通 API は**推論が完了する前に**永続的に依頼を受け付け、`202` を返す。問題側は受付の HTTP 通信だけを20秒でタイムアウトさせる。長い Claude 呼び出しをこの接続や `waitUntil` の寿命に依存させない。共通 API 側でも Queues / Workflows などにより実行を継続する。
 
@@ -63,15 +63,15 @@ Content-Type: application/json
   "requestId": "1c81aa62-6f38-4a25-830b-dfbcc6f1042f",
   "operation": "answers.grade",
   "status": "completed",
-  "output": {
-    "grades": [{ "questionId": "question-id", "score": 2, "reason": "採点基準を満たす理由", "referenceIds": ["reference-id"] }]
-  },
+  "output": "{\"grades\":[{\"questionId\":\"question-id\",\"score\":2,\"reason\":\"採点基準を満たす理由\",\"referenceIds\":[\"reference-id\"]}]}",
   "model": "実際に使用したClaudeモデルのID",
   "usage": { "inputTokens": 1200, "outputTokens": 300 }
 }
 ```
 
-作問結果の `output` は `title`, `questions`, `solutions`, `inconsistencies`。形式は `worker/contracts.js` と全6カテゴリの `questions/spec/rfc-7591.json` を参照する。問題の `type` は `choice` / `ordering` / `written`。並べ替えは `items` のIDを正解順にした配列を解答とし、記述式だけをAI採点へ送る。仕様・参照先などのメタデータはサーバーが元の依頼から復元し、モデルの出力で置き換えない。
+`output` はClaudeが返した文章をそのまま文字列で渡せる。共通 API はクイズの出力形式を解釈しない。問題アプリがJSONへ解析し、作問なら `title`, `questions`, `solutions`, `inconsistencies`、採点なら `grades` を検証する。互換用に、解析済みのJSONオブジェクトも受け付ける。
+
+問題の形式と採点基準は `worker/contracts.js` と `questions/spec/rfc-7591.json`、プロンプトの構成は `worker/prompts.js` を参照する。仕様・参照先などのメタデータは問題アプリが元の依頼から復元し、モデルの出力で置き換えない。
 
 失敗時は同じ `requestId`, `operation` と `status: "failed"` を送る。エラーの生本文・秘密情報は送り返さない。
 
