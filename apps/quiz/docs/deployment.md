@@ -27,7 +27,7 @@ CIのVariablesは次のとおり。未指定の場合は既存Workerの値を維
 | `CLOUDFLARE_ACCOUNT_ID` | 対象アカウント。アクセス可能なアカウントが1つなら省略可能 |
 | `QUIZ_WORKER_NAME` | Worker名。既定は `spec-understanding-quiz` |
 | `QUIZ_APP_ORIGIN` | HTTPSオリジン。省略時は既存の値またはworkers.dev。既存の `QUIZ_API_URL` も使用可能 |
-| `ACCESS_ISSUER`, `ACCESS_AUD` | Cloudflare Accessのissuerとaudience |
+| `ACCESS_ISSUER`, `ACCESS_AUD` | AI採点・管理操作に使うCloudflare Accessのissuerとaudience（通常回答には不要） |
 | `AUTHOR_SUBJECTS`, `AUTHOR_EMAILS` | 作問・公開を許可する利用者／Service Token |
 | `AI_EXECUTOR_URL`, `AI_EXECUTOR_TRANSPORT`, `AI_EXECUTOR_AUTH` | 外部AI API。既定は `https` と `api-key` |
 | `CODE_REPOSITORIES` | PR問題の対象とする公開コードリポジトリ |
@@ -43,7 +43,7 @@ CIのVariablesは次のとおり。未指定の場合は既存Workerの値を維
 | `AI_CALLBACK_SECRET` | 結果受信用。未作成ならランダムに生成し、以後は既存値を維持 |
 | `QUIZ_GITHUB_APP_ID`, `QUIZ_GITHUB_INSTALLATION_ID`, `QUIZ_GITHUB_APP_PRIVATE_KEY` | 任意のPR連携。Workerでは先頭の `QUIZ_` を除いた名前へ登録 |
 
-GitHub Appの秘密鍵はPKCS#8 PEMを使用する。Claudeのキーは外部AI API側だけに置く。AccessやAI APIが未設定でもインフラは公開できるが、クイズ画面は認証設定が完了するまでアクセスを拒否し、有料AI処理も実行できない。
+GitHub Appの秘密鍵はPKCS#8 PEMを使用する。Claudeのキーは外部AI API側だけに置く。AccessやAI APIが未設定でも、問題一覧・選択式・並べ替え・記述式回答の保存を利用できる。AI採点と管理操作にはAccess設定が必要。既存のAccessアプリが `/quiz` や `/api/*` 全体を保護している場合は、[保護するパス](quiz-service.md#cloudflare-workers-paid-の初期設定)を絞る。Workerの更新だけではAccessの入口の設定は変わらない。
 
 ## 手元で公開する
 
@@ -72,7 +72,7 @@ npm run destroy:workers
 npm run destroy:workers -- --confirm spec-understanding-quiz
 ```
 
-削除するのは、このデプロイが新規作成したWorker・Queue・D1。Queueのconsumerを解除し、Worker、Queue、最後に状態を保存するD1を削除する。**作成したD1の削除は回答・採点結果・問題セットも削除する。** 再実行は削除済みのリソースを読み飛ばす。
+削除するのは、このデプロイが新規作成したWorker・Queue・D1。Queueのconsumerを解除し、Worker、Queue、最後に状態を保存するD1を削除する。**作成したD1の削除は回答・採点結果・追加登録した問題の固定版参照も削除する。** 問題JSONはGitHubに残る。再実行は削除済みのリソースを読み飛ばす。
 
 デプロイ前から存在したWorker・D1・Queueは残す。新規Workerを既存Queueへ接続していた場合、そのWorkerのconsumerだけを解除する。再利用したD1ではこのデプロイの管理行のみを除去し、アプリのデータやマイグレーション履歴は残す。既存Workerが新しく作ったリソースを使っている場合は、先にそのbindingを手動で切り離す。所有マーカーの異なるWorker、別consumerのある作成済みQueue、別デプロイの管理行もあるD1は削除を拒否する。
 

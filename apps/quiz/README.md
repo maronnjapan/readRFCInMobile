@@ -13,7 +13,7 @@ Cloudflare Workers Paid・Hono・D1・Queuesで動く問題アプリ。API、ス
 | 3. nonce・認可コード・PAR | [rfc-9449-03-nonce-code.json](questions/spec/rfc-9449-03-nonce-code.json) |
 | 4. 攻撃シナリオと実装レビュー | [rfc-9449-04-security.json](questions/spec/rfc-9449-04-security.json) |
 
-仕様 ID は共通の `rfc-9449` です。main に保存した後、4 ファイルをそれぞれ固定 SHA で出題サービスへ取り込むと、`/quiz?spec=rfc-9449` に並びます。公開コマンドは[問題集の手順](docs/rfc-9449-dpop.md#問題アプリで使う場合)を参照してください。
+仕様 ID は共通の `rfc-9449` です。mainに保存してデプロイすると、4ファイルが取り込み操作なしで `/quiz?spec=rfc-9449` に並び、ログインなしで回答できます。公開方法は[問題集の手順](docs/rfc-9449-dpop.md#問題アプリで使う場合)を参照してください。
 
 ## コードの入口
 
@@ -27,7 +27,7 @@ Cloudflare Workers Paid・Hono・D1・Queuesで動く問題アプリ。API、ス
 | `worker/routes/` | 問題セット、回答、作問依頼、AI結果のJSON API |
 | `worker/services/` | 問題公開、即時採点、記述式採点依頼、AI結果保存 |
 | `worker/jobs/` | QueueによるAI依頼とCronによる未完了ジョブの回復 |
-| `worker/store.js` | D1からの問題・回答取得と出題データへの変換 |
+| `worker/store.js`, `worker/question-files.js` | GitHubの問題ファイル・固定版メタデータとD1の回答取得 |
 | `worker/contracts.js` | 問題・回答・採点結果の検証 |
 | `worker/prompts.js` | システム指示、資料、回答、採点基準、出力形式を含むプロンプト全文の構築 |
 | `worker/ai-executor*.js` | 共通AI APIへの接続と差し替え可能な認証 |
@@ -36,7 +36,7 @@ Cloudflare Workers Paid・Hono・D1・Queuesで動く問題アプリ。API、ス
 | `web/client.jsx` | Hono JSX DOMによる並べ替え操作と、フォーム送信・採点状況の更新 |
 | `shared/` | サーバー・画面・作問ツールで共有する定義 |
 | `tools/authoring/` | 固定版の仕様・公開コードからの手動作問と公開 |
-| `questions/` | 正解・採点基準・出典付きの問題ファイル |
+| `questions/` | GitHubで管理する正解・採点基準・出典付きの問題ファイル（出題の正本） |
 | `specs/`, `mappings/`, `code-sources.yaml` | 対象仕様とコード参照の設定 |
 | `migrations/` | D1マイグレーション |
 | `scripts/deploy.mjs`, `scripts/destroy.mjs` | D1・Queues・Workerの一括デプロイ／作成リソースの削除 |
@@ -59,7 +59,11 @@ npm run db:migrate:local
 npm run dev
 ```
 
-`npm run build` は `apps/quiz/dist/` を作成する。本文へ戻れるようにリーダーの公開ファイルも含める。画面のJavaScriptは `hono/jsx/dom` でバンドルし、HTMLはHonoがリクエストごとに描画する。全リクエストをHonoに通し、CSS・JavaScript・本文の取得はAssets bindingへ委譲する。Workerのソース、問題、採点基準、設定、テストは静的配信しない。RFC/PDF本文はリポジトリ共通の `rfcs/`・`pdfs/` を参照する。
+`npm run build` は `apps/quiz/dist/` を作成する。本文へ戻れるようにリーダーの公開ファイルも含める。公開済みの問題JSONは固定コミット情報とともに非公開のWorkerバンドルへ含め、DBへの問題本文の取り込みなしで出題する。別ブランチの固定版を公開するAPIも、DBへは版の参照と一覧用メタデータだけを登録する。正解・採点基準・出典本文はGitHubのファイルから読む。
+
+画面のJavaScriptは `hono/jsx/dom` でバンドルし、HTMLはHonoがリクエストごとに描画する。全リクエストをHonoに通し、CSS・JavaScript・本文の取得はAssets bindingへ委譲する。Workerのソース、問題、採点基準、設定、テストは静的配信しない。RFC/PDF本文はリポジトリ共通の `rfcs/`・`pdfs/` を参照する。
+
+通常の出題・即時採点・記述式回答の保存にはAccess認証は不要。回答は匿名Cookieで所有者を確認してD1へ保存する。記述式のAI採点を依頼するときだけ、専用ログイン画面で認証・認可し、匿名回答を引き継ぐ。作問・固定版の登録は管理操作として認証と作問権限を維持する。
 
 作問CLIの `--path` は、実行ディレクトリによらずリポジトリのルートからのパスを指定する。
 

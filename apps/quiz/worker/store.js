@@ -1,26 +1,33 @@
 import { HttpError } from './contracts.js';
+import { bundledSets, loadFileSet } from './question-files.js';
 
 export const parseSet = (row) => ({ id: row.id, revision: JSON.parse(row.revision_json), ...JSON.parse(row.public_json) });
 export const getSet = async (env, id) => {
-  const row = await env.DB.prepare('SELECT * FROM question_sets WHERE id = ?').bind(id).first();
+  const bundled = bundledSets(env).find((row) => row.id === id);
+  if (bundled) return bundled;
+  const row = env.DB && await env.DB.prepare('SELECT * FROM question_sets WHERE id = ?').bind(id).first();
   if (!row) throw new HttpError(404, '問題セットが見つかりません。');
-  return row;
+  return loadFileSet(env, row);
 };
 export async function listQuestionSets(env, spec) {
-  const query = spec
+  const query = env.DB && (spec
     ? env.DB.prepare('SELECT * FROM question_sets WHERE spec_id = ? ORDER BY created_at DESC LIMIT 100').bind(spec)
-    : env.DB.prepare('SELECT * FROM question_sets ORDER BY created_at DESC LIMIT 100');
-  const rows = await query.all();
-  return rows.results.map((row) => ({ id: row.id, title: row.title, spec: JSON.parse(row.public_json).spec,
+    : env.DB.prepare('SELECT * FROM question_sets ORDER BY created_at DESC LIMIT 100'));
+  const rows = query ? (await query.all()).results : [];
+  // 登録済みの固定版を先に並べ、デプロイに含まれる公開ファイルも取り込み操作なしで選べる。
+  const sets = new Map(rows.map((row) => [row.id, row]));
+  for (const row of bundledSets(env)) if ((!spec || row.spec_id === spec) && !sets.has(row.id)) sets.set(row.id, row);
+  return [...sets.values()].map((row) => ({ id: row.id, title: row.title, spec: JSON.parse(row.public_json).spec,
     pullRequest: JSON.parse(row.pr_json || 'null'), revision: JSON.parse(row.revision_json) }));
 }
-export async function listAttempts(env, setId, owner) {
-  const rows = await env.DB.prepare('SELECT id, status, created_at FROM attempts WHERE set_id = ? AND owner = ? ORDER BY created_at DESC LIMIT 20')
-    .bind(setId, owner).all();
+export async function listAttempts(env, setId, user) {
+  if (!env.DB) return [];
+  const rows = await env.DB.prepare('SELECT id, status, created_at FROM attempts WHERE set_id = ? AND (owner = ? OR anonymous_owner = ?) ORDER BY created_at DESC LIMIT 20')
+    .bind(setId, user.id, user.anonymousId || user.id).all();
   return rows.results;
 }
 export async function getAttempt(env, id, user) {
-  const row = await env.DB.prepare('SELECT * FROM attempts WHERE id = ? AND owner = ?').bind(id, user.id).first();
+  const row = await env.DB.prepare('SELECT * FROM attempts WHERE id = ? AND (owner = ? OR anonymous_owner = ?)').bind(id, user.id, user.anonymousId || user.id).first();
   if (!row) throw new HttpError(404, '回答が見つかりません。');
   return row;
 }

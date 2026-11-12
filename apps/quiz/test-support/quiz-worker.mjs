@@ -29,10 +29,11 @@ export function accessToken(subject = 'reader', overrides = {}) {
   return `${data}.${createSign('RSA-SHA256').update(data).sign(privateKey).toString('base64url')}`;
 }
 
-export async function startQuizWorker({ assets = false, port = 0, github = false, executorTransport = 'https', executorAuth = 'api-key' } = {}) {
+export async function startQuizWorker({ assets = false, port = 0, github = false, access = true, executorTransport = 'https', executorAuth = 'api-key' } = {}) {
   const executions = new Map();
   const executorRequests = [];
   const githubWrites = [];
+  const questionFiles = new Map();
   const behavior = { executorStatus: 202, artifact: structuredClone(fixture), earlyCallback: false };
   let mf;
   async function execute(request) {
@@ -50,7 +51,7 @@ export async function startQuizWorker({ assets = false, port = 0, github = false
     modulesRoot: root, compatibilityDate: '2026-11-01', cf: false, port,
     d1Databases: ['DB'],
     bindings: { APP_ORIGIN: 'https://reader.test', QUESTION_REPOSITORY: 'maronnjapan/readRFCInMobile', CODE_REPOSITORIES: 'example/product',
-      ACCESS_ISSUER: issuer, ACCESS_AUD: 'quiz-test', AUTHOR_SUBJECTS: 'author,service:author.access', AUTHOR_EMAILS: 'author@example.com', AI_CALLBACK_SECRET: callbackSecret,
+      ACCESS_ISSUER: access ? issuer : '', ACCESS_AUD: access ? 'quiz-test' : '', AUTHOR_SUBJECTS: 'author,service:author.access', AUTHOR_EMAILS: 'author@example.com', AI_CALLBACK_SECRET: callbackSecret,
       AI_EXECUTOR_TRANSPORT: executorTransport, AI_EXECUTOR_AUTH: executorAuth, AI_EXECUTOR_API_KEY: executorApiKey, AI_EXECUTOR_URL: 'https://ai-executor.test/v1/requests',
       ...(github ? { GITHUB_APP_ID: '1', GITHUB_INSTALLATION_ID: '2', GITHUB_APP_PRIVATE_KEY: privateKey.export({ type: 'pkcs8', format: 'pem' }) } : {}) },
     ratelimits: { AI_RATE_LIMITER: { namespace_id: '1001', simple: { limit: 5, period: 60 } } },
@@ -61,7 +62,10 @@ export async function startQuizWorker({ assets = false, port = 0, github = false
       const url = new URL(request.url);
       if (url.origin === 'https://ai-executor.test') return execute(request);
       if (url.origin === issuer) return WorkerResponse.json({ keys: [jwk] });
-      if (url.hostname === 'raw.githubusercontent.com') return WorkerResponse.json(behavior.artifact);
+      if (url.hostname === 'raw.githubusercontent.com') {
+        if (!questionFiles.has(url.pathname)) questionFiles.set(url.pathname, structuredClone(behavior.artifact));
+        return WorkerResponse.json(questionFiles.get(url.pathname));
+      }
       if (url.origin === 'https://api.github.com') {
         if (request.method !== 'GET') {
           const body = await request.json(); githubWrites.push({ path: url.pathname, method: request.method, body });
@@ -85,6 +89,20 @@ export async function startQuizWorker({ assets = false, port = 0, github = false
     method, headers: { Origin: 'https://reader.test', 'cf-access-jwt-assertion': accessToken(subject, overrides), ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}), ...headers },
     ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
   });
+  const anonymousClient = () => {
+    let cookie = '';
+    const call = async (path, { method = 'GET', body, headers = {}, form, subject } = {}) => {
+      const response = await mf.dispatchFetch(`https://reader.test${path}`, {
+        method, redirect: 'manual', headers: { Origin: 'https://reader.test', Cookie: cookie,
+          ...(subject ? { 'cf-access-jwt-assertion': accessToken(subject) } : {}),
+          ...(form ? { 'Content-Type': 'application/x-www-form-urlencoded' } : body !== undefined ? { 'Content-Type': 'application/json' } : {}), ...headers },
+        ...(form ? { body: new URLSearchParams(form).toString() } : body !== undefined ? { body: JSON.stringify(body) } : {}),
+      });
+      if (response.headers.has('set-cookie')) cookie = response.headers.get('set-cookie').split(';')[0];
+      return response;
+    };
+    return call;
+  };
   async function waitForExecution(id) {
     for (let i = 0; i < 100; i++) { if (executions.has(id)) return executions.get(id); await new Promise((r) => setTimeout(r, 30)); }
     throw new Error(`Queue did not dispatch ${id}`);
@@ -102,7 +120,7 @@ export async function startQuizWorker({ assets = false, port = 0, github = false
     if (!response.ok) throw new Error(`Publish ${response.status}: ${await response.text()}`);
     return response.json();
   }
-  return { mf, db, client, publish, executions, executorRequests, complete, waitForExecution, behavior, githubWrites };
+  return { mf, db, client, anonymousClient, publish, executions, executorRequests, complete, waitForExecution, behavior, githubWrites, questionFiles };
 }
 
 export async function submitAttemptAnswers(call, id, answers) {

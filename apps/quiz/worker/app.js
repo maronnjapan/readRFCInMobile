@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { HttpError } from './contracts.js';
 import { isAuthor } from './auth.js';
-import { authenticate, requireDatabase, sameOrigin } from './middleware.js';
+import { authenticate, requireDatabase, sameOrigin, visitor } from './middleware.js';
 import { questionSetRoutes } from './routes/question-sets.js';
 import { attemptRoutes } from './routes/attempts.js';
 import { authoringRoutes } from './routes/authoring.js';
@@ -12,26 +12,29 @@ import { jsx } from 'hono/jsx';
 
 const apiHeaders = { 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' };
 const api = new Hono();
-api.use('*', requireDatabase);
 api.use('*', async (c, next) => {
   for (const [name, value] of Object.entries(apiHeaders)) c.header(name, value);
   await next();
 });
 
 // AI の結果はジョブ専用トークンで認証する。利用者向けの Access 認証とは分ける。
+api.use('/ai/*', requireDatabase);
 api.route('/ai', aiResultRoutes);
 
-const authenticated = new Hono();
-authenticated.use('*', authenticate, sameOrigin);
-authenticated.get('/quiz/config', (c) => {
+const publicApi = new Hono();
+publicApi.use('*', visitor, sameOrigin);
+publicApi.get('/quiz/config', (c) => {
   const user = c.get('user');
-  return c.json({ available: true, canAuthor: isAuthor(user, c.env), user: user.email || user.id });
+  return c.json({ available: true, authenticated: user.authenticated, canAuthor: user.authenticated && isAuthor(user, c.env), user: user.authenticated ? user.email || user.id : null });
 });
-authenticated.route('/question-sets', questionSetRoutes);
-authenticated.route('/attempts', attemptRoutes);
-authenticated.route('/authoring/requests', authoringRoutes);
-authenticated.all('*', () => { throw new HttpError(404, 'エンドポイントまたはメソッドが見つかりません。'); });
-api.route('/', authenticated);
+publicApi.route('/question-sets', questionSetRoutes);
+publicApi.use('/attempts/*', requireDatabase);
+publicApi.route('/attempts', attemptRoutes);
+publicApi.use('/authoring/requests', requireDatabase, authenticate);
+publicApi.use('/authoring/requests/*', requireDatabase, authenticate);
+publicApi.route('/authoring/requests', authoringRoutes);
+publicApi.all('*', () => { throw new HttpError(404, 'エンドポイントまたはメソッドが見つかりません。'); });
+api.route('/', publicApi);
 
 export const app = new Hono();
 app.route('/api', api);

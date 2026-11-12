@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { authorOnly, validId } from '../middleware.js';
+import { authenticate, requireDatabase, authorOnly, validId } from '../middleware.js';
 import { readJson } from '../http.js';
 import { getSet, parseSet, listQuestionSets, listAttempts } from '../store.js';
 import { startAttempt } from '../services/attempts.js';
@@ -12,7 +12,7 @@ questionSetRoutes.get('/', async (c) => {
   return c.json({ sets: await listQuestionSets(c.env, c.req.query('spec')) });
 });
 
-questionSetRoutes.post('/import', authorOnly, async (c) => {
+questionSetRoutes.post('/import', requireDatabase, authenticate, authorOnly, async (c) => {
   return c.json(await publishQuestionSet(c.env, await readJson(c.req.raw)));
 });
 
@@ -20,11 +20,11 @@ questionSetRoutes.get('/:id', setId, async (c) => {
   return c.json(parseSet(await getSet(c.env, c.req.param('id'))));
 });
 
-questionSetRoutes.get('/:id/attempts', setId, async (c) => {
+questionSetRoutes.get('/:id/attempts', requireDatabase, setId, async (c) => {
   const set = await getSet(c.env, c.req.param('id'));
-  return c.json({ attempts: await listAttempts(c.env, set.id, c.get('user').id) });
+  return c.json({ attempts: await listAttempts(c.env, set.id, c.get('user')) });
 });
 
-questionSetRoutes.post('/:id/attempts', setId, async (c) => {
+questionSetRoutes.post('/:id/attempts', requireDatabase, setId, async (c) => {
   return c.json(await startAttempt(c.env, c.get('user'), c.req.param('id')), 201);
 });

@@ -3,9 +3,10 @@ import { HttpError } from './contracts.js';
 const cache = new Map();
 const bytes = (s) => Uint8Array.from(atob(s.replaceAll('-', '+').replaceAll('_', '/')), (c) => c.charCodeAt(0));
 const parse = (s) => JSON.parse(new TextDecoder().decode(bytes(s)));
+export const accessConfigured = (env) => /^https:\/\/[a-z0-9-]+\.cloudflareaccess\.com$/.test(env.ACCESS_ISSUER || '') && Boolean(env.ACCESS_AUD);
 
 export async function identity(request, env) {
-  if (!/^https:\/\/[a-z0-9-]+\.cloudflareaccess\.com$/.test(env.ACCESS_ISSUER || '') || !env.ACCESS_AUD) throw new HttpError(503, '利用者認証の設定が必要です。');
+  if (!accessConfigured(env)) throw new HttpError(503, '記述式の AI 採点には利用者認証の設定が必要です。');
   try {
     const token = request.headers.get('cf-access-jwt-assertion') || '';
     if (token.length > 16000) throw new Error();
@@ -32,7 +33,7 @@ export async function identity(request, env) {
     if (!jwk) throw new Error();
     const key = await crypto.subtle.importKey('jwk', jwk, { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' }, false, ['verify']);
     if (!await crypto.subtle.verify('RSASSA-PKCS1-v1_5', key, bytes(parts[2]), new TextEncoder().encode(`${parts[0]}.${parts[1]}`))) throw new Error();
-    return { id: service ? `service:${claims.common_name}` : claims.sub, email: !service && typeof claims.email === 'string' ? claims.email : '' };
+    return { id: service ? `service:${claims.common_name}` : claims.sub, email: !service && typeof claims.email === 'string' ? claims.email : '', authenticated: true };
   } catch { throw new HttpError(401, '許可されたアカウントでログインしてください。'); }
 }
 

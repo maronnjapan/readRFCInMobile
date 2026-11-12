@@ -5,6 +5,7 @@
   "type": "module",
   "description": "Cloudflare WorkersとHonoで動く仕様理解クイズ",
   "scripts": {
+    "pretest": "node scripts/build-question-catalog.mjs",
     "test": "node --test test/*.test.mjs",
     "build": "node scripts/build.mjs",
     "dev": "npm run build && wrangler dev",

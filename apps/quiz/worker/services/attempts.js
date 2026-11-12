@@ -4,12 +4,14 @@ import { isImmediate, sameAnswer } from '../../shared/quiz-types.js';
 import { now } from '../http.js';
 import { parseSet, getSet, getAttempt, instantProgress, attemptView } from '../store.js';
 import { createAiJob, enforceAiLimit, requestPullRequestSync } from './ai-jobs.js';
+import { registerSet } from '../question-files.js';
 
 export async function startAttempt(env, user, setId) {
   const set = await getSet(env, setId);
+  await registerSet(env, set);
   const id = crypto.randomUUID();
-  await env.DB.prepare('INSERT INTO attempts (id, set_id, owner, created_at, updated_at) VALUES (?, ?, ?, ?, ?)')
-    .bind(id, set.id, user.id, now(), now()).run();
+  await env.DB.prepare('INSERT INTO attempts (id, set_id, owner, anonymous_owner, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)')
+    .bind(id, set.id, user.id, user.anonymousId || null, now(), now()).run();
   return attemptView(env, await getAttempt(env, id, user));
 }
 
@@ -82,7 +84,9 @@ export async function saveWrittenAnswers(env, user, id, submitted) {
 }
 
 export async function requestWrittenGrading(env, user, id) {
+  if (!user.authenticated) throw new HttpError(401, '記述式の AI 採点にはログインが必要です。');
   const attempt = await getAttempt(env, id, user);
+  if (attempt.owner !== user.id && !attempt.owner.startsWith('guest:')) throw new HttpError(403, 'この回答の AI 採点を依頼する権限がありません。');
   if (!attempt.answers_json) throw new HttpError(409, '先に回答を保存してください。');
   if (attempt.status === 'graded') return attemptView(env, attempt);
   const row = await getSet(env, attempt.set_id);
@@ -91,6 +95,11 @@ export async function requestWrittenGrading(env, user, id) {
   const existing = await env.DB.prepare("SELECT id FROM ai_jobs WHERE target_id = ? AND operation = 'answers.grade' AND status IN ('queued', 'dispatching', 'submitted')").bind(id).first();
   if (existing) return { id: existing.id, status: 'queued' };
   await enforceAiLimit(env, user);
+  if (attempt.owner !== user.id) {
+    await env.DB.prepare('UPDATE attempts SET owner = ? WHERE id = ? AND owner = ?').bind(user.id, id, attempt.owner).run();
+    const claimed = await getAttempt(env, id, user);
+    if (claimed.owner !== user.id) throw new HttpError(403, 'この回答の AI 採点を依頼する権限がありません。');
+  }
   const jobId = await createAiJob(env, { operation: 'answers.grade', target: id, owner: user.id, context: { setId: set.id, revision: set.revision },
     input: { instructions: gradingInstructions, promptVersion: gradingPromptVersion, revision: set.revision, references: set.references, sourceMaterials: JSON.parse(row.materials_json),
       questions: set.questions.filter((q) => q.type === 'written').map((q) => ({ ...q, solution: solutions[q.id], answer: JSON.parse(attempt.answers_json)[q.id] })) },
