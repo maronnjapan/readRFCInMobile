@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { uuid } from '../contracts.js';
-import { validId } from '../middleware.js';
+import { authenticate, validId } from '../middleware.js';
 import { readJson } from '../http.js';
 import { getAttempt, attemptView } from '../store.js';
 import { saveInstantAnswers, saveWrittenAnswers, requestWrittenGrading } from '../services/attempts.js';
@@ -24,7 +24,7 @@ attemptRoutes.post('/:id/answers', attemptId, async (c) => {
   return c.json(await saveWrittenAnswers(c.env, c.get('user'), c.req.param('id'), body?.answers));
 });
 
-attemptRoutes.post('/:id/grading-requests', attemptId, async (c) => {
+attemptRoutes.post('/:id/grading-requests', attemptId, authenticate, async (c) => {
   const result = await requestWrittenGrading(c.env, c.get('user'), c.req.param('id'));
   return c.json(result, result.status === 'queued' ? 202 : 200);
 });

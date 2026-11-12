@@ -12,7 +12,9 @@
 | `questions/spec/` | main で管理する仕様そのものの問題 |
 | `questions/pr/` | 専用ブランチに保存する PR 固有の問題 |
 | `.authoring-work/` | 固定コミットで取得したコード。Git 管理・静的配信の対象外 |
-| D1 | 問題セットの固定版、利用者ごとの回答、選択式・並べ替えの点数、非同期採点ジョブ、採点理由・出典・実行設定の履歴 |
+| D1 | 問題の固定版への参照と一覧用メタデータ、利用者ごとの回答、即時採点の点数、非同期採点ジョブ、採点理由・出典・実行設定の履歴 |
+
+問題本文・正解・採点基準・出典本文の正本はGitHubのJSONファイルとする。`npm run build` は公開済みのJSONとそのファイルの固定コミットを `.wrangler/question-catalog.json` にまとめ、Worker内へバンドルする。mainへ追加してデプロイすれば、DBへの取り込みなしで問題一覧に表示される。別ブランチや過去の版の公開APIは固定コミットへの参照だけをDBへ登録し、問題本文をGitHubから取得する。D1の `question_sets` は既存の参照・PR連携用のスキーマを維持するが、本文・正解・採点基準の保存には使用しない。
 
 問題ファイルでは `questions` と `solutions` を分離する。静的配信の `dist/` には問題ファイルや採点基準をコピーせず、出題 API も各問題への回答前にその正解・採点基準・出典本文を返さない。公開問題リポジトリ自体には解答があるため、練習用の設計である。
 
@@ -57,11 +59,19 @@ npm run deploy:workers
 - 共通 AI API の接続先は [非同期 AI 実行契約](ai-executor-contract.md) に対応させる
 - `AUTHORING_PROFILE`, `GRADING_PROFILE`: 共通 API 側で承認された Claude の実行設定
 
-Cloudflare Access に許可利用者の Allow ポリシーと、作問用 Service Token の Service Auth ポリシーを設定する。保護対象には `/quiz`・`/quiz/*` の画面と `/api/*` を含める。`/api/ai/results` だけは別アプリ／ポリシーで Bypass し、Worker 内のジョブ専用トークン認証を使う。それ以外の画面・APIはAccess JWTの署名・issuer・audience・有効期限・subjectをWorker自身でも検証する。未設定時・未認証時に匿名の有料実行へフォールバックしない。
+通常の問題一覧・回答画面・即時採点・記述式回答の保存にはAccess認証を要求しない。Access未設定でも利用できる。Cloudflare Accessの保護対象は以下に絞り、許可利用者のAllowポリシーと作問用Service TokenのService Authポリシーを設定する。
+
+- `/quiz/ai-grading`: 記述式AI採点のためのログイン画面
+- `/quiz/attempts/*/grading-requests`、`/api/attempts/*/grading-requests`: AI採点依頼
+- `/api/authoring/requests`、`/api/authoring/requests/*`、`/api/question-sets/import`: 作問・固定版登録の管理操作
+
+**以前の設定で `/quiz`・`/quiz/*`・`/api/*` 全体を保護している場合は、そのAccessアプリの対象パスを変更する。WorkerのデプロイはAccess設定を変更しない。** `/api/ai/results` はAccessで保護せず、Worker内のジョブ専用トークン認証を使う。保護する操作ではAccess JWTの署名・issuer・audience・有効期限・subjectをWorker自身でも検証し、作問・登録には追加で作問権限を確認する。未設定時・未認証時に匿名の有料実行へフォールバックしない。
 
 `AI_EXECUTOR_API_KEY` はCIのSecretまたはCloudflareのWorker Secretへ登録する。`AI_CALLBACK_SECRET` は初回デプロイでランダムな64桁のhex値を生成し、Worker Secretへ保存する。既存の値は更新しない。自分で指定する場合は32文字以上のSecretを設定する。
 
 `npm run deploy:workers` は既存環境の更新時もWorkerの公開前にリモートDBマイグレーションを実行する。`0002_choice_answers.sql` は1問ごとの選択式回答を保存し、`0003_instant_answers.sql` は選択式・並べ替えに共通のJSON回答テーブルを追加して旧回答を引き継ぐ。更新中に旧 Worker が保存した回答も、次の読み込み時に引き継ぐ。
+
+`0004_anonymous_file_quizzes.sql` は匿名回答の所有者情報を追加する。既存データは削除しない。新しいWorkerは旧問題キャッシュを参照せず、過去の問題本文も固定コミットのGitHubファイルから読む。新規登録では問題本文・正解・採点基準をDBへ保存しない。
 
 `AI_EXECUTOR_API_KEY` は共通 AI API へのサーバー間認証にだけ使用し、`Authorization: Bearer` で送る。Claude キーは **共通 AI API 側だけ**に登録する。共通 API はキーごとに許可操作・利用上限を管理し、推論完了を待たず依頼を永続化して `202` を返し、完了時に別リクエストで結果を返す。
 
@@ -78,7 +88,7 @@ Service binding を使用する場合は、標準の HTTPS 設定から明示的
 
 上記は `wrangler.jsonc` へ追加・統合する設定差分。共通 API を非公開 Worker とし、binding で許可した実行元だけを受け付ける。API キー未設定や認証方式の誤記を理由にこの方式へ自動変更することはない。
 
-ローカル開発は `.dev.vars.example` を `.dev.vars` にコピーして設定し、`npm run db:migrate:local` と `npm run dev` を使う。Access JWT を発行する実環境と共通 AI Worker の接続が必要な操作は、対応する開発環境に接続する。依存サービスを使用せず確認する場合は、統合テストのモックを使う。認証を省略する本番コード用スイッチは設けていない。
+ローカル開発は `npm run db:migrate:local` と `npm run dev` を使う。通常回答はAccess設定なしで確認できる。AI採点・作問は `.dev.vars.example` を `.dev.vars` にコピーして設定し、対応するAccess・共通AI APIの開発環境に接続する。依存サービスを使用せず確認する場合は、統合テストのモックを使う。有料AI操作の認証を省略する本番コード用スイッチは設けていない。
 
 ## 手動で作問する
 
@@ -115,7 +125,7 @@ node tools/authoring/quiz.mjs generate --spec rfc-7523 --source reader --pr 42
 1. 候補の問題、選択肢、正解、記述式の配点・採点基準、出典の行、不整合を確認する。
 2. `node tools/authoring/quiz.mjs check --path apps/quiz/questions/spec/rfc-7523.json` で形式を検査する。
 3. レビュー後に `status` を `published` にする。定番問題は main、PR 固有の問題は専用ブランチへコミット・push する。
-4. その **40文字のコミット SHA** とパスを指定して取り込む。
+4. mainの公開済みファイルはデプロイ時に自動で出題される。別ブランチや過去の固定版を追加登録する場合は、その **40文字のコミット SHA** とパスを指定する。
 
 ```sh
 node tools/authoring/quiz.mjs publish --commit <40文字のSHA> --path apps/quiz/questions/spec/rfc-7523.json
@@ -130,13 +140,13 @@ GitHub Actions の **Author or publish a quiz (manual)** でも実行できる�
 
 ## 回答・採点
 
-`/quiz` から公開セットを選択する。選択式・並べ替えは1問ずつ表示し、「採点する」で回答を保存して、即座に正誤・点数・解説を表示する。「次の問題へ」で結果を確認しながら進み、即時採点の問題が終わったら記述式の回答に進む。本文画面の「問題を解く」は対応する仕様 ID で一覧を絞る。
+`/quiz` からログインなしで公開セットを選択する。選択式・並べ替えは1問ずつ表示し、「採点する」で回答を保存して、即座に正誤・点数・解説を表示する。「次の問題へ」で結果を確認しながら進み、即時採点の問題が終わったら記述式の回答に進む。本文画面の「問題を解く」は対応する仕様 ID で一覧を絞る。
 
 選択式・並べ替えは1問ごとの API で保存済み正解と照合し、記述式や残りの問題の回答を待たず、同じリクエストで結果を返す。未回答の問題の正解・解説は返さない。記述式のないセットは最後の1問で採点が完了する。途中で画面を閉じても、回答済みの結果と未回答の続きへ戻れる。
 
-記述式はまとめて回答を保存した後、独立した採点依頼 API で Queue に投入し、問題アプリが保存済み採点基準・出典本文・回答を含むプロンプトを組み立て、共通AI APIがそのままClaudeへ渡して採点する。記述式だけのセットも利用できる。受付・結果受信・利用者の回答送信はすべて別エンドポイント。画面は準備状況を確認し、採点が終わると点数・理由・根拠を表示する。
+記述式もログインなしでまとめて回答を保存できる。保存やログインだけではAIを実行しない。AI採点を希望する場合は「ログインして記述式をAI採点」から認証・認可し、引き継いだ回答を確認して「記述式のAI採点を依頼」を押す。認証済みの採点依頼APIでQueueに投入し、GitHubの採点基準・出典本文・回答を含むプロンプトを問題アプリが組み立て、共通AI APIがそのままClaudeへ渡して採点する。Access未設定時は回答保存済みとAI採点が利用できない旨を表示する。記述式だけのセットも利用できる。受付・結果受信・利用者の回答送信はすべて別エンドポイント。
 
-回答は Access の subject と出題セット ID にひも付く。同じ利用者は別ブラウザでも前の回答・結果を確認できる。送信後の内容変更は `409`、同じ内容の再送は同じ結果になる。再回答する場合は新しい回答を開始する。記述式の失敗時も回答を保持し、利用者が採点を再依頼できる。採点結果・profile・promptVersion・実際のモデル・利用量・参照版を履歴に保存する。
+匿名回答は32バイトのランダムな `__Host-quiz-session` Cookie（Secure・HttpOnly・SameSite=Lax）で所有者を確認し、Cookie値のSHA-256だけをDBへ保存する。同じブラウザで回答・結果へ戻れ、Cookieを削除すると匿名回答は開けなくなる。別の匿名セッションやIDだけを知る利用者には回答を返さない。AI採点の初回依頼では所有している匿名回答をAccessのsubjectへひも付け、認証済みの本人は別ブラウザからも開ける。元のブラウザからも引き続き結果を確認できる。送信後の内容変更は `409`、同じ内容の再送は同じ結果になる。再回答する場合は新しい回答を開始する。記述式の失敗時も回答を保持し、利用者が採点を再依頼できる。採点結果・profile・promptVersion・実際のモデル・利用量・参照版を履歴に保存する。
 
 採点は参考情報であり、マージ条件として強制しない。AI の点数や理由は出典と照合できるようにしている。API応答と利用者ごとの画面HTMLは `no-store` とし、Service Workerも `/api/`・`/quiz` をキャッシュしない。
 
@@ -168,15 +178,16 @@ npx wrangler secret put GITHUB_APP_PRIVATE_KEY
 | `POST /quiz/attempts` | 回答開始 |
 | `POST /quiz/attempts/:id/instant-answers` | 選択式・並べ替えの回答と即時採点 |
 | `POST /quiz/attempts/:id/answers` | 記述式の保存 |
-| `POST /quiz/attempts/:id/grading-requests` | 独立した非同期採点依頼 |
+| `GET /quiz/ai-grading?attempt=ID` | AI採点のためにログインし、自分の保存済み回答を表示 |
+| `POST /quiz/attempts/:id/grading-requests` | 認証・認可が必要な非同期AI採点依頼 |
 
-画面もAccess認証と所有者確認を通す。通常のフォームには303リダイレクトを返し、ブラウザの送信補助には遷移先JSONを返す。画面の状態とHTMLはHonoが描画する。静的な `quiz.html` は生成せず、旧URLは `/quiz` へリダイレクトする。
+通常の画面・回答操作は匿名セッションで所有者を確認し、AI採点だけAccess認証も要求する。通常のフォームには303リダイレクトを返し、ブラウザの送信補助には遷移先JSONを返す。画面の状態とHTMLはHonoが描画する。静的な `quiz.html` は生成せず、旧URLは `/quiz` へリダイレクトする。
 
 ## API と検証
 
 | API | 用途 |
 | --- | --- |
-| `GET /api/quiz/config` | ログイン確認・作問権限 |
+| `GET /api/quiz/config` | 匿名でも取得できるログイン状態・作問権限 |
 | `GET /api/question-sets[?spec=ID]` | 公開セット一覧 |
 | `GET /api/question-sets/:id` | 正解・採点基準を含まない出題データ |
 | `POST /api/question-sets/import` | 作問権限でレビュー済み固定版を公開 |
@@ -187,7 +198,7 @@ npx wrangler secret put GITHUB_APP_PRIVATE_KEY
 | `POST /api/attempts/:id/instant-answers` | 選択式・並べ替えを1問保存し即時採点。`{ "questionId": "client-sub", "answer": 0 }` / `{ "questionId": "registration-order", "answer": ["prepare", "send", "register", "receive"] }` |
 | `POST /api/attempts/:id/choice-answers` | 既存クライアント用の互換エンドポイント（同じ処理） |
 | `POST /api/attempts/:id/answers` | 選択式・並べ替えの完了後、記述式の回答を保存 |
-| `POST /api/attempts/:id/grading-requests` | 記述式の非同期採点依頼、`202` |
+| `POST /api/attempts/:id/grading-requests` | 認証・認可が必要な記述式の非同期採点依頼、`202` |
 | `POST /api/ai/results` | ジョブ専用トークンで AI の結果を受付 |
 
 選択式・並べ替えはセット内の即時採点の問題順に受け付け、同じ回答の再送は同じ結果を返す。並べ替えは全項目が1回ずつ含まれることも検証する。回答後の変更や未回答の問題を飛ばす送信は `409`。`GET /api/attempts/:id` の `answers` と `results` は途中経過も返し、`completed` が全問の回答保存済み、`status: graded` が全問の採点完了を表す。

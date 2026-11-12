@@ -17,16 +17,16 @@ async function attempt(subject = 'reader', commit) {
 }
 
 test('Access JWT validation and author permissions reject unauthorized callers', async () => {
-  assert.equal((await worker.mf.dispatchFetch('https://reader.test/api/quiz/config')).status, 401);
-  assert.equal((await worker.client('reader', { aud: ['other-app'] })('/api/quiz/config')).status, 401);
-  assert.equal((await worker.client('reader', { exp: 1 })('/api/quiz/config')).status, 401);
+  assert.equal((await worker.mf.dispatchFetch('https://reader.test/api/quiz/config')).status, 200);
+  assert.equal((await worker.client('reader', { aud: ['other-app'] })('/api/authoring/requests', { method: 'POST', body: {} })).status, 401);
+  assert.equal((await worker.client('reader', { exp: 1 })('/api/authoring/requests', { method: 'POST', body: {} })).status, 401);
   assert.equal((await worker.client('reader')('/api/question-sets/import', { method: 'POST', body: {} })).status, 403);
   const service = await worker.client('ignored', { sub: '', common_name: 'author.access', email: '' })('/api/quiz/config');
   assert.equal(service.status, 200);
   assert.equal((await service.json()).canAuthor, true, 'Access Service Auth uses the signed common_name when sub is empty');
   assert.equal((await worker.client('ignored', { sub: '', common_name: 'other.access', email: '' })('/api/authoring/requests', { method: 'POST', body: {} })).status, 403);
   const token = accessToken('reader');
-  assert.equal((await worker.client()('/api/quiz/config', { headers: { 'cf-access-jwt-assertion': `${token.slice(0, -10)}abcdefghij` } })).status, 401);
+  assert.equal((await worker.client()('/api/authoring/requests', { method: 'POST', body: {}, headers: { 'cf-access-jwt-assertion': `${token.slice(0, -10)}abcdefghij` } })).status, 401);
 });
 
 test('Hono middleware keeps API errors private and enforces origin and content limits', async () => {
@@ -42,7 +42,7 @@ test('Hono middleware keeps API errors private and enforces origin and content l
     [await worker.mf.dispatchFetch('https://reader.test/api/authoring/requests', {
       method: 'POST', body: '{', headers: { 'content-type': 'application/json', 'cf-access-jwt-assertion': accessToken('author') },
     }), 400],
-    [await worker.mf.dispatchFetch('https://reader.test/api/ai/results'), 401],
+    [await worker.mf.dispatchFetch('https://reader.test/api/ai/results'), 404],
   ];
   for (const [response, status] of responses) {
     assert.equal(response.status, status);
@@ -52,13 +52,13 @@ test('Hono middleware keeps API errors private and enforces origin and content l
   }
 });
 
-test('static reader assets remain available while the Hono quiz screen requires an identity', async () => {
+test('static reader assets and the Hono quiz screen are available anonymously', async () => {
   for (const path of ['/', '/styles.css', '/src/quiz-page.js']) {
     const response = await worker.mf.dispatchFetch(`https://reader.test${path}`);
     assert.equal(response.status, 200);
     assert.equal(await response.text(), 'static content');
   }
-  assert.equal((await worker.mf.dispatchFetch('https://reader.test/quiz')).status, 401);
+  assert.equal((await worker.mf.dispatchFetch('https://reader.test/quiz')).status, 200);
 });
 
 test('published sets are pinned, exclude grading secrets, and support spec-only discovery', async () => {

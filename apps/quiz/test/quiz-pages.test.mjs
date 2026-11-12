@@ -38,7 +38,7 @@ test('Hono renders list, setup and first question in the HTTP response without a
   assert.ok(!html.includes(patternsFixture.questions[1].prompt), 'future questions are not rendered');
   assert.ok(!html.includes('solutions'));
   assert.ok(!html.includes('sourceMaterials'));
-  assert.equal((await worker.mf.dispatchFetch('https://reader.test/quiz')).status, 401);
+  assert.equal((await worker.mf.dispatchFetch('https://reader.test/quiz')).status, 200);
   assert.equal((await get(`/quiz?attempt=${run.id}`, 'other')).status, 404);
   const alias = await worker.mf.dispatchFetch('https://reader.test/quiz.html?spec=rfc-7591', { redirect: 'manual' });
   assert.equal(alias.headers.get('location'), '/quiz?spec=rfc-7591');
@@ -78,7 +78,7 @@ test('written save, separate grading request and raw AI text produce a Hono resu
   assert.match(written, /textarea/);
   const saved = await post(`/quiz/attempts/${run.id}/answers`, { 'public-client-design': 'redirect_uris にURL。公開クライアントなので none。TLSでJSONをPOSTする。' });
   assert.equal(saved.status, 303);
-  assert.match(saved.headers.get('location'), /grade=1/);
+  assert.ok(!saved.headers.get('location').includes('grade='), 'saving never starts paid grading automatically');
   assert.equal(worker.executions.size, 0, 'saving is separate from AI dispatch');
   const grade = await post(`/quiz/attempts/${run.id}/grading-requests`);
   assert.equal(grade.status, 303);

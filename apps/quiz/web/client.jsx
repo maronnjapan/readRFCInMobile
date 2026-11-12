@@ -42,8 +42,6 @@ if (params.has('grade') || params.has('focus')) {
   params.delete('grade'); params.delete('focus');
   history.replaceState(null, '', `/quiz?${params}`);
 }
-if (document.querySelector('[data-auto-grade="true"]')) document.getElementById('grading-form')?.requestSubmit();
-
 const pending = document.querySelector('[data-grading="true"]');
 let timer;
 let started = Date.now();

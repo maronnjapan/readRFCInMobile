@@ -2,9 +2,11 @@ import { cp } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { build } from 'esbuild';
 import { buildReaderAssets } from '../../../scripts/build-assets.mjs';
+import { buildQuestionCatalog } from './build-question-catalog.mjs';
 
 const app = new URL('../', import.meta.url);
 const output = new URL('dist/', app);
+await buildQuestionCatalog();
 
 // 本文へ戻れるよう、公開用リーダーと問題画面を同じオリジンに配置する。
 await buildReaderAssets(output);
