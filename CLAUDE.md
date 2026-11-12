@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-RFC と PDF をスマホで読むための、ビルド不要の静的サイトです（詳しくは README.md）。依存パッケージはなく、テストは `npm test`（Node 18 以降）で動きます。`main` に push すると `.github/workflows/deploy-pages.yml` がテストを実行してから GitHub Pages に公開します。
+RFC と PDF をスマホで読むためのリーダーです（詳しくは README.md）。閲覧機能はビルド不要の静的サイトとして動きます。問題アプリは `apps/quiz/` に集約し、画面・APIともHono + Cloudflare Workers Paid + D1で動き、画面はHono JSX、ブラウザの並べ替えはHono JSX DOMで構成します。作問・採点の完成済みプロンプトは問題アプリで組み立て、共通AI APIへ渡します。構成の入口は `apps/quiz/README.md` と `apps/quiz/worker/app.js` です。`npm ci` の後、テストは `npm test`（Node 22 以降）、Workers の検査は `npm run check:workers` で実行します。ルートのこれらのコマンドは問題アプリのworkspaceへ処理を委譲します。`main` 更新時は `deploy-pages.yml` が静的ファイルをGitHub Pagesへ、`deploy-workers.yml` がD1・Queues作成とマイグレーション後にHonoアプリをWorkersへ公開します。Workersの手動公開は `npm run deploy:workers`、削除計画は `npm run destroy:workers`、作成済みリソースの削除は `-- --confirm <Worker名>` を付けます。手順と所有情報の保存先は `apps/quiz/docs/deployment.md` を参照してください。
 
 ## 日本語訳の作り方
 

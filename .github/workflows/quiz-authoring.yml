@@ -1,0 +1,79 @@
+name: Author or publish a quiz (manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        type: choice
+        options: [generate, publish]
+        required: true
+      spec_id:
+        description: apps/quiz/specs/index.json の ID
+        default: rfc-7523
+      code_source:
+        description: apps/quiz/code-sources.yaml の ID (空なら仕様のみ)
+      pr_number:
+        description: 対象 PR 番号 (任意。code_source が必要)
+      question_count:
+        description: 問題数 (2〜10。選択したカテゴリ数以上)
+        default: '6'
+      question_categories:
+        description: 出題カテゴリ (カンマ区切り)
+        default: vocabulary,knowledge,flow,design,debugging,comparison
+      commit:
+        description: 公開する問題ファイルの固定コミット (publish の場合)
+      path:
+        description: 公開する apps/quiz/questions/spec/ または pr/ 内の JSON (publish の場合)
+
+permissions:
+  contents: write
+
+jobs:
+  author:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    environment: quiz-authoring
+    env:
+      QUIZ_API_URL: ${{ vars.QUIZ_API_URL }}
+      QUESTION_REPOSITORY: ${{ github.repository }}
+      CF_ACCESS_CLIENT_ID: ${{ secrets.CF_ACCESS_CLIENT_ID }}
+      CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
+      GITHUB_TOKEN: ${{ github.token }}
+      OPERATION: ${{ inputs.operation }}
+      SPEC_ID: ${{ inputs.spec_id }}
+      CODE_SOURCE: ${{ inputs.code_source }}
+      PR_NUMBER: ${{ inputs.pr_number }}
+      QUESTION_COUNT: ${{ inputs.question_count }}
+      QUESTION_CATEGORIES: ${{ inputs.question_categories }}
+      PUBLISH_COMMIT: ${{ inputs.commit }}
+      PUBLISH_PATH: ${{ inputs.path }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - id: generate
+        if: env.OPERATION == 'generate'
+        shell: bash
+        run: |
+          args=(generate --spec "$SPEC_ID" --count "$QUESTION_COUNT" --categories "$QUESTION_CATEGORIES")
+          if [[ -n "$CODE_SOURCE" ]]; then args+=(--source "$CODE_SOURCE"); fi
+          if [[ -n "$PR_NUMBER" ]]; then args+=(--pr "$PR_NUMBER"); fi
+          node apps/quiz/tools/authoring/quiz.mjs "${args[@]}"
+      - if: env.OPERATION == 'generate'
+        env:
+          GENERATED_PATH: ${{ steps.generate.outputs.path }}
+        run: |
+          git switch -c "quiz/generated-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- "$GENERATED_PATH"
+          git commit -m 'Generate draft quiz for review'
+          git push origin HEAD
+      - if: env.OPERATION == 'publish'
+        run: node apps/quiz/tools/authoring/quiz.mjs publish --commit "$PUBLISH_COMMIT" --path "$PUBLISH_PATH"

@@ -1,0 +1,70 @@
+name: Destroy quiz Cloudflare resources (manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_worker:
+        description: 削除するWorker名を入力 (既定 spec-understanding-quiz)。作成済みDBの回答データも削除する
+        required: true
+        type: string
+      state_run_id:
+        description: Worker公開前に失敗したデプロイの復旧用run ID (通常は空でD1の記録を使用)
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: quiz-workers-production
+  cancel-in-progress: false
+
+env:
+  WRANGLER_SEND_METRICS: 'false'
+
+jobs:
+  destroy:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: quiz-production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Verify recovery artifact source
+        if: inputs.state_run_id != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          STATE_RUN_ID: ${{ inputs.state_run_id }}
+        run: |
+          [[ "$STATE_RUN_ID" =~ ^[0-9]+$ ]] || { echo 'run IDは数字で指定してください。'; exit 1; }
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$STATE_RUN_ID" > "$RUNNER_TEMP/quiz-state-run.json"
+          node --input-type=module <<'JS'
+          import { readFileSync } from 'node:fs';
+          const run = JSON.parse(readFileSync(`${process.env.RUNNER_TEMP}/quiz-state-run.json`, 'utf8'));
+          if (run.repository.full_name !== process.env.GITHUB_REPOSITORY || run.head_branch !== 'main'
+              || !['push', 'workflow_dispatch'].includes(run.event)
+              || run.path.split('@')[0] !== '.github/workflows/deploy-workers.yml') {
+            throw new Error('main上のデプロイ実行が出力した状態ファイルだけを使用できます。');
+          }
+          JS
+      - name: Restore deployment state
+        if: inputs.state_run_id != ''
+        uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: ${{ inputs.state_run_id }}
+          name: quiz-deployment-state-${{ inputs.state_run_id }}
+          path: apps/quiz/.wrangler/quiz-deploy
+      - name: Destroy resources created by this deployment
+        run: npm run destroy:workers -- --confirm "$CONFIRM_WORKER"
+        env:
+          CONFIRM_WORKER: ${{ inputs.confirm_worker }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID || secrets.CLOUDFLARE_ACCOUNT_ID }}
+          QUIZ_WORKER_NAME: ${{ vars.QUIZ_WORKER_NAME }}

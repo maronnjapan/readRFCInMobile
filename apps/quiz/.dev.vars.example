@@ -1,0 +1,10 @@
+# Cloudflare Access のアプリケーション設定。ブラウザの利用者と作問用 Service Token を許可する。
+ACCESS_ISSUER=https://your-team.cloudflareaccess.com
+ACCESS_AUD=your-access-application-aud
+AUTHOR_SUBJECTS=service:your-authoring-service-token-client-id.access
+AUTHOR_EMAILS=you@example.com
+# 共通 AI API の呼び出し用キー。Claude 自体の API キーとは別に発行する。
+AI_EXECUTOR_URL=https://ai-api.example.com/v1/requests
+AI_EXECUTOR_API_KEY=replace-with-your-ai-executor-api-key
+# openssl rand -hex 32 などで生成。Claude キーはこのサービスに設定しない。
+AI_CALLBACK_SECRET=replace-with-a-random-secret-at-least-32-characters

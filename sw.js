@@ -1,6 +1,6 @@
 // Service Worker: アプリ本体と日本語訳 (rfcs/ja/・pdfs/ja/、書き直すことがある) はネットワーク優先 + キャッシュフォールバック、
 // RFC 本文 (不変) はキャッシュ優先で保存し、オフラインでも再読できるようにする。
-const VERSION = 'v3';
+const VERSION = 'v7';
 const SHELL_CACHE = `rfcreader-shell-${VERSION}`;
 const TEXT_CACHE = 'rfcreader-texts';
 // pdf.js (vendor/) は PDF を初めて開いたときに取得し、下のネットワーク優先の処理でキャッシュする
@@ -25,11 +25,16 @@ self.addEventListener('activate', (event) => {
 });
 
 const isRfcText = (url) => /\/rfc\d{1,5}\.txt$/.test(url.pathname);
+const canCache = (response) => response.ok && !/\b(?:no-store|private)\b/i.test(response.headers.get('Cache-Control') || '');
 
 self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
+  // 生成状況、正解、個人の回答をオフラインキャッシュに残さない。
+  if (/\/api\//.test(url.pathname)) return;
+  // Hono が描画する問題画面には利用者ごとの回答が含まれる。
+  if (/\/quiz(?:\/|(?:\.html)?$)/.test(url.pathname)) return;
 
   if (isRfcText(url)) {
     event.respondWith(
@@ -37,7 +42,7 @@ self.addEventListener('fetch', (event) => {
         const hit = await cache.match(req);
         if (hit) return hit;
         const res = await fetch(req);
-        if (res.ok) cache.put(req, res.clone());
+        if (canCache(res)) cache.put(req, res.clone());
         return res;
       }),
     );
@@ -48,7 +53,7 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(req)
         .then((res) => {
-          if (res.ok) {
+          if (canCache(res)) {
             const copy = res.clone();
             caches.open(SHELL_CACHE).then((c) => c.put(req, copy));
           }

@@ -1,0 +1,221 @@
+{
+  "format": "spec-understanding-quiz",
+  "version": 1,
+  "id": "rfc-7591-registration",
+  "title": "RFC 7591: 動的登録の理解",
+  "status": "published",
+  "spec": {
+    "id": "rfc-7591",
+    "status": "adopted",
+    "repository": "maronnjapan/readRFCInMobile",
+    "commit": "c1a331628736fc9b3dfd438b424dff1453a0c519",
+    "path": "rfcs/rfc7591.txt"
+  },
+  "references": [
+    {
+      "id": "registration-flow",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "c1a331628736fc9b3dfd438b424dff1453a0c519",
+      "path": "rfcs/rfc7591.txt",
+      "startLine": 359,
+      "endLine": 389,
+      "reason": "登録要求からクライアント情報応答までの順序",
+      "excerpt": "   The abstract OAuth 2.0 client dynamic registration flow illustrated\n   in Figure 1 describes the interaction between the client or developer\n   and the endpoint defined in this specification.  This figure does not\n   demonstrate error conditions.  This flow includes the following\n   steps:\n\n   (A)   Optionally, the client or developer is issued an initial access\n         token giving access to the client registration endpoint.  The\n         method by which the initial access token is issued to the\n         client or developer is out of scope for this specification.\n\n   (B)   Optionally, the client or developer is issued a software\n         statement for use with the client registration endpoint.  The\n         method by which the software statement is issued to the client\n         or developer is out of scope for this specification.\n\n   (C)   The client or developer calls the client registration endpoint\n         with the client's desired registration metadata, optionally\n         including the initial access token from (A) if one is required\n         by the authorization server.\n\n   (D)   The authorization server registers the client and returns:\n\n         *  the client's registered metadata,\n\n         *  a client identifier that is unique at the server, and\n\n         *  a set of client credentials such as a client secret, if\n            applicable for this client.\n\n   Examples of different configurations and usages are included in"
+    },
+    {
+      "id": "registration-metadata",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "c1a331628736fc9b3dfd438b424dff1453a0c519",
+      "path": "rfcs/rfc7591.txt",
+      "startLine": 417,
+      "endLine": 444,
+      "reason": "リダイレクト先とトークンエンドポイント認証方式",
+      "excerpt": "   redirect_uris\n      Array of redirection URI strings for use in redirect-based flows\n      such as the authorization code and implicit flows.  As required by\n      Section 2 of OAuth 2.0 [RFC6749], clients using flows with\n      redirection MUST register their redirection URI values.\n      Authorization servers that support dynamic registration for\n      redirect-based flows MUST implement support for this metadata\n      value.\n\n   token_endpoint_auth_method\n      String indicator of the requested authentication method for the\n      token endpoint.  Values defined by this specification are:\n\n      *  \"none\": The client is a public client as defined in OAuth 2.0,\n         Section 2.1, and does not have a client secret.\n\n      *  \"client_secret_post\": The client uses the HTTP POST parameters\n         as defined in OAuth 2.0, Section 2.3.1.\n\n      *  \"client_secret_basic\": The client uses HTTP Basic as defined in\n         OAuth 2.0, Section 2.3.1.\n\n      Additional values can be defined via the IANA \"OAuth Token\n      Endpoint Authentication Methods\" registry established in\n      Section 4.2.  Absolute URIs can also be used as values for this\n      parameter without being registered.  If unspecified or omitted,\n      the default is \"client_secret_basic\", denoting the HTTP Basic\n      authentication scheme as specified in Section 2.3.1 of OAuth 2.0."
+    },
+    {
+      "id": "software-identity",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "c1a331628736fc9b3dfd438b424dff1453a0c519",
+      "path": "rfcs/rfc7591.txt",
+      "startLine": 607,
+      "endLine": 624,
+      "reason": "ソフトウェアと登録インスタンスの識別子の違い",
+      "excerpt": "   software_id\n      A unique identifier string (e.g., a Universally Unique Identifier\n      (UUID)) assigned by the client developer or software publisher\n      used by registration endpoints to identify the client software to\n      be dynamically registered.  Unlike \"client_id\", which is issued by\n      the authorization server and SHOULD vary between instances, the\n      \"software_id\" SHOULD remain the same for all instances of the\n      client software.  The \"software_id\" SHOULD remain the same across\n\n\n\nRicher, et al.               Standards Track                   [Page 11]\n\f\nRFC 7591             OAuth 2.0 Dynamic Registration            July 2015\n\n\n      multiple updates or versions of the same piece of software.  The\n      value of this field is not intended to be human readable and is"
+    },
+    {
+      "id": "registration-endpoint",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "c1a331628736fc9b3dfd438b424dff1453a0c519",
+      "path": "rfcs/rfc7591.txt",
+      "startLine": 832,
+      "endLine": 860,
+      "reason": "登録要求の形式と通信の保護",
+      "excerpt": "3.  Client Registration Endpoint\n\n   The client registration endpoint is an OAuth 2.0 endpoint defined in\n   this document that is designed to allow a client to be registered\n   with the authorization server.  The client registration endpoint MUST\n   accept HTTP POST messages with request parameters encoded in the\n\n\n\n\nRicher, et al.               Standards Track                   [Page 15]\n\f\nRFC 7591             OAuth 2.0 Dynamic Registration            July 2015\n\n\n   entity body using the \"application/json\" format.  The client\n   registration endpoint MUST be protected by a transport-layer security\n   mechanism, as described in Section 5.\n\n   The client registration endpoint MAY be an OAuth 2.0 [RFC6749]\n   protected resource and it MAY accept an initial access token in the\n   form of an OAuth 2.0 access token to limit registration to only\n   previously authorized parties.  The method by which the initial\n   access token is obtained by the client or developer is generally out\n   of band and is out of scope for this specification.  The method by\n   which the initial access token is verified and validated by the\n   client registration endpoint is out of scope for this specification.\n\n   To support open registration and facilitate wider interoperability,"
+    }
+  ],
+  "questions": [
+    {
+      "id": "redirect-uris-meaning",
+      "type": "choice",
+      "category": "vocabulary",
+      "term": "redirect_uris",
+      "prompt": "この用語を平易な言葉に置き換えると、どの説明になりますか？",
+      "options": [
+        "アプリが認可コードなどを受け取る、リダイレクト先URLの一覧",
+        "アプリがアクセスできるAPIのURLの一覧",
+        "利用者が過去に開いたWebページの一覧",
+        "認可サーバーがトークンを発行するURLの一覧"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "registration-metadata"
+      ]
+    },
+    {
+      "id": "default-auth-method",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "登録時に token_endpoint_auth_method を省略した場合、既定の方式はどれですか？",
+      "options": [
+        "none",
+        "client_secret_post",
+        "client_secret_basic"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "registration-metadata"
+      ]
+    },
+    {
+      "id": "registration-order",
+      "type": "ordering",
+      "category": "flow",
+      "prompt": "成功する動的登録のフローを組み立ててください。初期アクセストークンなどの任意の事前手続きは済んでいるものとします。",
+      "items": [
+        {
+          "id": "receive",
+          "text": "アプリが発行された client_id と登録済みメタデータを受け取る"
+        },
+        {
+          "id": "prepare",
+          "text": "アプリが希望する登録メタデータを用意する"
+        },
+        {
+          "id": "register",
+          "text": "認可サーバーがクライアントを登録して応答する"
+        },
+        {
+          "id": "send",
+          "text": "アプリが登録エンドポイントへメタデータを送る"
+        }
+      ],
+      "points": 2,
+      "referenceIds": [
+        "registration-flow"
+      ]
+    },
+    {
+      "id": "public-client-design",
+      "type": "written",
+      "category": "design",
+      "scenario": "認可コードを使うアプリを動的登録します。このアプリはクライアントシークレットを持たない公開クライアントです。認可サーバーは必要なメタデータと認証方式をサポートしています。",
+      "prompt": "リダイレクト先とトークンエンドポイント認証方式をどう指定し、登録要求をどう送りますか？ 選んだ理由も説明してください。",
+      "answerHint": "2〜3項目の箇条書きで構いません。設定する値と、その理由を書いてください。",
+      "points": 3,
+      "referenceIds": [
+        "registration-metadata",
+        "registration-endpoint"
+      ]
+    },
+    {
+      "id": "insecure-registration",
+      "type": "choice",
+      "category": "debugging",
+      "scenario": "登録要求と、発行されたクライアント情報を、TLSを使わず平文HTTPでやり取りする実装を見つけました。",
+      "prompt": "仕様の要求を満たすために必要な修正はどれですか？",
+      "options": [
+        "JSONをBase64に変換して平文HTTPで送る",
+        "登録エンドポイントの通信をTLSで保護する",
+        "client_id の文字数を増やす",
+        "登録応答のJSONのキー名を短くする"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "registration-endpoint"
+      ]
+    },
+    {
+      "id": "software-vs-client",
+      "type": "choice",
+      "category": "comparison",
+      "prompt": "同じソフトウェアを複数の環境で登録するとき、software_id と client_id はどう使い分けるのが仕様の意図ですか？",
+      "options": [
+        "両方とも、どの環境でも同じ値に固定する",
+        "software_id は登録ごとに変え、client_id は開発者が固定する",
+        "software_id は同じソフトウェアを表し、client_id は認可サーバーが発行してインスタンスごとに変えることが推奨される"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "software-identity"
+      ]
+    }
+  ],
+  "solutions": {
+    "redirect-uris-meaning": {
+      "answer": 0,
+      "explanation": "redirect_uris は、認可コードフローなどで使うリダイレクト先URIの配列です。単語の翻訳ではなく、アプリが認可結果を受け取る場所という役割を捉えます。"
+    },
+    "default-auth-method": {
+      "answer": 2,
+      "explanation": "RFC 7591 セクション2は、省略時の既定値を client_secret_basic と定めています。公開クライアントであれば、要件に応じて none を明示します。"
+    },
+    "registration-order": {
+      "answer": [
+        "prepare",
+        "send",
+        "register",
+        "receive"
+      ],
+      "explanation": "アプリが希望するメタデータを送った後、認可サーバーが登録し、登録済みメタデータとサーバーで一意な client_id を返します。クライアントシークレットなどの認証情報は、該当するクライアントの場合にだけ返されます。"
+    },
+    "public-client-design": {
+      "explanation": "redirect_uris に認可結果を受け取るURLの一覧を登録します。シークレットを持たない公開クライアントなので token_endpoint_auth_method は none を明示します。登録要求はTLSで保護したエンドポイントへ application/json の本文をHTTP POSTで送ります。",
+      "rubric": [
+        {
+          "criterion": "リダイレクト先URLを redirect_uris の配列として登録し、認可コードを受け取る場所だと説明する。",
+          "points": 1,
+          "referenceIds": [
+            "registration-metadata"
+          ]
+        },
+        {
+          "criterion": "クライアントシークレットを持たない公開クライアントなので token_endpoint_auth_method に none を指定する。",
+          "points": 1,
+          "referenceIds": [
+            "registration-metadata"
+          ]
+        },
+        {
+          "criterion": "登録要求をTLSで保護したエンドポイントへHTTP POSTし、JSON本文（application/json）で送ると説明する。",
+          "points": 1,
+          "referenceIds": [
+            "registration-endpoint"
+          ]
+        }
+      ]
+    },
+    "insecure-registration": {
+      "answer": 1,
+      "explanation": "RFC 7591 セクション3は、登録エンドポイントをトランスポート層のセキュリティ機構で保護することを要求しています。Base64は暗号化ではなく、この要求を満たしません。"
+    },
+    "software-vs-client": {
+      "answer": 2,
+      "explanation": "software_id は開発者・発行者が割り当て、同じソフトウェアのインスタンス間で同じ値を保つことが推奨されます。client_id は認可サーバーが発行し、インスタンス間で変わることが推奨されます。"
+    }
+  },
+  "inconsistencies": []
+}

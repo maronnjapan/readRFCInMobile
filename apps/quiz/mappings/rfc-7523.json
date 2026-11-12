@@ -1,0 +1,6 @@
+{
+  "specId": "rfc-7523",
+  "codeSource": "reader",
+  "searchTerms": ["JWT", "assertion", "audience", "subject"],
+  "note": "参照先設定の例。このリーダーが RFC 7523 のプロトコルを実装するという意味ではない。対象製品の公開リポジトリとパスに置き換える。"
+}
