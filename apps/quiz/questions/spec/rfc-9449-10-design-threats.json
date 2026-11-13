@@ -648,7 +648,7 @@
       "prompt": "RS-B での結果として正しいものはどれですか？",
       "options": [
         "RS-A が proof の htu を RS-B の URI に書き換えれば、署名を作り直さなくても受理される",
-        "proof の htu が RS-A の URI なので拒否される。RS-A は鍵を持たず、RS-B 向けの proof も作れない",
+        "proof の htu が RS-A の URI なので拒否される。RS-A は RS-B 向けの proof も作れない",
         "RS-B は RS-A からの接続を信頼しないので、トークンを検証する前に、TLS の段階で接続を拒否する",
         "ath がトークンと一致するので受理される。aud でトークンを制限しない限り、この転用は防げない",
         "jwk の公開鍵がトークンの結び付けと一致するので受理される。nonce を使わない限り防げない"
@@ -898,7 +898,7 @@
       "answer": 2
     },
     "bcp-sc-limits": {
-      "explanation": "RFC 9700 §4.10.1 は「the security of sender-constrained tokens is undermined when an attacker gets access to the token and the key material」とし、鍵がハードウェアやソフトウェアのセキュリティモジュールにある場合などは「sender-constrained tokens at least protect against the use of the token when the client is offline」と述べ、これはアクセストークンにも refresh token にも当てはまるとしています。D：クライアントが侵害されてオンラインのあいだは鍵を使われます（RFC 9449 §11.4）。ただし DPoP で nonce を使わない場合、攻撃者がクライアントを操作できたあいだに事前生成した proof があれば、クライアントがオフラインでもトークンを使われ得ます（RFC 9449 §11.2・§11.4）。C：トークンだけでは鍵がないので使えません。E：§4.10 は、AS がアクセストークンを送信者制約し、かつオーディエンス制限すべきである（SHOULD）としています。",
+      "explanation": "RFC 9700 §4.10.1 は「the security of sender-constrained tokens is undermined when an attacker gets access to the token and the key material」とし、鍵がハードウェアやソフトウェアのセキュリティモジュールにある場合などは「sender-constrained tokens at least protect against the use of the token when the client is offline」と述べ、これはアクセストークンにも refresh token にも当てはまるとしています。なお DPoP で nonce を使わない場合、攻撃者がクライアントを操作できたあいだに事前生成した proof があれば、クライアントがオフラインでもトークンを使われ得ます（RFC 9449 §11.2・§11.4）。D：クライアントが侵害されてオンラインのあいだは鍵を使われます（RFC 9449 §11.4）。C：トークンだけでは鍵がないので使えません。E：RFC 9700 §4.10 は、AS がアクセストークンを送信者制約し、かつオーディエンス制限すべきである（SHOULD）としています。",
       "answer": 0
     },
     "pregenerated-token-lifetime": {
@@ -914,7 +914,7 @@
       "answer": 4
     },
     "threat-model": {
-      "explanation": "(1) DPoP に対応した API では、鍵がないので proof を作れず、トークンは使えない。ただし DPoP に対応していない古い API は DPoP-bound のトークンを Bearer として受け付けると考えられるので（§7.2）、そこでは使われ得る。aud でトークンの宛先を限る（RFC 7800 §4）か、古い API を DPoP に対応させる。(2) 同じメソッド・URI への同じ proof の再送は、受理期間のうちなら通り得る。jti を記録して 2 回目を拒否する（複数台なら共有の状態が必要）。受理期間の短縮や nonce も再送の機会を減らす。(3) XSS の実行中は鍵を使って proof を作れるので防げない（範囲外）。CSP などで XSS を防ぐ。RS 向けに事前生成した proof は、ath によりそのアクセストークンの期間（10 分）に限られ、新しく得たトークンには使えない。ただし AS 向けに事前生成した proof と refresh token で、新しいトークンを得ることはできる。さらに防ぐには nonce で proof の寿命を制限する。silent な認可で攻撃者の鍵に結び付いたトークンは、XSS の修正後も refresh token の有効期間（7 日）のあいだ使われ得る。(4) 受け取った proof は htu が自分の URI なので、DPoP に対応した別の RS では使えず、新しい proof も作れない。ただし古い API では Bearer として使われ得るので、(1) と同じ対策が要る。",
+      "explanation": "(1) DPoP に対応した API では、鍵がないので proof を作れず、トークンは使えない。ただし DPoP に対応していない古い API は DPoP-bound のトークンを Bearer として受け付けると考えられるので（§7.2）、そこでは使われ得る。aud でトークンの宛先を限る（RFC 7800 §4）か、古い API を DPoP に対応させる。(2) 同じメソッド・URI への同じ proof の再送は、受理期間のうちなら通り得る。jti を記録して 2 回目を拒否する（複数台なら共有の状態が必要）。受理期間の短縮や nonce も再送の機会を減らす。トークンそのものは、古い API では Bearer として使われ得る。(3) XSS の実行中は鍵を使って proof を作れるので防げない（範囲外）。CSP などで XSS を防ぐ。RS 向けに事前生成した proof は、ath によりそのアクセストークンの期間（10 分）に限られ、新しく得たトークンには使えない。ただし AS 向けに事前生成した proof と refresh token で、新しいトークンを得ることはできる。新しく得たトークンは、古い API では Bearer として、最大で refresh token の有効期間（7 日）のあいだ使われ得る。さらに防ぐには nonce で proof の寿命を制限する。silent な認可で攻撃者の鍵に結び付いたトークンは、XSS の修正後も refresh token の有効期間（7 日）のあいだ使われ得る。(4) 受け取った proof は htu が自分の URI なので、DPoP に対応した別の RS では使えず、新しい proof も作れない。ただし古い API では Bearer として使われ得るので、(1) と同じ対策が要る。",
       "rubric": [
         {
           "criterion": "(1) DPoP に対応した API では、トークンだけでは proof を作れないので使えないと説明する。",
@@ -931,7 +931,7 @@
           ]
         },
         {
-          "criterion": "(2) 対策として、jti の記録による 2 回目の拒否（複数台では状態の共有が必要）を挙げる。受理期間の短縮や nonce を併せて挙げてもよい。",
+          "criterion": "(2) 対策として、jti の記録による 2 回目の拒否を挙げる（複数台なら状態の共有に触れてもよい）。受理期間の短縮や nonce を併せて挙げてもよい。",
           "points": 1,
           "referenceIds": [
             "replay"
@@ -969,7 +969,7 @@
           ]
         },
         {
-          "criterion": "(1)・(4) DPoP に対応していない古い API ではトークンが Bearer として使われ得ると説明し、aud による制限や古い API の DPoP 対応などの対策を挙げる。",
+          "criterion": "(1)〜(4) のいずれかで、DPoP に対応していない古い API ではトークンが Bearer として使われ得ると説明し、aud による制限や古い API の DPoP 対応などの対策を挙げる。",
           "points": 1,
           "referenceIds": [
             "bearer",
@@ -1005,11 +1005,12 @@
           ]
         },
         {
-          "criterion": "(2) RS が事前に mTLS を求める必要や、証明書の更新でトークンが使えなくなる点に触れる。",
+          "criterion": "(2) 選んだ方式の注意点に触れる。mTLS なら RS が事前に mTLS を求める必要や、証明書の更新でトークンが使えなくなる点、DPoP なら受理期間と jti の記録や鍵の保護など。",
           "points": 1,
           "referenceIds": [
             "mtls-bound",
-            "mtls-expiry"
+            "mtls-expiry",
+            "replay"
           ]
         },
         {
@@ -1020,11 +1021,12 @@
           ]
         },
         {
-          "criterion": "(3) RS が外部の URI で htu を照合し、受理期間や jti でリプレイを防ぐと述べる。",
+          "criterion": "(3) 選んだ方式の注意点に触れる。DPoP なら外部の URI での htu の照合と受理期間・jti、mTLS なら CDN から証明書の情報をアプリへ安全に渡す仕組み。",
           "points": 1,
           "referenceIds": [
             "checks",
-            "replay"
+            "replay",
+            "mtls-termination"
           ]
         }
       ]

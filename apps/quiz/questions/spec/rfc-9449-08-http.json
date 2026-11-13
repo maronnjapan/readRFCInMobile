@@ -305,9 +305,9 @@
       "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
       "path": "rfcs/rfc6750.txt",
       "startLine": 260,
-      "endLine": 310,
+      "endLine": 311,
       "reason": "§2.2: フォーム本文の access_token",
-      "excerpt": "2.2.  Form-Encoded Body Parameter\n\n   When sending the access token in the HTTP request entity-body, the\n   client adds the access token to the request-body using the\n   \"access_token\" parameter.  The client MUST NOT use this method unless\n   all of the following conditions are met:\n\n   o  The HTTP request entity-header includes the \"Content-Type\" header\n      field set to \"application/x-www-form-urlencoded\".\n\n   o  The entity-body follows the encoding requirements of the\n      \"application/x-www-form-urlencoded\" content-type as defined by\n      HTML 4.01 [W3C.REC-html401-19991224].\n\n   o  The HTTP request entity-body is single-part.\n\n\n\n\n\n\n\nJones & Hardt                Standards Track                    [Page 5]\n\f\nRFC 6750              OAuth 2.0 Bearer Token Usage          October 2012\n\n\n   o  The content to be encoded in the entity-body MUST consist entirely\n      of ASCII [USASCII] characters.\n\n   o  The HTTP request method is one for which the request-body has\n      defined semantics.  In particular, this means that the \"GET\"\n      method MUST NOT be used.\n\n   The entity-body MAY include other request-specific parameters, in\n   which case the \"access_token\" parameter MUST be properly separated\n   from the request-specific parameters using \"&\" character(s) (ASCII\n   code 38).\n\n   For example, the client makes the following HTTP request using\n   transport-layer security:\n\n     POST /resource HTTP/1.1\n     Host: server.example.com\n     Content-Type: application/x-www-form-urlencoded\n\n     access_token=mF_9.B5f-4.1JqM\n\n   The \"application/x-www-form-urlencoded\" method SHOULD NOT be used\n   except in application contexts where participating browsers do not\n   have access to the \"Authorization\" request header field.  Resource"
+      "excerpt": "2.2.  Form-Encoded Body Parameter\n\n   When sending the access token in the HTTP request entity-body, the\n   client adds the access token to the request-body using the\n   \"access_token\" parameter.  The client MUST NOT use this method unless\n   all of the following conditions are met:\n\n   o  The HTTP request entity-header includes the \"Content-Type\" header\n      field set to \"application/x-www-form-urlencoded\".\n\n   o  The entity-body follows the encoding requirements of the\n      \"application/x-www-form-urlencoded\" content-type as defined by\n      HTML 4.01 [W3C.REC-html401-19991224].\n\n   o  The HTTP request entity-body is single-part.\n\n\n\n\n\n\n\nJones & Hardt                Standards Track                    [Page 5]\n\f\nRFC 6750              OAuth 2.0 Bearer Token Usage          October 2012\n\n\n   o  The content to be encoded in the entity-body MUST consist entirely\n      of ASCII [USASCII] characters.\n\n   o  The HTTP request method is one for which the request-body has\n      defined semantics.  In particular, this means that the \"GET\"\n      method MUST NOT be used.\n\n   The entity-body MAY include other request-specific parameters, in\n   which case the \"access_token\" parameter MUST be properly separated\n   from the request-specific parameters using \"&\" character(s) (ASCII\n   code 38).\n\n   For example, the client makes the following HTTP request using\n   transport-layer security:\n\n     POST /resource HTTP/1.1\n     Host: server.example.com\n     Content-Type: application/x-www-form-urlencoded\n\n     access_token=mF_9.B5f-4.1JqM\n\n   The \"application/x-www-form-urlencoded\" method SHOULD NOT be used\n   except in application contexts where participating browsers do not\n   have access to the \"Authorization\" request header field.  Resource\n   servers MAY support this method."
     },
     {
       "id": "bearer-methods",
@@ -698,7 +698,7 @@
         "RS が nonce を要求するときは 400 で返すべきで、401 を使っている点が誤りである。本文はこのままでよい",
         "AS のトークンエンドポイントと同じく、JSON の本文でエラーを返す形式なので、この応答に問題はない",
         "nonce の要求には 403 を使い、WWW-Authenticate は付けずに DPoP-Nonce ヘッダーだけを返す",
-        "401 には WWW-Authenticate が必須で、RS は WWW-Authenticate: DPoP error=\"use_dpop_nonce\" で要求する"
+        "401 には WWW-Authenticate が必須で、RS は DPoP の challenge の error=\"use_dpop_nonce\" で求める"
       ],
       "points": 1,
       "referenceIds": [
@@ -898,7 +898,7 @@
       "answer": 1
     },
     "jti-context-query": {
-      "explanation": "§4.2 の htu は query と fragment を除いた URI で、§4.3 の 9 番目も query を無視して照合します。§11.1 は「In the context of the target URI」で jti を記録し、同じ URI への 2 回目を拒否する方法を挙げています。ただし RFC 9110 §7.1 の target URI は query を含むので、query 込みのキーで実装すると、query を変えた再送を見逃します。RFC 9449 は記録の単位を htu とは定めていませんが、proof が結び付くのは query を除いた htu なので、その単位か、より広い単位で記録するのが安全です。C：query は無視されるので照合は通ります。B：ath はトークンだけのハッシュです。D：jti の記録は任意（can）ですが §11.1 に書かれた方法で、単位を htu 以上にすればこの再送を拒否できます。E：§4.2 に反します。",
+      "explanation": "§4.2 の htu は query と fragment を除いた URI で、§4.3 の 9 番目も query を無視して照合します。§11.1 は「In the context of the target URI」で jti を記録し、同じ URI への 2 回目を拒否する方法を挙げています。ただし RFC 9110 §7.1 の target URI は query を含むので、query 込みのキーで実装すると、query を変えた再送を見逃します。RFC 9449 は記録の単位を htu とは定めていませんが、proof が結び付くのは query を除いた htu なので、その単位か、より広い単位で記録するのが安全です。C：query は無視されるので照合は通ります。B：ath はトークンだけのハッシュです。D：jti の記録は任意（can）ですが、§11.1 はその目的を「to prevent multiple uses of the same DPoP proof」と述べています。query を変えた再送も同じ proof の 2 回目の利用なので、記録の単位を htu 以上にすれば、§11.1 の方法で拒否できます。E：§4.2 に反します。",
       "answer": 0
     },
     "token68-values": {

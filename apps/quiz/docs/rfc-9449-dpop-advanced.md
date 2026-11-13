@@ -1835,7 +1835,7 @@ RS の扱いとして正しいものはどれですか？
 
 RFC 9449 §7.1 は、DPoP-bound のアクセストークンを Authorization ヘッダーの DPoP スキームで送ると定めています。フォーム本文（RFC 6750 §2.2）は Bearer の送り方で、§7.2 は両方に対応する RS に「MUST reject a DPoP-bound access token received as a bearer token per [RFC6750]」と求めています。有効な proof が付いていても、Bearer として受け取ったことは変わりません。ダウングレードを防ぐための規定です。
 
-**出典：** [§7.1: Authorization: DPoP とアクセス許可の条件](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L830-L854) / [§7.2: Bearer との互換性と複数 challenge のエラー情報](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L977-L1021) / [RFC 6750 §2.2: フォーム本文の access_token](https://github.com/maronnjapan/readRFCInMobile/blob/1ae11d196faad317d95d4d02e402621dcde76d49/rfcs/rfc6750.txt#L260-L310) / [RFC 6750 §2: 1 つの要求で複数の方法を使わない](https://github.com/maronnjapan/readRFCInMobile/blob/1ae11d196faad317d95d4d02e402621dcde76d49/rfcs/rfc6750.txt#L216-L220)
+**出典：** [§7.1: Authorization: DPoP とアクセス許可の条件](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L830-L854) / [§7.2: Bearer との互換性と複数 challenge のエラー情報](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L977-L1021) / [RFC 6750 §2.2: フォーム本文の access_token](https://github.com/maronnjapan/readRFCInMobile/blob/1ae11d196faad317d95d4d02e402621dcde76d49/rfcs/rfc6750.txt#L260-L311) / [RFC 6750 §2: 1 つの要求で複数の方法を使わない](https://github.com/maronnjapan/readRFCInMobile/blob/1ae11d196faad317d95d4d02e402621dcde76d49/rfcs/rfc6750.txt#L216-L220)
 
 </details>
 
@@ -1858,7 +1858,7 @@ RS は「要求の URI（query を含む）と jti」の組をキーにして jt
 
 **正解：A**
 
-§4.2 の htu は query と fragment を除いた URI で、§4.3 の 9 番目も query を無視して照合します。§11.1 は「In the context of the target URI」で jti を記録し、同じ URI への 2 回目を拒否する方法を挙げています。ただし RFC 9110 §7.1 の target URI は query を含むので、query 込みのキーで実装すると、query を変えた再送を見逃します。RFC 9449 は記録の単位を htu とは定めていませんが、proof が結び付くのは query を除いた htu なので、その単位か、より広い単位で記録するのが安全です。C：query は無視されるので照合は通ります。B：ath はトークンだけのハッシュです。D：jti の記録は任意（can）ですが §11.1 に書かれた方法で、単位を htu 以上にすればこの再送を拒否できます。E：§4.2 に反します。
+§4.2 の htu は query と fragment を除いた URI で、§4.3 の 9 番目も query を無視して照合します。§11.1 は「In the context of the target URI」で jti を記録し、同じ URI への 2 回目を拒否する方法を挙げています。ただし RFC 9110 §7.1 の target URI は query を含むので、query 込みのキーで実装すると、query を変えた再送を見逃します。RFC 9449 は記録の単位を htu とは定めていませんが、proof が結び付くのは query を除いた htu なので、その単位か、より広い単位で記録するのが安全です。C：query は無視されるので照合は通ります。B：ath はトークンだけのハッシュです。D：jti の記録は任意（can）ですが、§11.1 はその目的を「to prevent multiple uses of the same DPoP proof」と述べています。query を変えた再送も同じ proof の 2 回目の利用なので、記録の単位を htu 以上にすれば、§11.1 の方法で拒否できます。E：§4.2 に反します。
 
 **出典：** [§4.2: JOSE ヘッダー、必須クレーム、ath と nonce](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L393-L448) / [§4.3: 受信時の必須検証、URI 正規化、検証順序](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L485-L523) / [§11.1: 有効時間、jti 記録、メモリー対策、時計差、nonce 再利用](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L1322-L1358) / [§11.7: 本文・一般のヘッダーの完全性と TLS](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L1448-L1464) / [RFC 9110 §7.1: target URI とサーバーによる再構成](https://github.com/maronnjapan/readRFCInMobile/blob/1ae11d196faad317d95d4d02e402621dcde76d49/rfcs/rfc9110.txt#L2370-L2410)
 
@@ -1899,7 +1899,7 @@ RS は nonce を要求するとき、401 の本文に {"error":"use_dpop_nonce"}
 - **B.** RS が nonce を要求するときは 400 で返すべきで、401 を使っている点が誤りである。本文はこのままでよい
 - **C.** AS のトークンエンドポイントと同じく、JSON の本文でエラーを返す形式なので、この応答に問題はない
 - **D.** nonce の要求には 403 を使い、WWW-Authenticate は付けずに DPoP-Nonce ヘッダーだけを返す
-- **E.** 401 には WWW-Authenticate が必須で、RS は WWW-Authenticate: DPoP error="use_dpop_nonce" で要求する
+- **E.** 401 には WWW-Authenticate が必須で、RS は DPoP の challenge の error="use_dpop_nonce" で求める
 
 <details>
 <summary>解答・解説</summary>
@@ -2116,7 +2116,7 @@ RFC 8414 と RFC 9449 に照らした評価として正しいものはどれで�
 
 RFC 8414 §3.2 は「Claims that return multiple values are represented as JSON arrays. Claims with zero elements MUST be omitted from the response」と定めます。RFC 9449 §5.1 の dpop_signing_alg_values_supported は、DPoP への対応と、proof に使える alg を示す配列です。C・D：そのような意味はなく、none は proof に使えません（§4.2）。なお RFC 9728 の bearer_methods_supported は、空の配列で「Bearer の送り方に対応しない」ことを示せると個別に定めています。項目ごとの定義を確かめる必要があります。
 
-**出典：** [RFC 8414 §3.2: 要素数 0 のメタデータは省略する](https://github.com/maronnjapan/readRFCInMobile/blob/1ae11d196faad317d95d4d02e402621dcde76d49/rfcs/rfc8414.txt#L511-L524) / [§5.1: dpop_signing_alg_values_supported](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L651-L660) / [RFC 9728 §2: bearer_methods_supported から DPoP 関連メタデータまで](https://github.com/maronnjapan/readRFCInMobile/blob/1ae11d196faad317d95d4d02e402621dcde76d49/rfcs/rfc9728.txt#L227-L288)
+**出典：** [RFC 8414 §3.2: 要素数 0 のメタデータは省略する](https://github.com/maronnjapan/readRFCInMobile/blob/1ae11d196faad317d95d4d02e402621dcde76d49/rfcs/rfc8414.txt#L511-L524) / [§5.1: dpop_signing_alg_values_supported](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L651-L660) / [RFC 9728 §2: bearer_methods_supported から DPoP 関連メタデータまで](https://github.com/maronnjapan/readRFCInMobile/blob/1ae11d196faad317d95d4d02e402621dcde76d49/rfcs/rfc9728.txt#L227-L288) / [§4.2: JOSE ヘッダー、必須クレーム、ath と nonce](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L393-L448)
 
 </details>
 
@@ -2164,9 +2164,9 @@ AS の dpop_signing_alg_values_supported は ["ES256","PS256"] です。クラ�
 
 **正解：C**
 
-§5・§6 のとおり、アクセストークンはトークン要求の proof の公開鍵に結び付き、RS は proof の鍵がその鍵と一致することを確かめます（§4.3 の 12 番目）。A：新しい鍵の proof は結び付けの照合を通りません。E：PS256 は RSA の鍵で使うアルゴリズムで、EC 鍵とは組み合わせられません。RFC 8725 §3.1 も alg と実際の処理の一致を求めています。B：RS が受け付ける alg は RS のローカルポリシーで決まり（§4.3 の 5 番目）、challenge の algs で示されます（§7.1）。D：proof は必須です（§7）。
+§5 のとおり、アクセストークンはトークン要求の proof の公開鍵に結び付き、RS は proof の鍵がその鍵と一致することを確かめます（§4.3 の 12 番目）。A：新しい鍵の proof は結び付けの照合を通りません。E：PS256 は RSA の鍵で使うアルゴリズムで、EC 鍵とは組み合わせられません。RFC 8725 §3.1 も alg と実際の処理の一致を求めています。B：RS が受け付ける alg は RS のローカルポリシーで決まり（§4.3 の 5 番目）、challenge の algs で示されます（§7.1）。D：proof は必須です（§7）。
 
-**出典：** [§5: 全 grant type への適用、エラー、token_type](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L525-L570) / [§4.3: 受信時の必須検証、URI 正規化、検証順序](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L485-L523) / [§7.1: WWW-Authenticate のエラー・algs・未知パラメーター](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L899-L936) / [§5.1: dpop_signing_alg_values_supported](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L651-L660) / [RFC 8725 §3.1: ライブラリは許可する alg を呼び出し側が指定できるようにする](https://github.com/maronnjapan/readRFCInMobile/blob/1ae11d196faad317d95d4d02e402621dcde76d49/rfcs/rfc8725.txt#L285-L293)
+**出典：** [§5: 全 grant type への適用、エラー、token_type](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L525-L570) / [§4.3: 受信時の必須検証、URI 正規化、検証順序](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L485-L523) / [§7.1: WWW-Authenticate のエラー・algs・未知パラメーター](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L899-L936) / [§5.1: dpop_signing_alg_values_supported](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L651-L660) / [RFC 8725 §3.1: ライブラリは許可する alg を呼び出し側が指定できるようにする](https://github.com/maronnjapan/readRFCInMobile/blob/1ae11d196faad317d95d4d02e402621dcde76d49/rfcs/rfc8725.txt#L285-L293) / [§7: ath によるトークン差し替え防止と残る検証](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L796-L828)
 
 </details>
 
@@ -2241,7 +2241,7 @@ PAR 要求に付ける proof の htm と htu として正しいものはどれ�
 
 §10.1 で、PAR 要求に付けた proof は AS が §4.3 に従って検証します（MUST）。htm は要求のメソッド、htu は要求の URI です。RFC 9126 §2.1 の PAR 要求は、PAR エンドポイントへのフォーム本文の POST です。B：トークン要求の proof は、トークン要求のときに別に作ります。A：htu には query を含めず（§4.2）、PAR のパラメーターは本文で送ります。
 
-**出典：** [§10.1: PAR の 2 方式、必須サポート、不一致時の拒否](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L1275-L1308) / [§4.3: 受信時の必須検証、URI 正規化、検証順序](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L485-L523) / [RFC 9126 §2.1: PAR 要求のパラメーターとクライアント認証](https://github.com/maronnjapan/readRFCInMobile/blob/1ae11d196faad317d95d4d02e402621dcde76d49/rfcs/rfc9126.txt#L284-L307)
+**出典：** [§10.1: PAR の 2 方式、必須サポート、不一致時の拒否](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L1275-L1308) / [§4.3: 受信時の必須検証、URI 正規化、検証順序](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L485-L523) / [RFC 9126 §2.1: PAR 要求のパラメーターとクライアント認証](https://github.com/maronnjapan/readRFCInMobile/blob/1ae11d196faad317d95d4d02e402621dcde76d49/rfcs/rfc9126.txt#L284-L315) / [§4.2: JOSE ヘッダー、必須クレーム、ath と nonce](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L393-L448)
 
 </details>
 
@@ -2266,7 +2266,7 @@ confidential client が private_key_jwt でクライアント認証を行い、P
 
 RFC 9126 §2.1 は、PAR エンドポイントが「Authenticate the client in the same way as at the token endpoint」と定めます。RFC 9449 §1 のとおり DPoP はクライアント認証の方式ではなく、private_key_jwt などと併用できます。D：同じ鍵にする要件はなく、§11.11 は DPoP とクライアント認証が暗号的には結び付かないと述べています。E：§10.1 は PAR 要求への DPoP ヘッダーを認めています。B：proof は所持の証明で、クライアント認証ではありません。
 
-**出典：** [RFC 9126 §2.1: PAR エンドポイントの処理](https://github.com/maronnjapan/readRFCInMobile/blob/1ae11d196faad317d95d4d02e402621dcde76d49/rfcs/rfc9126.txt#L340-L366) / [RFC 9126 §2.1: PAR 要求のパラメーターとクライアント認証](https://github.com/maronnjapan/readRFCInMobile/blob/1ae11d196faad317d95d4d02e402621dcde76d49/rfcs/rfc9126.txt#L284-L307) / [§1: 送信者制約とクライアント認証の違い](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L114-L148) / [§10.1: PAR の 2 方式、必須サポート、不一致時の拒否](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L1275-L1308) / [§11.11: クライアント認証との暗号学的な結び付きの限界](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L1536-L1548)
+**出典：** [RFC 9126 §2.1: PAR エンドポイントの処理](https://github.com/maronnjapan/readRFCInMobile/blob/1ae11d196faad317d95d4d02e402621dcde76d49/rfcs/rfc9126.txt#L340-L366) / [RFC 9126 §2.1: PAR 要求のパラメーターとクライアント認証](https://github.com/maronnjapan/readRFCInMobile/blob/1ae11d196faad317d95d4d02e402621dcde76d49/rfcs/rfc9126.txt#L284-L315) / [§1: 送信者制約とクライアント認証の違い](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L114-L148) / [§10.1: PAR の 2 方式、必須サポート、不一致時の拒否](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L1275-L1308) / [§11.11: クライアント認証との暗号学的な結び付きの限界](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L1536-L1548)
 
 </details>
 
@@ -2412,7 +2412,7 @@ RFC 9728 §5.1 は「This parameter MAY also be used in WWW-Authenticate respons
 
 RFC 7591 §3.2.1 は、AS は登録したメタデータをすべて返さなければならず（MUST）、要求された値を拒否したり別の値に置き換えたりできる（MAY）としています。クライアントは応答を見て、登録が使える状態か判断します。RFC 9449 §5.2 の dpop_bound_access_tokens は省略時 false です。したがって AS は、このクライアントからの DPoP ヘッダーのないトークン要求を、このメタデータを理由には拒否しません。E：AS は理解できないメタデータを無視しなければならず（RFC 7591 §2）、要求された値を拒否することもできるので（§3.2.1）、含まれていないこと自体は仕様違反ではありません。その後の対応は範囲外とされ、再登録は選択肢の 1 つにすぎません。
 
-**出典：** [RFC 7591 §3.2.1: 登録済みメタデータの返却と値の置き換え](https://github.com/maronnjapan/readRFCInMobile/blob/1ae11d196faad317d95d4d02e402621dcde76d49/rfcs/rfc7591.txt#L1096-L1110) / [§5.2: dpop_bound_access_tokens の既定値と要求](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L662-L682) / [RFC 7591 §2: 理解できないメタデータの無視と値の置き換え](https://github.com/maronnjapan/readRFCInMobile/blob/1ae11d196faad317d95d4d02e402621dcde76d49/rfcs/rfc7591.txt#L641-L650)
+**出典：** [RFC 7591 §3.2.1: 登録済みメタデータの返却と値の置き換え](https://github.com/maronnjapan/readRFCInMobile/blob/1ae11d196faad317d95d4d02e402621dcde76d49/rfcs/rfc7591.txt#L1096-L1116) / [§5.2: dpop_bound_access_tokens の既定値と要求](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L662-L682) / [RFC 7591 §2: 理解できないメタデータの無視と値の置き換え](https://github.com/maronnjapan/readRFCInMobile/blob/1ae11d196faad317d95d4d02e402621dcde76d49/rfcs/rfc7591.txt#L641-L650)
 
 </details>
 
@@ -2487,7 +2487,7 @@ public client が、DPoP に対応しているか分からない AS に DPoP ヘ
 
 §5 の refresh token の結び付け（MUST）は「When an authorization server supporting DPoP issues a refresh token to a public client that presents a valid DPoP proof」の場合で、DPoP に対応しない AS は、知らない DPoP ヘッダーを通常は無視します（RFC 9110 §5.1、C は誤り）。AS の DPoP への対応は §5.1 のメタデータで示されます。§5 は、token_type が DPoP でなければ DPoP による保護はなく、保護を重要とするなら応答を破棄しなければならないとしています。E：結び付けは AS が行うもので、クライアントが読み替えても生じません。
 
-**出典：** [§5: public/confidential の refresh token と Bearer 応答](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L610-L649) / [§5.1: dpop_signing_alg_values_supported](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L651-L660) / [§5: 全 grant type への適用、エラー、token_type](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L525-L570) / [RFC 9110 §5.1: 認識できないヘッダーは無視する](https://github.com/maronnjapan/readRFCInMobile/blob/1ae11d196faad317d95d4d02e402621dcde76d49/rfcs/rfc9110.txt#L1480-L1489)
+**出典：** [§5: public/confidential の refresh token と Bearer 応答](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L610-L649) / [§5.1: dpop_signing_alg_values_supported](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L651-L660) / [§5: 全 grant type への適用、エラー、token_type](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L525-L570) / [RFC 9110 §5.1: 認識できないヘッダーは無視する](https://github.com/maronnjapan/readRFCInMobile/blob/1ae11d196faad317d95d4d02e402621dcde76d49/rfcs/rfc9110.txt#L1480-L1490)
 
 </details>
 
@@ -2546,7 +2546,7 @@ RFC 9728 §5 の流れは、トークンなしの要求、resource_metadata を�
 
 SPA（public client）が PAR・PKCE・DPoP を使います。AS の PAR エンドポイントは https://as.example.com/par、トークンエンドポイントは https://as.example.com/token、RS は https://api.example.com/v1/items です。AS も RS も nonce を要求します。
 
-PAR 要求、コードの引き換え、refresh、RS への要求のそれぞれで、DPoP の proof に入れる値（htm・htu・ath・nonce と、jti・iat の扱い）と、要求ごとに確かめる点（SPA としてブラウザーで必要になる設定を含む）を説明してください。
+PAR 要求、コードの引き換え、refresh、RS への要求のそれぞれで、DPoP の proof に入れる値（htm・htu・ath・nonce と、jti・iat の扱い）と、要求ごとに確かめる点（PKCE のパラメーターや、SPA としてブラウザーで必要になる設定を含む）を説明してください。
 
 要求ごとに箇条書きで構いません。
 
@@ -2555,7 +2555,7 @@ PAR 要求、コードの引き換え、refresh、RS への要求のそれぞれ
 
 **解答例**
 
-PAR：htm=POST、htu=https://as.example.com/par、ath なし。PAR 要求に DPoP ヘッダーを付けると、dpop_jkt と同じくコードが鍵に結び付く（dpop_jkt も送るなら同じ鍵の Thumbprint）。code_challenge（S256）を送り、AS が要求したら nonce を含める。引き換え：htm=POST、htu=https://as.example.com/token、同じ鍵、AS の最新の nonce、code_verifier を送る。ath なし。応答の token_type=DPoP を確かめる。DPoP でなければ、保護を重要とするこの構成では応答を破棄する。refresh：htm=POST、htu はトークンエンドポイント、同じ鍵（public client の refresh token は鍵に結び付く）、AS の nonce。ath なし。RS：htm は実際のメソッド、htu=https://api.example.com/v1/items（query なし）、ath はアクセストークンのハッシュ、nonce は RS が提供した値（AS の nonce とは別）。すべての要求で新しい jti と現在の iat を使う。トークンは Authorization: DPoP で送り、Bearer に切り替えない。CORS では DPoP-Nonce と WWW-Authenticate を公開してもらう。
+PAR：htm=POST、htu=https://as.example.com/par、ath なし。PAR 要求に DPoP ヘッダーを付けると、dpop_jkt と同じくコードが鍵に結び付く（dpop_jkt も送るなら同じ鍵の Thumbprint）。code_challenge（S256）を送り、AS が要求したら nonce を含める。引き換え：htm=POST、htu=https://as.example.com/token、同じ鍵、AS の最新の nonce、code_verifier を送る。ath なし。応答の token_type=DPoP を確かめる。DPoP でなければ、保護を重要とするなら応答を破棄する。refresh：htm=POST、htu はトークンエンドポイント、同じ鍵（public client の refresh token は鍵に結び付く）、AS の nonce。ath なし。RS：htm は実際のメソッド、htu=https://api.example.com/v1/items（query なし）、ath はアクセストークンのハッシュ、nonce は RS が提供した値（AS の nonce とは別）。すべての要求で新しい jti と現在の iat を使う。トークンは Authorization: DPoP で送り、Bearer に切り替えない。CORS では DPoP-Nonce と WWW-Authenticate を公開してもらう。
 
 **採点基準（各 1 点）**
 
@@ -2568,7 +2568,7 @@ PAR：htm=POST、htu=https://as.example.com/par、ath なし。PAR 要求に DPo
 - すべての要求で新しい jti と現在の iat を使い、proof を使い回さない。
 - Authorization: DPoP で送り Bearer に切り替えない。CORS で DPoP-Nonce と WWW-Authenticate を公開してもらう。
 
-**出典：** [§10.1: PAR の 2 方式、必須サポート、不一致時の拒否](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L1275-L1308) / [RFC 9126 §2.1: PAR 要求のパラメーターとクライアント認証](https://github.com/maronnjapan/readRFCInMobile/blob/1ae11d196faad317d95d4d02e402621dcde76d49/rfcs/rfc9126.txt#L284-L307) / [§5: 全 grant type への適用、エラー、token_type](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L525-L570) / [§5: public/confidential の refresh token と Bearer 応答](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L610-L649) / [§4.2: JOSE ヘッダー、必須クレーム、ath と nonce](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L393-L448) / [§9: RS の 401 challenge、発行元別の nonce、OIDC との区別](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L1205-L1235) / [§8: AS の nonce challenge、予測不能性、ヘッダー数](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L1073-L1118) / [§10: dpop_jkt、トークン要求時の照合、PKCE との併用](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L1237-L1273) / [§8.2: 成功応答による nonce 更新とキャッシュ](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L1170-L1203) / [§4: リクエストごとの proof と単独では認可できない理由](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L337-L357) / [§7.1: Authorization: DPoP とアクセス許可の条件](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L830-L854) / [§7.1: CORS でのヘッダー公開とプロキシ認証への使用禁止](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L958-L968) / [§8: opaque な nonce の完全一致・最近の値・CORS](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L1120-L1159)
+**出典：** [§10.1: PAR の 2 方式、必須サポート、不一致時の拒否](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L1275-L1308) / [RFC 9126 §2.1: PAR 要求のパラメーターとクライアント認証](https://github.com/maronnjapan/readRFCInMobile/blob/1ae11d196faad317d95d4d02e402621dcde76d49/rfcs/rfc9126.txt#L284-L315) / [§5: 全 grant type への適用、エラー、token_type](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L525-L570) / [§5: public/confidential の refresh token と Bearer 応答](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L610-L649) / [§4.2: JOSE ヘッダー、必須クレーム、ath と nonce](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L393-L448) / [§9: RS の 401 challenge、発行元別の nonce、OIDC との区別](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L1205-L1235) / [§8: AS の nonce challenge、予測不能性、ヘッダー数](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L1073-L1118) / [§10: dpop_jkt、トークン要求時の照合、PKCE との併用](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L1237-L1273) / [§8.2: 成功応答による nonce 更新とキャッシュ](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L1170-L1203) / [§4: リクエストごとの proof と単独では認可できない理由](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L337-L357) / [§7.1: Authorization: DPoP とアクセス許可の条件](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L830-L854) / [§7.1: CORS でのヘッダー公開とプロキシ認証への使用禁止](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L958-L968) / [§8: opaque な nonce の完全一致・最近の値・CORS](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L1120-L1159)
 
 </details>
 
@@ -2829,7 +2829,7 @@ RS の前の API ゲートウェイが、要求ヘッダーをすべてログに
 RS-B での結果として正しいものはどれですか？
 
 - **A.** RS-A が proof の htu を RS-B の URI に書き換えれば、署名を作り直さなくても受理される
-- **B.** proof の htu が RS-A の URI なので拒否される。RS-A は鍵を持たず、RS-B 向けの proof も作れない
+- **B.** proof の htu が RS-A の URI なので拒否される。RS-A は RS-B 向けの proof も作れない
 - **C.** RS-B は RS-A からの接続を信頼しないので、トークンを検証する前に、TLS の段階で接続を拒否する
 - **D.** ath がトークンと一致するので受理される。aud でトークンを制限しない限り、この転用は防げない
 - **E.** jwk の公開鍵がトークンの結び付けと一致するので受理される。nonce を使わない限り防げない
@@ -2935,7 +2935,7 @@ RFC 9700 §4.10.1 は、送信者制約されたトークンの保護が損な�
 
 **正解：A**
 
-RFC 9700 §4.10.1 は「the security of sender-constrained tokens is undermined when an attacker gets access to the token and the key material」とし、鍵がハードウェアやソフトウェアのセキュリティモジュールにある場合などは「sender-constrained tokens at least protect against the use of the token when the client is offline」と述べ、これはアクセストークンにも refresh token にも当てはまるとしています。D：クライアントが侵害されてオンラインのあいだは鍵を使われます（RFC 9449 §11.4）。ただし DPoP で nonce を使わない場合、攻撃者がクライアントを操作できたあいだに事前生成した proof があれば、クライアントがオフラインでもトークンを使われ得ます（RFC 9449 §11.2・§11.4）。C：トークンだけでは鍵がないので使えません。E：§4.10 は、AS がアクセストークンを送信者制約し、かつオーディエンス制限すべきである（SHOULD）としています。
+RFC 9700 §4.10.1 は「the security of sender-constrained tokens is undermined when an attacker gets access to the token and the key material」とし、鍵がハードウェアやソフトウェアのセキュリティモジュールにある場合などは「sender-constrained tokens at least protect against the use of the token when the client is offline」と述べ、これはアクセストークンにも refresh token にも当てはまるとしています。なお DPoP で nonce を使わない場合、攻撃者がクライアントを操作できたあいだに事前生成した proof があれば、クライアントがオフラインでもトークンを使われ得ます（RFC 9449 §11.2・§11.4）。D：クライアントが侵害されてオンラインのあいだは鍵を使われます（RFC 9449 §11.4）。C：トークンだけでは鍵がないので使えません。E：RFC 9700 §4.10 は、AS がアクセストークンを送信者制約し、かつオーディエンス制限すべきである（SHOULD）としています。
 
 **出典：** [RFC 9700 §4.10.1: 送信者制約の仕組みと限界](https://github.com/maronnjapan/readRFCInMobile/blob/1ae11d196faad317d95d4d02e402621dcde76d49/rfcs/rfc9700.txt#L1597-L1659) / [RFC 9700 §4.10: アクセストークンの送信者制約とオーディエンス制限（SHOULD）](https://github.com/maronnjapan/readRFCInMobile/blob/1ae11d196faad317d95d4d02e402621dcde76d49/rfcs/rfc9700.txt#L1585-L1595) / [§11.4: 非抽出鍵の限界、署名 API の悪用、攻撃者の鍵、CSP](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L1398-L1433) / [§11.2: proof の事前生成、nonce、短命トークン、ath の効果](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L1360-L1391)
 
@@ -3031,18 +3031,18 @@ SPA（非抽出の鍵）と API で DPoP を使います。AS も RS も nonce �
 
 **解答例**
 
-(1) DPoP に対応した API では、鍵がないので proof を作れず、トークンは使えない。ただし DPoP に対応していない古い API は DPoP-bound のトークンを Bearer として受け付けると考えられるので（§7.2）、そこでは使われ得る。aud でトークンの宛先を限る（RFC 7800 §4）か、古い API を DPoP に対応させる。(2) 同じメソッド・URI への同じ proof の再送は、受理期間のうちなら通り得る。jti を記録して 2 回目を拒否する（複数台なら共有の状態が必要）。受理期間の短縮や nonce も再送の機会を減らす。(3) XSS の実行中は鍵を使って proof を作れるので防げない（範囲外）。CSP などで XSS を防ぐ。RS 向けに事前生成した proof は、ath によりそのアクセストークンの期間（10 分）に限られ、新しく得たトークンには使えない。ただし AS 向けに事前生成した proof と refresh token で、新しいトークンを得ることはできる。さらに防ぐには nonce で proof の寿命を制限する。silent な認可で攻撃者の鍵に結び付いたトークンは、XSS の修正後も refresh token の有効期間（7 日）のあいだ使われ得る。(4) 受け取った proof は htu が自分の URI なので、DPoP に対応した別の RS では使えず、新しい proof も作れない。ただし古い API では Bearer として使われ得るので、(1) と同じ対策が要る。
+(1) DPoP に対応した API では、鍵がないので proof を作れず、トークンは使えない。ただし DPoP に対応していない古い API は DPoP-bound のトークンを Bearer として受け付けると考えられるので（§7.2）、そこでは使われ得る。aud でトークンの宛先を限る（RFC 7800 §4）か、古い API を DPoP に対応させる。(2) 同じメソッド・URI への同じ proof の再送は、受理期間のうちなら通り得る。jti を記録して 2 回目を拒否する（複数台なら共有の状態が必要）。受理期間の短縮や nonce も再送の機会を減らす。トークンそのものは、古い API では Bearer として使われ得る。(3) XSS の実行中は鍵を使って proof を作れるので防げない（範囲外）。CSP などで XSS を防ぐ。RS 向けに事前生成した proof は、ath によりそのアクセストークンの期間（10 分）に限られ、新しく得たトークンには使えない。ただし AS 向けに事前生成した proof と refresh token で、新しいトークンを得ることはできる。新しく得たトークンは、古い API では Bearer として、最大で refresh token の有効期間（7 日）のあいだ使われ得る。さらに防ぐには nonce で proof の寿命を制限する。silent な認可で攻撃者の鍵に結び付いたトークンは、XSS の修正後も refresh token の有効期間（7 日）のあいだ使われ得る。(4) 受け取った proof は htu が自分の URI なので、DPoP に対応した別の RS では使えず、新しい proof も作れない。ただし古い API では Bearer として使われ得るので、(1) と同じ対策が要る。
 
 **採点基準（各 1 点）**
 
 - (1) DPoP に対応した API では、トークンだけでは proof を作れないので使えないと説明する。
 - (2) 同じメソッド・URI への同じ proof の再送は受理期間のうちなら通り得ると説明する。
-- (2) 対策として、jti の記録による 2 回目の拒否（複数台では状態の共有が必要）を挙げる。受理期間の短縮や nonce を併せて挙げてもよい。
+- (2) 対策として、jti の記録による 2 回目の拒否を挙げる（複数台なら状態の共有に触れてもよい）。受理期間の短縮や nonce を併せて挙げてもよい。
 - (3) XSS の実行中は鍵で proof を作れるので防げず、XSS の防止（CSP など）が必要だと説明する。
 - (3) RS 向けに事前生成した proof は、ath によりそのアクセストークンの期間に限られ、新しく得たトークンには使えないと説明する。
 - (3) nonce で proof の寿命を制限する対策、または silent な認可で攻撃者の鍵に結び付いたトークンが XSS の修正後も使われ得ることを挙げる。
 - (4) proof は RS の URI に結び付き、RS は新しい proof を作れないので、DPoP に対応した別の RS では使えないと説明する。
-- (1)・(4) DPoP に対応していない古い API ではトークンが Bearer として使われ得ると説明し、aud による制限や古い API の DPoP 対応などの対策を挙げる。
+- (1)〜(4) のいずれかで、DPoP に対応していない古い API ではトークンが Bearer として使われ得ると説明し、aud による制限や古い API の DPoP 対応などの対策を挙げる。
 
 **出典：** [§2: Bearer との違い、HTTPS、XSS に対する保護範囲](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L179-L253) / [§11.1: 有効時間、jti 記録、メモリー対策、時計差、nonce 再利用](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L1322-L1358) / [§11.4: 非抽出鍵の限界、署名 API の悪用、攻撃者の鍵、CSP](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L1398-L1433) / [§11.2: proof の事前生成、nonce、短命トークン、ath の効果](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L1360-L1391) / [§11: URI・メソッドへの結び付けと TLS 方式との違い](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L1310-L1320) / [§7.2: Bearer との互換性と複数 challenge のエラー情報](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L977-L1021) / [RFC 7800 §4: 所持証明とオーディエンス制限は別の保護](https://github.com/maronnjapan/readRFCInMobile/blob/1ae11d196faad317d95d4d02e402621dcde76d49/rfcs/rfc7800.txt#L531-L576)
 
@@ -3073,9 +3073,9 @@ SPA（非抽出の鍵）と API で DPoP を使います。AS も RS も nonce �
 - (1) DPoP を選び、ブラウザーでの TLS クライアント認証の使い勝手の悪さなどを理由に挙げる。
 - (1) DPoP でも XSS は防げないので、XSS 対策が前提になると述べる。
 - (2) mTLS（またはどちらでもよい）とし、証明書の配布基盤や TLS 層との統合による保護を理由に挙げる。DPoP を選ぶ場合も、この環境の条件に即した理由があれば認める。
-- (2) RS が事前に mTLS を求める必要や、証明書の更新でトークンが使えなくなる点に触れる。
+- (2) 選んだ方式の注意点に触れる。mTLS なら RS が事前に mTLS を求める必要や、証明書の更新でトークンが使えなくなる点、DPoP なら受理期間と jti の記録や鍵の保護など。
 - (3) DPoP を選び（条件付きで mTLS も可とする答えも認める）、TLS を終端する中間装置では、mTLS の証明書の情報をアプリへ安全に渡す方法が別に必要になることを理由に挙げる。
-- (3) RS が外部の URI で htu を照合し、受理期間や jti でリプレイを防ぐと述べる。
+- (3) 選んだ方式の注意点に触れる。DPoP なら外部の URI での htu の照合と受理期間・jti、mTLS なら CDN から証明書の情報をアプリへ安全に渡す仕組み。
 
 **出典：** [§1: 送信者制約とクライアント認証の違い](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L114-L148) / [§2: Bearer との違い、HTTPS、XSS に対する保護範囲](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L179-L253) / [RFC 8705 §3: 証明書に結び付いたアクセストークンと RS の事前準備](https://github.com/maronnjapan/readRFCInMobile/blob/1ae11d196faad317d95d4d02e402621dcde76d49/rfcs/rfc8705.txt#L390-L442) / [RFC 8705 §6.5: TLS 終端と証明書情報の受け渡し](https://github.com/maronnjapan/readRFCInMobile/blob/1ae11d196faad317d95d4d02e402621dcde76d49/rfcs/rfc8705.txt#L727-L733) / [§4.3: 受信時の必須検証、URI 正規化、検証順序](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L485-L523) / [§11.1: 有効時間、jti 記録、メモリー対策、時計差、nonce 再利用](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L1322-L1358) / [§11.4: 非抽出鍵の限界、署名 API の悪用、攻撃者の鍵、CSP](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L1398-L1433) / [§11: URI・メソッドへの結び付けと TLS 方式との違い](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L1310-L1320) / [RFC 8705 §6.3: 証明書の更新とアクセストークン](https://github.com/maronnjapan/readRFCInMobile/blob/1ae11d196faad317d95d4d02e402621dcde76d49/rfcs/rfc8705.txt#L701-L709)
 
