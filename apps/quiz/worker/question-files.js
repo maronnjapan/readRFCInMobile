@@ -4,7 +4,7 @@ import { publicQuestionFile } from './github.js';
 
 export function fileSetRow(artifact, revision, id) {
   const validated = validateSet(artifact, { published: true });
-  return { id, logical_id: artifact.id, title: artifact.title, spec_id: artifact.spec.id,
+  return { id, logical_id: artifact.id, title: artifact.title, spec_id: artifact.spec?.id || '',
     revision_json: JSON.stringify(revision), public_json: JSON.stringify(validated.public),
     solutions_json: JSON.stringify(validated.solutions), materials_json: JSON.stringify(validated.materials),
     pr_json: artifact.pullRequest ? JSON.stringify(validated.public.pullRequest) : null };

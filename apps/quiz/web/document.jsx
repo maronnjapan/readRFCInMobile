@@ -4,7 +4,7 @@ const themeScript = `try{const s=JSON.parse(localStorage.getItem('rfcreader:sett
 export function jsonData(value) {
   return JSON.stringify(value).replaceAll('<', '\\u003c').replaceAll('>', '\\u003e').replaceAll('&', '\\u0026');
 }
-export function Document({ children, title = '理解度を確認', back = '/', ordering, grading = false, implementation = false }) {
+export function Document({ children, title = '理解度を確認', back = '/', backLabel = '本文に戻る', ordering, grading = false, implementation = false }) {
   return html`<!doctype html>${<html lang="ja"><head>
     <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="color-scheme" content="light dark" /><meta name="referrer" content="same-origin" />
@@ -13,7 +13,7 @@ export function Document({ children, title = '理解度を確認', back = '/', o
     <script dangerouslySetInnerHTML={{ __html: themeScript }} />
     <noscript><style>{'.quiz-order-candidates,.quiz-order-actions,.quiz-order-script{display:none}'}</style></noscript>
   </head><body>
-    <header class="topbar"><a class="quiz-back" id="back-link" href={back}>← 本文に戻る</a><span class="bar-title">RFC Reader</span></header>
+    <header class="topbar"><a class="quiz-back" id="back-link" href={back}>← {backLabel}</a><span class="bar-title">RFC Reader</span></header>
     <main class={`quiz-page${implementation ? ' quiz-page-code' : ''}`} data-grading={grading ? 'true' : undefined}>
       <h1 id="quiz-title">{title}</h1>
       <p class="quiz-error" id="error" role="alert" hidden></p>

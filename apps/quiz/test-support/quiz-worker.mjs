@@ -10,6 +10,21 @@ export const fixture = JSON.parse(await readFile(new URL('../questions/spec/rfc-
 export const patternsFixture = JSON.parse(await readFile(new URL('../questions/spec/rfc-7591.json', import.meta.url), 'utf8'));
 export const implementationFixture = JSON.parse(await readFile(new URL('../questions/spec/rfc-7591-implementation.json', import.meta.url), 'utf8'));
 export const callbackSecret = 'test-callback-secret-with-at-least-32-characters';
+export function pullRequestFixture() {
+  const value = structuredClone(fixture);
+  value.id = 'pr-without-specification';
+  value.title = 'PR の変更内容を確認する';
+  value.spec = null;
+  value.pullRequest = { repository: 'example/product', number: 194, baseSha: 'b'.repeat(40), headSha: 'c'.repeat(40) };
+  value.references = [
+    { id: 'change', kind: 'diff', repository: 'example/product', commit: 'c'.repeat(40), path: 'src/auth.js', startLine: 1, endLine: 3, reason: 'PR の変更差分', excerpt: '-old();\n+validateAudience(jwt);' },
+    { id: 'pr-description', kind: 'pull_request', repository: 'example/product', commit: 'c'.repeat(40), path: 'pulls/194', startLine: 1, endLine: 2, reason: '作問時点の PR 本文の保存資料', excerpt: '不正な受信者に渡された JWT を拒否する変更。\nレビューでは境界条件を確認した。' },
+  ];
+  value.inconsistencies = [];
+  for (const question of value.questions) question.referenceIds = ['change', 'pr-description'];
+  for (const solution of Object.values(value.solutions)) for (const item of solution.rubric || []) item.referenceIds = ['change'];
+  return value;
+}
 export const executorApiKey = 'test-only-ai-executor-api-key';
 export function multipleChoiceFixture({ written = true } = {}) {
   const value = structuredClone(fixture);

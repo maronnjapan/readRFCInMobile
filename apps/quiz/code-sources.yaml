@@ -7,3 +7,24 @@ sources:
     paths:
       - src/
       - test/
+  - id: maronn-openid-connect
+    repository: maronnjapan/maronn-openid-connect
+    branch: main
+    specIds:
+      - oidc-core-1_0
+      - rfc-6749
+      - rfc-7523
+      - rfc-7591
+      - rfc-9101
+      - rfc-9126
+      - rfc-9449
+    paths:
+      - packages/
+      - apps/
+      - tests/
+      - docs/
+      - scripts/
+      - .github/
+      - .changeset/
+      - README.md
+      - package.json

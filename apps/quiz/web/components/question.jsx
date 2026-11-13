@@ -11,10 +11,12 @@ export function References({ set, ids }) {
     const rfc = ref.kind === 'spec' && /^rfcs\/rfc(\d{1,5})\.txt$/.exec(ref.path);
     const href = rfc
       ? `/?rfc=${Number(rfc[1])}#L${ref.startLine}-L${ref.endLine}`
+      : ref.kind === 'pull_request'
+      ? `https://github.com/${set.revision.repository}/blob/${set.revision.commit}/${set.revision.path.split('/').map(encodeURIComponent).join('/')}`
       : ref.kind === 'diff' && set.pullRequest
       ? `https://github.com/${ref.repository}/compare/${set.pullRequest.baseSha}...${set.pullRequest.headSha}`
       : `https://github.com/${ref.repository}/blob/${ref.commit}/${ref.path.split('/').map(encodeURIComponent).join('/')}#L${ref.startLine}-L${ref.endLine}`;
-    return <p><a href={href} target="_blank" rel="noopener">{rfc ? `RFC ${Number(rfc[1])} の該当箇所` : `${ref.path}:${ref.startLine}–${ref.endLine}`}</a><span> — {ref.reason}</span></p>;
+    return <p><a href={href} target="_blank" rel="noopener">{rfc ? `RFC ${Number(rfc[1])} の該当箇所` : ref.kind === 'pull_request' ? '作問時の PR 本文・レビューの保存資料' : `${ref.path}:${ref.startLine}–${ref.endLine}`}</a><span> — {ref.reason}</span></p>;
   })}</details>;
 }
 

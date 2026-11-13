@@ -128,6 +128,8 @@ node tools/authoring/quiz.mjs generate --spec rfc-7591 --count 2 --categories kn
 ```sh
 node tools/authoring/quiz.mjs generate --spec rfc-7523 --source reader --ref main
 node tools/authoring/quiz.mjs generate --spec rfc-7523 --source reader --pr 42
+node tools/authoring/quiz.mjs generate --spec rfc-6749 --source maronn-openid-connect --pr 194 --paths packages/core/src/ --part 1
+node tools/authoring/quiz.mjs prepare --source maronn-openid-connect --pr 194 --paths packages/core/src/ --part 1
 ```
 
 必要な環境変数:
@@ -139,7 +141,7 @@ node tools/authoring/quiz.mjs generate --spec rfc-7523 --source reader --pr 42
 
 ツールは仕様を `git show <固定SHA>:<path>` で読み、コードの標準ブランチや PR の base/head を開始時に SHA へ解決する。取得先が公開リポジトリかを確認し、許可パスのファイル名・本文の検索語からコード・関連テストを読む。PR は差分と変更前・変更後を資料に含める。取得したコードを実行したり、そのコードの CI を権限付きで実行したりしない。
 
-初期版では資料のサイズを制限し、仕様は先頭から最大40,000文字、コード候補は最大10ファイル、差分と変更前は最大6ファイルを読む。対象外の箇所や API が省略した差分を確認済みにしない。大きい PR は参照パスを絞るか対象を分割する。変更前が許可パス外になる rename も自動取得しない。ベクトル化・ベクトル DB は使用しない。
+仕様は検索語に関連する本文を先頭の説明とともに最大6か所読む。PR は対象パスを指定でき、変更ファイルをパス順で8件ずつ分割する。選択した差分と前後コードに加え、対応する既存テストを最大2件取得する。PR 本文と議論は取得時刻付きの抜粋を保存する。PR 以外のコード候補は最大10ファイル。対象外の箇所や API が省略した差分を確認済みにしない。変更前が許可パス外になる rename は古いパスの本文を取得しない。ベクトル化・ベクトル DB は使用しない。仕様を指定しない PR 単独の作問もできる。設定・版・範囲の扱いは [PR 連携の手順](pr-integration.md)を参照する。
 
 生成候補にはカテゴリ、回答方式、正解、配点付き採点基準、解説、固定版の出典と参照理由、仕様・実装の不整合を記録する。指定カテゴリを各1問以上含むことを結果受信時に検証する。問題数は2〜10問、指定カテゴリ数以上とする。出典は GitHub のコミット固定リンクで確認できる。候補は `draft` で保存し、自動公開しない。
 
@@ -152,7 +154,7 @@ node tools/authoring/quiz.mjs generate --spec rfc-7523 --source reader --pr 42
 
 ```sh
 node tools/authoring/quiz.mjs publish --commit <40文字のSHA> --path apps/quiz/questions/spec/rfc-7523.json
-# PR の場合: --path apps/quiz/questions/pr/owner/repository/42.json
+# PR の場合: --path apps/quiz/questions/pr/owner/repository/42/<資料ID>.json
 ```
 
 取り込みは同じリポジトリ・コミット・パスなら同じ出題セットになり、後からブランチやファイルを変更しても既存回答の版は変わらない。更新版は新しいセットとして公開する。ファイル移動前の `questions/spec/`・`questions/pr/` のパスも、固定SHAによる取り込みに対応する。RFC 7523の従来形式、従来6カテゴリの [RFC 7591サンプル](../questions/spec/rfc-7591.json)、ケースに基づく [RFC 7591実装問題](../questions/spec/rfc-7591-implementation.json)を収録している。
