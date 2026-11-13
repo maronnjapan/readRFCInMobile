@@ -1,8 +1,44 @@
 [
   {
+    "number": 3986,
+    "title": "Uniform Resource Identifier (URI): Generic Syntax",
+    "date": "January 2005",
+    "category": "Standards Track"
+  },
+  {
     "number": 6749,
     "title": "The OAuth 2.0 Authorization Framework",
     "date": "October 2012",
+    "category": "Standards Track"
+  },
+  {
+    "number": 6750,
+    "title": "The OAuth 2.0 Authorization Framework: Bearer Token Usage",
+    "date": "October 2012",
+    "category": "Standards Track"
+  },
+  {
+    "number": 7515,
+    "title": "JSON Web Signature (JWS)",
+    "date": "May 2015",
+    "category": "Standards Track"
+  },
+  {
+    "number": 7517,
+    "title": "JSON Web Key (JWK)",
+    "date": "May 2015",
+    "category": "Standards Track"
+  },
+  {
+    "number": 7518,
+    "title": "JSON Web Algorithms (JWA)",
+    "date": "May 2015",
+    "category": "Standards Track"
+  },
+  {
+    "number": 7519,
+    "title": "JSON Web Token (JWT)",
+    "date": "May 2015",
     "category": "Standards Track"
   },
   {
@@ -33,6 +69,60 @@
     }
   },
   {
+    "number": 7636,
+    "title": "Proof Key for Code Exchange by OAuth Public Clients",
+    "date": "September 2015",
+    "category": "Standards Track"
+  },
+  {
+    "number": 7638,
+    "title": "JSON Web Key (JWK) Thumbprint",
+    "date": "September 2015",
+    "category": "Standards Track"
+  },
+  {
+    "number": 7662,
+    "title": "OAuth 2.0 Token Introspection",
+    "date": "October 2015",
+    "category": "Standards Track"
+  },
+  {
+    "number": 7800,
+    "title": "Proof-of-Possession Key Semantics for JSON Web Tokens (JWTs)",
+    "date": "April 2016",
+    "category": "Standards Track"
+  },
+  {
+    "number": 8037,
+    "title": "CFRG Elliptic Curve Diffie-Hellman (ECDH) and Signatures in JSON Object Signing and Encryption (JOSE)",
+    "date": "January 2017",
+    "category": "Standards Track"
+  },
+  {
+    "number": 8414,
+    "title": "OAuth 2.0 Authorization Server Metadata",
+    "date": "June 2018",
+    "category": "Standards Track"
+  },
+  {
+    "number": 8705,
+    "title": "OAuth 2.0 Mutual-TLS Client Authentication and Certificate-Bound Access Tokens",
+    "date": "February 2020",
+    "category": "Standards Track"
+  },
+  {
+    "number": 8725,
+    "title": "JSON Web Token Best Current Practices",
+    "date": "February 2020",
+    "category": "Best Current Practice"
+  },
+  {
+    "number": 9068,
+    "title": "JSON Web Token (JWT) Profile for OAuth 2.0 Access Tokens",
+    "date": "October 2021",
+    "category": "Standards Track"
+  },
+  {
     "number": 9101,
     "title": "The OAuth 2.0 Authorization Framework: JWT-Secured Authorization Request (JAR)",
     "date": "August 2021",
@@ -40,6 +130,12 @@
     "translations": {
       "ja": "OAuth 2.0 認可フレームワーク: JWT で保護された認可リクエスト (JAR)"
     }
+  },
+  {
+    "number": 9110,
+    "title": "HTTP Semantics",
+    "date": "June 2022",
+    "category": "Standards Track"
   },
   {
     "number": 9126,
@@ -54,6 +150,18 @@
     "number": 9449,
     "title": "OAuth 2.0 Demonstrating Proof of Possession (DPoP)",
     "date": "September 2023",
+    "category": "Standards Track"
+  },
+  {
+    "number": 9700,
+    "title": "Best Current Practice for OAuth 2.0 Security",
+    "date": "January 2025",
+    "category": "Best Current Practice"
+  },
+  {
+    "number": 9728,
+    "title": "OAuth 2.0 Protected Resource Metadata",
+    "date": "April 2025",
     "category": "Standards Track"
   },
   {
