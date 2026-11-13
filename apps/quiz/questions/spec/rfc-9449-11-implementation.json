@@ -1,0 +1,1212 @@
+{
+  "format": "spec-understanding-quiz",
+  "version": 1,
+  "id": "rfc-9449-11-implementation",
+  "title": "RFC 9449 DPoP 発展 7/7: 実装 — DPoP の処理を自分で書く",
+  "status": "draft",
+  "spec": {
+    "id": "rfc-9449",
+    "status": "adopted",
+    "repository": "maronnjapan/readRFCInMobile",
+    "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+    "path": "rfcs/rfc9449.txt"
+  },
+  "references": [
+    {
+      "id": "scheme",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 830,
+      "endLine": 854,
+      "reason": "§7.1: Authorization: DPoP とアクセス許可の条件",
+      "excerpt": "7.1.  The DPoP Authentication Scheme\n\n   A DPoP-bound access token is sent using the Authorization request\n   header field per Section 11.6.2 of [RFC9110] with an authentication\n   scheme of DPoP.  The syntax of the Authorization header field for the\n   DPoP scheme uses the token68 syntax defined in Section 11.2 of\n   [RFC9110] for credentials and is repeated below for ease of\n   reference.  The ABNF notation syntax for DPoP authentication scheme\n   credentials is as follows:\n\n   token68    = 1*( ALPHA / DIGIT /\n                    \"-\" / \".\" / \"_\" / \"~\" / \"+\" / \"/\" ) *\"=\"\n\n   credentials = \"DPoP\" 1*SP token68\n\n                 Figure 12: DPoP Authentication Scheme ABNF\n\n   For such an access token, a resource server MUST check that a DPoP\n   proof was also received in the DPoP header field of the HTTP request,\n   check the DPoP proof according to the rules in Section 4.3, and check\n   that the public key of the DPoP proof matches the public key to which\n   the access token is bound per Section 6.\n\n   The resource server MUST NOT grant access to the resource unless all\n   checks are successful."
+    },
+    {
+      "id": "http-auth-scheme",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc9110.txt",
+      "startLine": 4859,
+      "endLine": 4875,
+      "reason": "§11.1: 認証スキームは大文字・小文字を区別しない",
+      "excerpt": "11.1.  Authentication Scheme\n\n   HTTP provides a general framework for access control and\n   authentication, via an extensible set of challenge-response\n   authentication schemes, which can be used by a server to challenge a\n   client request and by a client to provide authentication information.\n   It uses a case-insensitive token to identify the authentication\n   scheme:\n\n     auth-scheme    = token\n\n   Aside from the general framework, this document does not specify any\n   authentication schemes.  New and existing authentication schemes are\n   specified independently and ought to be registered within the\n   \"Hypertext Transfer Protocol (HTTP) Authentication Scheme Registry\".\n   For example, the \"basic\" and \"digest\" authentication schemes are\n   defined by [RFC7617] and [RFC7616], respectively."
+    },
+    {
+      "id": "syntax",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 393,
+      "endLine": 448,
+      "reason": "§4.2: JOSE ヘッダー、必須クレーム、ath と nonce",
+      "excerpt": "4.2.  DPoP Proof JWT Syntax\n\n   A DPoP proof is a JWT [RFC7519] that is signed (using JSON Web\n   Signature (JWS) [RFC7515]) with a private key chosen by the client\n   (see below).  The JOSE Header of a DPoP JWT MUST contain at least the\n   following parameters:\n\n   typ:  A field with the value dpop+jwt, which explicitly types the\n      DPoP proof JWT as recommended in Section 3.11 of [RFC8725].\n\n   alg:  An identifier for a JWS asymmetric digital signature algorithm\n      from [IANA.JOSE.ALGS].  It MUST NOT be none or an identifier for a\n      symmetric algorithm (Message Authentication Code (MAC)).\n\n   jwk:  Represents the public key chosen by the client in JSON Web Key\n      (JWK) [RFC7517] format as defined in Section 4.1.3 of [RFC7515].\n      It MUST NOT contain a private key.\n\n   The payload of a DPoP proof MUST contain at least the following\n   claims:\n\n   jti:  Unique identifier for the DPoP proof JWT.  The value MUST be\n      assigned such that there is a negligible probability that the same\n      value will be assigned to any other DPoP proof used in the same\n      context during the time window of validity.  Such uniqueness can\n      be accomplished by encoding (base64url or any other suitable\n      encoding) at least 96 bits of pseudorandom data or by using a\n      version 4 Universally Unique Identifier (UUID) string according to\n      [RFC4122].  The jti can be used by the server for replay detection\n      and prevention; see Section 11.1.\n\n   htm:  The value of the HTTP method (Section 9.1 of [RFC9110]) of the\n      request to which the JWT is attached.\n\n   htu:  The HTTP target URI (Section 7.1 of [RFC9110]) of the request\n      to which the JWT is attached, without query and fragment parts.\n\n   iat:  Creation timestamp of the JWT (Section 4.1.6 of [RFC7519]).\n\n   When the DPoP proof is used in conjunction with the presentation of\n   an access token in protected resource access (see Section 7), the\n   DPoP proof MUST also contain the following claim:\n\n   ath:  Hash of the access token.  The value MUST be the result of a\n      base64url encoding (as defined in Section 2 of [RFC7515]) the\n      SHA-256 [SHS] hash of the ASCII encoding of the associated access\n      token's value.\n\n   When the authentication server or resource server provides a DPoP-\n   Nonce HTTP header in a response (see Sections 8 and 9), the DPoP\n   proof MUST also contain the following claim:\n\n   nonce:  A recent nonce provided via the DPoP-Nonce HTTP header.\n\n   A DPoP proof MAY contain other JOSE Header Parameters or claims as\n   defined by extension, profile, or deployment-specific requirements."
+    },
+    {
+      "id": "header",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 359,
+      "endLine": 391,
+      "reason": "§4.1: DPoP HTTP ヘッダーの構文と大文字・小文字",
+      "excerpt": "4.1.  The DPoP HTTP Header\n\n   A DPoP proof is included in an HTTP request using the following\n   request header field.\n\n   DPoP:  A JWT that adheres to the structure and syntax of Section 4.2.\n\n   Figure 2 shows an example DPoP HTTP header field.  The example uses\n   \"\\\" line wrapping per [RFC8792].\n\n   DPoP: eyJ0eXAiOiJkcG9wK2p3dCIsImFsZyI6IkVTMjU2IiwiandrIjp7Imt0eSI6Ik\\\n    VDIiwieCI6Imw4dEZyaHgtMzR0VjNoUklDUkRZOXpDa0RscEJoRjQyVVFVZldWQVdCR\\\n    nMiLCJ5IjoiOVZFNGpmX09rX282NHpiVFRsY3VOSmFqSG10NnY5VERWclUwQ2R2R1JE\\\n    QSIsImNydiI6IlAtMjU2In19.eyJqdGkiOiItQndDM0VTYzZhY2MybFRjIiwiaHRtIj\\\n    oiUE9TVCIsImh0dSI6Imh0dHBzOi8vc2VydmVyLmV4YW1wbGUuY29tL3Rva2VuIiwia\\\n    WF0IjoxNTYyMjYyNjE2fQ.2-GxA6T8lP4vfrg8v-FdWP0A0zdrj8igiMLvqRMUvwnQg\\\n    4PtFLbdLXiOSsX0x7NVY-FNyJK70nfbV37xRZT3Lg\n\n                       Figure 2: Example DPoP Header\n\n   Note that per [RFC9110], header field names are case insensitive;\n   thus, DPoP, DPOP, dpop, etc., are all valid and equivalent header\n   field names.  However, case is significant in the header field value.\n\n   The DPoP HTTP header field value uses the token68 syntax defined in\n   Section 11.2 of [RFC9110] and is repeated below in Figure 3 for ease\n   of reference.\n\n   DPoP       = token68\n   token68    = 1*( ALPHA / DIGIT /\n                    \"-\" / \".\" / \"_\" / \"~\" / \"+\" / \"/\" ) *\"=\"\n\n                      Figure 3: DPoP Header Field ABNF"
+    },
+    {
+      "id": "jws-b64url",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc7515.txt",
+      "startLine": 287,
+      "endLine": 299,
+      "reason": "§2: base64url（パディングなし）と JWS Signing Input",
+      "excerpt": "   Base64url Encoding\n      Base64 encoding using the URL- and filename-safe character set\n      defined in Section 5 of RFC 4648 [RFC4648], with all trailing '='\n      characters omitted (as permitted by Section 3.2) and without the\n      inclusion of any line breaks, whitespace, or other additional\n      characters.  Note that the base64url encoding of the empty octet\n      sequence is the empty string.  (See Appendix C for notes on\n      implementing base64url encoding without padding.)\n\n   JWS Signing Input\n      The input to the digital signature or MAC computation.  Its value\n      is ASCII(BASE64URL(UTF8(JWS Protected Header)) || '.' ||\n      BASE64URL(JWS Payload))."
+    },
+    {
+      "id": "thumb-def",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc7638.txt",
+      "startLine": 130,
+      "endLine": 148,
+      "reason": "§3: JWK Thumbprint の計算手順",
+      "excerpt": "3.  JSON Web Key (JWK) Thumbprint\n\n   The thumbprint of a JSON Web Key (JWK) is computed as follows:\n\n   1.  Construct a JSON object [RFC7159] containing only the required\n       members of a JWK representing the key and with no whitespace or\n       line breaks before or after any syntactic elements and with the\n       required members ordered lexicographically by the Unicode\n       [UNICODE] code points of the member names.  (This JSON object is\n       itself a legal JWK representation of the key.)\n\n   2.  Hash the octets of the UTF-8 representation of this JSON object\n       with a cryptographic hash function H.  For example, SHA-256 [SHS]\n       might be used as H.  See Section 3.4 for a discussion on the\n       choice of hash function.\n\n   The resulting value is the JWK Thumbprint with H of the JWK.  The\n   details of this computation are further described in subsequent\n   sections."
+    },
+    {
+      "id": "thumb-members",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc7638.txt",
+      "startLine": 287,
+      "endLine": 315,
+      "reason": "§3.2: 鍵の種類ごとの必須メンバー",
+      "excerpt": "3.2.  JWK Members Used in the Thumbprint Computation\n\n   Only the required members of a key's representation are used when\n   computing its JWK Thumbprint value.  As defined in \"JSON Web Key\n   (JWK)\" [JWK] and \"JSON Web Algorithms (JWA)\" [JWA], the required\n   members for an elliptic curve public key for the curves specified in\n   Section 6.2.1.1 of RFC 7518 [JWA], in lexicographic order, are:\n\n   o  \"crv\"\n   o  \"kty\"\n   o  \"x\"\n   o  \"y\"\n\n   The required members for an RSA public key, in lexicographic order,\n   are:\n\n   o  \"e\"\n   o  \"kty\"\n   o  \"n\"\n\n   The required members for a symmetric key, in lexicographic order,\n   are:\n\n   o  \"k\"\n   o  \"kty\"\n\n   As other \"kty\" (key type) values are defined, the specifications\n   defining them should be similarly consulted to determine which\n   members, in addition to \"kty\", are required."
+    },
+    {
+      "id": "okp-key",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc8037.txt",
+      "startLine": 134,
+      "endLine": 159,
+      "reason": "§2: OKP 鍵の kty・crv・x・d と Thumbprint のメンバー",
+      "excerpt": "2.  Key Type \"OKP\"\n\n   A new key type (kty) value \"OKP\" (Octet Key Pair) is defined for\n   public key algorithms that use octet strings as private and public\n   keys.  It has the following parameters:\n\n   o  The parameter \"kty\" MUST be \"OKP\".\n\n   o  The parameter \"crv\" MUST be present and contain the subtype of the\n      key (from the \"JSON Web Elliptic Curve\" registry).\n\n   o  The parameter \"x\" MUST be present and contain the public key\n      encoded using the base64url [RFC4648] encoding.\n\n   o  The parameter \"d\" MUST be present for private keys and contain the\n      private key encoded using the base64url encoding.  This parameter\n      MUST NOT be present for public keys.\n\n   Note: Do not assume that there is an underlying elliptic curve,\n   despite the existence of the \"crv\" and \"x\" parameters.  (For\n   instance, this key type could be extended to represent Diffie-Hellman\n   (DH) algorithms based on hyperelliptic surfaces.)\n\n   When calculating JWK Thumbprints [RFC7638], the three public key\n   fields are included in the hash input in lexicographic order: \"crv\",\n   \"kty\", and \"x\"."
+    },
+    {
+      "id": "okp-thumbprint",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc8037.txt",
+      "startLine": 484,
+      "endLine": 495,
+      "reason": "付録 A.3: Ed25519 公開鍵の Thumbprint の入力と値",
+      "excerpt": "A.3.  JWK Thumbprint Canonicalization\n\n   The JWK Thumbprint canonicalization of the two examples above (with a\n   linebreak inserted for formatting reasons) is:\n\n   {\"crv\":\"Ed25519\",\"kty\":\"OKP\",\"x\":\"11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwI\n   aaPcHURo\"}\n\n   Which has the SHA-256 hash (in hexadecimal) of\n   90facafea9b1556698540f70c0117a22ea37bd5cf3ed3c47093c1707282b4b89,\n   which results in the base64url encoded JWK Thumbprint representation\n   of \"kPrK_qmxVWaYVA9wwBF6Iuo3vVzz7TxHCTwXBygrS4k\"."
+    },
+    {
+      "id": "thumb-json",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc7638.txt",
+      "startLine": 439,
+      "endLine": 493,
+      "reason": "§4: JSON.stringify と並べ替えの注意",
+      "excerpt": "4.  Practical JSON and Unicode Considerations\n\n   Implementations will almost certainly use functionality provided by\n   the platform's JSON support when parsing the JWK and emitting the\n   JSON object used as the hash input.  As a practical consideration,\n   future JWK member names and values should be avoided for which\n   different platforms or libraries might emit different\n   representations.  As of the time of this writing, all defined JWK\n\n\n\nJones & Sakimura             Standards Track                    [Page 8]\n\f\nRFC 7638              JSON Web Key (JWK) Thumbprint       September 2015\n\n\n   member names and values use only printable ASCII characters, which\n   should not exhibit this problem.  Note however, that JSON.stringify()\n   cannot be counted on to lexicographically sort the members of JSON\n   objects, so while it could be used to emit some kinds of member\n   values, different code is likely to be needed to perform the sorting.\n\n   In particular, while the operation of lexicographically ordering\n   member names by their Unicode code points is well defined, different\n   platform sort functions may produce different results for non-ASCII\n   characters, in ways that may not be obvious to developers.  If\n   writers of future specifications defining new JWK key type values\n   choose to restrict themselves to printable ASCII member names and\n   values (which are for machine and not human consumption anyway), some\n   future interoperability problems might be avoided.\n\n   However, if new JWK members are defined that use non-ASCII member\n   names or values, their definitions should specify the exact Unicode\n   code point sequences used to represent them.  This is particularly\n   important in cases in which Unicode normalization could result in the\n   transformation of one set of code points into another under any\n   circumstances.\n\n   Use of escaped characters in JWKs for which JWK Thumbprints will be\n   computed should be avoided.  Use of escaped characters in the hash\n   input JWKs derived from these original JWKs is prohibited.\n\n   There is a natural representation to use for numeric values that are\n   integers.  However, this specification does not attempt to define a\n   standard representation for numbers that are not integers or that\n   contain an exponent component.  This is not expected to be a problem\n   in practice, as the required members of JWK representations are\n   expected to use only numbers that are integers.\n\n   Use of number representations containing fraction or exponent parts\n   in JWKs for which JWK Thumbprints will be computed should be avoided.\n\n   All of these practical considerations are really an instance of Jon\n   Postel's principle: \"Be liberal in what you accept, and conservative\n   in what you send.\""
+    },
+    {
+      "id": "jkt",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 701,
+      "endLine": 719,
+      "reason": "§6.1: cnf.jkt と RFC 7638 の JWK SHA-256 Thumbprint",
+      "excerpt": "6.1.  JWK Thumbprint Confirmation Method\n\n   When access tokens are represented as JWTs [RFC7519], the public key\n   information is represented using the jkt confirmation method member\n   defined herein.  To convey the hash of a public key in a JWT, this\n   specification introduces the following JWT Confirmation Method\n   [RFC7800] member for use under the cnf claim.\n\n   jkt:  JWK SHA-256 Thumbprint confirmation method.  The value of the\n      jkt member MUST be the base64url encoding (as defined in\n      [RFC7515]) of the JWK SHA-256 Thumbprint (according to [RFC7638])\n      of the DPoP public key (in JWK format) to which the access token\n      is bound.\n\n   The following example JWT in Figure 8 with a decoded JWT payload\n   shown in Figure 9 contains a cnf claim with the jkt JWK Thumbprint\n   confirmation method member.  The jkt value in these examples is the\n   hash of the public key from the DPoP proofs in the examples shown in\n   Section 5.  The example uses \"\\\" line wrapping per [RFC8792]."
+    },
+    {
+      "id": "checks",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 485,
+      "endLine": 523,
+      "reason": "§4.3: 受信時の必須検証、URI 正規化、検証順序",
+      "excerpt": "4.3.  Checking DPoP Proofs\n\n   To validate a DPoP proof, the receiving server MUST ensure the\n   following:\n\n   1.   There is not more than one DPoP HTTP request header field.\n   2.   The DPoP HTTP request header field value is a single and well-\n        formed JWT.\n   3.   All required claims per Section 4.2 are contained in the JWT.\n   4.   The typ JOSE Header Parameter has the value dpop+jwt.\n   5.   The alg JOSE Header Parameter indicates a registered asymmetric\n        digital signature algorithm [IANA.JOSE.ALGS], is not none, is\n        supported by the application, and is acceptable per local\n        policy.\n   6.   The JWT signature verifies with the public key contained in the\n        jwk JOSE Header Parameter.\n   7.   The jwk JOSE Header Parameter does not contain a private key.\n   8.   The htm claim matches the HTTP method of the current request.\n   9.   The htu claim matches the HTTP URI value for the HTTP request in\n        which the JWT was received, ignoring any query and fragment\n        parts.\n   10.  If the server provided a nonce value to the client, the nonce\n        claim matches the server-provided nonce value.\n   11.  The creation time of the JWT, as determined by either the iat\n        claim or a server managed timestamp via the nonce claim, is\n        within an acceptable window (see Section 11.1).\n   12.  If presented to a protected resource in conjunction with an\n        access token,\n        *  ensure that the value of the ath claim equals the hash of\n           that access token, and\n        *  confirm that the public key to which the access token is\n           bound matches the public key from the DPoP proof.\n\n   To reduce the likelihood of false negatives, servers SHOULD employ\n   syntax-based normalization (Section 6.2.2 of [RFC3986]) and scheme-\n   based normalization (Section 6.2.3 of [RFC3986]) before comparing the\n   htu claim.\n\n   These checks may be performed in any order."
+    },
+    {
+      "id": "uri-syntax-normalize",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc3986.txt",
+      "startLine": 2197,
+      "endLine": 2257,
+      "reason": "§6.2.2: 構文ベースの正規化",
+      "excerpt": "6.2.2.  Syntax-Based Normalization\n\n   Implementations may use logic based on the definitions provided by\n   this specification to reduce the probability of false negatives.\n   This processing is moderately higher in cost than character-for-\n   character string comparison.  For example, an application using this\n   approach could reasonably consider the following two URIs equivalent:\n\n      example://a/b/c/%7Bfoo%7D\n      eXAMPLE://a/./b/../b/%63/%7bfoo%7d\n\n   Web user agents, such as browsers, typically apply this type of URI\n   normalization when determining whether a cached response is\n   available.  Syntax-based normalization includes such techniques as\n   case normalization, percent-encoding normalization, and removal of\n   dot-segments.\n\n6.2.2.1.  Case Normalization\n\n   For all URIs, the hexadecimal digits within a percent-encoding\n   triplet (e.g., \"%3a\" versus \"%3A\") are case-insensitive and therefore\n   should be normalized to use uppercase letters for the digits A-F.\n\n   When a URI uses components of the generic syntax, the component\n   syntax equivalence rules always apply; namely, that the scheme and\n   host are case-insensitive and therefore should be normalized to\n   lowercase.  For example, the URI <HTTP://www.EXAMPLE.com/> is\n   equivalent to <http://www.example.com/>.  The other generic syntax\n   components are assumed to be case-sensitive unless specifically\n   defined otherwise by the scheme (see Section 6.2.3).\n\n6.2.2.2.  Percent-Encoding Normalization\n\n   The percent-encoding mechanism (Section 2.1) is a frequent source of\n   variance among otherwise identical URIs.  In addition to the case\n   normalization issue noted above, some URI producers percent-encode\n   octets that do not require percent-encoding, resulting in URIs that\n   are equivalent to their non-encoded counterparts.  These URIs should\n   be normalized by decoding any percent-encoded octet that corresponds\n   to an unreserved character, as described in Section 2.3.\n\n\n\n\n\nBerners-Lee, et al.         Standards Track                    [Page 40]\n\f\nRFC 3986                   URI Generic Syntax               January 2005\n\n\n6.2.2.3.  Path Segment Normalization\n\n   The complete path segments \".\" and \"..\" are intended only for use\n   within relative references (Section 4.1) and are removed as part of\n   the reference resolution process (Section 5.2).  However, some\n   deployed implementations incorrectly assume that reference resolution\n   is not necessary when the reference is already a URI and thus fail to\n   remove dot-segments when they occur in non-relative paths.  URI\n   normalizers should remove dot-segments by applying the\n   remove_dot_segments algorithm to the path, as described in\n   Section 5.2.4."
+    },
+    {
+      "id": "uri-scheme-normalize",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc3986.txt",
+      "startLine": 2259,
+      "endLine": 2321,
+      "reason": "§6.2.3: スキームベースの正規化",
+      "excerpt": "6.2.3.  Scheme-Based Normalization\n\n   The syntax and semantics of URIs vary from scheme to scheme, as\n   described by the defining specification for each scheme.\n   Implementations may use scheme-specific rules, at further processing\n   cost, to reduce the probability of false negatives.  For example,\n   because the \"http\" scheme makes use of an authority component, has a\n   default port of \"80\", and defines an empty path to be equivalent to\n   \"/\", the following four URIs are equivalent:\n\n      http://example.com\n      http://example.com/\n      http://example.com:/\n      http://example.com:80/\n\n   In general, a URI that uses the generic syntax for authority with an\n   empty path should be normalized to a path of \"/\".  Likewise, an\n   explicit \":port\", for which the port is empty or the default for the\n   scheme, is equivalent to one where the port and its \":\" delimiter are\n   elided and thus should be removed by scheme-based normalization.  For\n   example, the second URI above is the normal form for the \"http\"\n   scheme.\n\n   Another case where normalization varies by scheme is in the handling\n   of an empty authority component or empty host subcomponent.  For many\n   scheme specifications, an empty authority or host is considered an\n   error; for others, it is considered equivalent to \"localhost\" or the\n   end-user's host.  When a scheme defines a default for authority and a\n   URI reference to that default is desired, the reference should be\n   normalized to an empty authority for the sake of uniformity, brevity,\n   and internationalization.  If, however, either the userinfo or port\n   subcomponents are non-empty, then the host should be given explicitly\n   even if it matches the default.\n\n   Normalization should not remove delimiters when their associated\n   component is empty unless licensed to do so by the scheme\n\n\n\nBerners-Lee, et al.         Standards Track                    [Page 41]\n\f\nRFC 3986                   URI Generic Syntax               January 2005\n\n\n   specification.  For example, the URI \"http://example.com/?\" cannot be\n   assumed to be equivalent to any of the examples above.  Likewise, the\n   presence or absence of delimiters within a userinfo subcomponent is\n   usually significant to its interpretation.  The fragment component is\n   not subject to any scheme-based normalization; thus, two URIs that\n   differ only by the suffix \"#\" are considered different regardless of\n   the scheme.\n\n   Some schemes define additional subcomponents that consist of case-\n   insensitive data, giving an implicit license to normalizers to\n   convert this data to a common case (e.g., all lowercase).  For\n   example, URI schemes that define a subcomponent of path to contain an\n   Internet hostname, such as the \"mailto\" URI scheme, cause that\n   subcomponent to be case-insensitive and thus subject to case\n   normalization (e.g., \"mailto:Joe@Example.COM\" is equivalent to\n   \"mailto:Joe@example.com\", even though the generic syntax considers\n   the path component to be case-sensitive).\n\n   Other scheme-specific normalizations are possible."
+    },
+    {
+      "id": "uri-protocol-normalize",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc3986.txt",
+      "startLine": 2323,
+      "endLine": 2341,
+      "reason": "§6.2.4: プロトコルベースの正規化（末尾のスラッシュ）",
+      "excerpt": "6.2.4.  Protocol-Based Normalization\n\n   Substantial effort to reduce the incidence of false negatives is\n   often cost-effective for web spiders.  Therefore, they implement even\n   more aggressive techniques in URI comparison.  For example, if they\n   observe that a URI such as\n\n      http://example.com/data\n\n   redirects to a URI differing only in the trailing slash\n\n      http://example.com/data/\n\n   they will likely regard the two as equivalent in the future.  This\n   kind of technique is only appropriate when equivalence is clearly\n   indicated by both the result of accessing the resources and the\n   common conventions of their scheme's dereference algorithm (in this\n   case, use of redirection by HTTP origin servers to avoid problems\n   with relative references)."
+    },
+    {
+      "id": "uri-unreserved",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc3986.txt",
+      "startLine": 718,
+      "endLine": 745,
+      "reason": "§2.3: 非予約文字とパーセントエンコーディング",
+      "excerpt": "2.3.  Unreserved Characters\n\n   Characters that are allowed in a URI but do not have a reserved\n   purpose are called unreserved.  These include uppercase and lowercase\n   letters, decimal digits, hyphen, period, underscore, and tilde.\n\n      unreserved  = ALPHA / DIGIT / \"-\" / \".\" / \"_\" / \"~\"\n\n\n\n\n\nBerners-Lee, et al.         Standards Track                    [Page 13]\n\f\nRFC 3986                   URI Generic Syntax               January 2005\n\n\n   URIs that differ in the replacement of an unreserved character with\n   its corresponding percent-encoded US-ASCII octet are equivalent: they\n   identify the same resource.  However, URI comparison implementations\n   do not always perform normalization prior to comparison (see Section\n   6).  For consistency, percent-encoded octets in the ranges of ALPHA\n   (%41-%5A and %61-%7A), DIGIT (%30-%39), hyphen (%2D), period (%2E),\n   underscore (%5F), or tilde (%7E) should not be created by URI\n   producers and, when found in a URI, should be decoded to their\n   corresponding unreserved characters by URI normalizers.\n\n2.4.  When to Encode or Decode"
+    },
+    {
+      "id": "http-uri-normalize",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc9110.txt",
+      "startLine": 1158,
+      "endLine": 1197,
+      "reason": "§4.2.3: http(s) URI の正規化と比較",
+      "excerpt": "4.2.3.  http(s) Normalization and Comparison\n\n   URIs with an \"http\" or \"https\" scheme are normalized and compared\n   according to the methods defined in Section 6 of [URI], using the\n   defaults described above for each scheme.\n\n   HTTP does not require the use of a specific method for determining\n   equivalence.  For example, a cache key might be compared as a simple\n   string, after syntax-based normalization, or after scheme-based\n   normalization.\n\n   Scheme-based normalization (Section 6.2.3 of [URI]) of \"http\" and\n   \"https\" URIs involves the following additional rules:\n\n   *  If the port is equal to the default port for a scheme, the normal\n      form is to omit the port subcomponent.\n\n   *  When not being used as the target of an OPTIONS request, an empty\n      path component is equivalent to an absolute path of \"/\", so the\n      normal form is to provide a path of \"/\" instead.\n\n   *  The scheme and host are case-insensitive and normally provided in\n      lowercase; all other components are compared in a case-sensitive\n      manner.\n\n   *  Characters other than those in the \"reserved\" set are equivalent\n      to their percent-encoded octets: the normal form is to not encode\n      them (see Sections 2.1 and 2.2 of [URI]).\n\n   For example, the following three URIs are equivalent:\n\n      http://example.com:80/~smith/home.html\n      http://EXAMPLE.com/%7Esmith/home.html\n      http://EXAMPLE.com:/%7esmith/home.html\n\n   Two HTTP URIs that are equivalent after normalization (using any\n   method) can be assumed to identify the same resource, and any HTTP\n   component MAY perform normalization.  As a result, distinct resources\n   SHOULD NOT be identified by HTTP URIs that are equivalent after\n   normalization (using any method defined in Section 6.2 of [URI])."
+    },
+    {
+      "id": "http-www-authenticate",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc9110.txt",
+      "startLine": 5018,
+      "endLine": 5060,
+      "reason": "§11.6.1: WWW-Authenticate の複数 challenge",
+      "excerpt": "11.6.1.  WWW-Authenticate\n\n   The \"WWW-Authenticate\" response header field indicates the\n   authentication scheme(s) and parameters applicable to the target\n   resource.\n\n     WWW-Authenticate = #challenge\n\n   A server generating a 401 (Unauthorized) response MUST send a WWW-\n   Authenticate header field containing at least one challenge.  A\n   server MAY generate a WWW-Authenticate header field in other response\n   messages to indicate that supplying credentials (or different\n   credentials) might affect the response.\n\n   A proxy forwarding a response MUST NOT modify any WWW-Authenticate\n   header fields in that response.\n\n   User agents are advised to take special care in parsing the field\n   value, as it might contain more than one challenge, and each\n   challenge can contain a comma-separated list of authentication\n   parameters.  Furthermore, the header field itself can occur multiple\n   times.\n\n   For instance:\n\n   WWW-Authenticate: Basic realm=\"simple\", Newauth realm=\"apps\",\n                    type=1, title=\"Login to \\\"apps\\\"\"\n\n   This header field contains two challenges, one for the \"Basic\" scheme\n   with a realm value of \"simple\" and another for the \"Newauth\" scheme\n   with a realm value of \"apps\".  It also contains two additional\n   parameters, \"type\" and \"title\".\n\n   Some user agents do not recognize this form, however.  As a result,\n   sending a WWW-Authenticate field value with more than one member on\n   the same field line might not be interoperable.\n\n      |  *Note:* The challenge grammar production uses the list syntax\n      |  as well.  Therefore, a sequence of comma, whitespace, and comma\n      |  can be considered either as applying to the preceding\n      |  challenge, or to be an empty entry in the list of challenges.\n      |  In practice, this ambiguity does not affect the semantics of\n      |  the header field value and thus is harmless."
+    },
+    {
+      "id": "http-auth-params",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc9110.txt",
+      "startLine": 4877,
+      "endLine": 4907,
+      "reason": "§11.2: token68 と auth-param（token / quoted-string）",
+      "excerpt": "11.2.  Authentication Parameters\n\n   The authentication scheme is followed by additional information\n   necessary for achieving authentication via that scheme as either a\n   comma-separated list of parameters or a single sequence of characters\n   capable of holding base64-encoded information.\n\n     token68        = 1*( ALPHA / DIGIT /\n                          \"-\" / \".\" / \"_\" / \"~\" / \"+\" / \"/\" ) *\"=\"\n\n   The token68 syntax allows the 66 unreserved URI characters ([URI]),\n   plus a few others, so that it can hold a base64, base64url (URL and\n   filename safe alphabet), base32, or base16 (hex) encoding, with or\n   without padding, but excluding whitespace ([RFC4648]).\n\n   Authentication parameters are name/value pairs, where the name token\n   is matched case-insensitively and each parameter name MUST only occur\n   once per challenge.\n\n     auth-param     = token BWS \"=\" BWS ( token / quoted-string )\n\n   Parameter values can be expressed either as \"token\" or as \"quoted-\n   string\" (Section 5.6).  Authentication scheme definitions need to\n   accept both notations, both for senders and recipients, to allow\n   recipients to use generic parsing components regardless of the\n   authentication scheme.\n\n   For backwards compatibility, authentication scheme definitions can\n   restrict the format for senders to one of the two variants.  This can\n   be important when it is known that deployed implementations will fail\n   when encountering one of the two formats."
+    },
+    {
+      "id": "http-challenge",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc9110.txt",
+      "startLine": 4909,
+      "endLine": 4935,
+      "reason": "§11.3: challenge の構文",
+      "excerpt": "11.3.  Challenge and Response\n\n   A 401 (Unauthorized) response message is used by an origin server to\n   challenge the authorization of a user agent, including a\n   WWW-Authenticate header field containing at least one challenge\n   applicable to the requested resource.\n\n   A 407 (Proxy Authentication Required) response message is used by a\n   proxy to challenge the authorization of a client, including a\n   Proxy-Authenticate header field containing at least one challenge\n   applicable to the proxy for the requested resource.\n\n     challenge   = auth-scheme [ 1*SP ( token68 / #auth-param ) ]\n\n      |  *Note:* Many clients fail to parse a challenge that contains an\n      |  unknown scheme.  A workaround for this problem is to list well-\n      |  supported schemes (such as \"basic\") first.\n\n   A user agent that wishes to authenticate itself with an origin server\n   -- usually, but not necessarily, after receiving a 401 (Unauthorized)\n   -- can do so by including an Authorization header field with the\n   request.\n\n   A client that wishes to authenticate itself with a proxy -- usually,\n   but not necessarily, after receiving a 407 (Proxy Authentication\n   Required) -- can do so by including a Proxy-Authorization header\n   field with the request."
+    },
+    {
+      "id": "http-field-order",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc9110.txt",
+      "startLine": 1515,
+      "endLine": 1545,
+      "reason": "§5.3: 同名のフィールド行の結合",
+      "excerpt": "5.3.  Field Order\n\n   A recipient MAY combine multiple field lines within a field section\n   that have the same field name into one field line, without changing\n   the semantics of the message, by appending each subsequent field line\n   value to the initial field line value in order, separated by a comma\n   (\",\") and optional whitespace (OWS, defined in Section 5.6.3).  For\n   consistency, use comma SP.\n\n   The order in which field lines with the same name are received is\n   therefore significant to the interpretation of the field value; a\n   proxy MUST NOT change the order of these field line values when\n   forwarding a message.\n\n   This means that, aside from the well-known exception noted below, a\n   sender MUST NOT generate multiple field lines with the same name in a\n   message (whether in the headers or trailers) or append a field line\n   when a field line of the same name already exists in the message,\n   unless that field's definition allows multiple field line values to\n   be recombined as a comma-separated list (i.e., at least one\n   alternative of the field's definition allows a comma-separated list,\n   such as an ABNF rule of #(values) defined in Section 5.6.1).\n\n      |  *Note:* In practice, the \"Set-Cookie\" header field ([COOKIE])\n      |  often appears in a response message across multiple field lines\n      |  and does not use the list syntax, violating the above\n      |  requirements on multiple field lines with the same field name.\n      |  Since it cannot be combined into a single field value,\n      |  recipients ought to handle \"Set-Cookie\" as a special case while\n      |  processing fields.  (See Appendix A.2.3 of [Kri2001] for\n      |  details.)"
+    },
+    {
+      "id": "challenge",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 899,
+      "endLine": 936,
+      "reason": "§7.1: WWW-Authenticate のエラー・algs・未知パラメーター",
+      "excerpt": "   Upon receipt of a request to a protected resource within the\n   protection space requiring DPoP authentication, the server can\n   respond with a challenge to the client to provide DPoP authentication\n   information if the request does not include valid credentials or does\n   not contain an access token sufficient for access.  Such a challenge\n   is made using the 401 (Unauthorized) response status code ([RFC9110],\n   Section 15.5.2) and the WWW-Authenticate header field ([RFC9110],\n   Section 11.6.1).  The server MAY include the WWW-Authenticate header\n   in response to other conditions as well.\n\n   In such challenges:\n\n   *  The scheme name is DPoP.\n   *  The authentication parameter realm MAY be included to indicate the\n      scope of protection in the manner described in [RFC9110],\n      Section 11.5.\n   *  A scope authentication parameter MAY be included as defined in\n      [RFC6750], Section 3.\n   *  An error parameter ([RFC6750], Section 3) SHOULD be included to\n      indicate the reason why the request was declined, if the request\n      included an access token but failed authentication.  The error\n      parameter values described in [RFC6750], Section 3.1 are suitable,\n      as are any appropriate values defined by extension.  The value\n      use_dpop_nonce can be used as described in Section 9 to signal\n      that a nonce is needed in the DPoP proof of a subsequent\n      request(s).  Additionally, invalid_dpop_proof is used to indicate\n      that the DPoP proof itself was deemed invalid based on the\n      criteria of Section 4.3.\n   *  An error_description parameter ([RFC6750], Section 3) MAY be\n      included along with the error parameter to provide developers a\n      human-readable explanation that is not meant to be displayed to\n      end-users.\n   *  An algs parameter SHOULD be included to signal to the client the\n      JWS algorithms that are acceptable for the DPoP proof JWT.  The\n      value of the parameter is a space-delimited list of JWS alg\n      (Algorithm) header values ([RFC7515], Section 4.1.1).\n   *  Additional authentication parameters MAY be used, and unknown\n      parameters MUST be ignored by recipients."
+    },
+    {
+      "id": "multi-challenge",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 1023,
+      "endLine": 1057,
+      "reason": "§7.2: 複数 challenge と 2 方式同時使用の 400 の例",
+      "excerpt": "   The following examples use \"\\\" line wrapping per [RFC8792].\n\n   GET /protectedresource HTTP/1.1\n   Host: resource.example.org\n\n   HTTP/1.1 401 Unauthorized\n   WWW-Authenticate: Bearer, DPoP algs=\"ES256 PS256\"\n\n    Figure 17: HTTP 401 Response to a Protected Resource Request without\n                               Authentication\n\n   GET /protectedresource HTTP/1.1\n   Host: resource.example.org\n   Authorization: Bearer INVALID_TOKEN\n\n   HTTP/1.1 401 Unauthorized\n   WWW-Authenticate: Bearer error=\"invalid_token\", \\\n       error_description=\"Invalid token\", DPoP algs=\"ES256 PS256\"\n\n     Figure 18: HTTP 401 Response to a Protected Resource Request with\n                           Invalid Authentication\n\n   GET /protectedresource HTTP/1.1\n   Host: resource.example.org\n   Authorization: Bearer Kz~8mXK1EalYznwH-LC-1fBAo.4Ljp~zsPE_NeO.gxU\n   Authorization: DPoP Kz~8mXK1EalYznwH-LC-1fBAo.4Ljp~zsPE_NeO.gxU\n\n   HTTP/1.1 400 Bad Request\n   WWW-Authenticate: Bearer error=\"invalid_request\", \\\n    error_description=\"Multiple methods used to include access token\", \\\n    DPoP algs=\"ES256 PS256\", error=\"invalid_request\", \\\n    error_description=\"Multiple methods used to include access token\"\n\n     Figure 19: HTTP 400 Response to a Protected Resource Request with\n                          Ambiguous Authentication"
+    },
+    {
+      "id": "downgrade",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 1393,
+      "endLine": 1396,
+      "reason": "§11.3: nonce 提供後の nonce なし proof の受理禁止",
+      "excerpt": "11.3.  DPoP Nonce Downgrade\n\n   A server MUST NOT accept any DPoP proofs without the nonce claim when\n   a DPoP nonce has been provided to the client."
+    },
+    {
+      "id": "resource",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 796,
+      "endLine": 828,
+      "reason": "§7: ath によるトークン差し替え防止と残る検証",
+      "excerpt": "7.  Protected Resource Access\n\n   Requests to DPoP-protected resources MUST include both a DPoP proof\n   as per Section 4 and the access token as described in Section 7.1.\n   The DPoP proof MUST include the ath claim with a valid hash of the\n   associated access token.\n\n   Binding the token value to the proof in this way prevents a proof to\n   be used with multiple different access token values across different\n   requests.  For example, if a client holds tokens bound to two\n   different resource owners, AT1 and AT2, and uses the same key when\n   talking to the authorization server, it's possible that these tokens\n   could be swapped.  Without the ath field to bind it, a captured\n   signature applied to AT1 could be replayed with AT2 instead, changing\n   the rights and access of the intended request.  This same\n   substitution prevention remains for rotated access tokens within the\n   same combination of client and resource owner -- a rotated token\n   value would require the calculation of a new proof.  This binding\n   additionally ensures that a proof intended for use with the access\n   token is not usable without an access token, or vice-versa.\n\n   The resource server is required to calculate the hash of the token\n   value presented and verify that it is the same as the hash value in\n   the ath field as described in Section 4.3.  Since the ath field value\n   is covered by the DPoP proof's signature, its inclusion binds the\n   access token value to the holder of the key used to generate the\n   signature.\n\n   Note that the ath field alone does not prevent replay of the DPoP\n   proof or provide binding to the request in which the proof is\n   presented, and it is still important to check the time window of the\n   proof as well as the included message parameters, such as htm and\n   htu."
+    },
+    {
+      "id": "http-method",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc9110.txt",
+      "startLine": 3728,
+      "endLine": 3758,
+      "reason": "§9.1: メソッドトークンは大文字・小文字を区別",
+      "excerpt": "9.1.  Overview\n\n   The request method token is the primary source of request semantics;\n   it indicates the purpose for which the client has made this request\n   and what is expected by the client as a successful result.\n\n   The request method's semantics might be further specialized by the\n   semantics of some header fields when present in a request if those\n   additional semantics do not conflict with the method.  For example, a\n   client can send conditional request header fields (Section 13.1) to\n   make the requested action conditional on the current state of the\n   target resource.\n\n   HTTP is designed to be usable as an interface to distributed object\n   systems.  The request method invokes an action to be applied to a\n   target resource in much the same way that a remote method invocation\n   can be sent to an identified object.\n\n     method = token\n\n   The method token is case-sensitive because it might be used as a\n   gateway to object-based systems with case-sensitive method names.  By\n   convention, standardized methods are defined in all-uppercase US-\n   ASCII letters.\n\n   Unlike distributed objects, the standardized request methods in HTTP\n   are not resource-specific, since uniform interfaces provide for\n   better visibility and reuse in network-based systems [REST].  Once\n   defined, a standardized method ought to have the same semantics when\n   applied to any resource, though each resource determines for itself\n   whether those semantics are implemented or allowed."
+    },
+    {
+      "id": "replay",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 1322,
+      "endLine": 1358,
+      "reason": "§11.1: 有効時間、jti 記録、メモリー対策、時計差、nonce 再利用",
+      "excerpt": "11.1.  DPoP Proof Replay\n\n   If an adversary is able to get hold of a DPoP proof JWT, the\n   adversary could replay that token at the same endpoint (the HTTP\n   endpoint and method are enforced via the respective claims in the\n   JWTs).  To limit this, servers MUST only accept DPoP proofs for a\n   limited time after their creation (preferably only for a relatively\n   brief period on the order of seconds or minutes).\n\n   In the context of the target URI, servers can store the jti value of\n   each DPoP proof for the time window in which the respective DPoP\n   proof JWT would be accepted to prevent multiple uses of the same DPoP\n   proof.  HTTP requests to the same URI for which the jti value has\n   been seen before would be declined.  When strictly enforced, such a\n   single-use check provides a very strong protection against DPoP proof\n   replay, but it may not always be feasible in practice, e.g., when\n   multiple servers behind a single endpoint have no shared state.\n\n   In order to guard against memory exhaustion attacks, a server that is\n   tracking jti values should reject DPoP proof JWTs with unnecessarily\n   large jti values or store only a hash thereof.\n\n   Note: To accommodate for clock offsets, the server MAY accept DPoP\n   proofs that carry an iat time in the reasonably near future (on the\n   order of seconds or minutes).  Because clock skews between servers\n   and clients may be large, servers MAY limit DPoP proof lifetimes by\n   using server-provided nonce values containing the time at the server\n   rather than comparing the client-supplied iat time to the time at the\n   server.  Nonces created in this way yield the same result even in the\n   face of arbitrarily large clock skews.\n\n   Server-provided nonces are an effective means for further reducing\n   the chances for successful DPoP proof replay.  Unlike cryptographic\n   nonces, it is acceptable for clients to use the same nonce multiple\n   times and for the server to accept the same nonce multiple times.  As\n   long as the jti value is tracked and duplicates are rejected for the\n   lifetime of the nonce, there is no additional risk of token replay."
+    },
+    {
+      "id": "as-nonce",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 1073,
+      "endLine": 1118,
+      "reason": "§8: AS の nonce challenge、予測不能性、ヘッダー数",
+      "excerpt": "8.  Authorization Server-Provided Nonce\n\n   This section specifies a mechanism using opaque nonces provided by\n   the server that can be used to limit the lifetime of DPoP proofs.\n   Without employing such a mechanism, a malicious party controlling the\n   client (potentially including the end-user) can create DPoP proofs\n   for use arbitrarily far in the future.\n\n   Including a nonce value contributed by the authorization server in\n   the DPoP proof MAY be used by authorization servers to limit the\n   lifetime of DPoP proofs.  The server determines when to issue a new\n   DPoP nonce challenge and if it is needed, thereby requiring the use\n   of the nonce value in subsequent DPoP proofs.  The logic through\n   which the server makes that determination is out of scope of this\n   document.\n\n   An authorization server MAY supply a nonce value to be included by\n   the client in DPoP proofs sent.  In this case, the authorization\n   server responds to requests that do not include a nonce with an HTTP\n   400 (Bad Request) error response per Section 5.2 of [RFC6749] using\n   use_dpop_nonce as the error code value.  The authorization server\n   includes a DPoP-Nonce HTTP header in the response supplying a nonce\n   value to be used when sending the subsequent request.  Nonce values\n   MUST be unpredictable.  This same error code is used when supplying a\n   new nonce value when there was a nonce mismatch.  The client will\n   typically retry the request with the new nonce value supplied upon\n   receiving a use_dpop_nonce error with an accompanying nonce value.\n\n   For example, in response to a token request without a nonce when the\n   authorization server requires one, the authorization server can\n   respond with a DPoP-Nonce value such as the following to provide a\n   nonce value to include in the DPoP proof:\n\n    HTTP/1.1 400 Bad Request\n    DPoP-Nonce: eyJ7S_zG.eyJH0-Z.HX4w-7v\n\n    {\n     \"error\": \"use_dpop_nonce\",\n     \"error_description\":\n       \"Authorization server requires nonce in DPoP proof\"\n    }\n\n      Figure 20: HTTP 400 Response to a Token Request without a Nonce\n\n   Other HTTP headers and JSON fields MAY also be included in the error\n   response, but there MUST NOT be more than one DPoP-Nonce header."
+    },
+    {
+      "id": "rs-nonce",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 1205,
+      "endLine": 1235,
+      "reason": "§9: RS の 401 challenge、発行元別の nonce、OIDC との区別",
+      "excerpt": "9.  Resource Server-Provided Nonce\n\n   Resource servers can also choose to provide a nonce value to be\n   included in DPoP proofs sent to them.  They provide the nonce using\n   the DPoP-Nonce header in the same way that authorization servers do\n   as described in Sections 8 and 8.2.  The error signaling is performed\n   as described in Section 7.1.  Resource servers use an HTTP 401\n   (Unauthorized) error code with an accompanying WWW-Authenticate: DPoP\n   value and DPoP-Nonce value to accomplish this.\n\n   For example, in response to a resource request without a nonce when\n   the resource server requires one, the resource server can respond\n   with a DPoP-Nonce value such as the following to provide a nonce\n   value to include in the DPoP proof.  The example below uses \"\\\" line\n   wrapping per [RFC8792].\n\n    HTTP/1.1 401 Unauthorized\n    WWW-Authenticate: DPoP error=\"use_dpop_nonce\", \\\n      error_description=\"Resource server requires nonce in DPoP proof\"\n    DPoP-Nonce: eyJ7S_zG.eyJH0-Z.HX4w-7v\n\n     Figure 24: HTTP 401 Response to a Resource Request without a Nonce\n\n   Note that the nonces provided by an authorization server and a\n   resource server are different and should not be confused with one\n   another since nonces will be only accepted by the server that issued\n   them.  Likewise, should a client use multiple authorization servers\n   and/or resource servers, a nonce issued by any of them should be used\n   only at the issuing server.  Developers should also be careful to not\n   confuse DPoP nonces with the OpenID Connect [OpenID.Core] ID Token\n   nonce."
+    },
+    {
+      "id": "rotation",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 1170,
+      "endLine": 1203,
+      "reason": "§8.2: 成功応答による nonce 更新とキャッシュ",
+      "excerpt": "8.2.  Providing a New Nonce Value\n\n   It is up to the authorization server when to supply a new nonce value\n   for the client to use.  The client is expected to use the existing\n   supplied nonce in DPoP proofs until the server supplies a new nonce\n   value.\n\n   The authorization server MAY supply the new nonce in the same way\n   that the initial one was supplied: by using a DPoP-Nonce HTTP header\n   in the response.  The DPoP-Nonce HTTP header field uses the nonce\n   syntax defined in Section 8.1.  Each time this happens, it requires\n   an extra protocol round trip.\n\n   A more efficient manner of supplying a new nonce value is also\n   defined by including a DPoP-Nonce HTTP header in the HTTP 200 (OK)\n   response from the previous request.  The client MUST use the new\n   nonce value supplied for the next token request and for all\n   subsequent token requests until the authorization server supplies a\n   new nonce.\n\n   Responses that include the DPoP-Nonce HTTP header should be\n   uncacheable (e.g., using Cache-Control: no-store in response to a GET\n   request) to prevent the response from being used to serve a\n   subsequent request and a stale nonce value from being used as a\n   result.\n\n   An example 200 OK response providing a new nonce value is shown\n   below.\n\n    HTTP/1.1 200 OK\n    Cache-Control: no-store\n    DPoP-Nonce: eyJ7S_zG.eyJbYu3.xQmBj-1\n\n        Figure 23: HTTP 200 Response Providing the Next Nonce Value"
+    },
+    {
+      "id": "nonce-state",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 1120,
+      "endLine": 1159,
+      "reason": "§8: opaque な nonce の完全一致・最近の値・CORS",
+      "excerpt": "   Upon receiving the nonce, the client is expected to retry its token\n   request using a DPoP proof including the supplied nonce value in the\n   nonce claim of the DPoP proof.  An example unencoded JWT payload of\n   such a DPoP proof including a nonce is shown below.\n\n    {\n     \"jti\": \"-BwC3ESc6acc2lTc\",\n     \"htm\": \"POST\",\n     \"htu\": \"https://server.example.com/token\",\n     \"iat\": 1562262616,\n     \"nonce\": \"eyJ7S_zG.eyJH0-Z.HX4w-7v\"\n    }\n\n           Figure 21: DPoP Proof Payload including a Nonce Value\n\n   The nonce is opaque to the client.\n\n   If the nonce claim in the DPoP proof does not exactly match a nonce\n   recently supplied by the authorization server to the client, the\n   authorization server MUST reject the request.  The rejection response\n   MAY include a DPoP-Nonce HTTP header providing a new nonce value to\n   use for subsequent requests.\n\n   The intent is that clients need to keep only one nonce value and\n   servers need to keep a window of recent nonces.  That said, transient\n   circumstances may arise in which the stored nonce values for the\n   server and the client differ.  However, this situation is self-\n   correcting.  With any rejection message, the server can send the\n   client the nonce value it wants to use to the client, and the client\n   can store that nonce value and retry the request with it.  Even if\n   the client and/or server discard their stored nonce values, that\n   situation is also self-correcting because new nonce values can be\n   communicated when responding to or retrying failed requests.\n\n   Note that browser-based client applications using CORS [WHATWG.Fetch]\n   only have access to CORS-safelisted response HTTP headers by default.\n   In order for the application to obtain and use the DPoP-Nonce HTTP\n   response header value, the server needs to make it available to the\n   application by including DPoP-Nonce in the Access-Control-Expose-\n   Headers response header list value."
+    },
+    {
+      "id": "nonce-syntax",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 1161,
+      "endLine": 1168,
+      "reason": "§8.1: nonce = 1*NQCHAR",
+      "excerpt": "8.1.  Nonce Syntax\n\n   The nonce syntax in ABNF as used by [RFC6749] (which is the same as\n   the scope-token syntax) is shown below.\n\n   nonce = 1*NQCHAR\n\n                           Figure 22: Nonce ABNF"
+    },
+    {
+      "id": "jwa-ecdsa",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc7518.txt",
+      "startLine": 455,
+      "endLine": 539,
+      "reason": "§3.4: ECDSA 署名は R と S を固定長で連結した値",
+      "excerpt": "3.4.  Digital Signature with ECDSA\n\n   The Elliptic Curve Digital Signature Algorithm (ECDSA) [DSS] provides\n   for the use of Elliptic Curve Cryptography, which is able to provide\n   equivalent security to RSA cryptography but using shorter key sizes\n   and with greater processing speed for many operations.  This means\n   that ECDSA digital signatures will be substantially smaller in terms\n   of length than equivalently strong RSA digital signatures.\n\n   This specification defines the use of ECDSA with the P-256 curve and\n   the SHA-256 cryptographic hash function, ECDSA with the P-384 curve\n   and the SHA-384 hash function, and ECDSA with the P-521 curve and the\n   SHA-512 hash function.  The P-256, P-384, and P-521 curves are\n   defined in [DSS].\n\n   The ECDSA P-256 SHA-256 digital signature is generated as follows:\n\n   1.  Generate a digital signature of the JWS Signing Input using ECDSA\n       P-256 SHA-256 with the desired private key.  The output will be\n       the pair (R, S), where R and S are 256-bit unsigned integers.\n\n   2.  Turn R and S into octet sequences in big-endian order, with each\n       array being be 32 octets long.  The octet sequence\n       representations MUST NOT be shortened to omit any leading zero\n       octets contained in the values.\n\n   3.  Concatenate the two octet sequences in the order R and then S.\n       (Note that many ECDSA implementations will directly produce this\n       concatenation as their output.)\n\n   4.  The resulting 64-octet sequence is the JWS Signature value.\n\n   The following \"alg\" (algorithm) Header Parameter values are used to\n   indicate that the JWS Signature is a digital signature value computed\n   using the corresponding algorithm:\n\n           +-------------------+-------------------------------+\n           | \"alg\" Param Value | Digital Signature Algorithm   |\n           +-------------------+-------------------------------+\n           | ES256             | ECDSA using P-256 and SHA-256 |\n           | ES384             | ECDSA using P-384 and SHA-384 |\n           | ES512             | ECDSA using P-521 and SHA-512 |\n           +-------------------+-------------------------------+\n\n\n\n\n\n\n\n\nJones                        Standards Track                    [Page 9]\n\f\nRFC 7518                JSON Web Algorithms (JWA)               May 2015\n\n\n   The ECDSA P-256 SHA-256 digital signature for a JWS is validated as\n   follows:\n\n   1.  The JWS Signature value MUST be a 64-octet sequence.  If it is\n       not a 64-octet sequence, the validation has failed.\n\n   2.  Split the 64-octet sequence into two 32-octet sequences.  The\n       first octet sequence represents R and the second S.  The values R\n       and S are represented as octet sequences using the Integer-to-\n       OctetString Conversion defined in Section 2.3.7 of SEC1 [SEC1]\n       (in big-endian octet order).\n\n   3.  Submit the JWS Signing Input, R, S, and the public key (x, y) to\n       the ECDSA P-256 SHA-256 validator.\n\n   Signing and validation with the ECDSA P-384 SHA-384 and ECDSA P-521\n   SHA-512 algorithms is performed identically to the procedure for\n   ECDSA P-256 SHA-256 -- just using the corresponding hash algorithms\n   with correspondingly larger result values.  For ECDSA P-384 SHA-384,\n   R and S will be 384 bits each, resulting in a 96-octet sequence.  For\n   ECDSA P-521 SHA-512, R and S will be 521 bits each, resulting in a\n   132-octet sequence.  (Note that the Integer-to-OctetString Conversion\n   defined in Section 2.3.7 of SEC1 [SEC1] used to represent R and S as\n   octet sequences adds zero-valued high-order padding bits when needed\n   to round the size up to a multiple of 8 bits; thus, each 521-bit\n   integer is represented using 528 bits in 66 octets.)\n\n   Examples using these algorithms are shown in Appendices A.3 and A.4\n   of [JWS]."
+    }
+  ],
+  "questions": [
+    {
+      "id": "ath-from-authorization",
+      "type": "implementation",
+      "category": "implementation",
+      "scenario": "RS のミドルウェアで、Authorization ヘッダーの値からアクセストークンを取り出し、proof の ath と比べるためのハッシュを計算します。Node.js 22 で動かし、node:crypto を使えます。",
+      "prompt": "ケースを満たす athFromAuthorization(value) を実装してください。値が「スキーム名、1 つ以上のスペース、資格情報」の形でなければ TypeError を投げ、スキームが DPoP 以外なら資格情報の構文は確かめずに null を返し、DPoP なら token68 の構文を確かめて（合わなければ TypeError）{ token, ath } を返してください。",
+      "points": 6,
+      "referenceIds": [
+        "scheme",
+        "http-auth-scheme",
+        "syntax",
+        "header",
+        "jws-b64url"
+      ],
+      "answerHint": "スキーム名の比べ方、token68 の構文、ath の計算（ハッシュと符号化）を分けて考えると整理できます。",
+      "implementation": {
+        "language": "javascript",
+        "starterCode": "import { createHash } from \"node:crypto\";\n\n// value: Authorization ヘッダーの値（文字列）\n// 「スキーム名、1 つ以上のスペース、資格情報」の形でなければ TypeError を投げる\n// スキームが DPoP 以外なら、資格情報の構文は確かめずに null を返す\n// DPoP なら資格情報を token68 として確かめ（合わなければ TypeError）、{ token, ath } を返す\nfunction athFromAuthorization(value) {\n  // ケースと制約を満たす処理を書いてください。\n}\n",
+        "cases": [
+          {
+            "name": "RFC 9449 の例",
+            "input": "\"DPoP Kz~8mXK1EalYznwH-LC-1fBAo.4Ljp~zsPE_NeO.gxU\"",
+            "expected": "{\"token\":\"Kz~8mXK1EalYznwH-LC-1fBAo.4Ljp~zsPE_NeO.gxU\",\"ath\":\"fUHyO2r2Z3DZ53EsNrWBb0xWXoaNy59IiKCAqksmQEo\"}"
+          },
+          {
+            "name": "スキーム名が小文字",
+            "input": "\"dpop Kz~8mXK1EalYznwH-LC-1fBAo.4Ljp~zsPE_NeO.gxU\"",
+            "expected": "{\"token\":\"Kz~8mXK1EalYznwH-LC-1fBAo.4Ljp~zsPE_NeO.gxU\",\"ath\":\"fUHyO2r2Z3DZ53EsNrWBb0xWXoaNy59IiKCAqksmQEo\"}"
+          },
+          {
+            "name": "区切りのスペースが 3 つ",
+            "input": "\"DPoP   Kz~8mXK1EalYznwH-LC-1fBAo.4Ljp~zsPE_NeO.gxU\"",
+            "expected": "{\"token\":\"Kz~8mXK1EalYznwH-LC-1fBAo.4Ljp~zsPE_NeO.gxU\",\"ath\":\"fUHyO2r2Z3DZ53EsNrWBb0xWXoaNy59IiKCAqksmQEo\"}"
+          },
+          {
+            "name": "Bearer スキーム",
+            "input": "\"Bearer Kz~8mXK1EalYznwH-LC-1fBAo.4Ljp~zsPE_NeO.gxU\"",
+            "expected": "null"
+          },
+          {
+            "name": "末尾の「=」",
+            "input": "\"DPoP YWJj==\"",
+            "expected": "{\"token\":\"YWJj==\",\"ath\":\"6I3RPJYVAWclt4vISOkevFmM5yUVuoaQYTFY_cBuFEg\"}"
+          },
+          {
+            "name": "token68 で使えない「:」",
+            "input": "\"DPoP Kz~8mXK1Eal:YznwH\"",
+            "expected": "TypeError を投げる"
+          },
+          {
+            "name": "途中の「=」",
+            "input": "\"DPoP YWJj==ZGVm\"",
+            "expected": "TypeError を投げる"
+          },
+          {
+            "name": "トークンがない",
+            "input": "\"DPoP\"",
+            "expected": "TypeError を投げる"
+          }
+        ],
+        "mobile": {
+          "prompt": "athFromAuthorization が呼ぶ extractDpopToken として、すべてのケースを満たすものはどれですか？",
+          "code": "import { createHash } from \"node:crypto\";\n\nfunction athFromAuthorization(value) {\n  const token = extractDpopToken(value);\n  if (token === null) return null;\n  const ath = createHash(\"sha256\").update(token, \"ascii\").digest(\"base64url\");\n  return { token, ath };\n}\n",
+          "options": [
+            "function extractDpopToken(value) {\n  const match = /^(\\S+) +(.+)$/.exec(value);\n  if (!match) throw new TypeError(\"credentials are missing\");\n  if (match[1].toLowerCase() !== \"dpop\") return null;\n  if (!/^[A-Za-z0-9\\-._~+/]+=*$/.test(match[2])) throw new TypeError(\"token68\");\n  return match[2];\n}",
+            "function extractDpopToken(value) {\n  const match = /^(\\S+) +(.+)$/.exec(value);\n  if (!match) throw new TypeError(\"credentials are missing\");\n  if (match[1] !== \"DPoP\") return null;\n  if (!/^[A-Za-z0-9\\-._~+/]+=*$/.test(match[2])) throw new TypeError(\"token68\");\n  return match[2];\n}",
+            "function extractDpopToken(value) {\n  const match = /^(\\S+) +(.+)$/.exec(value);\n  if (!match) throw new TypeError(\"credentials are missing\");\n  if (match[1].toLowerCase() !== \"dpop\") return null;\n  if (!/^[A-Za-z0-9\\-._~+/=]+$/.test(match[2])) throw new TypeError(\"token68\");\n  return match[2];\n}",
+            "function extractDpopToken(value) {\n  const [scheme, token] = value.split(\" \");\n  if (scheme.toLowerCase() !== \"dpop\") return null;\n  if (!/^[A-Za-z0-9\\-._~+/]+=*$/.test(token ?? \"\")) throw new TypeError(\"token68\");\n  return token;\n}"
+          ]
+        }
+      }
+    },
+    {
+      "id": "jwk-thumbprint",
+      "type": "implementation",
+      "category": "implementation",
+      "scenario": "RS が、proof の jwk から JWK SHA-256 Thumbprint を計算し、アクセストークンの cnf.jkt と比べます。EC・RSA・OKP の鍵に対応し、秘密鍵のメンバーを含む jwk や共通鍵は DPoP の鍵として受け付けません。Node.js 22 で動かします。",
+      "prompt": "ケースを満たす dpopJwkThumbprint(jwk) を実装してください。",
+      "points": 6,
+      "referenceIds": [
+        "thumb-def",
+        "thumb-members",
+        "okp-key",
+        "okp-thumbprint",
+        "thumb-json",
+        "jkt",
+        "syntax",
+        "checks"
+      ],
+      "answerHint": "鍵の種類ごとの必須メンバー、辞書順、空白なしの JSON、UTF-8、SHA-256、base64url の順に考えます。",
+      "implementation": {
+        "language": "javascript",
+        "starterCode": "import { createHash } from \"node:crypto\";\n\n// jwk: proof の JOSE ヘッダーの jwk（解析済みのオブジェクト）\n// 戻り値: JWK SHA-256 Thumbprint を base64url（パディングなし）にした文字列\n// 秘密鍵のメンバー・未対応の kty・必須メンバーの欠落は TypeError\nfunction dpopJwkThumbprint(jwk) {\n  // ケースと制約を満たす処理を書いてください。\n}\n",
+        "cases": [
+          {
+            "name": "RFC 9449 の例の EC 鍵",
+            "input": "{\"kty\":\"EC\",\"x\":\"l8tFrhx-34tV3hRICRDY9zCkDlpBhF42UQUfWVAWBFs\",\"y\":\"9VE4jf_Ok_o64zbTTlcuNJajHmt6v9TDVrU0CdvGRDA\",\"crv\":\"P-256\"}",
+            "expected": "\"0ZcOCORZNYy-DWpqq30jZyJGHTN0d2HglBV3uiguA4I\""
+          },
+          {
+            "name": "任意メンバー（kid・use・alg）付き",
+            "input": "{\"kty\":\"EC\",\"use\":\"sig\",\"kid\":\"k1\",\"alg\":\"ES256\",\"crv\":\"P-256\",\"x\":\"l8tFrhx-34tV3hRICRDY9zCkDlpBhF42UQUfWVAWBFs\",\"y\":\"9VE4jf_Ok_o64zbTTlcuNJajHmt6v9TDVrU0CdvGRDA\"}",
+            "expected": "\"0ZcOCORZNYy-DWpqq30jZyJGHTN0d2HglBV3uiguA4I\""
+          },
+          {
+            "name": "RFC 7638 の RSA 鍵",
+            "input": "{\"kty\":\"RSA\",\"n\":\"0vx7agoebGcQSuuPiLJXZptN9nndrQmbXEps2aiAFbWhM78LhWx4cbbfAAtVT86zwu1RK7aPFFxuhDR1L6tSoc_BJECPebWKRXjBZCiFV4n3oknjhMstn64tZ_2W-5JsGY4Hc5n9yBXArwl93lqt7_RN5w6Cf0h4QyQ5v-65YGjQR0_FDW2QvzqY368QQMicAtaSqzs8KJZgnYb9c7d0zgdAZHzu6qMQvRL5hajrn1n91CbOpbISD08qNLyrdkt-bFTWhAI4vMQFh6WeZu0fM4lFd2NcRwr3XPksINHaQ-G_xBniIqbw0Ls1jF44-csFCur-kEgU8awapJzKnqDKgw\",\"e\":\"AQAB\",\"alg\":\"RS256\",\"kid\":\"2011-04-29\"}",
+            "expected": "\"NzbLsXh8uDCcd-6MNwXF4W_7noWXFZAfHkxZsRGC9Xs\""
+          },
+          {
+            "name": "RFC 8037 の Ed25519 鍵",
+            "input": "{\"kty\":\"OKP\",\"crv\":\"Ed25519\",\"x\":\"11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo\"}",
+            "expected": "\"kPrK_qmxVWaYVA9wwBF6Iuo3vVzz7TxHCTwXBygrS4k\""
+          },
+          {
+            "name": "秘密鍵の d を含む",
+            "input": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"l8tFrhx-34tV3hRICRDY9zCkDlpBhF42UQUfWVAWBFs\",\"y\":\"9VE4jf_Ok_o64zbTTlcuNJajHmt6v9TDVrU0CdvGRDA\",\"d\":\"jpsQnnGQmL-YBIffH1136cspYG6-0iY7X1fCE9-E9LI\"}",
+            "expected": "TypeError を投げる"
+          },
+          {
+            "name": "共通鍵（kty=oct）",
+            "input": "{\"kty\":\"oct\",\"k\":\"GawgguFyGrWKav7AX4VKUg\"}",
+            "expected": "TypeError を投げる"
+          },
+          {
+            "name": "y がない EC 鍵",
+            "input": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"l8tFrhx-34tV3hRICRDY9zCkDlpBhF42UQUfWVAWBFs\"}",
+            "expected": "TypeError を投げる"
+          }
+        ],
+        "mobile": {
+          "prompt": "dpopJwkThumbprint が呼ぶ thumbprintMembers として、すべてのケースを満たすものはどれですか？",
+          "code": "import { createHash } from \"node:crypto\";\n\nconst PRIVATE = [\"d\", \"p\", \"q\", \"dp\", \"dq\", \"qi\", \"oth\"];\n\nfunction dpopJwkThumbprint(jwk) {\n  if (PRIVATE.some((name) => Object.hasOwn(jwk, name))) throw new TypeError(\"private key\");\n  const input = {};\n  for (const name of thumbprintMembers(jwk.kty)) {\n    if (typeof jwk[name] !== \"string\" || jwk[name] === \"\") throw new TypeError(`missing ${name}`);\n    input[name] = jwk[name];\n  }\n  return createHash(\"sha256\").update(JSON.stringify(input), \"utf8\").digest(\"base64url\");\n}\n",
+          "options": [
+            "function thumbprintMembers(kty) {\n  const table = { EC: [\"kty\", \"crv\", \"x\", \"y\"], RSA: [\"kty\", \"n\", \"e\"], OKP: [\"kty\", \"crv\", \"x\"] };\n  if (!Object.hasOwn(table, kty)) throw new TypeError(\"unsupported kty\");\n  return table[kty];\n}",
+            "function thumbprintMembers(kty) {\n  const table = { EC: [\"crv\", \"kty\", \"x\", \"y\"], RSA: [\"e\", \"kty\", \"n\"], OKP: [\"crv\", \"kty\", \"x\"], oct: [\"k\", \"kty\"] };\n  if (!Object.hasOwn(table, kty)) throw new TypeError(\"unsupported kty\");\n  return table[kty];\n}",
+            "function thumbprintMembers(kty) {\n  const table = { EC: [\"crv\", \"kty\", \"x\", \"y\"], RSA: [\"e\", \"kty\", \"n\"], OKP: [\"crv\", \"kty\", \"x\"] };\n  if (!Object.hasOwn(table, kty)) throw new TypeError(\"unsupported kty\");\n  return table[kty];\n}",
+            "function thumbprintMembers(kty) {\n  const table = { EC: [\"crv\", \"kty\", \"x\", \"y\"], RSA: [\"e\", \"kty\", \"n\"], OKP: [\"crv\", \"kty\", \"x\", \"y\"] };\n  if (!Object.hasOwn(table, kty)) throw new TypeError(\"unsupported kty\");\n  return table[kty];\n}"
+          ]
+        }
+      }
+    },
+    {
+      "id": "htu-matches",
+      "type": "implementation",
+      "category": "implementation",
+      "scenario": "RS が、proof の htu と、組み立てた要求の target URI を比べます。RFC 9449 が勧める RFC 3986 の構文ベース・スキームベースの正規化を行い、query と fragment は無視します。WHATWG の URL パーサー（new URL）を使えます。",
+      "prompt": "ケースを満たす htuMatches(htu, requestUri) を実装してください。",
+      "points": 6,
+      "referenceIds": [
+        "checks",
+        "uri-syntax-normalize",
+        "uri-scheme-normalize",
+        "uri-protocol-normalize",
+        "uri-unreserved",
+        "http-uri-normalize"
+      ],
+      "answerHint": "new URL() で済む正規化と、自分で行う必要がある正規化（パーセントエンコーディング）を分けて考えます。",
+      "implementation": {
+        "language": "javascript",
+        "starterCode": "// htu: proof の htu クレーム（query・fragment を含まない絶対 URI）\n// requestUri: RS が組み立てた要求の URI（query や fragment を含むことがある）\n// 戻り値: RFC 3986 の構文ベース・スキームベースの正規化の後に一致すれば true\nfunction htuMatches(htu, requestUri) {\n  // ケースと制約を満たす処理を書いてください。\n}\n",
+        "cases": [
+          {
+            "name": "%2f と %2F",
+            "input": "\"https://api.example.com/a%2fb\", \"https://api.example.com/a%2Fb\"",
+            "expected": "true"
+          },
+          {
+            "name": "大文字のホスト・既定のポート・query",
+            "input": "\"HTTPS://API.Example.com:443/orders\", \"https://api.example.com/orders?status=open#top\"",
+            "expected": "true"
+          },
+          {
+            "name": "パスの大文字・小文字",
+            "input": "\"https://api.example.com/Orders\", \"https://api.example.com/orders\"",
+            "expected": "false"
+          },
+          {
+            "name": "%7e と ~",
+            "input": "\"https://api.example.com/%7euser\", \"https://api.example.com/~user\"",
+            "expected": "true"
+          },
+          {
+            "name": "%2F と /",
+            "input": "\"https://api.example.com/a%2Fb\", \"https://api.example.com/a/b\"",
+            "expected": "false"
+          },
+          {
+            "name": "ドットセグメント",
+            "input": "\"https://api.example.com/a/./b/../c\", \"https://api.example.com/a/c\"",
+            "expected": "true"
+          },
+          {
+            "name": "空のパスと「/」",
+            "input": "\"https://api.example.com\", \"https://api.example.com/\"",
+            "expected": "true"
+          },
+          {
+            "name": "末尾のスラッシュ",
+            "input": "\"https://api.example.com/data/\", \"https://api.example.com/data\"",
+            "expected": "false"
+          }
+        ],
+        "mobile": {
+          "prompt": "normalizeForHtu が呼ぶ normalizePercent として、すべてのケースを満たすものはどれですか？",
+          "code": "// new URL() は、スキームとホストの小文字化、既定のポートの省略、\n// ドットセグメントの除去、空のパスを \"/\" にする処理を行う。\n// パーセントエンコーディングの文字は変更しない。\nfunction normalizeForHtu(uri) {\n  const url = new URL(uri);\n  return `${url.protocol}//${url.host}${normalizePercent(url.pathname)}`;\n}\n\nfunction htuMatches(htu, requestUri) {\n  return normalizeForHtu(htu) === normalizeForHtu(requestUri);\n}\n",
+          "options": [
+            "function normalizePercent(path) {\n  return decodeURIComponent(path);\n}",
+            "function normalizePercent(path) {\n  return path;\n}",
+            "function normalizePercent(path) {\n  return path.toLowerCase();\n}",
+            "function normalizePercent(path) {\n  return path.replace(/%[0-9A-Fa-f]{2}/g, (triplet) => {\n    const ch = String.fromCharCode(parseInt(triplet.slice(1), 16));\n    return /[A-Za-z0-9\\-._~]/.test(ch) ? ch : triplet.toUpperCase();\n  });\n}"
+          ]
+        }
+      }
+    },
+    {
+      "id": "parse-dpop-challenge",
+      "type": "implementation",
+      "category": "implementation",
+      "scenario": "クライアントが RS の 401 応答から、DPoP の challenge の error と algs を読み取ります。WWW-Authenticate は複数の challenge を含み、フィールド行が複数になることもあります。パラメーターの値は token 形式と quoted-string 形式のどちらでも届きます。",
+      "prompt": "ケースを満たす parseDpopChallenge(fieldValues) を実装してください。",
+      "points": 7,
+      "referenceIds": [
+        "http-www-authenticate",
+        "http-auth-params",
+        "http-challenge",
+        "http-auth-scheme",
+        "http-field-order",
+        "challenge",
+        "multi-challenge"
+      ],
+      "answerHint": "値をカンマで単純に分割すると、引用符の中のカンマで壊れます。トークンの後に「=」が続くかどうかで、パラメーターか次の challenge かを見分けます。",
+      "implementation": {
+        "language": "javascript",
+        "starterCode": "// fieldValues: WWW-Authenticate ヘッダーの値の配列（フィールド行ごと）\n// 戻り値: DPoP の challenge があれば { error, algs }（error はなければ null、algs は配列）、なければ null\n// token68 形式の challenge は扱わなくてよい\n// ケースの入力は JavaScript の配列リテラルで表記している\nfunction parseDpopChallenge(fieldValues) {\n  // ケースと制約を満たす処理を書いてください。\n}\n",
+        "cases": [
+          {
+            "name": "認証なしの 401（RFC 9449 Figure 15）",
+            "input": "[\"DPoP algs=\\\"ES256 PS256\\\"\"]",
+            "expected": "{\"error\":null,\"algs\":[\"ES256\",\"PS256\"]}"
+          },
+          {
+            "name": "Bearer と同じ行の DPoP",
+            "input": "[\"Bearer realm=\\\"api\\\", DPoP error=\\\"use_dpop_nonce\\\", algs=\\\"ES256\\\"\"]",
+            "expected": "{\"error\":\"use_dpop_nonce\",\"algs\":[\"ES256\"]}"
+          },
+          {
+            "name": "2 行のヘッダーと token 形式の値",
+            "input": "[\"Bearer realm=\\\"api\\\"\",\"DPoP error=invalid_token, ALGS=ES256\"]",
+            "expected": "{\"error\":\"invalid_token\",\"algs\":[\"ES256\"]}"
+          },
+          {
+            "name": "小文字のスキーム名",
+            "input": "[\"dpop algs=\\\"ES256\\\"\"]",
+            "expected": "{\"error\":null,\"algs\":[\"ES256\"]}"
+          },
+          {
+            "name": "引用符の中のカンマ（DPoP なし）",
+            "input": "[\"Bearer error=\\\"invalid_token\\\", error_description=\\\"a, b\\\"\"]",
+            "expected": "null"
+          },
+          {
+            "name": "引用符の中のエスケープとカンマ",
+            "input": "[\"DPoP error=\\\"invalid_dpop_proof\\\", error_description=\\\"bad \\\\\\\"htu\\\\\\\", retry\\\", algs=\\\"ES256\\\"\"]\n（フィールド行の値: DPoP error=\"invalid_dpop_proof\", error_description=\"bad \\\"htu\\\", retry\", algs=\"ES256\"）",
+            "expected": "{\"error\":\"invalid_dpop_proof\",\"algs\":[\"ES256\"]}"
+          },
+          {
+            "name": "パラメーターのない Bearer（RFC 9449 Figure 17）",
+            "input": "[\"Bearer, DPoP algs=\\\"ES256 PS256\\\"\"]",
+            "expected": "{\"error\":null,\"algs\":[\"ES256\",\"PS256\"]}"
+          },
+          {
+            "name": "未知のスキームの後の DPoP",
+            "input": "[\"Newauth realm=\\\"apps\\\", type=1, DPoP algs=\\\"EdDSA\\\"\"]",
+            "expected": "{\"error\":null,\"algs\":[\"EdDSA\"]}"
+          }
+        ],
+        "mobile": {
+          "prompt": "parseDpopChallenge が呼ぶ readQuoted として、すべてのケースを満たすものはどれですか？",
+          "code": "const TOKEN = /[!#$%&'*+\\-.^_`|~0-9A-Za-z]+/y;\n\nfunction readToken(s, i) {\n  TOKEN.lastIndex = i;\n  const match = TOKEN.exec(s);\n  if (!match) throw new SyntaxError(`token expected at ${i}`);\n  return [match[0], TOKEN.lastIndex];\n}\n\nfunction parseDpopChallenge(fieldValues) {\n  const s = fieldValues.join(\", \");\n  const challenges = [];\n  let current = null;\n  let i = 0;\n  while (i < s.length) {\n    while (i < s.length && /[ \\t,]/.test(s[i])) i++;\n    if (i >= s.length) break;\n    let name;\n    [name, i] = readToken(s, i);\n    let j = i;\n    while (j < s.length && /[ \\t]/.test(s[j])) j++;\n    if (s[j] === \"=\" && current) {\n      i = j + 1;\n      while (i < s.length && /[ \\t]/.test(s[i])) i++;\n      let value;\n      // readQuoted は、開きの引用符の位置 i から値を読み、[値, 次の位置] を返す\n      [value, i] = s[i] === '\"' ? readQuoted(s, i) : readToken(s, i);\n      const key = name.toLowerCase();\n      if (!current.params.has(key)) current.params.set(key, value);\n    } else {\n      current = { scheme: name.toLowerCase(), params: new Map() };\n      challenges.push(current);\n    }\n  }\n  const dpop = challenges.find((c) => c.scheme === \"dpop\");\n  if (!dpop) return null;\n  const algs = dpop.params.get(\"algs\");\n  return { error: dpop.params.get(\"error\") ?? null, algs: algs ? algs.split(\" \").filter(Boolean) : [] };\n}\n",
+          "options": [
+            "function readQuoted(s, i) {\n  const end = s.indexOf('\"', i + 1);\n  if (end < 0) throw new SyntaxError(\"unterminated quoted-string\");\n  return [s.slice(i + 1, end), end + 1];\n}",
+            "function readQuoted(s, i) {\n  let value = \"\";\n  for (let j = i + 1; j < s.length; j++) {\n    if (s[j] === \"\\\\\") { j++; if (j < s.length) value += s[j]; continue; }\n    if (s[j] === '\"') return [value, j + 1];\n    value += s[j];\n  }\n  throw new SyntaxError(\"unterminated quoted-string\");\n}",
+            "function readQuoted(s, i) {\n  let value = \"\";\n  for (let j = i + 1; j < s.length; j++) {\n    if (s[j] === \"\\\\\") { j++; if (j < s.length) value += s[j]; continue; }\n    if (s[j] === '\"') return [value, j];\n    value += s[j];\n  }\n  throw new SyntaxError(\"unterminated quoted-string\");\n}",
+            "function readQuoted(s, i) {\n  let value = \"\";\n  for (let j = i + 1; j < s.length; j++) {\n    if (s[j] === '\"' || s[j] === \",\") return [value, j + 1];\n    value += s[j];\n  }\n  throw new SyntaxError(\"unterminated quoted-string\");\n}"
+          ]
+        }
+      }
+    },
+    {
+      "id": "check-dpop-claims",
+      "type": "implementation",
+      "category": "implementation",
+      "scenario": "AS と RS が共通で使う処理で、署名を検証済みの proof の内容を、要求と照らして検証します。結果は、失敗した検証の名前を決まった順に並べた配列で返します。課題の制約として、htu は new URL() で正規化したスキーム・ホスト・パスで比べ、typ は \"dpop+jwt\" と完全に一致するかで比べます。",
+      "prompt": "ケースを満たす checkDpopClaims(header, payload, ctx) を実装してください。必須クレーム（jti・htm・htu・iat）がない場合は \"claims\" を報告し、ないクレームについての個別の検証は行いません。",
+      "points": 7,
+      "referenceIds": [
+        "checks",
+        "syntax",
+        "downgrade",
+        "resource",
+        "http-method",
+        "replay"
+      ],
+      "answerHint": "§4.3 の検証項目を、関数の 1 行ずつに対応させると漏れを防げます。条件付きの検証（nonce、ath、鍵の結び付け）の条件に注意してください。",
+      "implementation": {
+        "language": "javascript",
+        "starterCode": "import { createHash } from \"node:crypto\";\n\n// header・payload: 署名を検証済みの proof の JOSE ヘッダーとペイロード\n// ctx: { method, url, now, allowedAlgs, maxAge, maxFuture, providedNonce, accessToken, boundJkt, proofJkt }\n//   url は query を含み得る target URI、now と iat は秒\n//   maxAge・maxFuture は、iat が now より過去・未来にずれてよい最大の秒数\n//   providedNonce はこのサーバー（AS または RS）がクライアントに提供した nonce（なければ null）\n//   accessToken は提示されたトークン（トークン要求なら null）、boundJkt はトークンの cnf.jkt\n//   proofJkt は header.jwk の JWK Thumbprint（計算済み）\n// 戻り値: 失敗した検証の名前の配列（次の順）。すべて成功なら []\n//   \"typ\", \"alg\", \"jwk\", \"claims\", \"htm\", \"htu\", \"iat\", \"nonce\", \"ath\", \"binding\"\n// 課題の制約: jti・htm・htu・iat がなければ \"claims\" を報告し、ないクレームの個別の検証は行わない。\n//   ath・nonce がない場合は、\"claims\" ではなく \"ath\"・\"nonce\" として報告する\nfunction checkDpopClaims(header, payload, ctx) {\n  // ケースと制約を満たす処理を書いてください。\n}\n",
+        "cases": [
+          {
+            "name": "基本（RFC 9449 Figure 14 の proof）",
+            "input": "header = {\"typ\":\"dpop+jwt\",\"alg\":\"ES256\",\"jwk\":{\"kty\":\"EC\",\"x\":\"l8tFrhx-34tV3hRICRDY9zCkDlpBhF42UQUfWVAWBFs\",\"y\":\"9VE4jf_Ok_o64zbTTlcuNJajHmt6v9TDVrU0CdvGRDA\",\"crv\":\"P-256\"}}\npayload = {\"jti\":\"e1j3V_bKic8-LAEB\",\"htm\":\"GET\",\"htu\":\"https://resource.example.org/protectedresource\",\"iat\":1562262618,\"ath\":\"fUHyO2r2Z3DZ53EsNrWBb0xWXoaNy59IiKCAqksmQEo\"}\nctx = {\"method\":\"GET\",\"url\":\"https://resource.example.org/protectedresource?view=full\",\"now\":1562262620,\"allowedAlgs\":[\"ES256\",\"PS256\"],\"maxAge\":60,\"maxFuture\":5,\"providedNonce\":null,\"accessToken\":\"Kz~8mXK1EalYznwH-LC-1fBAo.4Ljp~zsPE_NeO.gxU\",\"boundJkt\":\"0ZcOCORZNYy-DWpqq30jZyJGHTN0d2HglBV3uiguA4I\",\"proofJkt\":\"0ZcOCORZNYy-DWpqq30jZyJGHTN0d2HglBV3uiguA4I\"}",
+            "expected": "[]"
+          },
+          {
+            "name": "typ・alg・jwk・古い iat",
+            "input": "基本の入力で header.typ = \"JWT\"、header.alg = \"HS256\"、header.jwk に \"d\": \"jpsQnnGQmL-YBIffH1136cspYG6-0iY7X1fCE9-E9LI\" を追加、payload.iat = 1562262500（now の 120 秒前）",
+            "expected": "[\"typ\",\"alg\",\"jwk\",\"iat\"]"
+          },
+          {
+            "name": "nonce の不一致",
+            "input": "基本の入力で ctx.providedNonce = \"N1\"、payload.nonce = \"N0\"",
+            "expected": "[\"nonce\"]"
+          },
+          {
+            "name": "htm がない",
+            "input": "基本の入力から payload.htm を削除",
+            "expected": "[\"claims\"]"
+          },
+          {
+            "name": "htm と htu",
+            "input": "基本の入力で payload.htm = \"get\"、payload.htu = \"https://resource.example.org/protected\"",
+            "expected": "[\"htm\",\"htu\"]"
+          },
+          {
+            "name": "未来の iat",
+            "input": "基本の入力で payload.iat = 1562262700（now の 80 秒後）",
+            "expected": "[\"iat\"]"
+          },
+          {
+            "name": "トークン要求で nonce がない",
+            "input": "基本の入力で payload.htu = \"https://server.example.com/token\"、payload.htm = \"POST\"、ath を削除。ctx は method = \"POST\"、url = \"https://server.example.com/token\"、providedNonce = \"N1\"、accessToken = null",
+            "expected": "[\"nonce\"]"
+          },
+          {
+            "name": "別のトークンと別の鍵",
+            "input": "基本の入力で ctx.accessToken = \"another-token\"、ctx.proofJkt = \"NzbLsXh8uDCcd-6MNwXF4W_7noWXFZAfHkxZsRGC9Xs\"",
+            "expected": "[\"ath\",\"binding\"]"
+          }
+        ],
+        "mobile": {
+          "prompt": "checkDpopClaims が呼ぶ nonceOk として、すべてのケースを満たすものはどれですか？",
+          "code": "import { createHash } from \"node:crypto\";\n\nconst PRIVATE = [\"d\", \"p\", \"q\", \"dp\", \"dq\", \"qi\", \"oth\"];\n\nfunction sameTarget(htu, url) {\n  try {\n    const a = new URL(htu);\n    const b = new URL(url);\n    return `${a.protocol}//${a.host}${a.pathname}` === `${b.protocol}//${b.host}${b.pathname}`;\n  } catch {\n    return false;\n  }\n}\n\nfunction checkDpopClaims(header, payload, ctx) {\n  const failures = [];\n  if (header.typ !== \"dpop+jwt\") failures.push(\"typ\");\n  if (!ctx.allowedAlgs.includes(header.alg)) failures.push(\"alg\");\n  const jwk = header.jwk;\n  if (jwk === null || typeof jwk !== \"object\" || typeof jwk.kty !== \"string\"\n      || PRIVATE.some((name) => Object.hasOwn(jwk, name))) failures.push(\"jwk\");\n  const hasClaims = typeof payload.jti === \"string\" && payload.jti !== \"\"\n    && typeof payload.htm === \"string\" && typeof payload.htu === \"string\" && typeof payload.iat === \"number\";\n  if (!hasClaims) failures.push(\"claims\");\n  if (typeof payload.htm === \"string\" && payload.htm !== ctx.method) failures.push(\"htm\");\n  if (typeof payload.htu === \"string\" && !sameTarget(payload.htu, ctx.url)) failures.push(\"htu\");\n  if (typeof payload.iat === \"number\"\n      && (payload.iat < ctx.now - ctx.maxAge || payload.iat > ctx.now + ctx.maxFuture)) failures.push(\"iat\");\n  if (!nonceOk(payload, ctx)) failures.push(\"nonce\");\n  if (ctx.accessToken != null) {\n    const ath = createHash(\"sha256\").update(ctx.accessToken, \"ascii\").digest(\"base64url\");\n    if (payload.ath !== ath) failures.push(\"ath\");\n    if (ctx.proofJkt !== ctx.boundJkt) failures.push(\"binding\");\n  }\n  return failures;\n}\n",
+          "options": [
+            "function nonceOk(payload, ctx) {\n  return payload.nonce === undefined || payload.nonce === ctx.providedNonce;\n}",
+            "function nonceOk(payload, ctx) {\n  return payload.nonce === ctx.providedNonce;\n}",
+            "function nonceOk(payload, ctx) {\n  return typeof payload.nonce === \"string\";\n}",
+            "function nonceOk(payload, ctx) {\n  return ctx.providedNonce == null || payload.nonce === ctx.providedNonce;\n}"
+          ]
+        }
+      }
+    },
+    {
+      "id": "handle-dpop-nonce",
+      "type": "implementation",
+      "category": "implementation",
+      "scenario": "クライアントのライブラリで、AS と RS の応答から DPoP の nonce を保存し、同じ要求を再試行すべきかを判断します。nonce はサーバーのオリジンごとに保存します。WWW-Authenticate は解析済みで、DPoP の challenge の error が response.dpopError に入っています。",
+      "prompt": "ケースを満たす handleDpopNonce(store, url, response) を実装してください。",
+      "points": 6,
+      "referenceIds": [
+        "as-nonce",
+        "rs-nonce",
+        "rotation",
+        "nonce-state",
+        "nonce-syntax"
+      ],
+      "answerHint": "nonce の保存と再試行の判断を分けます。AS と RS では、nonce を要求するときの状態コードと伝え方が違います。",
+      "implementation": {
+        "language": "javascript",
+        "starterCode": "// store: サーバーのオリジンごとの nonce を保存する Map（例では { オリジン: nonce } と表記）\n// url: 要求した URL\n// response: { status, nonces, json, dpopError }\n//   nonces は応答の DPoP-Nonce ヘッダーの値の配列、json は JSON の本文（なければ null）\n//   dpopError は WWW-Authenticate の DPoP の challenge の error（なければ null、解析済み）\n// 戻り値: 新しい nonce で同じ要求を再試行すべきなら true\n// 課題の制約: DPoP-Nonce が 2 つ以上ある応答の nonce は使わない\n// 課題の制約: 再試行するのは、AS が RFC 9449 §8 の方法で、または RS が §9 の方法で、\n//   use_dpop_nonce のエラーにより nonce を求めた場合だけ。その他の応答では、nonce を保存しても再試行しない\nfunction handleDpopNonce(store, url, response) {\n  // ケースと制約を満たす処理を書いてください。\n}\n",
+        "cases": [
+          {
+            "name": "AS の 400 と use_dpop_nonce",
+            "input": "store = {}\nurl = \"https://as.example.com/token\"\nresponse = {\"status\":400,\"nonces\":[\"N1\"],\"json\":{\"error\":\"use_dpop_nonce\"},\"dpopError\":null}",
+            "expected": "戻り値 true、store = {\"https://as.example.com\":\"N1\"}"
+          },
+          {
+            "name": "RS の 401 と use_dpop_nonce",
+            "input": "store = {\"https://as.example.com\":\"N1\"}\nurl = \"https://api.example.com/v1/items\"\nresponse = {\"status\":401,\"nonces\":[\"N2\"],\"json\":null,\"dpopError\":\"use_dpop_nonce\"}",
+            "expected": "戻り値 true、store = {\"https://as.example.com\":\"N1\",\"https://api.example.com\":\"N2\"}"
+          },
+          {
+            "name": "AS の 200 で新しい nonce",
+            "input": "store = {\"https://as.example.com\":\"N1\"}\nurl = \"https://as.example.com/token\"\nresponse = {\"status\":200,\"nonces\":[\"N3\"],\"json\":{\"token_type\":\"DPoP\"},\"dpopError\":null}",
+            "expected": "戻り値 false、store = {\"https://as.example.com\":\"N3\"}"
+          },
+          {
+            "name": "RS の 401 と invalid_token",
+            "input": "store = {}\nurl = \"https://api.example.com/v1/items\"\nresponse = {\"status\":401,\"nonces\":[\"N4\"],\"json\":null,\"dpopError\":\"invalid_token\"}",
+            "expected": "戻り値 false、store = {\"https://api.example.com\":\"N4\"}"
+          },
+          {
+            "name": "use_dpop_nonce だが DPoP-Nonce がない",
+            "input": "store = {\"https://as.example.com\":\"N1\"}\nurl = \"https://as.example.com/token\"\nresponse = {\"status\":400,\"nonces\":[],\"json\":{\"error\":\"use_dpop_nonce\"},\"dpopError\":null}",
+            "expected": "戻り値 false、store = {\"https://as.example.com\":\"N1\"}"
+          },
+          {
+            "name": "DPoP-Nonce が 2 つ",
+            "input": "store = {\"https://as.example.com\":\"N1\"}\nurl = \"https://as.example.com/token\"\nresponse = {\"status\":200,\"nonces\":[\"N5\",\"N6\"],\"json\":{\"token_type\":\"DPoP\"},\"dpopError\":null}",
+            "expected": "戻り値 false、store = {\"https://as.example.com\":\"N1\"}"
+          },
+          {
+            "name": "401 の JSON の本文に use_dpop_nonce",
+            "input": "store = {}\nurl = \"https://api.example.com/v1/items\"\nresponse = {\"status\":401,\"nonces\":[\"N7\"],\"json\":{\"error\":\"use_dpop_nonce\"},\"dpopError\":null}",
+            "expected": "戻り値 false、store = {\"https://api.example.com\":\"N7\"}"
+          }
+        ],
+        "mobile": {
+          "prompt": "handleDpopNonce が呼ぶ isNonceChallenge として、すべてのケースを満たすものはどれですか？",
+          "code": "function handleDpopNonce(store, url, response) {\n  const origin = new URL(url).origin;\n  if (response.nonces.length !== 1) return false;\n  store.set(origin, response.nonces[0]);\n  return isNonceChallenge(response);\n}\n",
+          "options": [
+            "function isNonceChallenge(response) {\n  return response.json?.error === \"use_dpop_nonce\";\n}",
+            "function isNonceChallenge(response) {\n  return response.status === 401 && response.dpopError === \"use_dpop_nonce\";\n}",
+            "function isNonceChallenge(response) {\n  if (response.status === 400) return response.json?.error === \"use_dpop_nonce\";\n  if (response.status === 401) return response.dpopError === \"use_dpop_nonce\";\n  return false;\n}",
+            "function isNonceChallenge(response) {\n  return response.status === 400 || response.status === 401;\n}"
+          ]
+        }
+      }
+    },
+    {
+      "id": "replay-guard",
+      "type": "implementation",
+      "category": "implementation",
+      "scenario": "RS で、同じ proof の 2 回目の利用を拒否します。proof は受理できる時間窓のあいだだけ記録し、大きな jti でメモリーを使い切られないよう、jti のハッシュだけを保存します。課題の制約として、jti は query を除いた htu ごとに区別します。",
+      "prompt": "ケースを満たす createReplayGuard(options) を実装してください。",
+      "points": 6,
+      "referenceIds": [
+        "replay",
+        "syntax"
+      ],
+      "answerHint": "記録のキーに何を使うか、いつ記録を消してよいか、どの proof を記録しないかを決めてから書きます。",
+      "implementation": {
+        "language": "javascript",
+        "starterCode": "import { createHash } from \"node:crypto\";\n\n// options: { windowSeconds, maxJtiLength }\n// 戻り値: { check(htu, jti, iat, now) } を持つオブジェクト\n//   htu は query を除いた正規化済みの URI、iat と now は秒\n//   check は \"accept\"（初めての proof）・\"replay\"（同じ htu で記録済みの jti）・\n//   \"stale\"（iat が now の前後 windowSeconds の外）・\"too-large\"（jti が maxJtiLength 文字を超える）を返す\n// 課題の制約: jti は htu ごとに区別し、jti そのものではなく SHA-256 のハッシュだけを保存する\nfunction createReplayGuard(options) {\n  // ケースと制約を満たす処理を書いてください。\n}\n",
+        "cases": [
+          {
+            "name": "未来の iat の proof の再利用",
+            "input": "createReplayGuard({ windowSeconds: 60, maxJtiLength: 128 }) で作った guard で順に呼び、各 check の戻り値を順に並べる:\ncheck(\"https://api.example.com/orders\", \"jti-5\", 1050, 1000)\ncheck(\"https://api.example.com/orders\", \"jti-5\", 1050, 1070)",
+            "expected": "[\"accept\",\"replay\"]"
+          },
+          {
+            "name": "同じ htu・同じ jti の 2 回目",
+            "input": "createReplayGuard({ windowSeconds: 60, maxJtiLength: 128 }) で作った guard で順に呼び、各 check の戻り値を順に並べる:\ncheck(\"https://api.example.com/orders\", \"jti-1\", 1000, 1000)\ncheck(\"https://api.example.com/orders\", \"jti-1\", 1000, 1010)",
+            "expected": "[\"accept\",\"replay\"]"
+          },
+          {
+            "name": "別の htu・同じ jti",
+            "input": "createReplayGuard({ windowSeconds: 60, maxJtiLength: 128 }) で作った guard で順に呼び、各 check の戻り値を順に並べる:\ncheck(\"https://api.example.com/orders\", \"jti-1\", 1000, 1000)\ncheck(\"https://api.example.com/items\", \"jti-1\", 1000, 1010)",
+            "expected": "[\"accept\",\"accept\"]"
+          },
+          {
+            "name": "同じ htu・別の jti",
+            "input": "createReplayGuard({ windowSeconds: 60, maxJtiLength: 128 }) で作った guard で順に呼び、各 check の戻り値を順に並べる:\ncheck(\"https://api.example.com/orders\", \"jti-1\", 1000, 1000)\ncheck(\"https://api.example.com/orders\", \"jti-2\", 1005, 1010)",
+            "expected": "[\"accept\",\"accept\"]"
+          },
+          {
+            "name": "先頭 16 文字が同じ別の jti",
+            "input": "createReplayGuard({ windowSeconds: 60, maxJtiLength: 128 }) で作った guard で順に呼び、各 check の戻り値を順に並べる:\ncheck(\"https://api.example.com/orders\", \"abcdefghijklmnop-1\", 1000, 1000)\ncheck(\"https://api.example.com/orders\", \"abcdefghijklmnop-2\", 1000, 1001)",
+            "expected": "[\"accept\",\"accept\"]"
+          },
+          {
+            "name": "古い iat",
+            "input": "createReplayGuard({ windowSeconds: 60, maxJtiLength: 128 }) で作った guard で順に呼び、各 check の戻り値を順に並べる:\ncheck(\"https://api.example.com/orders\", \"jti-3\", 900, 1000)",
+            "expected": "[\"stale\"]"
+          },
+          {
+            "name": "未来の iat",
+            "input": "createReplayGuard({ windowSeconds: 60, maxJtiLength: 128 }) で作った guard で順に呼び、各 check の戻り値を順に並べる:\ncheck(\"https://api.example.com/orders\", \"jti-4\", 1100, 1000)",
+            "expected": "[\"stale\"]"
+          },
+          {
+            "name": "長すぎる jti",
+            "input": "createReplayGuard({ windowSeconds: 60, maxJtiLength: 128 }) で作った guard で順に呼び、各 check の戻り値を順に並べる:\ncheck(\"https://api.example.com/orders\", \"x\".repeat(200), 1000, 1000)",
+            "expected": "[\"too-large\"]"
+          }
+        ],
+        "mobile": {
+          "prompt": "createReplayGuard が使う keyOf として、すべてのケースを満たすものはどれですか？",
+          "code": "import { createHash } from \"node:crypto\";\n\nfunction createReplayGuard({ windowSeconds, maxJtiLength }) {\n  const seen = new Map();\n  return {\n    check(htu, jti, iat, now) {\n      for (const [key, expiresAt] of seen) if (expiresAt < now) seen.delete(key);\n      if (typeof jti !== \"string\" || jti.length > maxJtiLength) return \"too-large\";\n      if (iat < now - windowSeconds || iat > now + windowSeconds) return \"stale\";\n      const key = keyOf(htu, jti);\n      if (seen.has(key)) return \"replay\";\n      seen.set(key, iat + windowSeconds);\n      return \"accept\";\n    },\n  };\n}\n",
+          "options": [
+            "function keyOf(htu, jti) {\n  return jti;\n}",
+            "function keyOf(htu, jti) {\n  return `${htu} ${jti.slice(0, 16)}`;\n}",
+            "function keyOf(htu, jti) {\n  return htu;\n}",
+            "function keyOf(htu, jti) {\n  return `${htu} ${createHash(\"sha256\").update(jti, \"utf8\").digest(\"base64url\")}`;\n}"
+          ]
+        }
+      }
+    },
+    {
+      "id": "der-to-jose-es256",
+      "type": "implementation",
+      "category": "implementation",
+      "scenario": "Node.js の crypto.sign で ES256 の proof に署名すると、既定では DER 形式（SEQUENCE { INTEGER r, INTEGER s }）の署名が返ります。JWS の ES256 では R と S を 32 バイトずつ連結した 64 バイトが必要なので、変換する関数を作ります。",
+      "prompt": "ケースを満たす derToJoseEs256(der) を実装してください。",
+      "points": 6,
+      "referenceIds": [
+        "jwa-ecdsa",
+        "syntax"
+      ],
+      "answerHint": "DER の INTEGER は、正の数を表すために先頭に 0x00 が付くことも、先頭の 0 が省かれて短くなることもあります。",
+      "implementation": {
+        "language": "javascript",
+        "starterCode": "// der: ECDSA P-256 の署名（ASN.1 DER の SEQUENCE { INTEGER r, INTEGER s }）の Uint8Array\n// 戻り値: JWS の ES256 署名（R と S を 32 バイトずつ連結した 64 バイト）の Uint8Array\n// 形式が正しくなければ TypeError を投げる\nfunction derToJoseEs256(der) {\n  // ケースと制約を満たす処理を書いてください。\n}\n",
+        "cases": [
+          {
+            "name": "R の先頭に 0x00（33 バイト）",
+            "input": "Uint8Array（16 進）: 3045022100cdcb2796abeb564a9fe28e3d0104df3ed514fb80590ec44c4a0d149dc0681d6b0220539b119a68aad783992c833601f560c25ab786bb3b1a4ed90a602c44e0fba168",
+            "expected": "64 バイト（16 進）: cdcb2796abeb564a9fe28e3d0104df3ed514fb80590ec44c4a0d149dc0681d6b539b119a68aad783992c833601f560c25ab786bb3b1a4ed90a602c44e0fba168"
+          },
+          {
+            "name": "R が 31 バイト",
+            "input": "Uint8Array（16 進）: 3043021f3cf0190d29ace8d8796ba80c7688ae2f6076d729f5869c9e612ab3e904c156022012cbad868d71ea7d3ed77664bf38a978ec7e6de8d177255cf9bca00fbade00ef",
+            "expected": "64 バイト（16 進）: 003cf0190d29ace8d8796ba80c7688ae2f6076d729f5869c9e612ab3e904c15612cbad868d71ea7d3ed77664bf38a978ec7e6de8d177255cf9bca00fbade00ef"
+          },
+          {
+            "name": "R・S とも 32 バイト",
+            "input": "Uint8Array（16 進）: 3044022043e71381557b7687e25b945e9fc88a40e59ad4ae029480d4a4ed2fa7f3dd127a02206062866f353dbd3813c3ea5d284f81b92735ea1275b0039be80a290c3be0dcdc",
+            "expected": "64 バイト（16 進）: 43e71381557b7687e25b945e9fc88a40e59ad4ae029480d4a4ed2fa7f3dd127a6062866f353dbd3813c3ea5d284f81b92735ea1275b0039be80a290c3be0dcdc"
+          },
+          {
+            "name": "SEQUENCE ではない（先頭が 0x31）",
+            "input": "Uint8Array（16 進）: 3144022043e71381557b7687e25b945e9fc88a40e59ad4ae029480d4a4ed2fa7f3dd127a02206062866f353dbd3813c3ea5d284f81b92735ea1275b0039be80a290c3be0dcdc",
+            "expected": "TypeError を投げる"
+          },
+          {
+            "name": "R が 34 バイト",
+            "input": "Uint8Array（16 進）: 30460222000043e71381557b7687e25b945e9fc88a40e59ad4ae029480d4a4ed2fa7f3dd127a02206062866f353dbd3813c3ea5d284f81b92735ea1275b0039be80a290c3be0dcdc",
+            "expected": "TypeError を投げる"
+          },
+          {
+            "name": "末尾に余分なバイト",
+            "input": "Uint8Array（16 進）: 3044022043e71381557b7687e25b945e9fc88a40e59ad4ae029480d4a4ed2fa7f3dd127a02206062866f353dbd3813c3ea5d284f81b92735ea1275b0039be80a290c3be0dcdc00",
+            "expected": "TypeError を投げる"
+          }
+        ],
+        "mobile": {
+          "prompt": "derToJoseEs256 が呼ぶ toFixed32 として、すべてのケースを満たすものはどれですか？",
+          "code": "function derToJoseEs256(der) {\n  let i = 0;\n  if (der[i++] !== 0x30 || der[i++] !== der.length - 2) throw new TypeError(\"bad SEQUENCE\");\n  const readInt = () => {\n    if (der[i++] !== 0x02) throw new TypeError(\"INTEGER expected\");\n    const len = der[i++];\n    if (!(len >= 1 && len <= 33) || i + len > der.length) throw new TypeError(\"bad INTEGER length\");\n    const bytes = der.subarray(i, i + len);\n    i += len;\n    return toFixed32(bytes);\n  };\n  const r = readInt();\n  const s = readInt();\n  if (i !== der.length) throw new TypeError(\"trailing bytes\");\n  const sig = new Uint8Array(64);\n  sig.set(r, 0);\n  sig.set(s, 32);\n  return sig;\n}\n",
+          "options": [
+            "function toFixed32(bytes) {\n  if (bytes.length !== 32) throw new TypeError(\"INTEGER must be 32 bytes\");\n  return bytes;\n}",
+            "function toFixed32(bytes) {\n  let b = bytes;\n  while (b.length > 1 && b[0] === 0x00) b = b.subarray(1);\n  if (b.length > 32) throw new TypeError(\"INTEGER too large\");\n  const out = new Uint8Array(32);\n  out.set(b, 32 - b.length);\n  return out;\n}",
+            "function toFixed32(bytes) {\n  const out = new Uint8Array(32);\n  out.set(bytes, 32 - bytes.length);\n  return out;\n}",
+            "function toFixed32(bytes) {\n  let b = bytes;\n  while (b.length > 1 && b[0] === 0x00) b = b.subarray(1);\n  if (b.length > 32) throw new TypeError(\"INTEGER too large\");\n  const out = new Uint8Array(32);\n  out.set(b, 0);\n  return out;\n}"
+          ]
+        }
+      }
+    }
+  ],
+  "solutions": {
+    "ath-from-authorization": {
+      "explanation": "RFC 9449 §7.1 の credentials は「\"DPoP\" 1*SP token68」で、RFC 9110 §11.1 のとおりスキーム名は大文字・小文字を区別しません。token68 は「=」を末尾にだけ許します。ath は RFC 9449 §4.2 のとおり、トークンの値の ASCII を SHA-256 でハッシュし、base64url にした値です。base64url は末尾の「=」を省きます（RFC 7515 §2）。Node.js では createHash(\"sha256\").update(token, \"ascii\").digest(\"base64url\") で計算でき、RFC 9449 の例のトークンから fUHyO2r2Z3DZ53EsNrWBb0xWXoaNy59IiKCAqksmQEo が得られます。",
+      "rubric": [
+        {
+          "criterion": "スキーム名を大文字・小文字を区別せずに比べ、1 つ以上のスペースで区切られたトークンを取り出す。DPoP 以外のスキームでは null を返す。",
+          "points": 2,
+          "referenceIds": [
+            "http-auth-scheme",
+            "scheme"
+          ]
+        },
+        {
+          "criterion": "トークンを token68 の構文（使える文字、末尾だけの「=」）で検証し、合わない場合やトークンがない場合は TypeError を投げる。",
+          "points": 2,
+          "referenceIds": [
+            "scheme",
+            "header"
+          ]
+        },
+        {
+          "criterion": "ath を、トークンの ASCII の SHA-256 をパディングなしの base64url にして計算する（RFC 9449 の例の値と一致する）。",
+          "points": 2,
+          "referenceIds": [
+            "syntax",
+            "jws-b64url"
+          ]
+        }
+      ],
+      "referenceCode": "import { createHash } from \"node:crypto\";\n\nconst TOKEN68 = /^[A-Za-z0-9\\-._~+/]+=*$/;\n\nfunction athFromAuthorization(value) {\n  if (typeof value !== \"string\") throw new TypeError(\"Authorization must be a string\");\n  // credentials = auth-scheme 1*SP token68\n  const match = /^(\\S+) +(.+)$/.exec(value);\n  if (!match) throw new TypeError(\"credentials are missing\");\n  const [, scheme, token] = match;\n  // 認証スキーム名は大文字・小文字を区別しない（RFC 9110 §11.1）\n  if (scheme.toLowerCase() !== \"dpop\") return null;\n  // token68: 「=」は末尾だけ（RFC 9449 §7.1）\n  if (!TOKEN68.test(token)) throw new TypeError(\"token68 syntax error\");\n  // ath = BASE64URL(SHA-256(ASCII(token)))（RFC 9449 §4.2）\n  const ath = createHash(\"sha256\").update(token, \"ascii\").digest(\"base64url\");\n  return { token, ath };\n}\n",
+      "mobileAnswer": 0,
+      "mobileExplanation": "A は、スキーム名を小文字にして比べ、1 つ以上のスペースを区切りとし、token68 の正規表現で「=」を末尾だけに限ります。B は \"DPoP\" との完全一致で比べるので、小文字の dpop で null を返します。C は「=」を途中でも許すので、YWJj==ZGVm を受理してしまいます。D は 1 つのスペースで分割するので、スペースが 3 つある場合にトークンが空になり TypeError を投げます。"
+    },
+    "jwk-thumbprint": {
+      "explanation": "RFC 7638 §3 は、必須メンバーだけを辞書順に並べて空白なしの JSON にし、その UTF-8 をハッシュすると定めています。必須メンバーは §3.2（EC・RSA）と RFC 8037 §2（OKP）のとおりです。RFC 9449 §6.1 の jkt は、この SHA-256 の結果の base64url です。JSON.stringify は並べ替えをしないので（RFC 7638 §4）、必須メンバーを辞書順に追加した新しいオブジェクトを作ってから文字列にします。RFC 9449 §4.2 は jwk に秘密鍵を含めることを禁じ、alg を非対称署名に限っているので、共通鍵（oct）も DPoP の鍵になりません。",
+      "rubric": [
+        {
+          "criterion": "鍵の種類ごとの必須メンバーだけ（EC：crv・kty・x・y、RSA：e・kty・n、OKP：crv・kty・x）を、メンバー名の辞書順に空白なしの JSON にする。kid などの任意メンバーは含めない。",
+          "points": 2,
+          "referenceIds": [
+            "thumb-def",
+            "thumb-members",
+            "okp-key"
+          ]
+        },
+        {
+          "criterion": "JSON の UTF-8 の SHA-256 を、パディングなしの base64url にする（RFC の 3 つの例の値と一致する）。",
+          "points": 2,
+          "referenceIds": [
+            "thumb-def",
+            "jkt",
+            "okp-thumbprint"
+          ]
+        },
+        {
+          "criterion": "秘密鍵のメンバー（d など）を含む jwk、未対応の kty（oct など）、必須メンバーの欠落を TypeError で拒否する。",
+          "points": 2,
+          "referenceIds": [
+            "syntax",
+            "checks"
+          ]
+        }
+      ],
+      "referenceCode": "import { createHash } from \"node:crypto\";\n\n// 鍵の種類ごとの必須メンバー（辞書順）: RFC 7638 §3.2、RFC 8037 §2\nconst MEMBERS = { EC: [\"crv\", \"kty\", \"x\", \"y\"], RSA: [\"e\", \"kty\", \"n\"], OKP: [\"crv\", \"kty\", \"x\"] };\n// 秘密鍵のメンバー（RFC 7518 §6.2.2・§6.3.2、RFC 8037 §2）\nconst PRIVATE = [\"d\", \"p\", \"q\", \"dp\", \"dq\", \"qi\", \"oth\"];\n\nfunction dpopJwkThumbprint(jwk) {\n  if (jwk === null || typeof jwk !== \"object\" || Array.isArray(jwk)) throw new TypeError(\"jwk must be an object\");\n  // DPoP の jwk は秘密鍵を含んではならない（RFC 9449 §4.2）\n  if (PRIVATE.some((name) => Object.hasOwn(jwk, name))) throw new TypeError(\"jwk contains a private key\");\n  if (!Object.hasOwn(MEMBERS, jwk.kty)) throw new TypeError(\"unsupported kty\");\n  const input = {};\n  for (const name of MEMBERS[jwk.kty]) {\n    if (typeof jwk[name] !== \"string\" || jwk[name] === \"\") throw new TypeError(`missing ${name}`);\n    input[name] = jwk[name];\n  }\n  // 必須メンバーだけを辞書順に追加したので、JSON.stringify は空白なしで同じ順に出力する\n  return createHash(\"sha256\").update(JSON.stringify(input), \"utf8\").digest(\"base64url\");\n}\n",
+      "mobileAnswer": 2,
+      "mobileExplanation": "C は、鍵の種類ごとの必須メンバーを辞書順で返し、共通鍵を拒否します。A は辞書順ではない順序で返すので、EC・RSA・OKP のどの例とも値が一致しません。B は kty=oct を受け付けるので、共通鍵のケースで TypeError を投げません。D は OKP に y を求めるので、Ed25519 の鍵で TypeError を投げます。"
+    },
+    "htu-matches": {
+      "explanation": "RFC 9449 §4.3 は、htu を比べる前に RFC 3986 §6.2.2（構文ベース）と §6.2.3（スキームベース）の正規化を行うことを SHOULD としています。new URL() はスキームとホストの小文字化、既定のポートの省略、ドットセグメントの除去、空のパスの「/」への変換を行いますが、パーセントエンコーディングはそのまま残します。そこで §6.2.2.2 のとおり非予約文字だけを元の文字に戻し、§6.2.2.1 のとおり残りの 16 進を大文字にそろえます。「/」は予約文字なので、%2F を戻すと別の URI になります。末尾のスラッシュを同じとみなすのは §6.2.4 のプロトコルベースの正規化で、勧められている正規化には含まれません。",
+      "rubric": [
+        {
+          "criterion": "スキームとホストの大文字・小文字、既定のポート、ドットセグメント、空のパスを正規化し、query と fragment を比較から除く。",
+          "points": 2,
+          "referenceIds": [
+            "checks",
+            "uri-syntax-normalize",
+            "uri-scheme-normalize",
+            "http-uri-normalize"
+          ]
+        },
+        {
+          "criterion": "非予約文字のパーセントエンコーディング（%7e）だけを元に戻し、予約文字（%2F）は戻さない。16 進は大文字にそろえる。",
+          "points": 2,
+          "referenceIds": [
+            "uri-syntax-normalize",
+            "uri-unreserved"
+          ]
+        },
+        {
+          "criterion": "パスの大文字・小文字と末尾のスラッシュを区別する（プロトコルベースの正規化をしない）。",
+          "points": 2,
+          "referenceIds": [
+            "uri-syntax-normalize",
+            "uri-protocol-normalize"
+          ]
+        }
+      ],
+      "referenceCode": "// WHATWG の URL パーサーは、スキームとホストの小文字化、既定のポートの省略、\n// ドットセグメントの除去、空のパスを \"/\" にする処理を行う。\n// パーセントエンコーディングは変えないので、別に正規化する（RFC 3986 §6.2.2）。\nfunction normalizePercent(path) {\n  return path.replace(/%[0-9A-Fa-f]{2}/g, (triplet) => {\n    const ch = String.fromCharCode(parseInt(triplet.slice(1), 16));\n    // 非予約文字だけを元の文字に戻し、それ以外は 16 進を大文字にそろえる\n    return /[A-Za-z0-9\\-._~]/.test(ch) ? ch : triplet.toUpperCase();\n  });\n}\n\nfunction normalizeForHtu(uri) {\n  const url = new URL(uri);\n  // query と fragment は使わない（RFC 9449 §4.3）\n  return `${url.protocol}//${url.host}${normalizePercent(url.pathname)}`;\n}\n\nfunction htuMatches(htu, requestUri) {\n  return normalizeForHtu(htu) === normalizeForHtu(requestUri);\n}\n",
+      "mobileAnswer": 3,
+      "mobileExplanation": "D は非予約文字だけを元の文字に戻し、その他の 16 進を大文字にそろえます。A は %2F も「/」に戻すので、a%2Fb と a/b を同じと判定します。B はパーセントエンコーディングを変えないので、%7e と ~、%2f と %2F を別のものと判定します。C はパスを小文字にするので Orders と orders を同じと判定し、%7e も元に戻しません。"
+    },
+    "parse-dpop-challenge": {
+      "explanation": "RFC 9110 §11.6.1 のとおり、WWW-Authenticate は複数の challenge を含み、ヘッダー自体も複数行になり得ます。§5.3 のとおり、リスト構文のフィールドはカンマでつないで 1 つの値として扱えます。challenge は「auth-scheme [ 1*SP ( token68 / #auth-param ) ]」（§11.3）、auth-param は「token BWS \"=\" BWS ( token / quoted-string )」で、パラメーター名は大文字・小文字を区別しません（§11.2）。値はどちらの形式でも受け付ける必要があります。RFC 9449 §7.1 の algs は、JWS の alg 値をスペースで区切ったリストです。トークンの後に「=」が続けばパラメーター、続かなければ次の challenge のスキーム名と判断すると、Figure 17 の「Bearer, DPoP algs=…」のような値も読めます。",
+      "rubric": [
+        {
+          "criterion": "複数のフィールド行をまとめて扱い、スキーム名の後のパラメーターを、次のスキーム名までその challenge に属させる（未知のスキームも読み飛ばせる）。",
+          "points": 2,
+          "referenceIds": [
+            "http-www-authenticate",
+            "http-challenge",
+            "http-field-order"
+          ]
+        },
+        {
+          "criterion": "パラメーターの値を token と quoted-string の両方で読み、quoted-string ではバックスラッシュのエスケープと中のカンマを正しく扱う。",
+          "points": 2,
+          "referenceIds": [
+            "http-auth-params"
+          ]
+        },
+        {
+          "criterion": "スキーム名とパラメーター名を、大文字・小文字を区別せずに扱う。",
+          "points": 1,
+          "referenceIds": [
+            "http-auth-scheme",
+            "http-auth-params"
+          ]
+        },
+        {
+          "criterion": "DPoP の challenge がなければ null を返し、あれば error（なければ null）と、スペースで区切った algs の配列を返す。",
+          "points": 2,
+          "referenceIds": [
+            "challenge",
+            "multi-challenge"
+          ]
+        }
+      ],
+      "referenceCode": "const TOKEN = /[!#$%&'*+\\-.^_`|~0-9A-Za-z]+/y;\n\nfunction readToken(s, i) {\n  TOKEN.lastIndex = i;\n  const match = TOKEN.exec(s);\n  if (!match) throw new SyntaxError(`token expected at ${i}`);\n  return [match[0], TOKEN.lastIndex];\n}\n\n// s[i] は開きの引用符。バックスラッシュの次の文字はそのまま値に含める（quoted-pair）\nfunction readQuoted(s, i) {\n  let value = \"\";\n  for (let j = i + 1; j < s.length; j++) {\n    if (s[j] === \"\\\\\") { j++; if (j < s.length) value += s[j]; continue; }\n    if (s[j] === '\"') return [value, j + 1];\n    value += s[j];\n  }\n  throw new SyntaxError(\"unterminated quoted-string\");\n}\n\n// 複数のフィールド行はカンマでつないで 1 つの値として扱える（RFC 9110 §5.3）\nfunction parseChallenges(fieldValues) {\n  const s = fieldValues.join(\", \");\n  const challenges = [];\n  let current = null;\n  let i = 0;\n  while (i < s.length) {\n    while (i < s.length && /[ \\t,]/.test(s[i])) i++;\n    if (i >= s.length) break;\n    let name;\n    [name, i] = readToken(s, i);\n    let j = i;\n    while (j < s.length && /[ \\t]/.test(s[j])) j++;\n    if (s[j] === \"=\" && current) {\n      // auth-param = token BWS \"=\" BWS ( token / quoted-string )\n      i = j + 1;\n      while (i < s.length && /[ \\t]/.test(s[i])) i++;\n      let value;\n      [value, i] = s[i] === '\"' ? readQuoted(s, i) : readToken(s, i);\n      const key = name.toLowerCase(); // パラメーター名は大文字・小文字を区別しない\n      if (!current.params.has(key)) current.params.set(key, value);\n    } else {\n      // 次の challenge の始まり（スキーム名は大文字・小文字を区別しない）\n      current = { scheme: name.toLowerCase(), params: new Map() };\n      challenges.push(current);\n    }\n  }\n  return challenges;\n}\n\nfunction parseDpopChallenge(fieldValues) {\n  const dpop = parseChallenges(fieldValues).find((c) => c.scheme === \"dpop\");\n  if (!dpop) return null;\n  const algs = dpop.params.get(\"algs\");\n  return { error: dpop.params.get(\"error\") ?? null, algs: algs ? algs.split(\" \").filter(Boolean) : [] };\n}\n",
+      "mobileAnswer": 1,
+      "mobileExplanation": "B は、バックスラッシュの次の文字を値に含め、閉じの引用符の次の位置を返します。A は次の引用符までを値にするので、\\\" のところで値が途中で終わり、残りを読めずに SyntaxError になります。C は閉じの引用符の位置を返すので、次のトークンを読むときに引用符で SyntaxError になります。D はエスケープを扱わず、カンマでも値を打ち切るので、\"a, b\" や \"bad \\\"htu\\\", retry\" の途中で値が終わり、残りを読めずに SyntaxError になります。"
+    },
+    "check-dpop-claims": {
+      "explanation": "RFC 9449 §4.3 の検証項目のうち、ヘッダーの数・JWT の形式・署名（1・2・6 番目）以外の内容の検証を 1 つの関数にまとめる課題です。typ は dpop+jwt（4 番目）、alg は許可した非対称署名（5 番目）、jwk は秘密鍵を含まない（7 番目）、必須クレームがそろう（3 番目）、htm は大文字・小文字まで一致する（8 番目、RFC 9110 §9.1）、htu は query と fragment を除いて一致する（9 番目）、生成時刻は受理できる時間窓に収まる（11 番目、RFC 9449 §11.1 のとおり近い未来を許す場合も上限を設ける）ことを確かめます。nonce は、サーバーが提供した場合にだけ求め、提供した後は nonce のない proof を受理してはなりません（10 番目、RFC 9449 §11.3）。ath と鍵の結び付けは、アクセストークンと一緒に提示された場合の検証です（12 番目）。§4.2・§4.3 の 3 番目では、条件を満たす場合の ath・nonce も必須クレームですが、この課題では ath・nonce の欠落を \"claims\" ではなく \"ath\"・\"nonce\" として報告します。",
+      "rubric": [
+        {
+          "criterion": "typ・alg（許可リスト）・jwk（秘密鍵を含まない）・必須クレームを検証する。",
+          "points": 2,
+          "referenceIds": [
+            "checks",
+            "syntax"
+          ]
+        },
+        {
+          "criterion": "htm を大文字・小文字まで、htu を query を除いて照合し、iat を過去（maxAge）と未来（maxFuture）の両方で制限する。",
+          "points": 2,
+          "referenceIds": [
+            "checks",
+            "http-method",
+            "replay"
+          ]
+        },
+        {
+          "criterion": "サーバーが nonce を提供していれば、nonce のない proof や異なる nonce を拒否し、提供していなければ求めない。",
+          "points": 1,
+          "referenceIds": [
+            "checks",
+            "downgrade"
+          ]
+        },
+        {
+          "criterion": "アクセストークンがある場合だけ、ath をトークンから計算して比べ、proof の鍵の Thumbprint と cnf.jkt を比べる。トークン要求では ath を求めない。",
+          "points": 2,
+          "referenceIds": [
+            "checks",
+            "syntax",
+            "resource"
+          ]
+        }
+      ],
+      "referenceCode": "import { createHash } from \"node:crypto\";\n\nconst PRIVATE = [\"d\", \"p\", \"q\", \"dp\", \"dq\", \"qi\", \"oth\"];\n\n// 課題の制約: スキーム・ホスト（ポート）・パスを new URL() で正規化して比べ、query と fragment は無視する\nfunction sameTarget(htu, url) {\n  try {\n    const a = new URL(htu);\n    const b = new URL(url);\n    return `${a.protocol}//${a.host}${a.pathname}` === `${b.protocol}//${b.host}${b.pathname}`;\n  } catch {\n    return false;\n  }\n}\n\nfunction checkDpopClaims(header, payload, ctx) {\n  const failures = [];\n  if (header.typ !== \"dpop+jwt\") failures.push(\"typ\");\n  if (!ctx.allowedAlgs.includes(header.alg)) failures.push(\"alg\");\n  const jwk = header.jwk;\n  if (jwk === null || typeof jwk !== \"object\" || typeof jwk.kty !== \"string\"\n      || PRIVATE.some((name) => Object.hasOwn(jwk, name))) failures.push(\"jwk\");\n  const hasClaims = typeof payload.jti === \"string\" && payload.jti !== \"\"\n    && typeof payload.htm === \"string\" && typeof payload.htu === \"string\" && typeof payload.iat === \"number\";\n  if (!hasClaims) failures.push(\"claims\");\n  // メソッドは大文字・小文字を区別する（RFC 9110 §9.1）\n  if (typeof payload.htm === \"string\" && payload.htm !== ctx.method) failures.push(\"htm\");\n  if (typeof payload.htu === \"string\" && !sameTarget(payload.htu, ctx.url)) failures.push(\"htu\");\n  if (typeof payload.iat === \"number\"\n      && (payload.iat < ctx.now - ctx.maxAge || payload.iat > ctx.now + ctx.maxFuture)) failures.push(\"iat\");\n  // nonce を提供した後は、nonce のない proof を受理しない（RFC 9449 §11.3）\n  if (ctx.providedNonce != null && payload.nonce !== ctx.providedNonce) failures.push(\"nonce\");\n  // ath と鍵の結び付けは、アクセストークンと一緒に提示された場合だけ（§4.3 の 12 番目）\n  if (ctx.accessToken != null) {\n    const ath = createHash(\"sha256\").update(ctx.accessToken, \"ascii\").digest(\"base64url\");\n    if (payload.ath !== ath) failures.push(\"ath\");\n    if (ctx.proofJkt !== ctx.boundJkt) failures.push(\"binding\");\n  }\n  return failures;\n}\n",
+      "mobileAnswer": 3,
+      "mobileExplanation": "D は、サーバーが nonce を提供した場合にだけ一致を求めます。A は nonce のない proof を常に受け入れるので、nonce を提供した後のダウングレード（トークン要求で nonce がないケース）を見逃します。B は、providedNonce が null で proof に nonce がないとき undefined と null を比べて失敗し、基本のケースでも \"nonce\" を報告します。C は nonce のない proof をすべて拒否し、値も比べないので、基本のケースでも \"nonce\" を報告し、異なる nonce（N0）を受け入れます。"
+    },
+    "handle-dpop-nonce": {
+      "explanation": "RFC 9449 §8 の AS は、nonce がない要求に 400 と JSON の error=use_dpop_nonce、DPoP-Nonce ヘッダーで応答します。§9 の RS は、401 と WWW-Authenticate: DPoP（error=\"use_dpop_nonce\"）と DPoP-Nonce を使います。§8.2 のとおり、成功応答の DPoP-Nonce も次の要求から使います。nonce は発行したサーバーでだけ受理されるので（§9）、発行したサーバーのオリジンごとに保存します。§8 はエラー応答に DPoP-Nonce を 2 つ以上含めてはならない（MUST NOT）と定め、DPoP-Nonce の値は 1 つの nonce です（§8.1・§8.2）。そこで課題では、2 つ以上ある応答の nonce を使わないことにしています。また §8 は、どの拒否応答でも新しい nonce を保存して再試行できるとしていますが、この課題では use_dpop_nonce で求められた場合だけ再試行します。",
+      "rubric": [
+        {
+          "criterion": "要求先のオリジンごとに nonce を保存し、エラー応答だけでなく成功応答の DPoP-Nonce でも更新する。",
+          "points": 2,
+          "referenceIds": [
+            "rs-nonce",
+            "rotation"
+          ]
+        },
+        {
+          "criterion": "課題の制約どおり、AS（400 と JSON の error=use_dpop_nonce）と RS（401 と WWW-Authenticate の DPoP の error=\"use_dpop_nonce\"）の場合だけ再試行し、それ以外では再試行しない。",
+          "points": 2,
+          "referenceIds": [
+            "as-nonce",
+            "rs-nonce"
+          ]
+        },
+        {
+          "criterion": "DPoP-Nonce がない応答や、課題の制約どおり 2 つ以上ある応答の nonce は使わず、再試行もしない。",
+          "points": 2,
+          "referenceIds": [
+            "as-nonce"
+          ]
+        }
+      ],
+      "referenceCode": "function handleDpopNonce(store, url, response) {\n  // nonce は発行したサーバーでだけ使う（RFC 9449 §9）\n  const origin = new URL(url).origin;\n  // DPoP-Nonce は 1 つだけのはず（§8）。課題の制約として、複数あれば使わない\n  if (response.nonces.length !== 1) return false;\n  // エラー応答でも成功応答でも、新しい nonce を保存する（§8・§8.2）\n  store.set(origin, response.nonces[0]);\n  return isNonceChallenge(response);\n}\n\nfunction isNonceChallenge(response) {\n  // AS: 400 と JSON の error（§8）。RS: 401 と WWW-Authenticate: DPoP の error（§9）\n  if (response.status === 400) return response.json?.error === \"use_dpop_nonce\";\n  if (response.status === 401) return response.dpopError === \"use_dpop_nonce\";\n  return false;\n}\n",
+      "mobileAnswer": 2,
+      "mobileExplanation": "C は、400 なら JSON の error を、401 なら WWW-Authenticate の DPoP の error を見ます。A は JSON の本文だけを見るので、RS の 401 で再試行せず、401 の本文に use_dpop_nonce がある場合には再試行してしまいます。B は 401 だけを見るので、AS の 400 で再試行しません。D は 400 と 401 のすべてで再試行するので、invalid_token でも再試行します。"
+    },
+    "replay-guard": {
+      "explanation": "RFC 9449 §11.1 は、proof を生成後の限られた時間だけ受理しなければならず（MUST）、その時間窓のあいだ対象 URI の文脈で jti を記録すれば、同じ proof の 2 回目を拒否できると述べています。記録は、その proof を受理しうるあいだ（iat + windowSeconds まで）だけ残せば足ります。記録した時刻から数えて消すと、未来の iat の proof を、まだ受理できる時間のうちに再送されます。jti を追跡するサーバーは、不必要に大きい jti を拒否するか、ハッシュだけを保存するべきだ（小文字の should）とされています。proof は query に結び付かないので（§4.2）、この課題では query を除いた htu をキーに使います。jti の先頭だけをキーにすると、別の proof を誤って重複と判定します。",
+      "rubric": [
+        {
+          "criterion": "htu と jti の SHA-256 のハッシュの組をキーにして記録し、同じ組の 2 回目を \"replay\" とする（jti を切り詰めたり、htu だけや jti だけをキーにしたりしない）。",
+          "points": 2,
+          "referenceIds": [
+            "replay"
+          ]
+        },
+        {
+          "criterion": "iat が now の前後 windowSeconds の外なら \"stale\" として記録しない。記録は、その proof を受理しうるあいだ（iat + windowSeconds まで）残し、過ぎたら消す。",
+          "points": 2,
+          "referenceIds": [
+            "replay"
+          ]
+        },
+        {
+          "criterion": "maxJtiLength を超える jti を \"too-large\" として拒否する。",
+          "points": 2,
+          "referenceIds": [
+            "replay"
+          ]
+        }
+      ],
+      "referenceCode": "import { createHash } from \"node:crypto\";\n\nfunction createReplayGuard({ windowSeconds, maxJtiLength }) {\n  const seen = new Map(); // キー -> 記録を消してよい時刻\n  // 大きな jti でメモリーを使い切られないよう、ハッシュだけを保存する（RFC 9449 §11.1）\n  const keyOf = (htu, jti) => `${htu} ${createHash(\"sha256\").update(jti, \"utf8\").digest(\"base64url\")}`;\n  return {\n    check(htu, jti, iat, now) {\n      for (const [key, expiresAt] of seen) if (expiresAt < now) seen.delete(key);\n      if (typeof jti !== \"string\" || jti.length > maxJtiLength) return \"too-large\";\n      // 受理できる時間窓の外の proof は記録せずに拒否する\n      if (iat < now - windowSeconds || iat > now + windowSeconds) return \"stale\";\n      const key = keyOf(htu, jti);\n      if (seen.has(key)) return \"replay\";\n      // 時間窓のあいだだけ記録すれば足りる\n      seen.set(key, iat + windowSeconds);\n      return \"accept\";\n    },\n  };\n}\n",
+      "mobileAnswer": 3,
+      "mobileExplanation": "D は htu と jti のハッシュを組み合わせます。A は jti だけをキーにするので、別の htu への同じ jti を重複と判定します。B は jti の先頭 16 文字だけを使うので、先頭が同じ別の jti を重複と判定します。C は htu だけをキーにするので、同じ htu への別の proof をすべて重複と判定します。"
+    },
+    "der-to-jose-es256": {
+      "explanation": "RFC 7518 §3.4 は、ES256 の署名を、R と S をそれぞれ 32 オクテットのビッグエンディアンにして R、S の順に連結した 64 オクテットとし、先頭の 0 のオクテットを省いてはならない（MUST NOT）と定めています。DER の INTEGER は符号付きなので、最上位ビットが 1 の値には 0x00 が前に付いて 33 バイトになり、値が小さければ 31 バイト以下になります。そのため、先頭の 0x00 を取り除いてから、先頭を 0 で埋めて 32 バイトにします。Node.js では crypto.sign の dsaEncoding: \"ieee-p1363\" で、最初から R||S を得ることもできます。ケースの署名は、RFC 7515 付録 A.3 の鍵で ASCII の文字列 \"dpop-1\"（R の先頭に 0x00）、\"dpop-334\"（R が 31 バイト）、\"dpop-3\"（R・S とも 32 バイト）に署名したもので、期待する 64 バイトはその公開鍵で検証できます。DER の INTEGER は最小の長さで符号化するので、先頭の 0x00 は次のバイトの最上位ビットが 1 のときの 1 バイトだけです。P-256 の r・s は 32 バイトに収まるので INTEGER は最大 33 バイトで、34 バイトの INTEGER は不正です。",
+      "rubric": [
+        {
+          "criterion": "SEQUENCE と 2 つの INTEGER のタグと長さを読み、形式が合わない場合（タグの違い、長すぎる INTEGER、余分なバイト）は TypeError を投げる。",
+          "points": 2,
+          "referenceIds": [
+            "jwa-ecdsa"
+          ]
+        },
+        {
+          "criterion": "INTEGER の先頭の 0x00 を取り除き、32 バイトに満たない値は先頭を 0 で埋めて 32 バイトにする（先頭の 0 を省かない）。",
+          "points": 2,
+          "referenceIds": [
+            "jwa-ecdsa"
+          ]
+        },
+        {
+          "criterion": "R、S の順に連結した 64 バイトを返す。",
+          "points": 2,
+          "referenceIds": [
+            "jwa-ecdsa"
+          ]
+        }
+      ],
+      "referenceCode": "function derToJoseEs256(der) {\n  if (!(der instanceof Uint8Array)) throw new TypeError(\"der must be a Uint8Array\");\n  let i = 0;\n  // SEQUENCE（P-256 の署名は短い形式の長さに収まる）\n  if (der[i++] !== 0x30 || der[i++] !== der.length - 2) throw new TypeError(\"bad SEQUENCE\");\n  const readInt = () => {\n    if (der[i++] !== 0x02) throw new TypeError(\"INTEGER expected\");\n    const len = der[i++];\n    if (!(len >= 1 && len <= 33) || i + len > der.length) throw new TypeError(\"bad INTEGER length\");\n    let bytes = der.subarray(i, i + len);\n    i += len;\n    // 正の数を表すための先頭の 0x00 を取り除く\n    while (bytes.length > 1 && bytes[0] === 0x00) bytes = bytes.subarray(1);\n    if (bytes.length > 32) throw new TypeError(\"INTEGER too large\");\n    // 先頭の 0 を省かず 32 バイトの固定長にする（RFC 7518 §3.4）\n    const out = new Uint8Array(32);\n    out.set(bytes, 32 - bytes.length);\n    return out;\n  };\n  const r = readInt();\n  const s = readInt();\n  if (i !== der.length) throw new TypeError(\"trailing bytes\");\n  const sig = new Uint8Array(64);\n  sig.set(r, 0);\n  sig.set(s, 32);\n  return sig;\n}\n",
+      "mobileAnswer": 1,
+      "mobileExplanation": "B は先頭の 0x00 を取り除き、先頭を 0 で埋めて 32 バイトにします。A は 32 バイト以外の INTEGER を拒否するので、先頭に 0x00 が付いた R や 31 バイトの R で TypeError を投げます。C は先頭の 0x00 を取り除かないので、33 バイトの R を 32 バイトの配列に入れられず RangeError になります。D は値を前に詰めて後ろを 0 で埋めるので、31 バイトの R の値が変わります。"
+    }
+  },
+  "inconsistencies": []
+}

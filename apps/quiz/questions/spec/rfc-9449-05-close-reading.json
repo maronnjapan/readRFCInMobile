@@ -1,0 +1,874 @@
+{
+  "format": "spec-understanding-quiz",
+  "version": 1,
+  "id": "rfc-9449-05-close-reading",
+  "title": "RFC 9449 DPoP 発展 1/7: 精読 — 要件の強さ・条件・主語",
+  "status": "draft",
+  "spec": {
+    "id": "rfc-9449",
+    "status": "adopted",
+    "repository": "maronnjapan/readRFCInMobile",
+    "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+    "path": "rfcs/rfc9449.txt"
+  },
+  "references": [
+    {
+      "id": "replay",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 1322,
+      "endLine": 1358,
+      "reason": "§11.1: 有効時間、jti 記録、メモリー対策、時計差、nonce 再利用",
+      "excerpt": "11.1.  DPoP Proof Replay\n\n   If an adversary is able to get hold of a DPoP proof JWT, the\n   adversary could replay that token at the same endpoint (the HTTP\n   endpoint and method are enforced via the respective claims in the\n   JWTs).  To limit this, servers MUST only accept DPoP proofs for a\n   limited time after their creation (preferably only for a relatively\n   brief period on the order of seconds or minutes).\n\n   In the context of the target URI, servers can store the jti value of\n   each DPoP proof for the time window in which the respective DPoP\n   proof JWT would be accepted to prevent multiple uses of the same DPoP\n   proof.  HTTP requests to the same URI for which the jti value has\n   been seen before would be declined.  When strictly enforced, such a\n   single-use check provides a very strong protection against DPoP proof\n   replay, but it may not always be feasible in practice, e.g., when\n   multiple servers behind a single endpoint have no shared state.\n\n   In order to guard against memory exhaustion attacks, a server that is\n   tracking jti values should reject DPoP proof JWTs with unnecessarily\n   large jti values or store only a hash thereof.\n\n   Note: To accommodate for clock offsets, the server MAY accept DPoP\n   proofs that carry an iat time in the reasonably near future (on the\n   order of seconds or minutes).  Because clock skews between servers\n   and clients may be large, servers MAY limit DPoP proof lifetimes by\n   using server-provided nonce values containing the time at the server\n   rather than comparing the client-supplied iat time to the time at the\n   server.  Nonces created in this way yield the same result even in the\n   face of arbitrarily large clock skews.\n\n   Server-provided nonces are an effective means for further reducing\n   the chances for successful DPoP proof replay.  Unlike cryptographic\n   nonces, it is acceptable for clients to use the same nonce multiple\n   times and for the server to accept the same nonce multiple times.  As\n   long as the jti value is tracked and duplicates are rejected for the\n   lifetime of the nonce, there is no additional risk of token replay."
+    },
+    {
+      "id": "checks",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 485,
+      "endLine": 523,
+      "reason": "§4.3: 受信時の必須検証、URI 正規化、検証順序",
+      "excerpt": "4.3.  Checking DPoP Proofs\n\n   To validate a DPoP proof, the receiving server MUST ensure the\n   following:\n\n   1.   There is not more than one DPoP HTTP request header field.\n   2.   The DPoP HTTP request header field value is a single and well-\n        formed JWT.\n   3.   All required claims per Section 4.2 are contained in the JWT.\n   4.   The typ JOSE Header Parameter has the value dpop+jwt.\n   5.   The alg JOSE Header Parameter indicates a registered asymmetric\n        digital signature algorithm [IANA.JOSE.ALGS], is not none, is\n        supported by the application, and is acceptable per local\n        policy.\n   6.   The JWT signature verifies with the public key contained in the\n        jwk JOSE Header Parameter.\n   7.   The jwk JOSE Header Parameter does not contain a private key.\n   8.   The htm claim matches the HTTP method of the current request.\n   9.   The htu claim matches the HTTP URI value for the HTTP request in\n        which the JWT was received, ignoring any query and fragment\n        parts.\n   10.  If the server provided a nonce value to the client, the nonce\n        claim matches the server-provided nonce value.\n   11.  The creation time of the JWT, as determined by either the iat\n        claim or a server managed timestamp via the nonce claim, is\n        within an acceptable window (see Section 11.1).\n   12.  If presented to a protected resource in conjunction with an\n        access token,\n        *  ensure that the value of the ath claim equals the hash of\n           that access token, and\n        *  confirm that the public key to which the access token is\n           bound matches the public key from the DPoP proof.\n\n   To reduce the likelihood of false negatives, servers SHOULD employ\n   syntax-based normalization (Section 6.2.2 of [RFC3986]) and scheme-\n   based normalization (Section 6.2.3 of [RFC3986]) before comparing the\n   htu claim.\n\n   These checks may be performed in any order."
+    },
+    {
+      "id": "challenge",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 899,
+      "endLine": 936,
+      "reason": "§7.1: WWW-Authenticate のエラー・algs・未知パラメーター",
+      "excerpt": "   Upon receipt of a request to a protected resource within the\n   protection space requiring DPoP authentication, the server can\n   respond with a challenge to the client to provide DPoP authentication\n   information if the request does not include valid credentials or does\n   not contain an access token sufficient for access.  Such a challenge\n   is made using the 401 (Unauthorized) response status code ([RFC9110],\n   Section 15.5.2) and the WWW-Authenticate header field ([RFC9110],\n   Section 11.6.1).  The server MAY include the WWW-Authenticate header\n   in response to other conditions as well.\n\n   In such challenges:\n\n   *  The scheme name is DPoP.\n   *  The authentication parameter realm MAY be included to indicate the\n      scope of protection in the manner described in [RFC9110],\n      Section 11.5.\n   *  A scope authentication parameter MAY be included as defined in\n      [RFC6750], Section 3.\n   *  An error parameter ([RFC6750], Section 3) SHOULD be included to\n      indicate the reason why the request was declined, if the request\n      included an access token but failed authentication.  The error\n      parameter values described in [RFC6750], Section 3.1 are suitable,\n      as are any appropriate values defined by extension.  The value\n      use_dpop_nonce can be used as described in Section 9 to signal\n      that a nonce is needed in the DPoP proof of a subsequent\n      request(s).  Additionally, invalid_dpop_proof is used to indicate\n      that the DPoP proof itself was deemed invalid based on the\n      criteria of Section 4.3.\n   *  An error_description parameter ([RFC6750], Section 3) MAY be\n      included along with the error parameter to provide developers a\n      human-readable explanation that is not meant to be displayed to\n      end-users.\n   *  An algs parameter SHOULD be included to signal to the client the\n      JWS algorithms that are acceptable for the DPoP proof JWT.  The\n      value of the parameter is a space-delimited list of JWS alg\n      (Algorithm) header values ([RFC7515], Section 4.1.1).\n   *  Additional authentication parameters MAY be used, and unknown\n      parameters MUST be ignored by recipients."
+    },
+    {
+      "id": "refresh",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 610,
+      "endLine": 649,
+      "reason": "§5: public/confidential の refresh token と Bearer 応答",
+      "excerpt": "   When an authorization server supporting DPoP issues a refresh token\n   to a public client that presents a valid DPoP proof at the token\n   endpoint, the refresh token MUST be bound to the respective public\n   key.  The binding MUST be validated when the refresh token is later\n   presented to get new access tokens.  As a result, such a client MUST\n   present a DPoP proof for the same key that was used to obtain the\n   refresh token each time that refresh token is used to obtain a new\n   access token.  The implementation details of the binding of the\n   refresh token are at the discretion of the authorization server.\n   Since the authorization server both produces and validates its\n   refresh tokens, there is no interoperability consideration in the\n   specific details of the binding.\n\n   An authorization server MAY elect to issue access tokens that are not\n   DPoP bound, which is signaled to the client with a value of Bearer in\n   the token_type parameter of the access token response per [RFC6750].\n   For a public client that is also issued a refresh token, this has the\n   effect of DPoP-binding the refresh token alone, which can improve the\n   security posture even when protected resources are not updated to\n   support DPoP.\n\n   If the access token response contains a different token_type value\n   than DPoP, the access token protection provided by DPoP is not given.\n   The client MUST discard the response in this case if this protection\n   is deemed important for the security of the application; otherwise,\n   the client may continue as in a regular OAuth interaction.\n\n   Refresh tokens issued to confidential clients (those having\n   established authentication credentials with the authorization server)\n   are not bound to the DPoP proof public key because they are already\n   sender-constrained with a different existing mechanism.  The OAuth\n   2.0 Authorization Framework [RFC6749] already requires that an\n   authorization server bind refresh tokens to the client to which they\n   were issued and that confidential clients authenticate to the\n   authorization server when presenting a refresh token.  As a result,\n   such refresh tokens are sender-constrained by way of the client\n   identifier and the associated authentication requirement.  This\n   existing sender-constraining mechanism is more flexible (e.g., it\n   allows credential rotation for the client without invalidating\n   refresh tokens) than binding directly to a particular public key."
+    },
+    {
+      "id": "code",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 1237,
+      "endLine": 1273,
+      "reason": "§10: dpop_jkt、トークン要求時の照合、PKCE との併用",
+      "excerpt": "10.  Authorization Code Binding to a DPoP Key\n\n   Binding the authorization code issued to the client's proof-of-\n   possession key can enable end-to-end binding of the entire\n   authorization flow.  This specification defines the dpop_jkt\n   authorization request parameter for this purpose.  The value of the\n   dpop_jkt authorization request parameter is the JWK Thumbprint\n   [RFC7638] of the proof-of-possession public key using the SHA-256\n   hash function, which is the same value as used for the jkt\n   confirmation method defined in Section 6.1.\n\n   When a token request is received, the authorization server computes\n   the JWK Thumbprint of the proof-of-possession public key in the DPoP\n   proof and verifies that it matches the dpop_jkt parameter value in\n   the authorization request.  If they do not match, it MUST reject the\n   request.\n\n   An example authorization request using the dpop_jkt authorization\n   request parameter is shown below and uses \"\\\" line wrapping per\n   [RFC8792].\n\n   GET /authorize?response_type=code&client_id=s6BhdRkqt3&state=xyz\\\n       &redirect_uri=https%3A%2F%2Fclient%2Eexample%2Ecom%2Fcb\\\n       &code_challenge=E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM\\\n       &code_challenge_method=S256\\\n       &dpop_jkt=NzbLsXh8uDCcd-6MNwXF4W_7noWXFZAfHkxZsRGC9Xs HTTP/1.1\n   Host: server.example.com\n\n       Figure 25: Authorization Request Using the dpop_jkt Parameter\n\n   Use of the dpop_jkt authorization request parameter is OPTIONAL.\n   Note that the dpop_jkt authorization request parameter MAY also be\n   used in combination with Proof Key for Code Exchange (PKCE)\n   [RFC7636], which is recommended by [SECURITY-TOPICS] as a\n   countermeasure to authorization code injection.  The dpop_jkt\n   authorization request parameter only provides similar protections\n   when a unique DPoP key is used for each authorization request."
+    },
+    {
+      "id": "par",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 1275,
+      "endLine": 1308,
+      "reason": "§10.1: PAR の 2 方式、必須サポート、不一致時の拒否",
+      "excerpt": "10.1.  DPoP with Pushed Authorization Requests\n\n   When Pushed Authorization Requests (PARs) [RFC9126] are used in\n   conjunction with DPoP, there are two ways in which the DPoP key can\n   be communicated in the PAR request:\n\n   *  The dpop_jkt parameter can be used as described in Section 10 to\n      bind the issued authorization code to a specific key.  In this\n      case, dpop_jkt MUST be included alongside other authorization\n      request parameters in the POST body of the PAR request.\n   *  Alternatively, the DPoP header can be added to the PAR request.\n      In this case, the authorization server MUST check the provided\n      DPoP proof JWT as defined in Section 4.3.  It MUST further behave\n      as if the contained public key's thumbprint was provided using\n      dpop_jkt, i.e., reject the subsequent token request unless a DPoP\n      proof for the same key is provided.  This can help to simplify the\n      implementation of the client, as it can \"blindly\" attach the DPoP\n      header to all requests to the authorization server regardless of\n      the type of request.  Additionally, it provides a stronger\n      binding, as the DPoP header contains a proof of possession of the\n      private key.\n\n   Both mechanisms MUST be supported by an authorization server that\n   supports PAR and DPoP.  If both mechanisms are used at the same time,\n   the authorization server MUST reject the request if the JWK\n   Thumbprint in dpop_jkt does not match the public key in the DPoP\n   header.\n\n   Allowing both mechanisms ensures that clients using dpop_jkt do not\n   need to distinguish between front-channel and pushed authorization\n   requests, and at the same time, clients that only have one code path\n   for protecting all calls to authorization server endpoints do not\n   need to distinguish between requests to the PAR endpoint and the\n   token endpoint."
+    },
+    {
+      "id": "as-nonce",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 1073,
+      "endLine": 1118,
+      "reason": "§8: AS の nonce challenge、予測不能性、ヘッダー数",
+      "excerpt": "8.  Authorization Server-Provided Nonce\n\n   This section specifies a mechanism using opaque nonces provided by\n   the server that can be used to limit the lifetime of DPoP proofs.\n   Without employing such a mechanism, a malicious party controlling the\n   client (potentially including the end-user) can create DPoP proofs\n   for use arbitrarily far in the future.\n\n   Including a nonce value contributed by the authorization server in\n   the DPoP proof MAY be used by authorization servers to limit the\n   lifetime of DPoP proofs.  The server determines when to issue a new\n   DPoP nonce challenge and if it is needed, thereby requiring the use\n   of the nonce value in subsequent DPoP proofs.  The logic through\n   which the server makes that determination is out of scope of this\n   document.\n\n   An authorization server MAY supply a nonce value to be included by\n   the client in DPoP proofs sent.  In this case, the authorization\n   server responds to requests that do not include a nonce with an HTTP\n   400 (Bad Request) error response per Section 5.2 of [RFC6749] using\n   use_dpop_nonce as the error code value.  The authorization server\n   includes a DPoP-Nonce HTTP header in the response supplying a nonce\n   value to be used when sending the subsequent request.  Nonce values\n   MUST be unpredictable.  This same error code is used when supplying a\n   new nonce value when there was a nonce mismatch.  The client will\n   typically retry the request with the new nonce value supplied upon\n   receiving a use_dpop_nonce error with an accompanying nonce value.\n\n   For example, in response to a token request without a nonce when the\n   authorization server requires one, the authorization server can\n   respond with a DPoP-Nonce value such as the following to provide a\n   nonce value to include in the DPoP proof:\n\n    HTTP/1.1 400 Bad Request\n    DPoP-Nonce: eyJ7S_zG.eyJH0-Z.HX4w-7v\n\n    {\n     \"error\": \"use_dpop_nonce\",\n     \"error_description\":\n       \"Authorization server requires nonce in DPoP proof\"\n    }\n\n      Figure 20: HTTP 400 Response to a Token Request without a Nonce\n\n   Other HTTP headers and JSON fields MAY also be included in the error\n   response, but there MUST NOT be more than one DPoP-Nonce header."
+    },
+    {
+      "id": "syntax",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 393,
+      "endLine": 448,
+      "reason": "§4.2: JOSE ヘッダー、必須クレーム、ath と nonce",
+      "excerpt": "4.2.  DPoP Proof JWT Syntax\n\n   A DPoP proof is a JWT [RFC7519] that is signed (using JSON Web\n   Signature (JWS) [RFC7515]) with a private key chosen by the client\n   (see below).  The JOSE Header of a DPoP JWT MUST contain at least the\n   following parameters:\n\n   typ:  A field with the value dpop+jwt, which explicitly types the\n      DPoP proof JWT as recommended in Section 3.11 of [RFC8725].\n\n   alg:  An identifier for a JWS asymmetric digital signature algorithm\n      from [IANA.JOSE.ALGS].  It MUST NOT be none or an identifier for a\n      symmetric algorithm (Message Authentication Code (MAC)).\n\n   jwk:  Represents the public key chosen by the client in JSON Web Key\n      (JWK) [RFC7517] format as defined in Section 4.1.3 of [RFC7515].\n      It MUST NOT contain a private key.\n\n   The payload of a DPoP proof MUST contain at least the following\n   claims:\n\n   jti:  Unique identifier for the DPoP proof JWT.  The value MUST be\n      assigned such that there is a negligible probability that the same\n      value will be assigned to any other DPoP proof used in the same\n      context during the time window of validity.  Such uniqueness can\n      be accomplished by encoding (base64url or any other suitable\n      encoding) at least 96 bits of pseudorandom data or by using a\n      version 4 Universally Unique Identifier (UUID) string according to\n      [RFC4122].  The jti can be used by the server for replay detection\n      and prevention; see Section 11.1.\n\n   htm:  The value of the HTTP method (Section 9.1 of [RFC9110]) of the\n      request to which the JWT is attached.\n\n   htu:  The HTTP target URI (Section 7.1 of [RFC9110]) of the request\n      to which the JWT is attached, without query and fragment parts.\n\n   iat:  Creation timestamp of the JWT (Section 4.1.6 of [RFC7519]).\n\n   When the DPoP proof is used in conjunction with the presentation of\n   an access token in protected resource access (see Section 7), the\n   DPoP proof MUST also contain the following claim:\n\n   ath:  Hash of the access token.  The value MUST be the result of a\n      base64url encoding (as defined in Section 2 of [RFC7515]) the\n      SHA-256 [SHS] hash of the ASCII encoding of the associated access\n      token's value.\n\n   When the authentication server or resource server provides a DPoP-\n   Nonce HTTP header in a response (see Sections 8 and 9), the DPoP\n   proof MUST also contain the following claim:\n\n   nonce:  A recent nonce provided via the DPoP-Nonce HTTP header.\n\n   A DPoP proof MAY contain other JOSE Header Parameters or claims as\n   defined by extension, profile, or deployment-specific requirements."
+    },
+    {
+      "id": "resource",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 796,
+      "endLine": 828,
+      "reason": "§7: ath によるトークン差し替え防止と残る検証",
+      "excerpt": "7.  Protected Resource Access\n\n   Requests to DPoP-protected resources MUST include both a DPoP proof\n   as per Section 4 and the access token as described in Section 7.1.\n   The DPoP proof MUST include the ath claim with a valid hash of the\n   associated access token.\n\n   Binding the token value to the proof in this way prevents a proof to\n   be used with multiple different access token values across different\n   requests.  For example, if a client holds tokens bound to two\n   different resource owners, AT1 and AT2, and uses the same key when\n   talking to the authorization server, it's possible that these tokens\n   could be swapped.  Without the ath field to bind it, a captured\n   signature applied to AT1 could be replayed with AT2 instead, changing\n   the rights and access of the intended request.  This same\n   substitution prevention remains for rotated access tokens within the\n   same combination of client and resource owner -- a rotated token\n   value would require the calculation of a new proof.  This binding\n   additionally ensures that a proof intended for use with the access\n   token is not usable without an access token, or vice-versa.\n\n   The resource server is required to calculate the hash of the token\n   value presented and verify that it is the same as the hash value in\n   the ath field as described in Section 4.3.  Since the ath field value\n   is covered by the DPoP proof's signature, its inclusion binds the\n   access token value to the holder of the key used to generate the\n   signature.\n\n   Note that the ath field alone does not prevent replay of the DPoP\n   proof or provide binding to the request in which the proof is\n   presented, and it is still important to check the time window of the\n   proof as well as the included message parameters, such as htm and\n   htu."
+    },
+    {
+      "id": "rotation",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 1170,
+      "endLine": 1203,
+      "reason": "§8.2: 成功応答による nonce 更新とキャッシュ",
+      "excerpt": "8.2.  Providing a New Nonce Value\n\n   It is up to the authorization server when to supply a new nonce value\n   for the client to use.  The client is expected to use the existing\n   supplied nonce in DPoP proofs until the server supplies a new nonce\n   value.\n\n   The authorization server MAY supply the new nonce in the same way\n   that the initial one was supplied: by using a DPoP-Nonce HTTP header\n   in the response.  The DPoP-Nonce HTTP header field uses the nonce\n   syntax defined in Section 8.1.  Each time this happens, it requires\n   an extra protocol round trip.\n\n   A more efficient manner of supplying a new nonce value is also\n   defined by including a DPoP-Nonce HTTP header in the HTTP 200 (OK)\n   response from the previous request.  The client MUST use the new\n   nonce value supplied for the next token request and for all\n   subsequent token requests until the authorization server supplies a\n   new nonce.\n\n   Responses that include the DPoP-Nonce HTTP header should be\n   uncacheable (e.g., using Cache-Control: no-store in response to a GET\n   request) to prevent the response from being used to serve a\n   subsequent request and a stale nonce value from being used as a\n   result.\n\n   An example 200 OK response providing a new nonce value is shown\n   below.\n\n    HTTP/1.1 200 OK\n    Cache-Control: no-store\n    DPoP-Nonce: eyJ7S_zG.eyJbYu3.xQmBj-1\n\n        Figure 23: HTTP 200 Response Providing the Next Nonce Value"
+    },
+    {
+      "id": "rs-nonce",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 1205,
+      "endLine": 1235,
+      "reason": "§9: RS の 401 challenge、発行元別の nonce、OIDC との区別",
+      "excerpt": "9.  Resource Server-Provided Nonce\n\n   Resource servers can also choose to provide a nonce value to be\n   included in DPoP proofs sent to them.  They provide the nonce using\n   the DPoP-Nonce header in the same way that authorization servers do\n   as described in Sections 8 and 8.2.  The error signaling is performed\n   as described in Section 7.1.  Resource servers use an HTTP 401\n   (Unauthorized) error code with an accompanying WWW-Authenticate: DPoP\n   value and DPoP-Nonce value to accomplish this.\n\n   For example, in response to a resource request without a nonce when\n   the resource server requires one, the resource server can respond\n   with a DPoP-Nonce value such as the following to provide a nonce\n   value to include in the DPoP proof.  The example below uses \"\\\" line\n   wrapping per [RFC8792].\n\n    HTTP/1.1 401 Unauthorized\n    WWW-Authenticate: DPoP error=\"use_dpop_nonce\", \\\n      error_description=\"Resource server requires nonce in DPoP proof\"\n    DPoP-Nonce: eyJ7S_zG.eyJH0-Z.HX4w-7v\n\n     Figure 24: HTTP 401 Response to a Resource Request without a Nonce\n\n   Note that the nonces provided by an authorization server and a\n   resource server are different and should not be confused with one\n   another since nonces will be only accepted by the server that issued\n   them.  Likewise, should a client use multiple authorization servers\n   and/or resource servers, a nonce issued by any of them should be used\n   only at the issuing server.  Developers should also be careful to not\n   confuse DPoP nonces with the OpenID Connect [OpenID.Core] ID Token\n   nonce."
+    },
+    {
+      "id": "client-metadata",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 662,
+      "endLine": 682,
+      "reason": "§5.2: dpop_bound_access_tokens の既定値と要求",
+      "excerpt": "5.2.  Client Registration Metadata\n\n   The Dynamic Client Registration Protocol [RFC7591] defines an API for\n   dynamically registering OAuth 2.0 client metadata with authorization\n   servers.  The metadata defined by [RFC7591], and registered\n   extensions to it, also imply a general data model for clients that is\n   useful for authorization server implementations even when the Dynamic\n   Client Registration Protocol isn't in play.  Such implementations\n   will typically have some sort of user interface available for\n   managing client configuration.\n\n   This document introduces the following client registration metadata\n   [RFC7591] parameter to indicate that the client always uses DPoP when\n   requesting tokens from the authorization server.\n\n   dpop_bound_access_tokens:  A boolean value specifying whether the\n      client always uses DPoP for token requests.  If omitted, the\n      default value is false.\n\n   If the value is true, the authorization server MUST reject token\n   requests from the client that do not contain the DPoP header."
+    },
+    {
+      "id": "bearer",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 977,
+      "endLine": 1021,
+      "reason": "§7.2: Bearer との互換性と複数 challenge のエラー情報",
+      "excerpt": "7.2.  Compatibility with the Bearer Authentication Scheme\n\n   Protected resources simultaneously supporting both the DPoP and\n   Bearer schemes need to update how the evaluation process is performed\n   for bearer tokens to prevent downgraded usage of a DPoP-bound access\n   token.  Specifically, such a protected resource MUST reject a DPoP-\n   bound access token received as a bearer token per [RFC6750].\n\n   Section 11.6.1 of [RFC9110] allows a protected resource to indicate\n   support for multiple authentication schemes (i.e., Bearer and DPoP)\n   with the WWW-Authenticate header field of a 401 (Unauthorized)\n   response.\n\n   A protected resource that supports only [RFC6750] and is unaware of\n   DPoP would most presumably accept a DPoP-bound access token as a\n   bearer token (JWT [RFC7519] says to ignore unrecognized claims,\n   Introspection [RFC7662] says that other parameters might be present\n   while placing no functional requirements on their presence, and\n   [RFC6750] is effectively silent on the content of the access token\n   since it relates to validity).  As such, a client can send a DPoP-\n   bound access token using the Bearer scheme upon receipt of a WWW-\n   Authenticate: Bearer challenge from a protected resource (or it can\n   send a DPoP-bound access token if it has prior knowledge of the\n   capabilities of the protected resource).  The effect of this likely\n   simplifies the logistics of phased upgrades to protected resources in\n   their support DPoP or prolonged deployments of protected resources\n   with mixed token type support.\n\n   If a protected resource supporting both Bearer and DPoP schemes\n   elects to respond with multiple WWW-Authenticate challenges,\n   attention should be paid to which challenge(s) should deliver the\n   actual error information.  It is RECOMMENDED that the following rules\n   be adhered to:\n\n   *  If no authentication information has been included with the\n      request, then the challenges SHOULD NOT include an error code or\n      other error information, as per Section 3.1 of [RFC6750]\n      (Figure 17).\n\n   *  If the mechanism used to attempt authentication could be\n      established unambiguously, then the corresponding challenge SHOULD\n      be used to deliver error information (Figure 18).\n\n   *  Otherwise, both Bearer and DPoP challenges MAY be used to deliver\n      error information (Figure 19)."
+    },
+    {
+      "id": "token",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 525,
+      "endLine": 570,
+      "reason": "§5: 全 grant type への適用、エラー、token_type",
+      "excerpt": "5.  DPoP Access Token Request\n\n   To request an access token that is bound to a public key using DPoP,\n   the client MUST provide a valid DPoP proof JWT in a DPoP header when\n   making an access token request to the authorization server's token\n   endpoint.  This is applicable for all access token requests\n   regardless of grant type (e.g., the common authorization_code and\n   refresh_token grant types and extension grants such as the JWT\n   authorization grant [RFC7523]).  The HTTP request shown in Figure 5\n   illustrates such an access token request using an authorization code\n   grant with a DPoP proof JWT in the DPoP header.  Figure 5 uses \"\\\"\n   line wrapping per [RFC8792].\n\n   POST /token HTTP/1.1\n   Host: server.example.com\n   Content-Type: application/x-www-form-urlencoded\n   DPoP: eyJ0eXAiOiJkcG9wK2p3dCIsImFsZyI6IkVTMjU2IiwiandrIjp7Imt0eSI6Ik\\\n    VDIiwieCI6Imw4dEZyaHgtMzR0VjNoUklDUkRZOXpDa0RscEJoRjQyVVFVZldWQVdCR\\\n    nMiLCJ5IjoiOVZFNGpmX09rX282NHpiVFRsY3VOSmFqSG10NnY5VERWclUwQ2R2R1JE\\\n    QSIsImNydiI6IlAtMjU2In19.eyJqdGkiOiItQndDM0VTYzZhY2MybFRjIiwiaHRtIj\\\n    oiUE9TVCIsImh0dSI6Imh0dHBzOi8vc2VydmVyLmV4YW1wbGUuY29tL3Rva2VuIiwia\\\n    WF0IjoxNTYyMjYyNjE2fQ.2-GxA6T8lP4vfrg8v-FdWP0A0zdrj8igiMLvqRMUvwnQg\\\n    4PtFLbdLXiOSsX0x7NVY-FNyJK70nfbV37xRZT3Lg\n\n   grant_type=authorization_code\\\n   &client_id=s6BhdRkqt\\\n   &code=SplxlOBeZQQYbYS6WxSbIA\n   &redirect_uri=https%3A%2F%2Fclient%2Eexample%2Ecom%2Fcb\\\n   &code_verifier=bEaL42izcC-o-xBk0K2vuJ6U-y1p9r_wW2dFWIWgjz-\n\n    Figure 5: Token Request for a DPoP Sender-Constrained Token Using an\n                             Authorization Code\n\n   The DPoP HTTP header field MUST contain a valid DPoP proof JWT.  If\n   the DPoP proof is invalid, the authorization server issues an error\n   response per Section 5.2 of [RFC6749] with invalid_dpop_proof as the\n   value of the error parameter.\n\n   To sender-constrain the access token after checking the validity of\n   the DPoP proof, the authorization server associates the issued access\n   token with the public key from the DPoP proof, which can be\n   accomplished as described in Section 6.  A token_type of DPoP MUST be\n   included in the access token response to signal to the client that\n   the access token was bound to its DPoP key and can be used as\n   described in Section 7.1.  The example response shown in Figure 6\n   illustrates such a response."
+    },
+    {
+      "id": "confirmation",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 684,
+      "endLine": 699,
+      "reason": "§6: RS が取得する鍵の結び付け情報",
+      "excerpt": "6.  Public Key Confirmation\n\n   Resource servers MUST be able to reliably identify whether an access\n   token is DPoP-bound and ascertain sufficient information to verify\n   the binding to the public key of the DPoP proof (see Section 7.1).\n   Such a binding is accomplished by associating the public key with the\n   token in a way that can be accessed by the protected resource, such\n   as embedding the JWK hash in the issued access token directly, using\n   the syntax described in Section 6.1, or through token introspection\n   as described in Section 6.2.  Other methods of associating a public\n   key with an access token are possible per an agreement by the\n   authorization server and the protected resource; however, they are\n   beyond the scope of this specification.\n\n   Resource servers supporting DPoP MUST ensure that the public key from\n   the DPoP proof matches the one bound to the access token."
+    },
+    {
+      "id": "introspection",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 742,
+      "endLine": 762,
+      "reason": "§6.2: introspection 応答と RS によるローカルな鍵照合",
+      "excerpt": "6.2.  JWK Thumbprint Confirmation Method in Token Introspection\n\n   \"OAuth 2.0 Token Introspection\" [RFC7662] defines a method for a\n   protected resource to query an authorization server about the active\n   state of an access token.  The protected resource also determines\n   metainformation about the token.\n\n   For a DPoP-bound access token, the hash of the public key to which\n   the token is bound is conveyed to the protected resource as\n   metainformation in a token introspection response.  The hash is\n   conveyed using the same cnf content with jkt member structure as the\n   JWK Thumbprint confirmation method, described in Section 6.1, as a\n   top-level member of the introspection response JSON.  Note that the\n   resource server does not send a DPoP proof with the introspection\n   request, and the authorization server does not validate an access\n   token's DPoP binding at the introspection endpoint.  Rather, the\n   resource server uses the data of the introspection response to\n   validate the access token binding itself locally.\n\n   If the token_type member is included in the introspection response,\n   it MUST contain the value DPoP."
+    },
+    {
+      "id": "flow",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 255,
+      "endLine": 335,
+      "reason": "§3: AS・クライアント・RS の役割と基本フロー",
+      "excerpt": "3.  Concept\n\n   The main data structure introduced by this specification is a DPoP\n   proof JWT that is sent as a header in an HTTP request, as described\n   in detail below.  A client uses a DPoP proof JWT to prove the\n   possession of a private key corresponding to a certain public key.\n\n   Roughly speaking, a DPoP proof is a signature over:\n\n   *  some data of the HTTP request to which it is attached,\n\n   *  a timestamp,\n\n   *  a unique identifier,\n\n   *  an optional server-provided nonce, and\n\n   *  a hash of the associated access token when an access token is\n      present within the request.\n\n   +--------+                                          +---------------+\n   |        |--(A)-- Token Request ------------------->|               |\n   | Client |        (DPoP Proof)                      | Authorization |\n   |        |                                          |     Server    |\n   |        |<-(B)-- DPoP-Bound Access Token ----------|               |\n   |        |        (token_type=DPoP)                 +---------------+\n   |        |\n   |        |\n   |        |                                          +---------------+\n   |        |--(C)-- DPoP-Bound Access Token --------->|               |\n   |        |        (DPoP Proof)                      |    Resource   |\n   |        |                                          |     Server    |\n   |        |<-(D)-- Protected Resource ---------------|               |\n   |        |                                          +---------------+\n   +--------+\n\n                         Figure 1: Basic DPoP Flow\n\n   The basic steps of an OAuth flow with DPoP (without the optional\n   nonce) are shown in Figure 1.\n\n   A.  In the token request, the client sends an authorization grant\n       (e.g., an authorization code, refresh token, etc.) to the\n       authorization server in order to obtain an access token (and\n       potentially a refresh token).  The client attaches a DPoP proof\n       to the request in an HTTP header.\n\n   B.  The authorization server binds (sender-constrains) the access\n       token to the public key claimed by the client in the DPoP proof;\n       that is, the access token cannot be used without proving\n       possession of the respective private key.  If a refresh token is\n       issued to a public client, it is also bound to the public key of\n       the DPoP proof.\n\n   C.  To use the access token, the client has to prove possession of\n       the private key by, again, adding a header to the request that\n       carries a DPoP proof for that request.  The resource server needs\n       to receive information about the public key to which the access\n       token is bound.  This information may be encoded directly into\n       the access token (for JWT-structured access tokens) or provided\n       via token introspection endpoint (not shown).  The resource\n       server verifies that the public key to which the access token is\n       bound matches the public key of the DPoP proof.  It also verifies\n       that the access token hash in the DPoP proof matches the access\n       token presented in the request.\n\n   D.  The resource server refuses to serve the request if the signature\n       check fails or if the data in the DPoP proof is wrong, e.g., the\n       target URI does not match the URI claim in the DPoP proof JWT.\n       The access token itself, of course, must also be valid in all\n       other respects.\n\n   The DPoP mechanism presented herein is not a client authentication\n   method.  In fact, a primary use case of DPoP is for public clients\n   (e.g., single-page applications and applications on a user's device)\n   that do not use client authentication.  Nonetheless, DPoP is designed\n   to be compatible with private_key_jwt and all other client\n   authentication methods.\n\n   DPoP does not directly ensure message integrity, but it relies on the\n   TLS layer for that purpose.  See Section 11 for details."
+    },
+    {
+      "id": "nonce-state",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 1120,
+      "endLine": 1159,
+      "reason": "§8: opaque な nonce の完全一致・最近の値・CORS",
+      "excerpt": "   Upon receiving the nonce, the client is expected to retry its token\n   request using a DPoP proof including the supplied nonce value in the\n   nonce claim of the DPoP proof.  An example unencoded JWT payload of\n   such a DPoP proof including a nonce is shown below.\n\n    {\n     \"jti\": \"-BwC3ESc6acc2lTc\",\n     \"htm\": \"POST\",\n     \"htu\": \"https://server.example.com/token\",\n     \"iat\": 1562262616,\n     \"nonce\": \"eyJ7S_zG.eyJH0-Z.HX4w-7v\"\n    }\n\n           Figure 21: DPoP Proof Payload including a Nonce Value\n\n   The nonce is opaque to the client.\n\n   If the nonce claim in the DPoP proof does not exactly match a nonce\n   recently supplied by the authorization server to the client, the\n   authorization server MUST reject the request.  The rejection response\n   MAY include a DPoP-Nonce HTTP header providing a new nonce value to\n   use for subsequent requests.\n\n   The intent is that clients need to keep only one nonce value and\n   servers need to keep a window of recent nonces.  That said, transient\n   circumstances may arise in which the stored nonce values for the\n   server and the client differ.  However, this situation is self-\n   correcting.  With any rejection message, the server can send the\n   client the nonce value it wants to use to the client, and the client\n   can store that nonce value and retry the request with it.  Even if\n   the client and/or server discard their stored nonce values, that\n   situation is also self-correcting because new nonce values can be\n   communicated when responding to or retrying failed requests.\n\n   Note that browser-based client applications using CORS [WHATWG.Fetch]\n   only have access to CORS-safelisted response HTTP headers by default.\n   In order for the application to obtain and use the DPoP-Nonce HTTP\n   response header value, the server needs to make it available to the\n   application by including DPoP-Nonce in the Access-Control-Expose-\n   Headers response header list value."
+    },
+    {
+      "id": "iana",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 1550,
+      "endLine": 1629,
+      "reason": "§12.1〜12.5: token type、エラー、dpop_jkt、認証スキーム、media type",
+      "excerpt": "12.  IANA Considerations\n\n12.1.  OAuth Access Token Types Registration\n\n   IANA has registered the following access token type in the \"OAuth\n   Access Token Types\" registry [IANA.OAuth.Params] established by\n   [RFC6749].\n\n   Name:  DPoP\n\n   Additional Token Endpoint Response Parameters:  (none)\n\n   HTTP Authentication Scheme(s):  DPoP\n\n   Change Controller:  IETF\n\n   Reference:  RFC 9449\n\n12.2.  OAuth Extensions Error Registration\n\n   IANA has registered the following error values in the \"OAuth\n   Extensions Error\" registry [IANA.OAuth.Params] established by\n   [RFC6749].\n\n   Invalid DPoP proof:\n\n      Name:  invalid_dpop_proof\n\n      Usage Location:  token error response, resource access error\n         response\n\n      Protocol Extension:  Demonstrating Proof of Possession (DPoP)\n\n      Change Controller:  IETF\n\n      Reference:  RFC 9449\n\n   Use DPoP nonce:\n\n      Name:  use_dpop_nonce\n\n      Usage Location:  token error response, resource access error\n         response\n\n      Protocol Extension:  Demonstrating Proof of Possession (DPoP)\n\n      Change Controller:  IETF\n\n      Reference:  RFC 9449\n\n12.3.  OAuth Parameters Registration\n\n   IANA has registered the following authorization request parameter in\n   the \"OAuth Parameters\" registry [IANA.OAuth.Params] established by\n   [RFC6749].\n\n   Name:  dpop_jkt\n\n   Parameter Usage Location:  authorization request\n\n   Change Controller:  IETF\n\n   Reference:  Section 10 of RFC 9449\n\n12.4.  HTTP Authentication Schemes Registration\n\n   IANA has registered the following scheme in the \"HTTP Authentication\n   Schemes\" registry [IANA.HTTP.AuthSchemes] established by [RFC9110],\n   Section 16.4.1.\n\n   Authentication Scheme Name:  DPoP\n\n   Reference:  Section 7.1 of RFC 9449\n\n12.5.  Media Type Registration\n\n   IANA has registered the application/dpop+jwt media type [RFC2046] in\n   the \"Media Types\" registry [IANA.MediaTypes] in the manner described\n   in [RFC6838], which is used to indicate that the content is a DPoP\n   JWT."
+    },
+    {
+      "id": "objectives",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 179,
+      "endLine": 253,
+      "reason": "§2: Bearer との違い、HTTPS、XSS に対する保護範囲",
+      "excerpt": "2.  Objectives\n\n   The primary aim of DPoP is to prevent unauthorized or illegitimate\n   parties from using leaked or stolen access tokens, by binding a token\n   to a public key upon issuance and requiring that the client proves\n   possession of the corresponding private key when using the token.\n   This constrains the legitimate sender of the token to only the party\n   with access to the private key and gives the server receiving the\n   token added assurances that the sender is legitimately authorized to\n   use it.\n\n   Access tokens that are sender-constrained via DPoP thus stand in\n   contrast to the typical bearer token, which can be used by any party\n   in possession of such a token.  Although protections generally exist\n   to prevent unintended disclosure of bearer tokens, unforeseen vectors\n   for leakage have occurred due to vulnerabilities and implementation\n   issues in other layers in the protocol or software stack (see, e.g.,\n   Compression Ratio Info-leak Made Easy (CRIME) [CRIME], Browser\n   Reconnaissance and Exfiltration via Adaptive Compression of Hypertext\n   (BREACH) [BREACH], Heartbleed [Heartbleed], and the Cloudflare parser\n   bug [Cloudbleed]).  There have also been numerous published token\n   theft attacks on OAuth implementations themselves ([GitHub.Tokens] is\n   just one high-profile example).  DPoP provides a general defense in\n   depth against the impact of unanticipated token leakage.  DPoP is\n   not, however, a substitute for a secure transport and MUST always be\n   used in conjunction with HTTPS.\n\n   The very nature of the typical OAuth protocol interaction\n   necessitates that the client discloses the access token to the\n   protected resources that it accesses.  The attacker model in\n   [SECURITY-TOPICS] describes cases where a protected resource might be\n   counterfeit, malicious, or compromised and plays received tokens\n   against other protected resources to gain unauthorized access.\n   Audience-restricted access tokens (e.g., using the JWT [RFC7519] aud\n   claim) can prevent such misuse.  However, doing so in practice has\n   proven to be prohibitively cumbersome for many deployments (despite\n   extensions such as [RFC8707]).  Sender-constraining access tokens is\n   a more robust and straightforward mechanism to prevent such token\n   replay at a different endpoint, and DPoP is an accessible\n   application-layer means of doing so.\n\n   Due to the potential for cross-site scripting (XSS), browser-based\n   OAuth clients bring to bear added considerations with respect to\n   protecting tokens.  The most straightforward XSS-based attack is for\n   an attacker to exfiltrate a token and use it themselves completely\n   independent of the legitimate client.  A stolen access token is used\n   for protected resource access, and a stolen refresh token is used for\n   obtaining new access tokens.  If the private key is non-extractable\n   (as is possible with [W3C.WebCryptoAPI]), DPoP renders exfiltrated\n   tokens alone unusable.\n\n   XSS vulnerabilities also allow an attacker to execute code in the\n   context of the browser-based client application and maliciously use a\n   token indirectly through the client.  That execution context has\n   access to utilize the signing key; thus, it can produce DPoP proofs\n   to use in conjunction with the token.  At this application layer,\n   there is most likely no feasible defense against this threat except\n   generally preventing XSS; therefore, it is considered out of scope\n   for DPoP.\n\n   Malicious XSS code executed in the context of the browser-based\n   client application is also in a position to create DPoP proofs with\n   timestamp values in the future and exfiltrate them in conjunction\n   with a token.  These stolen artifacts can later be used independent\n   of the client application to access protected resources.  To prevent\n   this, servers can optionally require clients to include a server-\n   chosen value into the proof that cannot be predicted by an attacker\n   (nonce).  In the absence of the optional nonce, the impact of pre-\n   computed DPoP proofs is limited somewhat by the proof being bound to\n   an access token on protected resource access.  Because a proof\n   covering an access token that does not yet exist cannot feasibly be\n   created, access tokens obtained with an exfiltrated refresh token and\n   pre-computed proofs will be unusable.\n\n   Additional security considerations are discussed in Section 11."
+    },
+    {
+      "id": "xss",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 1398,
+      "endLine": 1433,
+      "reason": "§11.4: 非抽出鍵の限界、署名 API の悪用、攻撃者の鍵、CSP",
+      "excerpt": "11.4.  Untrusted Code in the Client Context\n\n   If an adversary is able to run code in the client's execution\n   context, the security of DPoP is no longer guaranteed.  Common issues\n   in web applications leading to the execution of untrusted code are\n   XSS and remote code inclusion attacks.\n\n   If the private key used for DPoP is stored in such a way that it\n   cannot be exported, e.g., in a hardware or software security module,\n   the adversary cannot exfiltrate the key and use it to create\n   arbitrary DPoP proofs.  The adversary can, however, create new DPoP\n   proofs as long as the client is online and uses these proofs\n   (together with the respective tokens) either on the victim's device\n   or on a device under the attacker's control to send arbitrary\n   requests that will be accepted by servers.\n\n   To send requests even when the client is offline, an adversary can\n   try to pre-compute DPoP proofs using timestamps in the future and\n   exfiltrate these together with the access or refresh token.\n\n   An adversary might further try to associate tokens issued from the\n   token endpoint with a key pair under the adversary's control.  One\n   way to achieve this is to modify existing code, e.g., by replacing\n   cryptographic APIs.  Another way is to launch a new authorization\n   grant between the client and the authorization server in an iframe.\n   This grant needs to be \"silent\", i.e., not require interaction with\n   the user.  With code running in the client's origin, the adversary\n   has access to the resulting authorization code and can use it to\n   associate their own DPoP keys with the tokens returned from the token\n   endpoint.  The adversary is then able to use the resulting tokens on\n   their own device even if the client is offline.\n\n   Therefore, protecting clients against the execution of untrusted code\n   is extremely important even if DPoP is used.  Besides secure coding\n   practices, Content Security Policy [W3C.CSP] can be used as a second\n   layer of defense against XSS."
+    },
+    {
+      "id": "pre-generation",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 1360,
+      "endLine": 1391,
+      "reason": "§11.2: proof の事前生成、nonce、短命トークン、ath の効果",
+      "excerpt": "11.2.  DPoP Proof Pre-generation\n\n   An attacker in control of the client can pre-generate DPoP proofs for\n   specific endpoints arbitrarily far into the future by choosing the\n   iat value in the DPoP proof to be signed by the proof-of-possession\n   key.  Note that one such attacker is the person who is the legitimate\n   user of the client.  The user may pre-generate DPoP proofs to\n   exfiltrate from the machine possessing the proof-of-possession key\n   upon which they were generated and copy them to another machine that\n   does not possess the key.  For instance, a bank employee might pre-\n   generate DPoP proofs on a bank computer and then copy them to another\n   machine for use in the future, thereby bypassing bank audit controls.\n   When DPoP proofs can be pre-generated and exfiltrated, all that is\n   actually being proved in DPoP protocol interactions is possession of\n   a DPoP proof -- not of the proof-of-possession key.\n\n   Use of server-provided nonce values that are not predictable by\n   attackers can prevent this attack.  By providing new nonce values at\n   times of its choosing, the server can limit the lifetime of DPoP\n   proofs, preventing pre-generated DPoP proofs from being used.  When\n   server-provided nonces are used, possession of the proof-of-\n   possession key is being demonstrated -- not just possession of a DPoP\n   proof.\n\n   The ath claim limits the use of pre-generated DPoP proofs to the\n   lifetime of the access token.  Deployments that do not utilize the\n   nonce mechanism SHOULD NOT issue long-lived DPoP constrained access\n   tokens, preferring instead to use short-lived access tokens and\n   refresh tokens.  Whilst an attacker could pre-generate DPoP proofs to\n   use the refresh token to obtain a new access token, they would be\n   unable to realistically pre-generate DPoP proofs to use a newly\n   issued access token."
+    },
+    {
+      "id": "scheme",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 830,
+      "endLine": 854,
+      "reason": "§7.1: Authorization: DPoP とアクセス許可の条件",
+      "excerpt": "7.1.  The DPoP Authentication Scheme\n\n   A DPoP-bound access token is sent using the Authorization request\n   header field per Section 11.6.2 of [RFC9110] with an authentication\n   scheme of DPoP.  The syntax of the Authorization header field for the\n   DPoP scheme uses the token68 syntax defined in Section 11.2 of\n   [RFC9110] for credentials and is repeated below for ease of\n   reference.  The ABNF notation syntax for DPoP authentication scheme\n   credentials is as follows:\n\n   token68    = 1*( ALPHA / DIGIT /\n                    \"-\" / \".\" / \"_\" / \"~\" / \"+\" / \"/\" ) *\"=\"\n\n   credentials = \"DPoP\" 1*SP token68\n\n                 Figure 12: DPoP Authentication Scheme ABNF\n\n   For such an access token, a resource server MUST check that a DPoP\n   proof was also received in the DPoP header field of the HTTP request,\n   check the DPoP proof according to the rules in Section 4.3, and check\n   that the public key of the DPoP proof matches the public key to which\n   the access token is bound per Section 6.\n\n   The resource server MUST NOT grant access to the resource unless all\n   checks are successful."
+    },
+    {
+      "id": "code-security",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 1482,
+      "endLine": 1514,
+      "reason": "§11.9: 認可コードの盗難・再利用と dpop_jkt",
+      "excerpt": "11.9.  Authorization Code and Public Key Binding\n\n   Cryptographic binding of the authorization code to the DPoP public\n   key is specified in Section 10.  This binding prevents attacks in\n   which the attacker captures the authorization code and creates a DPoP\n   proof using a proof-of-possession key other than the one held by the\n   client and redeems the authorization code using that DPoP proof.  By\n   ensuring end to end that only the client's DPoP key can be used, this\n   prevents captured authorization codes from being exfiltrated and used\n   at locations other than the one to which the authorization code was\n   issued.\n\n   Authorization codes can, for instance, be harvested by attackers from\n   places where the HTTP messages containing them are logged.  Even when\n   efforts are made to make authorization codes one-time-use, in\n   practice, there is often a time window during which attackers can\n   replay them.  For instance, when authorization servers are\n   implemented as scalable replicated services, some replicas may\n   temporarily not yet have the information needed to prevent replay.\n   DPoP binding of the authorization code solves these problems.\n\n   If an authorization server does not (or cannot) strictly enforce the\n   single-use limitation for authorization codes and an attacker can\n   access the authorization code (and if PKCE is used, the\n   code_verifier), the attacker can create a forged token request,\n   binding the resulting token to an attacker-controlled key.  For\n   example, using XSS, attackers might obtain access to the\n   authorization code and PKCE parameters.  Use of the dpop_jkt\n   parameter prevents this attack.\n\n   The binding of the authorization code to the DPoP public key uses a\n   JWK Thumbprint of the public key, just as the access token binding\n   does.  The same JWK Thumbprint considerations apply."
+    },
+    {
+      "id": "nonce-syntax",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 1161,
+      "endLine": 1168,
+      "reason": "§8.1: nonce = 1*NQCHAR",
+      "excerpt": "8.1.  Nonce Syntax\n\n   The nonce syntax in ABNF as used by [RFC6749] (which is the same as\n   the scope-token syntax) is shown below.\n\n   nonce = 1*NQCHAR\n\n                           Figure 22: Nonce ABNF"
+    },
+    {
+      "id": "proof",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 337,
+      "endLine": 357,
+      "reason": "§4: リクエストごとの proof と単独では認可できない理由",
+      "excerpt": "4.  DPoP Proof JWTs\n\n   DPoP introduces the concept of a DPoP proof, which is a JWT created\n   by the client and sent with an HTTP request using the DPoP header\n   field.  Each HTTP request requires a unique DPoP proof.\n\n   A valid DPoP proof demonstrates to the server that the client holds\n   the private key that was used to sign the DPoP proof JWT.  This\n   enables authorization servers to bind issued tokens to the\n   corresponding public key (as described in Section 5) and enables\n   resource servers to verify the key-binding of tokens that it receives\n   (see Section 7.1), which prevents said tokens from being used by any\n   entity that does not have access to the private key.\n\n   The DPoP proof demonstrates possession of a key and, by itself, is\n   not an authentication or access control mechanism.  When presented in\n   conjunction with a key-bound access token as described in\n   Section 7.1, the DPoP proof provides additional assurance about the\n   legitimacy of the client to present the access token.  However, a\n   valid DPoP proof JWT is not sufficient alone to make access control\n   decisions."
+    },
+    {
+      "id": "downgrade",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 1393,
+      "endLine": 1396,
+      "reason": "§11.3: nonce 提供後の nonce なし proof の受理禁止",
+      "excerpt": "11.3.  DPoP Nonce Downgrade\n\n   A server MUST NOT accept any DPoP proofs without the nonce claim when\n   a DPoP nonce has been provided to the client."
+    },
+    {
+      "id": "multi-challenge",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 1023,
+      "endLine": 1057,
+      "reason": "§7.2: 複数 challenge と 2 方式同時使用の 400 の例",
+      "excerpt": "   The following examples use \"\\\" line wrapping per [RFC8792].\n\n   GET /protectedresource HTTP/1.1\n   Host: resource.example.org\n\n   HTTP/1.1 401 Unauthorized\n   WWW-Authenticate: Bearer, DPoP algs=\"ES256 PS256\"\n\n    Figure 17: HTTP 401 Response to a Protected Resource Request without\n                               Authentication\n\n   GET /protectedresource HTTP/1.1\n   Host: resource.example.org\n   Authorization: Bearer INVALID_TOKEN\n\n   HTTP/1.1 401 Unauthorized\n   WWW-Authenticate: Bearer error=\"invalid_token\", \\\n       error_description=\"Invalid token\", DPoP algs=\"ES256 PS256\"\n\n     Figure 18: HTTP 401 Response to a Protected Resource Request with\n                           Invalid Authentication\n\n   GET /protectedresource HTTP/1.1\n   Host: resource.example.org\n   Authorization: Bearer Kz~8mXK1EalYznwH-LC-1fBAo.4Ljp~zsPE_NeO.gxU\n   Authorization: DPoP Kz~8mXK1EalYznwH-LC-1fBAo.4Ljp~zsPE_NeO.gxU\n\n   HTTP/1.1 400 Bad Request\n   WWW-Authenticate: Bearer error=\"invalid_request\", \\\n    error_description=\"Multiple methods used to include access token\", \\\n    DPoP algs=\"ES256 PS256\", error=\"invalid_request\", \\\n    error_description=\"Multiple methods used to include access token\"\n\n     Figure 19: HTTP 400 Response to a Protected Resource Request with\n                          Ambiguous Authentication"
+    }
+  ],
+  "questions": [
+    {
+      "id": "must-level",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "次のうち、RFC 9449 が MUST（必須）として定めているものはどれですか？",
+      "options": [
+        "RS が challenge に algs パラメーターを含め、受け入れる alg を示す",
+        "proof を受理するのは、生成後の限られた時間に限る",
+        "jti を記録するサーバーが、不必要に大きい jti を拒否するか hash だけを保存する",
+        "htu を比較する前に、RFC 3986 の構文ベース・スキームベースの正規化を行う",
+        "対象 URI の文脈で jti を記録し、同じ proof の 2 回目の利用を拒否する"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "replay",
+        "checks",
+        "challenge"
+      ]
+    },
+    {
+      "id": "level-matrix",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "次の 4 つの記述について、RFC 9449 の要件の強さの組み合わせとして正しいものはどれですか？\n(1) AS が、DPoP proof 付きの要求に Bearer のアクセストークンを発行する\n(2) token_type が DPoP でない応答を受けたクライアントが、DPoP の保護を重要とする場合に応答を破棄する\n(3) 認可要求で dpop_jkt を使う\n(4) AS が nonce の値を予測できないものにする",
+      "options": [
+        "(1) SHOULD NOT　(2) MAY　(3) OPTIONAL　(4) MUST",
+        "(1) MAY　(2) SHOULD　(3) RECOMMENDED　(4) MUST",
+        "(1) MUST NOT　(2) MUST　(3) OPTIONAL　(4) SHOULD",
+        "(1) MAY　(2) MUST　(3) OPTIONAL　(4) MUST",
+        "(1) MAY　(2) MUST　(3) PAR を使う場合は REQUIRED　(4) MUST"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "refresh",
+        "code",
+        "par",
+        "as-nonce"
+      ]
+    },
+    {
+      "id": "token-endpoint-checks",
+      "type": "choice",
+      "category": "knowledge",
+      "scenario": "public client が refresh token を使い、AS のトークンエンドポイントへ要求します。要求にアクセストークンは含めません。AS はこのクライアントに nonce を提供済みです。",
+      "prompt": "§4.3 の検証項目のうち、この要求の proof には適用されないものはどれですか？",
+      "options": [
+        "ath と、アクセストークンに結び付いた鍵を、そのアクセストークンについて照合すること",
+        "htu が、query と fragment を除いたトークンエンドポイントの URI と、正規化の後に一致すること",
+        "iat、または nonce に入れたサーバーの時刻で判断した生成時刻が、受理できる時間窓に収まること",
+        "nonce クレームが、AS がこのクライアントに提供した最近の nonce と完全に一致すること",
+        "jwk ヘッダーパラメーターに、秘密鍵のメンバー（d など）が含まれていないこと"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "checks",
+        "syntax",
+        "refresh"
+      ]
+    },
+    {
+      "id": "ath-when",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "proof に ath クレームを含めなければならない（MUST）のはどの場合ですか？",
+      "options": [
+        "RS が DPoP-Nonce を提供した後に、保護されたリソースへ送る要求だけ",
+        "アクセストークンが JWT 形式で、cnf.jkt を含む場合だけ",
+        "保護されたリソースへのアクセスで、アクセストークンと一緒に proof を提示する場合",
+        "refresh token を提示するトークン要求で、その refresh token のハッシュとして含める場合",
+        "クライアントがアクセストークンを保持している間に送る、すべての proof（トークンエンドポイントへの refresh 要求を含む）"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "syntax",
+        "resource"
+      ]
+    },
+    {
+      "id": "nonce-when",
+      "type": "choice",
+      "category": "knowledge",
+      "scenario": "クライアントは、AS のトークン応答（HTTP 200）で初めて DPoP-Nonce: N1 を受け取りました。これまで use_dpop_nonce のエラーを受けたことはありません。",
+      "prompt": "この AS への次のトークン要求について、正しいものはどれですか？",
+      "options": [
+        "次の要求では N1 を含めない。use_dpop_nonce のエラーを受けてから初めて含める",
+        "200 応答で届く nonce は RS 向けの値である。AS へのトークン要求には含めない",
+        "N1 は 1 回だけ使える値である。2 回目以降のトークン要求では nonce を省略する",
+        "エラーで要求されたわけではないので、nonce は任意である。含めるかどうかはクライアントが選べる",
+        "次のトークン要求から N1 を含め続ける。新しい値が提供されたら、その値に切り替える"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "syntax",
+        "rotation",
+        "replay",
+        "rs-nonce"
+      ]
+    },
+    {
+      "id": "dpop-bound-guarantee",
+      "type": "choice",
+      "category": "knowledge",
+      "scenario": "あるクライアントのメタデータに dpop_bound_access_tokens: true が登録されています。",
+      "prompt": "RFC 9449 の規定だけから保証されることはどれですか？",
+      "options": [
+        "AS は、このクライアントに常に token_type=DPoP のアクセストークンを発行する",
+        "RS は、このクライアントのアクセストークンが Bearer 方式で届いたら必ず拒否する",
+        "このクライアントの refresh token は、confidential client であっても DPoP 鍵に結び付く",
+        "AS は、このクライアントからの DPoP ヘッダーを含まないトークン要求を拒否する",
+        "このクライアントの認可要求には dpop_jkt を必ず含める"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "client-metadata",
+        "refresh",
+        "code",
+        "bearer"
+      ]
+    },
+    {
+      "id": "refresh-key-change",
+      "type": "choice",
+      "category": "comparison",
+      "scenario": "クライアントは鍵 K1 の proof でトークンを取得しました。その後、新しい鍵 K2 で正しく署名した proof を付けて refresh token を提示します。他の検証はすべて成功しています。",
+      "prompt": "public client の場合と、クライアント認証に成功した confidential client の場合で、AS の扱いとして正しい組み合わせはどれですか？",
+      "options": [
+        "public：認可要求に dpop_jkt=thumbprint(K2) があった場合だけ受理する　confidential：受理する",
+        "public：拒否する　confidential：受理でき、新しいアクセストークンを K2 に結び付ける",
+        "public：受理して K2 に結び付け直す　confidential：受理する",
+        "public：拒否する　confidential：拒否する（refresh token はクライアントの種類によらず K1 に結び付くため）",
+        "public：拒否する　confidential：受理するが、新しいアクセストークンは K1 に結び付ける"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "token",
+        "refresh",
+        "code"
+      ]
+    },
+    {
+      "id": "binding-source",
+      "type": "choice",
+      "category": "debugging",
+      "scenario": "opaque なアクセストークンを受け取る RS が introspection を使わず、「同じトークン値で最初に届いた proof の jwk を記録し、以降はその鍵と一致する proof だけを受理する」実装にしています。",
+      "prompt": "この実装の問題として最も適切なものはどれですか？",
+      "options": [
+        "結び付けは AS が発行時に行う。RS は cnf.jkt や introspection など、信頼できる情報源から知る必要がある",
+        "問題はない。最初の proof で鍵の所持が示されたので、以降はその鍵を結び付け先として扱ってよい",
+        "RFC 9449 は結び付けの表現を cnf.jkt に限っている。opaque トークンはそもそも DPoP に使えない",
+        "最初の proof に RS が提供した nonce が含まれていれば、この方式でも RFC 9449 の要件を満たす",
+        "問題は jwk 全体を記録する点だけである。代わりに kid を記録すれば、この方式でも安全になる"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "confirmation",
+        "introspection",
+        "flow"
+      ]
+    },
+    {
+      "id": "challenge-levels",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "RS が返す WWW-Authenticate: DPoP の challenge について、RFC 9449 の記述と一致するものはどれですか？",
+      "options": [
+        "error_description は、エンドユーザーに表示する説明として含めることが推奨される（RECOMMENDED）",
+        "scope パラメーターは Bearer のためのもので、DPoP の challenge には含めてはならない（MUST NOT）",
+        "algs は SHOULD で含め、受信側は未知のパラメーターを無視しなければならない（MUST）",
+        "algs は MUST で含め、値は JWS の alg 値をカンマで区切ったリストにしなければならない",
+        "401 応答には、理由を示す error パラメーターを、要求の内容によらず常に含めなければならない（MUST）"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "challenge",
+        "bearer"
+      ]
+    },
+    {
+      "id": "stale-nonce",
+      "type": "choice",
+      "category": "debugging",
+      "scenario": "AS は、最近の nonce として N4 と N5 を有効にしています。クライアントが 2 時間前に提供された N1 を含む proof でトークン要求を送りました。他の検証はすべて成功しています。",
+      "prompt": "AS の扱いとして RFC 9449 に沿うものはどれですか？",
+      "options": [
+        "いったん受理してよい。成功応答で新しい nonce を提供すれば、次から正しい値になる",
+        "拒否し、error は invalid_dpop_proof とする。拒否応答に新しい nonce を含めてはならない",
+        "拒否しなければならない。拒否応答には、新しい DPoP-Nonce を必ず含めなければならない（MUST）",
+        "N1 は AS が一度提供した値である。最近の値でなくても受理しなければならない",
+        "拒否しなければならない。拒否応答で、新しい nonce を DPoP-Nonce として提供してもよい（MAY）"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "as-nonce",
+        "nonce-state"
+      ]
+    },
+    {
+      "id": "error-locations",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "IANA に登録された use_dpop_nonce と invalid_dpop_proof の使用場所（Usage Location）として正しいものはどれですか？",
+      "options": [
+        "どちらも、保護されたリソースへのアクセスのエラー応答だけ",
+        "use_dpop_nonce は両方、invalid_dpop_proof は認可エラー応答を含む 3 か所",
+        "どちらも、トークンエラー応答と認可エラー応答（リダイレクトで返すエラー）",
+        "use_dpop_nonce はトークンエラー応答だけ、invalid_dpop_proof は両方",
+        "どちらも、トークンエラー応答と、保護されたリソースへのアクセスのエラー応答"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "iana",
+        "as-nonce",
+        "rs-nonce"
+      ]
+    },
+    {
+      "id": "token-response-params",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "OAuth Access Token Types に登録された token type「DPoP」について、正しいものはどれですか？",
+      "options": [
+        "トークン応答に cnf（jkt）を追加し、クライアントが結び付けを確認できるようにする",
+        "トークン応答の JSON に nonce を追加し、次の nonce を返す",
+        "HTTP 認証スキームは Bearer で、token_type の値だけが DPoP になる",
+        "追加のトークン応答パラメーターはなく、HTTP 認証スキームは DPoP である",
+        "トークン応答に dpop_jkt を追加し、認可要求で指定した値を返す"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "iana",
+        "token",
+        "rotation",
+        "confirmation"
+      ]
+    },
+    {
+      "id": "extractable-key-xss",
+      "type": "choice",
+      "category": "debugging",
+      "scenario": "SPA が DPoP の秘密鍵を JWK として localStorage に保存しています（抽出できる鍵）。攻撃者は XSS で SPA のオリジン上でスクリプトを実行し、refresh token を盗みました。",
+      "prompt": "DPoP による防御の評価として正しいものはどれですか？",
+      "options": [
+        "XSS は localStorage の鍵も持ち出せるので、攻撃者は自分の端末で proof を作って refresh token を使える",
+        "攻撃者の端末から送る proof は htu が正規の端末と異なるので、AS が拒否する",
+        "AS が nonce を使っていれば、鍵を盗まれても攻撃者は受理される proof を作れない",
+        "AS が jti を記録していれば、攻撃者が作る proof は再利用として拒否される",
+        "refresh token は DPoP 鍵に結び付いているので、鍵の保存方法によらず、攻撃者は盗んだ refresh token を自分の端末で使えない"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "objectives",
+        "xss",
+        "pre-generation"
+      ]
+    },
+    {
+      "id": "checks-order",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "§4.3 の検証について、RFC 9449 の記述と一致するものはどれですか？",
+      "options": [
+        "1 から 12 の順に行う必要があり、署名の検証（6 番目）より前に htm・htu を照合してはならない",
+        "htu は正規化せず、文字列として完全に一致させなければならない（MUST）",
+        "検証は任意の順序で行えるが、すべてに成功するまでアクセスを許可してはならない",
+        "nonce の照合（10 番目）に成功すれば、生成時刻の検証（11 番目）は省略してよい",
+        "1〜7 番目は AS が、8〜12 番目は RS が担当し、互いの検証は行わない"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "checks",
+        "scheme"
+      ]
+    },
+    {
+      "id": "insider-pregeneration",
+      "type": "choice",
+      "category": "design",
+      "scenario": "銀行の社員が、DPoP 鍵を持つ業務端末で将来の iat を入れた proof を大量に作り、私物の端末へ持ち出して後日使おうとしています。鍵はハードウェアで保護され、抽出できません。RS は jti を記録して重複を拒否し、iat の時間窓も検証しています。",
+      "prompt": "この持ち出しを防ぐ RFC 9449 の対策として最も適切なものはどれですか？",
+      "options": [
+        "iat の時間窓をさらに短くすれば、将来の時刻で作った proof は使えなくなる",
+        "サーバーが予測できない nonce を、自分の決めた時点で新しく提供する",
+        "htu に端末の IP アドレスを含めさせ、proof をその端末に結び付ける",
+        "抽出できない鍵を使っているので、この持ち出しに対して追加の対策は要らない",
+        "jti の重複を検出しているので、持ち出した proof はすべて拒否される"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "pre-generation",
+        "replay"
+      ]
+    },
+    {
+      "id": "code-verifier-leak",
+      "type": "choice",
+      "category": "design",
+      "scenario": "SPA の XSS により、攻撃者が認可コードと PKCE の code_verifier を、SPA が引き換える前に取得しました。AS は複製されたサーバー群で動いており、認可コードの単回使用を厳密には保証できない時間があります。SPA の DPoP 鍵は抽出できません。",
+      "prompt": "攻撃者が、自分の鍵に結び付いたトークンをこのコードで取得することを防ぐのはどれですか？",
+      "options": [
+        "トークン要求の proof の htu。攻撃者の端末から送ると、htu が正規の値と変わるため",
+        "認可コードの単回使用。複製された AS でも、最初の 1 回の引き換えだけが必ず成功するため",
+        "認可要求の dpop_jkt。トークン要求の proof の鍵が SPA の鍵でなければ、AS が拒否するため",
+        "PKCE。トークン要求の code_verifier が code_challenge と一致しなければ引き換えられないため",
+        "認可要求の state。攻撃者が送るトークン要求には、正しい state が含まれないため"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "code-security",
+        "code"
+      ]
+    },
+    {
+      "id": "nonce-specified",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "DPoP の nonce について、RFC 9449 自体が規定しているものはどれですか？",
+      "options": [
+        "有効期間を 5 分以内にすること",
+        "値が予測できないこと（MUST）と、構文が 1*NQCHAR であること",
+        "成功応答のたびに新しい値を提供すること",
+        "値を JWT として生成し、クライアントが署名を検証できるようにすること",
+        "発行した時刻を、クライアントが解析できる形式で含めること"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "as-nonce",
+        "nonce-state",
+        "nonce-syntax",
+        "rotation",
+        "replay"
+      ]
+    },
+    {
+      "id": "code-flow-with-jkt-nonce",
+      "type": "ordering",
+      "category": "flow",
+      "prompt": "認可コードを DPoP 鍵 K に結び付け、AS が最初のトークン要求で nonce を要求する場合の流れを並べてください。他の検証はすべて成功します。",
+      "items": [
+        {
+          "id": "challenge",
+          "text": "AS が 400 の use_dpop_nonce と DPoP-Nonce: N を返す"
+        },
+        {
+          "id": "first",
+          "text": "クライアントが K で署名した nonce なしの proof を付けて、トークン要求を送る"
+        },
+        {
+          "id": "jkt",
+          "text": "クライアントが K の公開鍵の JWK SHA-256 Thumbprint を計算する"
+        },
+        {
+          "id": "authz",
+          "text": "認可要求に dpop_jkt として thumbprint を含める"
+        },
+        {
+          "id": "retry",
+          "text": "クライアントが nonce=N と新しい jti を含む proof を作り、トークン要求を再送する"
+        },
+        {
+          "id": "code",
+          "text": "AS が認可コードを発行し、dpop_jkt の値と関連付けて保存する"
+        },
+        {
+          "id": "issue",
+          "text": "AS が proof の鍵の thumbprint と dpop_jkt の一致を確かめ、token_type=DPoP で発行する"
+        }
+      ],
+      "points": 2,
+      "referenceIds": [
+        "code",
+        "as-nonce",
+        "token",
+        "syntax",
+        "proof"
+      ]
+    },
+    {
+      "id": "requirement-audit",
+      "type": "written",
+      "category": "design",
+      "scenario": "社内の DPoP 設計書に次の 6 つの記述があります。\n(1) RS は htu を正規化せずに比較しなければならない。\n(2) RFC 9449 が求めているので、AS は DPoP を使うすべてのクライアントに dpop_jkt を必須にする。\n(3) public client の refresh token を DPoP 鍵に結び付けるかどうかは任意である。\n(4) RS は、nonce を提供したクライアントから nonce のない proof を受け取っても、jti が新しければ受理してよい。\n(5) jti を記録できない構成では、proof の受理期間を無制限にしてよい。\n(6) token_type が DPoP 以外のとき、クライアントは常に応答を破棄しなければならない。",
+      "prompt": "各記述の誤りを、RFC 9449 の要件の強さ（MUST・SHOULD・MAY・OPTIONAL など）と条件に基づいて指摘し、正しい記述に直してください。",
+      "points": 6,
+      "referenceIds": [
+        "checks",
+        "code",
+        "par",
+        "refresh",
+        "downgrade",
+        "replay"
+      ],
+      "answerHint": "番号ごとに 1〜2 行で構いません。正しい要件の強さと、要件が発生する条件を書いてください。"
+    },
+    {
+      "id": "bearer-challenge-client",
+      "type": "choice",
+      "category": "knowledge",
+      "scenario": "DPoP-bound のアクセストークンを持つクライアントが、ある RS から 401 と WWW-Authenticate: Bearer realm=\"api\" だけを受け取りました。DPoP の challenge はありません。",
+      "prompt": "RFC 9449 の記述と一致する説明はどれですか？",
+      "options": [
+        "Authorization: Bearer と Authorization: DPoP の両方を付ける。どちらに対応する RS でも受理される",
+        "DPoP-bound のトークンを Bearer で送ることは常に禁止されている。この RS は使えない",
+        "AS から Bearer のトークンを改めて取得する。DPoP-bound のトークンのままでは送れない",
+        "この RS は DPoP を知らないと考えられ、Bearer で送れる。ただし、この RS では DPoP の保護は働かない",
+        "Bearer で送る場合も DPoP ヘッダーを付ける。そうすれば、この RS も所持の証明を検証する"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "bearer",
+        "multi-challenge",
+        "scheme"
+      ]
+    }
+  ],
+  "solutions": {
+    "must-level": {
+      "explanation": "§11.1 は「servers MUST only accept DPoP proofs for a limited time after their creation」と定めています。D は §4.3 の SHOULD です。E は §11.1 で「can」と書かれ、共有状態のない複数台のように厳格に行えない構成があるとも述べています。A は §7.1 の SHOULD、C は §11.1 の小文字の should で、jti を追跡するサーバーへの注意です。",
+      "answer": 1
+    },
+    "level-matrix": {
+      "explanation": "§5 の「An authorization server MAY elect to issue access tokens that are not DPoP bound」が (1)、「The client MUST discard the response in this case if this protection is deemed important」が (2) です。(2) は保護を重要とする場合に限る条件付きの MUST です。§10 は「Use of the dpop_jkt authorization request parameter is OPTIONAL」、§8 は「Nonce values MUST be unpredictable」です。E：PAR と DPoP の両方に対応する AS は dpop_jkt と DPoP ヘッダーの両方式をサポートしなければなりませんが（§10.1）、クライアントに dpop_jkt を必須にする規定ではありません。§10.1 の「In this case, dpop_jkt MUST be included alongside other authorization request parameters in the POST body of the PAR request」も、dpop_jkt を使う場合の置き場所の要件です。B の RECOMMENDED は、§10 が PKCE について Security BCP の推奨に触れた箇所との混同です。",
+      "answer": 3
+    },
+    "token-endpoint-checks": {
+      "explanation": "§4.3 の 12 番目は「If presented to a protected resource in conjunction with an access token」の場合の検証で、トークンエンドポイントへの要求には適用されません。§4.2 でも ath は、保護されたリソースへのアクセスでアクセストークンと一緒に proof を使う場合の必須クレームです。なお public client の refresh token は、§5 により AS が同じ鍵の proof かどうかを別途検証します。これは ath ではなく、AS が refresh token に保持する結び付けの検証です。D は nonce を提供済みなので適用されます（10 番目）。B・E・C は条件のない検証です。",
+      "answer": 0
+    },
+    "ath-when": {
+      "explanation": "§4.2 と §7 は、保護されたリソースへのアクセスでアクセストークンを提示するときに ath を MUST としています。E：判断の基準はトークンを保持しているかではなく、その要求で提示するかです。トークンエンドポイントへの refresh 要求はアクセストークンを提示しません。A：nonce の有無とは独立です。B：opaque トークンでも ath は必要で、RS は提示された値からハッシュを計算します。D：ath はアクセストークンのハッシュで、refresh token のハッシュを入れる仕組みはありません。",
+      "answer": 2
+    },
+    "nonce-when": {
+      "explanation": "§8.2 は、200 (OK) 応答に DPoP-Nonce を含める方法を、往復を減らす効率的な方法として定義しています。「The client MUST use the new nonce value supplied for the next token request and for all subsequent token requests until the authorization server supplies a new nonce」です。§4.2 も、AS または RS が応答で DPoP-Nonce を提供したら nonce を含めることを MUST としています。D・A はエラー応答だけを契機と誤解しています。B：AS が自分の応答で提供した nonce は AS 向けです。C：§11.1 のとおり、同じ nonce を複数回使うことは許容されます。同じ proof の再利用は jti で防ぎます。",
+      "answer": 4
+    },
+    "dpop-bound-guarantee": {
+      "explanation": "§5.2 は「If the value is true, the authorization server MUST reject token requests from the client that do not contain the DPoP header」と定めるだけです。このメタデータは、クライアントがトークン要求で常に DPoP を使うことを表します。A：§5 の「An authorization server MAY elect to issue access tokens that are not DPoP bound」を打ち消す規定はなく、発行する token type までは保証しません。クライアントは token_type を確認します。B：RS の挙動はこのメタデータの対象外で、§7.2 などで別に定まります。E：dpop_jkt は OPTIONAL のままです。C：confidential client の refresh token は §5 のとおり DPoP 鍵に結び付きません。",
+      "answer": 3
+    },
+    "refresh-key-change": {
+      "explanation": "§5 により、public client に発行した refresh token は proof の公開鍵に結び付けられ（MUST）、使うたびに同じ鍵の proof が必要です（MUST）。K2 の proof では K1 への結び付きを満たせないので拒否します。confidential client の refresh token は DPoP 鍵に結び付かず、クライアント識別子とクライアント認証で送信者制約されます。§5 はこの方式を、クライアント認証の資格情報をローテーションしても refresh token を無効にしない柔軟な方式と説明しています（DPoP 鍵の交換について述べた文ではありません）。AS は新しいアクセストークンを、その要求の proof の公開鍵（K2）に結び付けます。E は proof と異なる鍵に結び付けています。A の dpop_jkt は認可コードの結び付けで、refresh token の検証とは関係ありません。",
+      "answer": 1
+    },
+    "binding-source": {
+      "explanation": "§6 は、RS がトークンが DPoP-bound かどうかと結び付いた公開鍵を信頼できる方法で知れることを MUST とし、例として JWT の cnf.jkt と introspection（§6.2）を挙げています。AS と RS の合意によるその他の方法もありますが、どれも発行時の結び付けを RS が参照する方法です。最初に提示された鍵を信用する方式では、漏えいしたトークンを正規クライアントより先に使った攻撃者の鍵が結び付け先になります。E・D は原因を解決しません。C：opaque トークンは introspection などで扱えます。",
+      "answer": 0
+    },
+    "challenge-levels": {
+      "explanation": "§7.1 では、algs は「SHOULD be included」で、値はスペース区切りの JWS alg 値のリストです。「unknown parameters MUST be ignored by recipients」です。D は強さと区切り文字が誤りです。E：error は、要求にアクセストークンが含まれ認証に失敗した場合に SHOULD で含めます。認証情報のない要求には、エラー情報を含めるべきではない（SHOULD NOT）とされています（§7.2、RFC 6750 §3.1）。B：§7.1 は、RFC 6750 §3 で定義された scope を MAY で含められるとしています。A：error_description は開発者向けで、エンドユーザーに表示するものではありません。",
+      "answer": 2
+    },
+    "stale-nonce": {
+      "explanation": "§8 は「If the nonce claim in the DPoP proof does not exactly match a nonce recently supplied by the authorization server to the client, the authorization server MUST reject the request. The rejection response MAY include a DPoP-Nonce HTTP header」と定めます。use_dpop_nonce は、不一致の際に新しい nonce を提供するときにも使います。C は MAY を MUST に強めています。B：新しい nonce を含めることを禁止する規定はありません。D・A は、最近提供した nonce と完全に一致しない値を受理しています。",
+      "answer": 4
+    },
+    "error-locations": {
+      "explanation": "§12.2 の登録では、どちらも Usage Location が「token error response, resource access error response」です。AS では RFC 6749 §5.2 の形式（HTTP 400 の JSON）、RS では WWW-Authenticate: DPoP の error として使います（§7.1・§8・§9）。認可エンドポイントからリダイレクトで返すエラーは登録されていません。DPoP ヘッダーは、ブラウザーのリダイレクトではなく、クライアントが直接送る HTTP 要求に付けるものです。",
+      "answer": 4
+    },
+    "token-response-params": {
+      "explanation": "§12.1 では「Additional Token Endpoint Response Parameters: (none)」「HTTP Authentication Scheme(s): DPoP」です。クライアントは token_type=DPoP で、トークンが自分の鍵に結び付いたことを知ります（§5）。次の nonce は JSON ではなく DPoP-Nonce ヘッダーで渡します（§8.2）。cnf.jkt は RS が結び付けを検証するための情報で、アクセストークン自体や introspection 応答で伝えます（§6）。",
+      "answer": 3
+    },
+    "extractable-key-xss": {
+      "explanation": "§2 は「If the private key is non-extractable (as is possible with [W3C.WebCryptoAPI]), DPoP renders exfiltrated tokens alone unusable」と、鍵を抽出できないことを条件にしています。鍵を抽出できる形で保存すると、XSS はトークンと鍵の両方を持ち出せます。E：トークンだけでは使えないとされるのは鍵を抽出できない場合で、保存方法によらず使えないとは言えません。B：htu は送信先の URI で、送信元の端末を表しません。C：nonce は事前生成した proof の利用を制限しますが、鍵を持つ攻撃者は受け取った nonce を入れた新しい proof を作れます。D：攻撃者は毎回新しい jti を使えます。§11.4 のとおり、クライアントで信頼できないコードを実行させないことが重要です。",
+      "answer": 0
+    },
+    "checks-order": {
+      "explanation": "§4.3 は最後に「These checks may be performed in any order」と述べ、§7.1 は「The resource server MUST NOT grant access to the resource unless all checks are successful」と定めます。D：11 番目は生成時刻を「iat、またはサーバーが nonce で管理する時刻」で判断すると書いています。nonce で時刻を管理する場合も、時間窓の検証自体を省略するわけではありません。B：正当な proof を誤って拒否すること（偽陰性）を減らすため、構文ベース・スキームベースの正規化を行うことが SHOULD です。E：AS も RS も 1〜11 番目を行い、12 番目はアクセストークンと一緒に提示された場合の検証です。",
+      "answer": 2
+    },
+    "insider-pregeneration": {
+      "explanation": "§11.2 は、正規の利用者自身も proof を事前生成して持ち出す攻撃者になり得ると述べています。このとき証明されるのは鍵の所持ではなく proof の所持です。サーバーが予測できない nonce を新しく提供すれば、proof の寿命を制限できます。D：持ち出すのは鍵ではなく作成済みの proof です。E：事前生成した proof はそれぞれ一意な jti を持ち、1 回ずつ使えば重複になりません。A：攻撃者は使う予定の時刻を iat に入れるので、提示する時点では時間窓に収まります。C：htu は要求先の URI で、端末を表しません。なお ath により、proof を使える期間はアクセストークンの寿命に制限されます。",
+      "answer": 1
+    },
+    "code-verifier-leak": {
+      "explanation": "§11.9 は、AS が単回使用を厳密に保証できず、攻撃者が認可コード（PKCE を使う場合は code_verifier も）を入手できる場合、攻撃者が自分の鍵に結び付けたトークンを得る偽のトークン要求を作れると述べ、dpop_jkt がこれを防ぐとしています。§10 で AS は、proof の鍵の thumbprint が dpop_jkt と一致しなければ拒否します（MUST）。D：code_verifier も盗まれています。E：state はリダイレクトを受けたクライアントが確認する値で、トークン要求の検証には使いません。B：§11.9 は、複製の遅延で単回使用を守れない時間があると述べています。A：htu はトークンエンドポイントの URI で、どこから送っても同じです。",
+      "answer": 2
+    },
+    "nonce-specified": {
+      "explanation": "§8 の「Nonce values MUST be unpredictable」と、§8.1 の「nonce = 1*NQCHAR」が規定です。新しい nonce を提供する時期や判断の仕方はサーバーに任され、この文書の範囲外です（§8・§8.2）。nonce はクライアントにとって opaque です（§8）。§11.1 はサーバーの時刻を nonce に含める方法に触れていますが、クライアントが解析するためのものではありません。例の値がピリオドを含んでいても、JWT である必要はありません。",
+      "answer": 1
+    },
+    "code-flow-with-jkt-nonce": {
+      "explanation": "§10 の dpop_jkt は認可要求のパラメーターで、トークン要求を受けた AS が proof の鍵の thumbprint と比較します。§8 で nonce を要求する AS は、400 の use_dpop_nonce と DPoP-Nonce を返し、クライアントは nonce を含む proof で再試行します。再試行の proof にも新しい jti を使います（§4・§4.2）。発行はすべての検証に成功した後です。",
+      "answer": [
+        "jkt",
+        "authz",
+        "code",
+        "first",
+        "challenge",
+        "retry",
+        "issue"
+      ]
+    },
+    "requirement-audit": {
+      "explanation": "(1) 誤り。htu は query と fragment を除いて照合し、比較の前に RFC 3986 の構文ベース・スキームベースの正規化を行うことが SHOULD。(2) 誤り。dpop_jkt の使用は OPTIONAL で、RFC 9449 はすべてのクライアントへの必須化を求めていない。PAR と DPoP の両方に対応する AS は両方式をサポートしなければならず（MUST）、dpop_jkt が使われたときは proof の鍵と一致しなければ拒否する（MUST）。(3) 誤り。DPoP に対応する AS が、有効な proof を示した public client に refresh token を発行するなら、鍵への結び付けは MUST、使うたびの検証も MUST。(4) 誤り。nonce を提供した後は、nonce のない proof を受理してはならない（MUST NOT）。jti が新しいことは代わりにならない。(5) 誤り。生成後の限られた時間だけ受理することが MUST。jti の記録は「can」で、厳格に行えない構成があるとされているだけ。(6) 誤り。破棄が MUST になるのは、DPoP の保護をアプリの安全性に重要と判断する場合。それ以外は通常の OAuth として続けられる。",
+      "rubric": [
+        {
+          "criterion": "(1) 正規化しない比較を MUST とする点を誤りとし、構文ベース・スキームベースの正規化を SHOULD で行うと直す。",
+          "points": 1,
+          "referenceIds": [
+            "checks"
+          ]
+        },
+        {
+          "criterion": "(2) dpop_jkt の使用は OPTIONAL で、すべてのクライアントへの必須化は RFC の要求ではないと直す（PAR での両方式のサポートや、不一致時の拒否の MUST に触れてもよい）。",
+          "points": 1,
+          "referenceIds": [
+            "code",
+            "par"
+          ]
+        },
+        {
+          "criterion": "(3) 有効な proof を示した public client への refresh token の結び付けと、使用時の検証が MUST だと直す。",
+          "points": 1,
+          "referenceIds": [
+            "refresh"
+          ]
+        },
+        {
+          "criterion": "(4) nonce を提供した後に nonce のない proof を受理してはならない（MUST NOT）と直し、jti では代替できないと示す。",
+          "points": 1,
+          "referenceIds": [
+            "downgrade"
+          ]
+        },
+        {
+          "criterion": "(5) proof を生成後の限られた時間だけ受理するのは MUST で、jti を記録できない構成でも無制限にできないと直す。",
+          "points": 1,
+          "referenceIds": [
+            "replay"
+          ]
+        },
+        {
+          "criterion": "(6) 破棄は、DPoP の保護を重要と判断した場合の条件付き MUST だと直す。",
+          "points": 1,
+          "referenceIds": [
+            "refresh"
+          ]
+        }
+      ]
+    },
+    "bearer-challenge-client": {
+      "explanation": "§7.2 は、RFC 6750 だけに対応し DPoP を知らない RS は DPoP-bound トークンを Bearer として受理すると考えられ、クライアントは WWW-Authenticate: Bearer の challenge を受けたら Bearer 方式で送れると述べています。段階的な移行のための互換性です。一方、Bearer と DPoP の両方に対応する RS は、Bearer として届いた DPoP-bound トークンを拒否しなければなりません（MUST）。DPoP を知らない RS は proof を検証しないので、その RS に対しては送信者制約が働きません。A：両方式に対応する RS は、Figure 19 のように 2 つの方式を同時に使った要求を 400 の invalid_request で拒否します。E：DPoP を知らない RS は DPoP ヘッダーを検証しません。",
+      "answer": 3
+    }
+  },
+  "inconsistencies": []
+}

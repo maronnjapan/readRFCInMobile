@@ -1,0 +1,983 @@
+{
+  "format": "spec-understanding-quiz",
+  "version": 1,
+  "id": "rfc-9449-07-key-binding",
+  "title": "RFC 9449 DPoP 発展 3/7: 鍵の結び付け — JWK Thumbprint・cnf・introspection",
+  "status": "draft",
+  "spec": {
+    "id": "rfc-9449",
+    "status": "adopted",
+    "repository": "maronnjapan/readRFCInMobile",
+    "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+    "path": "rfcs/rfc9449.txt"
+  },
+  "references": [
+    {
+      "id": "thumb-def",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc7638.txt",
+      "startLine": 130,
+      "endLine": 148,
+      "reason": "§3: JWK Thumbprint の計算手順",
+      "excerpt": "3.  JSON Web Key (JWK) Thumbprint\n\n   The thumbprint of a JSON Web Key (JWK) is computed as follows:\n\n   1.  Construct a JSON object [RFC7159] containing only the required\n       members of a JWK representing the key and with no whitespace or\n       line breaks before or after any syntactic elements and with the\n       required members ordered lexicographically by the Unicode\n       [UNICODE] code points of the member names.  (This JSON object is\n       itself a legal JWK representation of the key.)\n\n   2.  Hash the octets of the UTF-8 representation of this JSON object\n       with a cryptographic hash function H.  For example, SHA-256 [SHS]\n       might be used as H.  See Section 3.4 for a discussion on the\n       choice of hash function.\n\n   The resulting value is the JWK Thumbprint with H of the JWK.  The\n   details of this computation are further described in subsequent\n   sections."
+    },
+    {
+      "id": "thumb-members",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc7638.txt",
+      "startLine": 287,
+      "endLine": 315,
+      "reason": "§3.2: 鍵の種類ごとの必須メンバー",
+      "excerpt": "3.2.  JWK Members Used in the Thumbprint Computation\n\n   Only the required members of a key's representation are used when\n   computing its JWK Thumbprint value.  As defined in \"JSON Web Key\n   (JWK)\" [JWK] and \"JSON Web Algorithms (JWA)\" [JWA], the required\n   members for an elliptic curve public key for the curves specified in\n   Section 6.2.1.1 of RFC 7518 [JWA], in lexicographic order, are:\n\n   o  \"crv\"\n   o  \"kty\"\n   o  \"x\"\n   o  \"y\"\n\n   The required members for an RSA public key, in lexicographic order,\n   are:\n\n   o  \"e\"\n   o  \"kty\"\n   o  \"n\"\n\n   The required members for a symmetric key, in lexicographic order,\n   are:\n\n   o  \"k\"\n   o  \"kty\"\n\n   As other \"kty\" (key type) values are defined, the specifications\n   defining them should be similarly consulted to determine which\n   members, in addition to \"kty\", are required."
+    },
+    {
+      "id": "thumb-optional",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc7638.txt",
+      "startLine": 343,
+      "endLine": 365,
+      "reason": "§3.2.2: 任意メンバーを含めない理由",
+      "excerpt": "3.2.2.  Why Not Include Optional Members?\n\n   Optional members of JWKs are intentionally not included in the JWK\n   Thumbprint computation so that their absence or presence in the JWK\n   does not alter the resulting value.  The JWK Thumbprint value is a\n   digest of the members required to represent the key as a JWK -- not\n   of additional data that may also accompany the key.\n\n   Optional members are not included so that the JWK Thumbprint refers\n   to a key -- not a key with an associated set of key attributes.\n   Different application contexts might or might not include different\n   subsets of optional attributes about the key in the JWK.  If these\n   were included in the calculation of the JWK thumbprint, the values\n   would be different for those JWKs, even though the keys are the same.\n   The benefit of including only the JWK required members is that the\n   JWK Thumbprint of any JWK representing the key remains the same,\n   regardless of any other attributes that are present.\n\n   Different kinds of thumbprints could be defined by other\n   specifications that might include some or all additional JWK members,\n   if use cases arise where such different kinds of thumbprints would be\n   useful.  See Section 9.1 of RFC 7517 [JWK] for notes on some ways to\n   cryptographically bind attributes to a key."
+    },
+    {
+      "id": "jkt",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 701,
+      "endLine": 719,
+      "reason": "§6.1: cnf.jkt と RFC 7638 の JWK SHA-256 Thumbprint",
+      "excerpt": "6.1.  JWK Thumbprint Confirmation Method\n\n   When access tokens are represented as JWTs [RFC7519], the public key\n   information is represented using the jkt confirmation method member\n   defined herein.  To convey the hash of a public key in a JWT, this\n   specification introduces the following JWT Confirmation Method\n   [RFC7800] member for use under the cnf claim.\n\n   jkt:  JWK SHA-256 Thumbprint confirmation method.  The value of the\n      jkt member MUST be the base64url encoding (as defined in\n      [RFC7515]) of the JWK SHA-256 Thumbprint (according to [RFC7638])\n      of the DPoP public key (in JWK format) to which the access token\n      is bound.\n\n   The following example JWT in Figure 8 with a decoded JWT payload\n   shown in Figure 9 contains a cnf claim with the jkt JWK Thumbprint\n   confirmation method member.  The jkt value in these examples is the\n   hash of the public key from the DPoP proofs in the examples shown in\n   Section 5.  The example uses \"\\\" line wrapping per [RFC8792]."
+    },
+    {
+      "id": "okp-key",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc8037.txt",
+      "startLine": 134,
+      "endLine": 159,
+      "reason": "§2: OKP 鍵の kty・crv・x・d と Thumbprint のメンバー",
+      "excerpt": "2.  Key Type \"OKP\"\n\n   A new key type (kty) value \"OKP\" (Octet Key Pair) is defined for\n   public key algorithms that use octet strings as private and public\n   keys.  It has the following parameters:\n\n   o  The parameter \"kty\" MUST be \"OKP\".\n\n   o  The parameter \"crv\" MUST be present and contain the subtype of the\n      key (from the \"JSON Web Elliptic Curve\" registry).\n\n   o  The parameter \"x\" MUST be present and contain the public key\n      encoded using the base64url [RFC4648] encoding.\n\n   o  The parameter \"d\" MUST be present for private keys and contain the\n      private key encoded using the base64url encoding.  This parameter\n      MUST NOT be present for public keys.\n\n   Note: Do not assume that there is an underlying elliptic curve,\n   despite the existence of the \"crv\" and \"x\" parameters.  (For\n   instance, this key type could be extended to represent Diffie-Hellman\n   (DH) algorithms based on hyperelliptic surfaces.)\n\n   When calculating JWK Thumbprints [RFC7638], the three public key\n   fields are included in the hash input in lexicographic order: \"crv\",\n   \"kty\", and \"x\"."
+    },
+    {
+      "id": "thumb-order",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc7638.txt",
+      "startLine": 367,
+      "endLine": 408,
+      "reason": "§3.3: メンバーの順序とエスケープ・数値の表現",
+      "excerpt": "3.3.  Order and Representation of Members in Hash Input\n\n   The required members in the input to the hash function are ordered\n   lexicographically by the Unicode code points of the member names.\n\n   Characters in member names and member values MUST be represented\n   without being escaped.  This means that thumbprints of JWKs that\n   require such characters are not defined by this specification.  (This\n   is not expected to limit the applicability of this specification, in\n   practice, as the members of JWK representations are not expected to\n   use any of these characters.)  The characters specified as requiring\n   escaping by Section 7 of [RFC7159] are quotation mark, reverse\n   solidus (a.k.a. backslash), and the control characters U+0000 through\n   U+001F.\n\n   If the JWK key type uses members whose values are themselves JSON\n   objects, then the members of those objects MUST likewise be\n   lexicographically ordered.  (As of the time of this writing, none are\n   defined that do.)\n\n   If the JWK key type uses members whose values are JSON numbers, and\n   if those numbers are integers, then they MUST be represented as a\n   JSON number as defined in Section 6 of [RFC7159] without including a\n   fraction part or exponent part.  For instance, the value \"1.024e3\"\n\n\n\nJones & Sakimura             Standards Track                    [Page 7]\n\f\nRFC 7638              JSON Web Key (JWK) Thumbprint       September 2015\n\n\n   MUST be represented as \"1024\".  This means that thumbprints of JWKs\n   using numbers that are not integers are not defined by this\n   specification.  Also, as noted in \"The I-JSON Message Format\"\n   [RFC7493], implementations cannot expect an integer whose absolute\n   value is greater than 9007199254740991 (i.e., that is outside the\n   range [-(2**53)+1, (2**53)-1]) to be treated as an exact value.  (As\n   of the time of this writing, none are defined that use JSON numbers.)\n\n   See Section 4 for a discussion of further practical considerations\n   pertaining to the representation of the hash input."
+    },
+    {
+      "id": "checks",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 485,
+      "endLine": 523,
+      "reason": "§4.3: 受信時の必須検証、URI 正規化、検証順序",
+      "excerpt": "4.3.  Checking DPoP Proofs\n\n   To validate a DPoP proof, the receiving server MUST ensure the\n   following:\n\n   1.   There is not more than one DPoP HTTP request header field.\n   2.   The DPoP HTTP request header field value is a single and well-\n        formed JWT.\n   3.   All required claims per Section 4.2 are contained in the JWT.\n   4.   The typ JOSE Header Parameter has the value dpop+jwt.\n   5.   The alg JOSE Header Parameter indicates a registered asymmetric\n        digital signature algorithm [IANA.JOSE.ALGS], is not none, is\n        supported by the application, and is acceptable per local\n        policy.\n   6.   The JWT signature verifies with the public key contained in the\n        jwk JOSE Header Parameter.\n   7.   The jwk JOSE Header Parameter does not contain a private key.\n   8.   The htm claim matches the HTTP method of the current request.\n   9.   The htu claim matches the HTTP URI value for the HTTP request in\n        which the JWT was received, ignoring any query and fragment\n        parts.\n   10.  If the server provided a nonce value to the client, the nonce\n        claim matches the server-provided nonce value.\n   11.  The creation time of the JWT, as determined by either the iat\n        claim or a server managed timestamp via the nonce claim, is\n        within an acceptable window (see Section 11.1).\n   12.  If presented to a protected resource in conjunction with an\n        access token,\n        *  ensure that the value of the ath claim equals the hash of\n           that access token, and\n        *  confirm that the public key to which the access token is\n           bound matches the public key from the DPoP proof.\n\n   To reduce the likelihood of false negatives, servers SHOULD employ\n   syntax-based normalization (Section 6.2.2 of [RFC3986]) and scheme-\n   based normalization (Section 6.2.3 of [RFC3986]) before comparing the\n   htu claim.\n\n   These checks may be performed in any order."
+    },
+    {
+      "id": "thumb-private",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc7638.txt",
+      "startLine": 317,
+      "endLine": 331,
+      "reason": "§3.2.1: 秘密鍵の Thumbprint は公開鍵と同じ",
+      "excerpt": "3.2.1.  JWK Thumbprint of a Private Key\n\n   The JWK Thumbprint of a JWK representing a private key is computed as\n   the JWK Thumbprint of a JWK representing the corresponding public\n   key.  This has the intentional benefit that the same JWK Thumbprint\n   value can be computed both by parties using either the public or\n   private key.  The JWK Thumbprint can then be used to refer to both\n   keys of the key pair.  Application context can be used to determine\n   if the public or private key is the one being referred to by the JWK\n   Thumbprint.\n\n   This specification defines the method of computing JWK Thumbprints of\n   JWKs representing private keys for interoperability reasons -- so\n   that different implementations computing JWK Thumbprints of private\n   keys will produce the same result."
+    },
+    {
+      "id": "code",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 1237,
+      "endLine": 1273,
+      "reason": "§10: dpop_jkt、トークン要求時の照合、PKCE との併用",
+      "excerpt": "10.  Authorization Code Binding to a DPoP Key\n\n   Binding the authorization code issued to the client's proof-of-\n   possession key can enable end-to-end binding of the entire\n   authorization flow.  This specification defines the dpop_jkt\n   authorization request parameter for this purpose.  The value of the\n   dpop_jkt authorization request parameter is the JWK Thumbprint\n   [RFC7638] of the proof-of-possession public key using the SHA-256\n   hash function, which is the same value as used for the jkt\n   confirmation method defined in Section 6.1.\n\n   When a token request is received, the authorization server computes\n   the JWK Thumbprint of the proof-of-possession public key in the DPoP\n   proof and verifies that it matches the dpop_jkt parameter value in\n   the authorization request.  If they do not match, it MUST reject the\n   request.\n\n   An example authorization request using the dpop_jkt authorization\n   request parameter is shown below and uses \"\\\" line wrapping per\n   [RFC8792].\n\n   GET /authorize?response_type=code&client_id=s6BhdRkqt3&state=xyz\\\n       &redirect_uri=https%3A%2F%2Fclient%2Eexample%2Ecom%2Fcb\\\n       &code_challenge=E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM\\\n       &code_challenge_method=S256\\\n       &dpop_jkt=NzbLsXh8uDCcd-6MNwXF4W_7noWXFZAfHkxZsRGC9Xs HTTP/1.1\n   Host: server.example.com\n\n       Figure 25: Authorization Request Using the dpop_jkt Parameter\n\n   Use of the dpop_jkt authorization request parameter is OPTIONAL.\n   Note that the dpop_jkt authorization request parameter MAY also be\n   used in combination with Proof Key for Code Exchange (PKCE)\n   [RFC7636], which is recommended by [SECURITY-TOPICS] as a\n   countermeasure to authorization code injection.  The dpop_jkt\n   authorization request parameter only provides similar protections\n   when a unique DPoP key is used for each authorization request."
+    },
+    {
+      "id": "syntax",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 393,
+      "endLine": 448,
+      "reason": "§4.2: JOSE ヘッダー、必須クレーム、ath と nonce",
+      "excerpt": "4.2.  DPoP Proof JWT Syntax\n\n   A DPoP proof is a JWT [RFC7519] that is signed (using JSON Web\n   Signature (JWS) [RFC7515]) with a private key chosen by the client\n   (see below).  The JOSE Header of a DPoP JWT MUST contain at least the\n   following parameters:\n\n   typ:  A field with the value dpop+jwt, which explicitly types the\n      DPoP proof JWT as recommended in Section 3.11 of [RFC8725].\n\n   alg:  An identifier for a JWS asymmetric digital signature algorithm\n      from [IANA.JOSE.ALGS].  It MUST NOT be none or an identifier for a\n      symmetric algorithm (Message Authentication Code (MAC)).\n\n   jwk:  Represents the public key chosen by the client in JSON Web Key\n      (JWK) [RFC7517] format as defined in Section 4.1.3 of [RFC7515].\n      It MUST NOT contain a private key.\n\n   The payload of a DPoP proof MUST contain at least the following\n   claims:\n\n   jti:  Unique identifier for the DPoP proof JWT.  The value MUST be\n      assigned such that there is a negligible probability that the same\n      value will be assigned to any other DPoP proof used in the same\n      context during the time window of validity.  Such uniqueness can\n      be accomplished by encoding (base64url or any other suitable\n      encoding) at least 96 bits of pseudorandom data or by using a\n      version 4 Universally Unique Identifier (UUID) string according to\n      [RFC4122].  The jti can be used by the server for replay detection\n      and prevention; see Section 11.1.\n\n   htm:  The value of the HTTP method (Section 9.1 of [RFC9110]) of the\n      request to which the JWT is attached.\n\n   htu:  The HTTP target URI (Section 7.1 of [RFC9110]) of the request\n      to which the JWT is attached, without query and fragment parts.\n\n   iat:  Creation timestamp of the JWT (Section 4.1.6 of [RFC7519]).\n\n   When the DPoP proof is used in conjunction with the presentation of\n   an access token in protected resource access (see Section 7), the\n   DPoP proof MUST also contain the following claim:\n\n   ath:  Hash of the access token.  The value MUST be the result of a\n      base64url encoding (as defined in Section 2 of [RFC7515]) the\n      SHA-256 [SHS] hash of the ASCII encoding of the associated access\n      token's value.\n\n   When the authentication server or resource server provides a DPoP-\n   Nonce HTTP header in a response (see Sections 8 and 9), the DPoP\n   proof MUST also contain the following claim:\n\n   nonce:  A recent nonce provided via the DPoP-Nonce HTTP header.\n\n   A DPoP proof MAY contain other JOSE Header Parameters or claims as\n   defined by extension, profile, or deployment-specific requirements."
+    },
+    {
+      "id": "thumb-security",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc7638.txt",
+      "startLine": 546,
+      "endLine": 596,
+      "reason": "§7: 表現の検証と、Thumbprint による鍵の除外の限界",
+      "excerpt": "7.  Security Considerations\n\n   The JSON Security Considerations and Unicode Comparison Security\n   Considerations described in Sections 10.12 and 10.13 of \"JSON Web\n   Signature (JWS)\" [JWS] also apply to this specification.\n\n   Also, as described in Section 4, some implementations may produce\n   incorrect results if esoteric or escaped characters are used in the\n   member names.  The security implications of this appear to be limited\n   for JWK Thumbprints of public keys, because while it may result in\n   implementations failing to identify the intended key, it should not\n   leak information.  The information in a public key is already public\n   in nature, by definition.\n\n\n\nJones & Sakimura             Standards Track                   [Page 10]\n\f\nRFC 7638              JSON Web Key (JWK) Thumbprint       September 2015\n\n\n   A hash of a symmetric key has the potential to leak information about\n   the key value.  Thus, the JWK Thumbprint of a symmetric key should\n   typically be concealed from parties not in possession of the\n   symmetric key, unless in the application context, the cryptographic\n   hash used, such as SHA-256, is known to provide sufficient protection\n   against disclosure of the key value.\n\n   A JWK Thumbprint will only uniquely identify a particular key if a\n   single unambiguous JWK representation for that key is defined and\n   used when computing the JWK Thumbprint.  (Such representations are\n   defined for all the key types defined in \"JSON Web Algorithms (JWA)\"\n   [JWA].)  For example, if an RSA key were to use \"e\":\"AAEAAQ\"\n   (representing [0, 1, 0, 1]) rather than the specified correct\n   representation of \"e\":\"AQAB\" (representing [1, 0, 1]), then a\n   different thumbprint value would be produced for what could be\n   effectively the same key, at least for implementations that are lax\n   in validating the JWK values that they accept.  Thus, JWK Thumbprint\n   values can only be relied upon to be unique for a given key if the\n   implementation also validates that the correct representation of the\n   key is used.\n\n   Even more insidious is that an attacker may supply a key that is a\n   transformation of a legal key in order to have it appear to be a\n   different key.  For instance, if a legitimate RSA key uses a modulus\n   value N and an attacker supplies a key with modulus 3*N, the modified\n   key would still work about 1/3 of the time, but would appear to be a\n   different key.  Thus, while thumbprint values are valuable for\n   identifying legitimate keys, comparing thumbprint values is not a\n   reliable means of excluding (blacklisting) the use of particular keys\n   (or transformations thereof)."
+    },
+    {
+      "id": "hash-binding",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 1466,
+      "endLine": 1480,
+      "reason": "§11.8: JWK の第二原像計算困難性と ath の衝突耐性",
+      "excerpt": "11.8.  Access Token and Public Key Binding\n\n   The binding of the access token to the DPoP public key, as specified\n   in Section 6, uses a cryptographic hash of the JWK representation of\n   the public key.  It relies on the hash function having sufficient\n   second-preimage resistance so as to make it computationally\n   infeasible to find or create another key that produces to the same\n   hash output value.  The SHA-256 hash function was used because it\n   meets the aforementioned requirement while being widely available.\n\n   Similarly, the binding of the DPoP proof to the access token uses a\n   hash of that access token as the value of the ath claim in the DPoP\n   proof (see Section 4.2).  This relies on the value of the hash being\n   sufficiently unique so as to reliably identify the access token.  The\n   collision resistance of SHA-256 meets that requirement."
+    },
+    {
+      "id": "jwa-rsa-public",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc7518.txt",
+      "startLine": 1637,
+      "endLine": 1660,
+      "reason": "§6.3.1: RSA 公開鍵の n・e（Base64urlUInt）",
+      "excerpt": "6.3.1.  Parameters for RSA Public Keys\n\n   The following members MUST be present for RSA public keys.\n\n6.3.1.1.  \"n\" (Modulus) Parameter\n\n   The \"n\" (modulus) parameter contains the modulus value for the RSA\n   public key.  It is represented as a Base64urlUInt-encoded value.\n\n   Note that implementers have found that some cryptographic libraries\n   prefix an extra zero-valued octet to the modulus representations they\n   return, for instance, returning 257 octets for a 2048-bit key, rather\n   than 256.  Implementations using such libraries will need to take\n   care to omit the extra octet from the base64url-encoded\n   representation.\n\n6.3.1.2.  \"e\" (Exponent) Parameter\n\n   The \"e\" (exponent) parameter contains the exponent value for the RSA\n   public key.  It is represented as a Base64urlUInt-encoded value.\n\n   For instance, when representing the value 65537, the octet sequence\n   to be base64url-encoded MUST consist of the three octets [1, 0, 1];\n   the resulting representation for this value is \"AQAB\"."
+    },
+    {
+      "id": "cnf-semantics",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc7800.txt",
+      "startLine": 267,
+      "endLine": 301,
+      "reason": "§3: cnf が宣言する内容と提示者",
+      "excerpt": "3.  Representations for Proof-of-Possession Keys\n\n   By including a \"cnf\" (confirmation) claim in a JWT, the issuer of the\n   JWT declares that the presenter possesses a particular key and that\n   the recipient can cryptographically confirm that the presenter has\n   possession of that key.  The value of the \"cnf\" claim is a JSON\n   object and the members of that object identify the proof-of-\n   possession key.\n\n   The presenter can be identified in one of several ways by the JWT\n   depending upon the application requirements.  If the JWT contains a\n   \"sub\" (subject) claim [JWT], the presenter is normally the subject\n\n\n\nJones, et al.                Standards Track                    [Page 5]\n\f\nRFC 7800            Proof-of-Possession Key for JWTs          April 2016\n\n\n   identified by the JWT.  (In some applications, the subject identifier\n   will be relative to the issuer identified by the \"iss\" (issuer) claim\n   [JWT].)  If the JWT contains no \"sub\" claim, the presenter is\n   normally the issuer identified by the JWT using the \"iss\" claim.  The\n   case in which the presenter is the subject of the JWT is analogous to\n   Security Assertion Markup Language (SAML) 2.0\n   [OASIS.saml-core-2.0-os] SubjectConfirmation usage.  At least one of\n   the \"sub\" and \"iss\" claims MUST be present in the JWT.  Some use\n   cases may require that both be present.\n\n   Another means used by some applications to identify the presenter is\n   an explicit claim, such as the \"azp\" (authorized party) claim defined\n   by OpenID Connect [OpenID.Core].  Ultimately, the means of\n   identifying the presenter is application specific, as is the means of\n   confirming possession of the key that is communicated."
+    },
+    {
+      "id": "cnf-claim",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc7800.txt",
+      "startLine": 303,
+      "endLine": 346,
+      "reason": "§3.1: cnf は 1 つの鍵を表し、理解できないメンバーは無視する",
+      "excerpt": "3.1.  Confirmation Claim\n\n   The \"cnf\" claim is used in the JWT to contain members used to\n   identify the proof-of-possession key.  Other members of the \"cnf\"\n   object may be defined because a proof-of-possession key may not be\n   the only means of confirming the authenticity of the token.  This is\n   analogous to the SAML 2.0 [OASIS.saml-core-2.0-os]\n   SubjectConfirmation element in which a number of different subject\n   confirmation methods can be included (including proof-of-possession\n   key information).\n\n   The set of confirmation members that a JWT must contain to be\n   considered valid is context dependent and is outside the scope of\n   this specification.  Specific applications of JWTs will require\n   implementations to understand and process some confirmation members\n   in particular ways.  However, in the absence of such requirements,\n   all confirmation members that are not understood by implementations\n   MUST be ignored.\n\n   This specification establishes the IANA \"JWT Confirmation Methods\"\n   registry for these members in Section 6.2 and registers the members\n   defined by this specification.  Other specifications can register\n   other members used for confirmation, including other members for\n   conveying proof-of-possession keys using different key\n   representations.\n\n   The \"cnf\" claim value MUST represent only a single proof-of-\n   possession key; thus, at most one of the \"jwk\", \"jwe\", and \"jku\" (JWK\n   Set URL) confirmation values defined below may be present.  Note that\n   if an application needs to represent multiple proof-of-possession\n   keys in the same JWT, one way for it to achieve this is to use other\n   claim names, in addition to \"cnf\", to hold the additional proof-of-\n\n\n\nJones, et al.                Standards Track                    [Page 6]\n\f\nRFC 7800            Proof-of-Possession Key for JWTs          April 2016\n\n\n   possession key information.  These claims could use the same syntax\n   and semantics as the \"cnf\" claim.  Those claims would be defined by\n   applications or other specifications and could be registered in the\n   IANA \"JSON Web Token Claims\" registry [IANA.JWT.Claims]."
+    },
+    {
+      "id": "bearer",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 977,
+      "endLine": 1021,
+      "reason": "§7.2: Bearer との互換性と複数 challenge のエラー情報",
+      "excerpt": "7.2.  Compatibility with the Bearer Authentication Scheme\n\n   Protected resources simultaneously supporting both the DPoP and\n   Bearer schemes need to update how the evaluation process is performed\n   for bearer tokens to prevent downgraded usage of a DPoP-bound access\n   token.  Specifically, such a protected resource MUST reject a DPoP-\n   bound access token received as a bearer token per [RFC6750].\n\n   Section 11.6.1 of [RFC9110] allows a protected resource to indicate\n   support for multiple authentication schemes (i.e., Bearer and DPoP)\n   with the WWW-Authenticate header field of a 401 (Unauthorized)\n   response.\n\n   A protected resource that supports only [RFC6750] and is unaware of\n   DPoP would most presumably accept a DPoP-bound access token as a\n   bearer token (JWT [RFC7519] says to ignore unrecognized claims,\n   Introspection [RFC7662] says that other parameters might be present\n   while placing no functional requirements on their presence, and\n   [RFC6750] is effectively silent on the content of the access token\n   since it relates to validity).  As such, a client can send a DPoP-\n   bound access token using the Bearer scheme upon receipt of a WWW-\n   Authenticate: Bearer challenge from a protected resource (or it can\n   send a DPoP-bound access token if it has prior knowledge of the\n   capabilities of the protected resource).  The effect of this likely\n   simplifies the logistics of phased upgrades to protected resources in\n   their support DPoP or prolonged deployments of protected resources\n   with mixed token type support.\n\n   If a protected resource supporting both Bearer and DPoP schemes\n   elects to respond with multiple WWW-Authenticate challenges,\n   attention should be paid to which challenge(s) should deliver the\n   actual error information.  It is RECOMMENDED that the following rules\n   be adhered to:\n\n   *  If no authentication information has been included with the\n      request, then the challenges SHOULD NOT include an error code or\n      other error information, as per Section 3.1 of [RFC6750]\n      (Figure 17).\n\n   *  If the mechanism used to attempt authentication could be\n      established unambiguously, then the corresponding challenge SHOULD\n      be used to deliver error information (Figure 18).\n\n   *  Otherwise, both Bearer and DPoP challenges MAY be used to deliver\n      error information (Figure 19)."
+    },
+    {
+      "id": "jwt-claims",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc7519.txt",
+      "startLine": 425,
+      "endLine": 442,
+      "reason": "§4: クレーム名の一意性と理解できないクレームの無視",
+      "excerpt": "4.  JWT Claims\n\n   The JWT Claims Set represents a JSON object whose members are the\n   claims conveyed by the JWT.  The Claim Names within a JWT Claims Set\n   MUST be unique; JWT parsers MUST either reject JWTs with duplicate\n   Claim Names or use a JSON parser that returns only the lexically last\n   duplicate member name, as specified in Section 15.12 (\"The JSON\n   Object\") of ECMAScript 5.1 [ECMAScript].\n\n   The set of claims that a JWT must contain to be considered valid is\n   context dependent and is outside the scope of this specification.\n   Specific applications of JWTs will require implementations to\n   understand and process some claims in particular ways.  However, in\n   the absence of such requirements, all claims that are not understood\n   by implementations MUST be ignored.\n\n   There are three classes of JWT Claim Names: Registered Claim Names,\n   Public Claim Names, and Private Claim Names."
+    },
+    {
+      "id": "cnf-security",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc7800.txt",
+      "startLine": 531,
+      "endLine": 576,
+      "reason": "§4: 所持証明とオーディエンス制限は別の保護",
+      "excerpt": "4.  Security Considerations\n\n   All of the security considerations that are discussed in [JWT] also\n   apply here.  In addition, proof of possession introduces its own\n   unique security issues.  Possessing a key is only valuable if it is\n   kept secret.  Appropriate means must be used to ensure that\n   unintended parties do not learn private key or symmetric key values.\n\n   Applications utilizing proof of possession should also utilize\n   audience restriction, as described in Section 4.1.3 of [JWT], as it\n   provides different protections.  Proof of possession can be used by\n   recipients to reject messages from unauthorized senders.  Audience\n   restriction can be used by recipients to reject messages intended for\n   different recipients.\n\n   A recipient might not understand the \"cnf\" claim.  Applications that\n   require the proof-of-possession keys communicated with it to be\n   understood and processed must ensure that the parts of this\n   specification that they use are implemented.\n\n   Proof of possession via encrypted symmetric secrets is subject to\n   replay attacks.  This attack can, for example, be avoided when a\n   signed nonce or challenge is used since the recipient can use a\n   distinct nonce or challenge for each interaction.  Replay can also be\n   avoided if a sub-key is derived from a shared secret that is specific\n   to the instance of the PoP demonstration.\n\n\n\n\n\nJones, et al.                Standards Track                   [Page 10]\n\f\nRFC 7800            Proof-of-Possession Key for JWTs          April 2016\n\n\n   As is the case with other information included in a JWT, it is\n   necessary to apply data origin authentication and integrity\n   protection (via a keyed message digest or a digital signature).  Data\n   origin authentication ensures that the recipient of the JWT learns\n   about the entity that created the JWT since this will be important\n   for any policy decisions.  Integrity protection prevents an adversary\n   from changing any elements conveyed within the JWT payload.  Special\n   care has to be applied when carrying symmetric keys inside the JWT\n   since those not only require integrity protection but also\n   confidentiality protection."
+    },
+    {
+      "id": "objectives",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 179,
+      "endLine": 253,
+      "reason": "§2: Bearer との違い、HTTPS、XSS に対する保護範囲",
+      "excerpt": "2.  Objectives\n\n   The primary aim of DPoP is to prevent unauthorized or illegitimate\n   parties from using leaked or stolen access tokens, by binding a token\n   to a public key upon issuance and requiring that the client proves\n   possession of the corresponding private key when using the token.\n   This constrains the legitimate sender of the token to only the party\n   with access to the private key and gives the server receiving the\n   token added assurances that the sender is legitimately authorized to\n   use it.\n\n   Access tokens that are sender-constrained via DPoP thus stand in\n   contrast to the typical bearer token, which can be used by any party\n   in possession of such a token.  Although protections generally exist\n   to prevent unintended disclosure of bearer tokens, unforeseen vectors\n   for leakage have occurred due to vulnerabilities and implementation\n   issues in other layers in the protocol or software stack (see, e.g.,\n   Compression Ratio Info-leak Made Easy (CRIME) [CRIME], Browser\n   Reconnaissance and Exfiltration via Adaptive Compression of Hypertext\n   (BREACH) [BREACH], Heartbleed [Heartbleed], and the Cloudflare parser\n   bug [Cloudbleed]).  There have also been numerous published token\n   theft attacks on OAuth implementations themselves ([GitHub.Tokens] is\n   just one high-profile example).  DPoP provides a general defense in\n   depth against the impact of unanticipated token leakage.  DPoP is\n   not, however, a substitute for a secure transport and MUST always be\n   used in conjunction with HTTPS.\n\n   The very nature of the typical OAuth protocol interaction\n   necessitates that the client discloses the access token to the\n   protected resources that it accesses.  The attacker model in\n   [SECURITY-TOPICS] describes cases where a protected resource might be\n   counterfeit, malicious, or compromised and plays received tokens\n   against other protected resources to gain unauthorized access.\n   Audience-restricted access tokens (e.g., using the JWT [RFC7519] aud\n   claim) can prevent such misuse.  However, doing so in practice has\n   proven to be prohibitively cumbersome for many deployments (despite\n   extensions such as [RFC8707]).  Sender-constraining access tokens is\n   a more robust and straightforward mechanism to prevent such token\n   replay at a different endpoint, and DPoP is an accessible\n   application-layer means of doing so.\n\n   Due to the potential for cross-site scripting (XSS), browser-based\n   OAuth clients bring to bear added considerations with respect to\n   protecting tokens.  The most straightforward XSS-based attack is for\n   an attacker to exfiltrate a token and use it themselves completely\n   independent of the legitimate client.  A stolen access token is used\n   for protected resource access, and a stolen refresh token is used for\n   obtaining new access tokens.  If the private key is non-extractable\n   (as is possible with [W3C.WebCryptoAPI]), DPoP renders exfiltrated\n   tokens alone unusable.\n\n   XSS vulnerabilities also allow an attacker to execute code in the\n   context of the browser-based client application and maliciously use a\n   token indirectly through the client.  That execution context has\n   access to utilize the signing key; thus, it can produce DPoP proofs\n   to use in conjunction with the token.  At this application layer,\n   there is most likely no feasible defense against this threat except\n   generally preventing XSS; therefore, it is considered out of scope\n   for DPoP.\n\n   Malicious XSS code executed in the context of the browser-based\n   client application is also in a position to create DPoP proofs with\n   timestamp values in the future and exfiltrate them in conjunction\n   with a token.  These stolen artifacts can later be used independent\n   of the client application to access protected resources.  To prevent\n   this, servers can optionally require clients to include a server-\n   chosen value into the proof that cannot be predicted by an attacker\n   (nonce).  In the absence of the optional nonce, the impact of pre-\n   computed DPoP proofs is limited somewhat by the proof being bound to\n   an access token on protected resource access.  Because a proof\n   covering an access token that does not yet exist cannot feasibly be\n   created, access tokens obtained with an exfiltrated refresh token and\n   pre-computed proofs will be unusable.\n\n   Additional security considerations are discussed in Section 11."
+    },
+    {
+      "id": "introspection",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 742,
+      "endLine": 762,
+      "reason": "§6.2: introspection 応答と RS によるローカルな鍵照合",
+      "excerpt": "6.2.  JWK Thumbprint Confirmation Method in Token Introspection\n\n   \"OAuth 2.0 Token Introspection\" [RFC7662] defines a method for a\n   protected resource to query an authorization server about the active\n   state of an access token.  The protected resource also determines\n   metainformation about the token.\n\n   For a DPoP-bound access token, the hash of the public key to which\n   the token is bound is conveyed to the protected resource as\n   metainformation in a token introspection response.  The hash is\n   conveyed using the same cnf content with jkt member structure as the\n   JWK Thumbprint confirmation method, described in Section 6.1, as a\n   top-level member of the introspection response JSON.  Note that the\n   resource server does not send a DPoP proof with the introspection\n   request, and the authorization server does not validate an access\n   token's DPoP binding at the introspection endpoint.  Rather, the\n   resource server uses the data of the introspection response to\n   validate the access token binding itself locally.\n\n   If the token_type member is included in the introspection response,\n   it MUST contain the value DPoP."
+    },
+    {
+      "id": "intro-request",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc7662.txt",
+      "startLine": 186,
+      "endLine": 244,
+      "reason": "§2.1: introspection 要求と呼び出し側の認可",
+      "excerpt": "2.1.  Introspection Request\n\n   The protected resource calls the introspection endpoint using an HTTP\n   POST [RFC7231] request with parameters sent as\n   \"application/x-www-form-urlencoded\" data as defined in\n   [W3C.REC-html5-20141028].  The protected resource sends a parameter\n   representing the token along with optional parameters representing\n   additional context that is known by the protected resource to aid the\n   authorization server in its response.\n\n   token\n      REQUIRED.  The string value of the token.  For access tokens, this\n      is the \"access_token\" value returned from the token endpoint\n      defined in OAuth 2.0 [RFC6749], Section 5.1.  For refresh tokens,\n      this is the \"refresh_token\" value returned from the token endpoint\n      as defined in OAuth 2.0 [RFC6749], Section 5.1.  Other token types\n      are outside the scope of this specification.\n\n   token_type_hint\n      OPTIONAL.  A hint about the type of the token submitted for\n      introspection.  The protected resource MAY pass this parameter to\n      help the authorization server optimize the token lookup.  If the\n      server is unable to locate the token using the given hint, it MUST\n      extend its search across all of its supported token types.  An\n      authorization server MAY ignore this parameter, particularly if it\n      is able to detect the token type automatically.  Values for this\n      field are defined in the \"OAuth Token Type Hints\" registry defined\n      in OAuth Token Revocation [RFC7009].\n\n   The introspection endpoint MAY accept other OPTIONAL parameters to\n   provide further context to the query.  For instance, an authorization\n   server may desire to know the IP address of the client accessing the\n   protected resource to determine if the correct client is likely to be\n   presenting the token.  The definition of this or any other parameters\n   are outside the scope of this specification, to be defined by service\n   documentation or extensions to this specification.  If the\n   authorization server is unable to determine the state of the token\n\n\n\nRicher                       Standards Track                    [Page 4]\n\f\nRFC 7662                   OAuth Introspection              October 2015\n\n\n   without additional information, it SHOULD return an introspection\n   response indicating the token is not active as described in\n   Section 2.2.\n\n   To prevent token scanning attacks, the endpoint MUST also require\n   some form of authorization to access this endpoint, such as client\n   authentication as described in OAuth 2.0 [RFC6749] or a separate\n   OAuth 2.0 access token such as the bearer token described in OAuth\n   2.0 Bearer Token Usage [RFC6750].  The methods of managing and\n   validating these authentication credentials are out of scope of this\n   specification.\n\n   For example, the following shows a protected resource calling the\n   token introspection endpoint to query about an OAuth 2.0 bearer"
+    },
+    {
+      "id": "intro-response",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc7662.txt",
+      "startLine": 287,
+      "endLine": 437,
+      "reason": "§2.2: 応答メンバー、キャッシュ、非アクティブなトークン",
+      "excerpt": "2.2.  Introspection Response\n\n   The server responds with a JSON object [RFC7159] in \"application/\n   json\" format with the following top-level members.\n\n   active\n      REQUIRED.  Boolean indicator of whether or not the presented token\n      is currently active.  The specifics of a token's \"active\" state\n      will vary depending on the implementation of the authorization\n      server and the information it keeps about its tokens, but a \"true\"\n      value return for the \"active\" property will generally indicate\n      that a given token has been issued by this authorization server,\n      has not been revoked by the resource owner, and is within its\n      given time window of validity (e.g., after its issuance time and\n      before its expiration time).  See Section 4 for information on\n      implementation of such checks.\n\n   scope\n      OPTIONAL.  A JSON string containing a space-separated list of\n      scopes associated with this token, in the format described in\n      Section 3.3 of OAuth 2.0 [RFC6749].\n\n   client_id\n      OPTIONAL.  Client identifier for the OAuth 2.0 client that\n      requested this token.\n\n   username\n      OPTIONAL.  Human-readable identifier for the resource owner who\n      authorized this token.\n\n   token_type\n      OPTIONAL.  Type of the token as defined in Section 5.1 of OAuth\n      2.0 [RFC6749].\n\n   exp\n      OPTIONAL.  Integer timestamp, measured in the number of seconds\n      since January 1 1970 UTC, indicating when this token will expire,\n      as defined in JWT [RFC7519].\n\n   iat\n      OPTIONAL.  Integer timestamp, measured in the number of seconds\n      since January 1 1970 UTC, indicating when this token was\n      originally issued, as defined in JWT [RFC7519].\n\n   nbf\n      OPTIONAL.  Integer timestamp, measured in the number of seconds\n      since January 1 1970 UTC, indicating when this token is not to be\n      used before, as defined in JWT [RFC7519].\n\n\n\nRicher                       Standards Track                    [Page 6]\n\f\nRFC 7662                   OAuth Introspection              October 2015\n\n\n   sub\n      OPTIONAL.  Subject of the token, as defined in JWT [RFC7519].\n      Usually a machine-readable identifier of the resource owner who\n      authorized this token.\n\n   aud\n      OPTIONAL.  Service-specific string identifier or list of string\n      identifiers representing the intended audience for this token, as\n      defined in JWT [RFC7519].\n\n   iss\n      OPTIONAL.  String representing the issuer of this token, as\n      defined in JWT [RFC7519].\n\n   jti\n      OPTIONAL.  String identifier for the token, as defined in JWT\n      [RFC7519].\n\n   Specific implementations MAY extend this structure with their own\n   service-specific response names as top-level members of this JSON\n   object.  Response names intended to be used across domains MUST be\n   registered in the \"OAuth Token Introspection Response\" registry\n   defined in Section 3.1.\n\n   The authorization server MAY respond differently to different\n   protected resources making the same request.  For instance, an\n   authorization server MAY limit which scopes from a given token are\n   returned for each protected resource to prevent a protected resource\n   from learning more about the larger network than is necessary for its\n   operation.\n\n   The response MAY be cached by the protected resource to improve\n   performance and reduce load on the introspection endpoint, but at the\n   cost of liveness of the information used by the protected resource to\n   make authorization decisions.  See Section 4 for more information\n   regarding the trade off when the response is cached.\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nRicher                       Standards Track                    [Page 7]\n\f\nRFC 7662                   OAuth Introspection              October 2015\n\n\n   For example, the following response contains a set of information\n   about an active token:\n\n   The following is a non-normative example response:\n\n     HTTP/1.1 200 OK\n     Content-Type: application/json\n\n     {\n      \"active\": true,\n      \"client_id\": \"l238j323ds-23ij4\",\n      \"username\": \"jdoe\",\n      \"scope\": \"read write dolphin\",\n      \"sub\": \"Z5O3upPC88QrAjx00dis\",\n      \"aud\": \"https://protected.example.net/resource\",\n      \"iss\": \"https://server.example.com/\",\n      \"exp\": 1419356238,\n      \"iat\": 1419350238,\n      \"extension_field\": \"twenty-seven\"\n     }\n\n   If the introspection call is properly authorized but the token is not\n   active, does not exist on this server, or the protected resource is\n   not allowed to introspect this particular token, then the\n   authorization server MUST return an introspection response with the\n   \"active\" field set to \"false\".  Note that to avoid disclosing too\n   much of the authorization server's state to a third party, the\n   authorization server SHOULD NOT include any additional information\n   about an inactive token, including why the token is inactive.\n\n   The following is a non-normative example response for a token that\n   has been revoked or is otherwise invalid:\n\n     HTTP/1.1 200 OK\n     Content-Type: application/json\n\n     {\n      \"active\": false\n     }"
+    },
+    {
+      "id": "proof",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 337,
+      "endLine": 357,
+      "reason": "§4: リクエストごとの proof と単独では認可できない理由",
+      "excerpt": "4.  DPoP Proof JWTs\n\n   DPoP introduces the concept of a DPoP proof, which is a JWT created\n   by the client and sent with an HTTP request using the DPoP header\n   field.  Each HTTP request requires a unique DPoP proof.\n\n   A valid DPoP proof demonstrates to the server that the client holds\n   the private key that was used to sign the DPoP proof JWT.  This\n   enables authorization servers to bind issued tokens to the\n   corresponding public key (as described in Section 5) and enables\n   resource servers to verify the key-binding of tokens that it receives\n   (see Section 7.1), which prevents said tokens from being used by any\n   entity that does not have access to the private key.\n\n   The DPoP proof demonstrates possession of a key and, by itself, is\n   not an authentication or access control mechanism.  When presented in\n   conjunction with a key-bound access token as described in\n   Section 7.1, the DPoP proof provides additional assurance about the\n   legitimacy of the client to present the access token.  However, a\n   valid DPoP proof JWT is not sufficient alone to make access control\n   decisions."
+    },
+    {
+      "id": "scheme",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 830,
+      "endLine": 854,
+      "reason": "§7.1: Authorization: DPoP とアクセス許可の条件",
+      "excerpt": "7.1.  The DPoP Authentication Scheme\n\n   A DPoP-bound access token is sent using the Authorization request\n   header field per Section 11.6.2 of [RFC9110] with an authentication\n   scheme of DPoP.  The syntax of the Authorization header field for the\n   DPoP scheme uses the token68 syntax defined in Section 11.2 of\n   [RFC9110] for credentials and is repeated below for ease of\n   reference.  The ABNF notation syntax for DPoP authentication scheme\n   credentials is as follows:\n\n   token68    = 1*( ALPHA / DIGIT /\n                    \"-\" / \".\" / \"_\" / \"~\" / \"+\" / \"/\" ) *\"=\"\n\n   credentials = \"DPoP\" 1*SP token68\n\n                 Figure 12: DPoP Authentication Scheme ABNF\n\n   For such an access token, a resource server MUST check that a DPoP\n   proof was also received in the DPoP header field of the HTTP request,\n   check the DPoP proof according to the rules in Section 4.3, and check\n   that the public key of the DPoP proof matches the public key to which\n   the access token is bound per Section 6.\n\n   The resource server MUST NOT grant access to the resource unless all\n   checks are successful."
+    },
+    {
+      "id": "resource",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 796,
+      "endLine": 828,
+      "reason": "§7: ath によるトークン差し替え防止と残る検証",
+      "excerpt": "7.  Protected Resource Access\n\n   Requests to DPoP-protected resources MUST include both a DPoP proof\n   as per Section 4 and the access token as described in Section 7.1.\n   The DPoP proof MUST include the ath claim with a valid hash of the\n   associated access token.\n\n   Binding the token value to the proof in this way prevents a proof to\n   be used with multiple different access token values across different\n   requests.  For example, if a client holds tokens bound to two\n   different resource owners, AT1 and AT2, and uses the same key when\n   talking to the authorization server, it's possible that these tokens\n   could be swapped.  Without the ath field to bind it, a captured\n   signature applied to AT1 could be replayed with AT2 instead, changing\n   the rights and access of the intended request.  This same\n   substitution prevention remains for rotated access tokens within the\n   same combination of client and resource owner -- a rotated token\n   value would require the calculation of a new proof.  This binding\n   additionally ensures that a proof intended for use with the access\n   token is not usable without an access token, or vice-versa.\n\n   The resource server is required to calculate the hash of the token\n   value presented and verify that it is the same as the hash value in\n   the ath field as described in Section 4.3.  Since the ath field value\n   is covered by the DPoP proof's signature, its inclusion binds the\n   access token value to the holder of the key used to generate the\n   signature.\n\n   Note that the ath field alone does not prevent replay of the DPoP\n   proof or provide binding to the request in which the proof is\n   presented, and it is still important to check the time window of the\n   proof as well as the included message parameters, such as htm and\n   htu."
+    },
+    {
+      "id": "pkce-challenge",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc7636.txt",
+      "startLine": 424,
+      "endLine": 460,
+      "reason": "§4.2: code_challenge の作り方（S256）",
+      "excerpt": "4.2.  Client Creates the Code Challenge\n\n   The client then creates a code challenge derived from the code\n   verifier by using one of the following transformations on the code\n   verifier:\n\n   plain\n      code_challenge = code_verifier\n\n   S256\n      code_challenge = BASE64URL-ENCODE(SHA256(ASCII(code_verifier)))\n\n   If the client is capable of using \"S256\", it MUST use \"S256\", as\n   \"S256\" is Mandatory To Implement (MTI) on the server.  Clients are\n   permitted to use \"plain\" only if they cannot support \"S256\" for some\n   technical reason and know via out-of-band configuration that the\n   server supports \"plain\".\n\n   The plain transformation is for compatibility with existing\n   deployments and for constrained environments that can't use the S256\n   transformation.\n\n\n\n\n\nSakimura, et al.             Standards Track                    [Page 8]\n\f\nRFC 7636                       OAUTH PKCE                 September 2015\n\n\n   ABNF for \"code_challenge\" is as follows.\n\n   code-challenge = 43*128unreserved\n   unreserved = ALPHA / DIGIT / \"-\" / \".\" / \"_\" / \"~\"\n   ALPHA = %x41-5A / %x61-7A\n   DIGIT = %x30-39"
+    },
+    {
+      "id": "at-validation",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc9068.txt",
+      "startLine": 364,
+      "endLine": 434,
+      "reason": "§4: JWT アクセストークンの検証と Bearer 以外のスキーム",
+      "excerpt": "4.  Validating JWT Access Tokens\n\n   For the purpose of facilitating validation data retrieval, it is\n   RECOMMENDED here that authorization servers sign JWT access tokens\n   with an asymmetric algorithm.\n\n   Authorization servers SHOULD use OAuth 2.0 Authorization Server\n   Metadata [RFC8414] to advertise to resource servers their signing\n   keys via \"jwks_uri\" and what \"iss\" claim value to expect via the\n   \"issuer\" metadata value.  Alternatively, authorization servers\n   implementing OpenID Connect MAY use the OpenID Connect discovery\n   [OpenID.Discovery] document for the same purpose.  If an\n   authorization server supports both OAuth 2.0 Authorization Server\n   Metadata and OpenID Connect discovery, the values provided MUST be\n   consistent across the two publication methods.\n\n   An authorization server MAY elect to use different keys to sign\n   OpenID Connect ID Tokens and JWT access tokens.  This specification\n   does not provide a mechanism for identifying a specific key as the\n   one used to sign JWT access tokens.  An authorization server can sign\n   JWT access tokens with any of the keys advertised via authorization\n   server (AS) metadata or OpenID Connect discovery.  See Section 5 for\n   further guidance on security implications.\n\n   Resource servers receiving a JWT access token MUST validate it in the\n   following manner.\n\n   *  The resource server MUST verify that the \"typ\" header value is\n      \"at+jwt\" or \"application/at+jwt\" and reject tokens carrying any\n      other value.\n\n   *  If the JWT access token is encrypted, decrypt it using the keys\n      and algorithms that the resource server specified during\n      registration.  If encryption was negotiated with the authorization\n      server at registration time and the incoming JWT access token is\n      not encrypted, the resource server SHOULD reject it.\n\n   *  The issuer identifier for the authorization server (which is\n      typically obtained during discovery) MUST exactly match the value\n      of the \"iss\" claim.\n\n   *  The resource server MUST validate that the \"aud\" claim contains a\n      resource indicator value corresponding to an identifier the\n      resource server expects for itself.  The JWT access token MUST be\n      rejected if \"aud\" does not contain a resource indicator of the\n      current resource server as a valid audience.\n\n   *  The resource server MUST validate the signature of all incoming\n      JWT access tokens according to [RFC7515] using the algorithm\n      specified in the JWT \"alg\" Header Parameter.  The resource server\n      MUST reject any JWT in which the value of \"alg\" is \"none\".  The\n      resource server MUST use the keys provided by the authorization\n      server.\n\n   *  The current time MUST be before the time represented by the \"exp\"\n      claim.  Implementers MAY provide for some small leeway, usually no\n      more than a few minutes, to account for clock skew.\n\n   The resource server MUST handle errors as described in Section 3.1 of\n   [RFC6750].  In particular, in case of any failure in the validation\n   checks listed above, the authorization server response MUST include\n   the error code \"invalid_token\".  Please note that this requirement\n   does not prevent JWT access tokens from using authentication schemes\n   other than \"Bearer\".\n\n   If the JWT access token includes authorization claims as described in\n   Section 2.2.3, the resource server SHOULD use them in combination\n   with any other contextual information available to determine whether\n   the current call should be authorized or rejected.  Details about how\n   a resource server performs those checks is beyond the scope of this\n   profile specification."
+    },
+    {
+      "id": "at-header",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc9068.txt",
+      "startLine": 158,
+      "endLine": 180,
+      "reason": "§2.1: JWT アクセストークンの typ=at+jwt",
+      "excerpt": "2.1.  Header\n\n   JWT access tokens MUST be signed.  Although JWT access tokens can use\n   any signing algorithm, use of asymmetric cryptography is RECOMMENDED\n   as it simplifies the process of acquiring validation information for\n   resource servers (see Section 4).  JWT access tokens MUST NOT use\n   \"none\" as the signing algorithm.  See Section 4 for more details.\n\n   Authorization servers and resource servers conforming to this\n   specification MUST include RS256 (as defined in [RFC7518]) among\n   their supported signature algorithms.\n\n   This specification registers the \"application/at+jwt\" media type,\n   which can be used to indicate that the content is a JWT access token.\n   JWT access tokens MUST include this media type in the \"typ\" header\n   parameter to explicitly declare that the JWT represents an access\n   token complying with this profile.  Per the definition of \"typ\" in\n   Section 4.1.9 of [RFC7515], it is RECOMMENDED that the \"application/\"\n   prefix be omitted.  Therefore, the \"typ\" value used SHOULD be\n   \"at+jwt\".  See the Security Considerations section for details on the\n   importance of preventing OpenID Connect ID Tokens (as defined by\n   Section 2 of [OpenID.Core]) from being accepted as access tokens by\n   resource servers implementing this profile."
+    },
+    {
+      "id": "jws-b64url",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc7515.txt",
+      "startLine": 287,
+      "endLine": 299,
+      "reason": "§2: base64url（パディングなし）と JWS Signing Input",
+      "excerpt": "   Base64url Encoding\n      Base64 encoding using the URL- and filename-safe character set\n      defined in Section 5 of RFC 4648 [RFC4648], with all trailing '='\n      characters omitted (as permitted by Section 3.2) and without the\n      inclusion of any line breaks, whitespace, or other additional\n      characters.  Note that the base64url encoding of the empty octet\n      sequence is the empty string.  (See Appendix C for notes on\n      implementing base64url encoding without padding.)\n\n   JWS Signing Input\n      The input to the digital signature or MAC computation.  Its value\n      is ASCII(BASE64URL(UTF8(JWS Protected Header)) || '.' ||\n      BASE64URL(JWS Payload))."
+    },
+    {
+      "id": "thumb-json",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc7638.txt",
+      "startLine": 439,
+      "endLine": 493,
+      "reason": "§4: JSON.stringify と並べ替えの注意",
+      "excerpt": "4.  Practical JSON and Unicode Considerations\n\n   Implementations will almost certainly use functionality provided by\n   the platform's JSON support when parsing the JWK and emitting the\n   JSON object used as the hash input.  As a practical consideration,\n   future JWK member names and values should be avoided for which\n   different platforms or libraries might emit different\n   representations.  As of the time of this writing, all defined JWK\n\n\n\nJones & Sakimura             Standards Track                    [Page 8]\n\f\nRFC 7638              JSON Web Key (JWK) Thumbprint       September 2015\n\n\n   member names and values use only printable ASCII characters, which\n   should not exhibit this problem.  Note however, that JSON.stringify()\n   cannot be counted on to lexicographically sort the members of JSON\n   objects, so while it could be used to emit some kinds of member\n   values, different code is likely to be needed to perform the sorting.\n\n   In particular, while the operation of lexicographically ordering\n   member names by their Unicode code points is well defined, different\n   platform sort functions may produce different results for non-ASCII\n   characters, in ways that may not be obvious to developers.  If\n   writers of future specifications defining new JWK key type values\n   choose to restrict themselves to printable ASCII member names and\n   values (which are for machine and not human consumption anyway), some\n   future interoperability problems might be avoided.\n\n   However, if new JWK members are defined that use non-ASCII member\n   names or values, their definitions should specify the exact Unicode\n   code point sequences used to represent them.  This is particularly\n   important in cases in which Unicode normalization could result in the\n   transformation of one set of code points into another under any\n   circumstances.\n\n   Use of escaped characters in JWKs for which JWK Thumbprints will be\n   computed should be avoided.  Use of escaped characters in the hash\n   input JWKs derived from these original JWKs is prohibited.\n\n   There is a natural representation to use for numeric values that are\n   integers.  However, this specification does not attempt to define a\n   standard representation for numbers that are not integers or that\n   contain an exponent component.  This is not expected to be a problem\n   in practice, as the required members of JWK representations are\n   expected to use only numbers that are integers.\n\n   Use of number representations containing fraction or exponent parts\n   in JWKs for which JWK Thumbprints will be computed should be avoided.\n\n   All of these practical considerations are really an instance of Jon\n   Postel's principle: \"Be liberal in what you accept, and conservative\n   in what you send.\""
+    },
+    {
+      "id": "intro-error",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc7662.txt",
+      "startLine": 439,
+      "endLine": 467,
+      "reason": "§2.3: エラー応答と active=false の区別",
+      "excerpt": "2.3.  Error Response\n\n   If the protected resource uses OAuth 2.0 client credentials to\n   authenticate to the introspection endpoint and its credentials are\n   invalid, the authorization server responds with an HTTP 401\n   (Unauthorized) as described in Section 5.2 of OAuth 2.0 [RFC6749].\n\n\n\n\n\nRicher                       Standards Track                    [Page 8]\n\f\nRFC 7662                   OAuth Introspection              October 2015\n\n\n   If the protected resource uses an OAuth 2.0 bearer token to authorize\n   its call to the introspection endpoint and the token used for\n   authorization does not contain sufficient privileges or is otherwise\n   invalid for this request, the authorization server responds with an\n   HTTP 401 code as described in Section 3 of OAuth 2.0 Bearer Token\n   Usage [RFC6750].\n\n   Note that a properly formed and authorized query for an inactive or\n   otherwise invalid token (or a token the protected resource is not\n   allowed to know about) is not considered an error response by this\n   specification.  In these cases, the authorization server MUST instead\n   respond with an introspection response with the \"active\" field set to\n   \"false\" as described in Section 2.2."
+    },
+    {
+      "id": "challenge",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 899,
+      "endLine": 936,
+      "reason": "§7.1: WWW-Authenticate のエラー・algs・未知パラメーター",
+      "excerpt": "   Upon receipt of a request to a protected resource within the\n   protection space requiring DPoP authentication, the server can\n   respond with a challenge to the client to provide DPoP authentication\n   information if the request does not include valid credentials or does\n   not contain an access token sufficient for access.  Such a challenge\n   is made using the 401 (Unauthorized) response status code ([RFC9110],\n   Section 15.5.2) and the WWW-Authenticate header field ([RFC9110],\n   Section 11.6.1).  The server MAY include the WWW-Authenticate header\n   in response to other conditions as well.\n\n   In such challenges:\n\n   *  The scheme name is DPoP.\n   *  The authentication parameter realm MAY be included to indicate the\n      scope of protection in the manner described in [RFC9110],\n      Section 11.5.\n   *  A scope authentication parameter MAY be included as defined in\n      [RFC6750], Section 3.\n   *  An error parameter ([RFC6750], Section 3) SHOULD be included to\n      indicate the reason why the request was declined, if the request\n      included an access token but failed authentication.  The error\n      parameter values described in [RFC6750], Section 3.1 are suitable,\n      as are any appropriate values defined by extension.  The value\n      use_dpop_nonce can be used as described in Section 9 to signal\n      that a nonce is needed in the DPoP proof of a subsequent\n      request(s).  Additionally, invalid_dpop_proof is used to indicate\n      that the DPoP proof itself was deemed invalid based on the\n      criteria of Section 4.3.\n   *  An error_description parameter ([RFC6750], Section 3) MAY be\n      included along with the error parameter to provide developers a\n      human-readable explanation that is not meant to be displayed to\n      end-users.\n   *  An algs parameter SHOULD be included to signal to the client the\n      JWS algorithms that are acceptable for the DPoP proof JWT.  The\n      value of the parameter is a space-delimited list of JWS alg\n      (Algorithm) header values ([RFC7515], Section 4.1.1).\n   *  Additional authentication parameters MAY be used, and unknown\n      parameters MUST be ignored by recipients."
+    },
+    {
+      "id": "bearer-errors",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc6750.txt",
+      "startLine": 463,
+      "endLine": 498,
+      "reason": "§3.1: invalid_request・invalid_token・insufficient_scope",
+      "excerpt": "3.1.  Error Codes\n\n   When a request fails, the resource server responds using the\n   appropriate HTTP status code (typically, 400, 401, 403, or 405) and\n   includes one of the following error codes in the response:\n\n   invalid_request\n         The request is missing a required parameter, includes an\n         unsupported parameter or parameter value, repeats the same\n         parameter, uses more than one method for including an access\n         token, or is otherwise malformed.  The resource server SHOULD\n         respond with the HTTP 400 (Bad Request) status code.\n\n   invalid_token\n         The access token provided is expired, revoked, malformed, or\n         invalid for other reasons.  The resource SHOULD respond with\n         the HTTP 401 (Unauthorized) status code.  The client MAY\n         request a new access token and retry the protected resource\n         request.\n\n   insufficient_scope\n         The request requires higher privileges than provided by the\n         access token.  The resource server SHOULD respond with the HTTP\n         403 (Forbidden) status code and MAY include the \"scope\"\n         attribute with the scope necessary to access the protected\n         resource.\n\n   If the request lacks any authentication information (e.g., the client\n   was unaware that authentication is necessary or attempted using an\n   unsupported authentication method), the resource server SHOULD NOT\n   include an error code or other error information.\n\n   For example:\n\n     HTTP/1.1 401 Unauthorized\n     WWW-Authenticate: Bearer realm=\"example\""
+    },
+    {
+      "id": "confirmation",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 684,
+      "endLine": 699,
+      "reason": "§6: RS が取得する鍵の結び付け情報",
+      "excerpt": "6.  Public Key Confirmation\n\n   Resource servers MUST be able to reliably identify whether an access\n   token is DPoP-bound and ascertain sufficient information to verify\n   the binding to the public key of the DPoP proof (see Section 7.1).\n   Such a binding is accomplished by associating the public key with the\n   token in a way that can be accessed by the protected resource, such\n   as embedding the JWK hash in the issued access token directly, using\n   the syntax described in Section 6.1, or through token introspection\n   as described in Section 6.2.  Other methods of associating a public\n   key with an access token are possible per an agreement by the\n   authorization server and the protected resource; however, they are\n   beyond the scope of this specification.\n\n   Resource servers supporting DPoP MUST ensure that the public key from\n   the DPoP proof matches the one bound to the access token."
+    },
+    {
+      "id": "intro-cache",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc7662.txt",
+      "startLine": 706,
+      "endLine": 736,
+      "reason": "§4: introspection の応答のキャッシュと exp",
+      "excerpt": "   Since a protected resource MAY cache the response of the\n   introspection endpoint, designers of an OAuth 2.0 system using this\n   protocol MUST consider the performance and security trade-offs\n   inherent in caching security information such as this.  A less\n   aggressive cache with a short timeout will provide the protected\n   resource with more up-to-date information (due to it needing to query\n   the introspection endpoint more often) at the cost of increased\n   network traffic and load on the introspection endpoint.  A more\n   aggressive cache with a longer duration will minimize network traffic\n   and load on the introspection endpoint, but at the risk of stale\n   information about the token.  For example, the token may be revoked\n   while the protected resource is relying on the value of the cached\n   response to make authorization decisions.  This creates a window\n   during which a revoked token could be used at the protected resource.\n   Consequently, an acceptable cache validity duration needs to be\n   carefully considered given the concerns and sensitivities of the\n   protected resource being accessed and the likelihood of a token being\n   revoked or invalidated in the interim period.  Highly sensitive\n   environments can opt to disable caching entirely on the protected\n   resource to eliminate the risk of stale cached information entirely,\n   again at the cost of increased network traffic and server load.  If\n\n\n\nRicher                       Standards Track                   [Page 13]\n\f\nRFC 7662                   OAuth Introspection              October 2015\n\n\n   the response contains the \"exp\" parameter (expiration), the response\n   MUST NOT be cached beyond the time indicated therein."
+    },
+    {
+      "id": "challenge-example",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 938,
+      "endLine": 956,
+      "reason": "§7.1: 認証なしの 401 と鍵の結び付け失敗の 401 の例",
+      "excerpt": "   Figure 15 shows a response to a protected resource request without\n   authentication.\n\n    HTTP/1.1 401 Unauthorized\n    WWW-Authenticate: DPoP algs=\"ES256 PS256\"\n\n    Figure 15: HTTP 401 Response to a Protected Resource Request without\n                               Authentication\n\n   Figure 16 shows a response to a protected resource request that was\n   rejected due to the failed confirmation of the DPoP binding in the\n   access token.  Figure 16 uses \"\\\" line wrapping per [RFC8792].\n\n   HTTP/1.1 401 Unauthorized\n   WWW-Authenticate: DPoP error=\"invalid_token\", \\\n      error_description=\"Invalid DPoP key binding\", algs=\"ES256\"\n\n     Figure 16: HTTP 401 Response to a Protected Resource Request with\n                              an Invalid Token"
+    },
+    {
+      "id": "refresh",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 610,
+      "endLine": 649,
+      "reason": "§5: public/confidential の refresh token と Bearer 応答",
+      "excerpt": "   When an authorization server supporting DPoP issues a refresh token\n   to a public client that presents a valid DPoP proof at the token\n   endpoint, the refresh token MUST be bound to the respective public\n   key.  The binding MUST be validated when the refresh token is later\n   presented to get new access tokens.  As a result, such a client MUST\n   present a DPoP proof for the same key that was used to obtain the\n   refresh token each time that refresh token is used to obtain a new\n   access token.  The implementation details of the binding of the\n   refresh token are at the discretion of the authorization server.\n   Since the authorization server both produces and validates its\n   refresh tokens, there is no interoperability consideration in the\n   specific details of the binding.\n\n   An authorization server MAY elect to issue access tokens that are not\n   DPoP bound, which is signaled to the client with a value of Bearer in\n   the token_type parameter of the access token response per [RFC6750].\n   For a public client that is also issued a refresh token, this has the\n   effect of DPoP-binding the refresh token alone, which can improve the\n   security posture even when protected resources are not updated to\n   support DPoP.\n\n   If the access token response contains a different token_type value\n   than DPoP, the access token protection provided by DPoP is not given.\n   The client MUST discard the response in this case if this protection\n   is deemed important for the security of the application; otherwise,\n   the client may continue as in a regular OAuth interaction.\n\n   Refresh tokens issued to confidential clients (those having\n   established authentication credentials with the authorization server)\n   are not bound to the DPoP proof public key because they are already\n   sender-constrained with a different existing mechanism.  The OAuth\n   2.0 Authorization Framework [RFC6749] already requires that an\n   authorization server bind refresh tokens to the client to which they\n   were issued and that confidential clients authenticate to the\n   authorization server when presenting a refresh token.  As a result,\n   such refresh tokens are sender-constrained by way of the client\n   identifier and the associated authentication requirement.  This\n   existing sender-constraining mechanism is more flexible (e.g., it\n   allows credential rotation for the client without invalidating\n   refresh tokens) than binding directly to a particular public key."
+    }
+  ],
+  "questions": [
+    {
+      "id": "thumbprint-input-ec",
+      "type": "choice",
+      "category": "knowledge",
+      "scenario": "proof の jwk は {\"kty\":\"EC\",\"use\":\"sig\",\"crv\":\"P-256\",\"kid\":\"k1\",\"x\":\"X\",\"y\":\"Y\",\"alg\":\"ES256\"} でした（X・Y は base64url の座標）。",
+      "prompt": "JWK SHA-256 Thumbprint を計算するとき、SHA-256 に入力する JSON 文字列はどれですか？",
+      "options": [
+        "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"X\",\"y\":\"Y\"}",
+        "{\"alg\":\"ES256\",\"crv\":\"P-256\",\"kid\":\"k1\",\"kty\":\"EC\",\"use\":\"sig\",\"x\":\"X\",\"y\":\"Y\"}",
+        "{\"crv\":\"P-256\",\"kid\":\"k1\",\"kty\":\"EC\",\"x\":\"X\",\"y\":\"Y\"}",
+        "{\"crv\": \"P-256\", \"kty\": \"EC\", \"x\": \"X\", \"y\": \"Y\"}",
+        "{\"crv\":\"P-256\",\"kty\":\"EC\",\"x\":\"X\",\"y\":\"Y\"}"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "thumb-def",
+        "thumb-members",
+        "thumb-optional",
+        "jkt"
+      ]
+    },
+    {
+      "id": "thumbprint-members",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "鍵の種類ごとに、JWK Thumbprint の入力に使うメンバーを入力での並び順で示したとき、正しい組み合わせはどれですか？",
+      "options": [
+        "EC：crv, kty, x, y　RSA：e, n　OKP：crv, x",
+        "EC：crv, kty, x, y　RSA：e, kty, n　OKP：crv, kty, x",
+        "EC：crv, kty, x, y　RSA：alg, e, kty, n　OKP：crv, kty, x",
+        "EC：kty, crv, x, y　RSA：kty, n, e　OKP：kty, crv, x",
+        "EC：crv, kty, x, y　RSA：e, kty, n　OKP：crv, kty, x, y"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "thumb-members",
+        "okp-key",
+        "thumb-order"
+      ]
+    },
+    {
+      "id": "kid-change",
+      "type": "choice",
+      "category": "knowledge",
+      "scenario": "クライアントは同じ鍵ペアを使い続けたまま、proof の jwk の kid を \"a\" から \"b\" に変え、\"use\":\"sig\" も追加しました。アクセストークンは kid を変える前に取得したものです。",
+      "prompt": "RS での鍵の結び付けの照合はどうなりますか？",
+      "options": [
+        "一致する。Thumbprint は必須メンバーだけから計算するので、kid や use の有無で値は変わらない",
+        "一致しない。kid が変わると Thumbprint も変わるので、新しい kid の鍵でトークンを取り直す必要がある",
+        "一致しない。use を追加すると鍵の用途が変わり、RS は同じ鍵でも別の鍵として扱わなければならない",
+        "一致するかは、AS が発行時に記録した kid と比べて決める。RS だけでは判断できない",
+        "一致しない。kid を含む JWK の Thumbprint では、識別のために kid も入力に加えるため"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "thumb-optional",
+        "jkt",
+        "checks"
+      ]
+    },
+    {
+      "id": "private-jwk-thumbprint",
+      "type": "choice",
+      "category": "debugging",
+      "scenario": "クライアントは、保存している秘密鍵の JWK（kty・crv・x・y・d を含む）から dpop_jkt を計算するとき、メンバーを辞書順にした {\"crv\":…,\"d\":…,\"kty\":…,\"x\":…,\"y\":…} を入力にしていました。AS はトークン要求を、dpop_jkt との不一致で拒否します。",
+      "prompt": "正しい説明はどれですか？",
+      "options": [
+        "秘密鍵の JWK の Thumbprint は SHA-512 で計算する決まりである。ハッシュ関数を変える",
+        "秘密鍵の JWK の Thumbprint は定義されていない。公開鍵だけの JWK を作り直す必要がある",
+        "d を含めた値が正しい。AS は proof の jwk にも d を含めるよう、クライアントに求めるべきである",
+        "秘密鍵の JWK の Thumbprint は、公開鍵の JWK と同じ値になるよう計算する。d は入力に含めない",
+        "d を含めるかどうかは任意である。AS と取り決めれば、d を含めた値を使ってもよい"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "thumb-private",
+        "thumb-members",
+        "code",
+        "syntax"
+      ]
+    },
+    {
+      "id": "thumbprint-denylist",
+      "type": "choice",
+      "category": "comparison",
+      "scenario": "AS は、漏えいが判明した DPoP 鍵の JWK Thumbprint を拒否リストに登録し、トークン要求の proof の鍵の Thumbprint がリストにあれば拒否しています。",
+      "prompt": "この対策の評価として正しいものはどれですか？",
+      "options": [
+        "Thumbprint の比較は大文字・小文字を区別しないので、表現の違う同じ鍵も同じ値として検出できる",
+        "Thumbprint は任意メンバーを含まないので、鍵の表現を変えても同じ値になり、確実に排除できる",
+        "同じ鍵でも、表現の違い（e を \"AAEAAQ\" と書くなど）や鍵の変形で値が変わり得るので、確実には排除できない",
+        "SHA-256 は第二原像計算困難性を持つので、拒否リストに載せた鍵の使用を、表現によらず確実に排除できる",
+        "拒否リストは不要で、認可要求に dpop_jkt を使わせれば、漏えいした鍵は自動的に使えなくなる"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "thumb-security",
+        "hash-binding",
+        "jwa-rsa-public"
+      ]
+    },
+    {
+      "id": "cnf-meaning",
+      "type": "choice",
+      "category": "vocabulary",
+      "term": "cnf（confirmation）クレーム",
+      "prompt": "JWT の cnf クレームが宣言している内容はどれですか？",
+      "options": [
+        "JWT を暗号化して送るときに発行者が使う、受信者の公開鍵の識別子",
+        "JWT の署名を受信者が検証するときに使う、発行者（AS）の公開鍵そのもの",
+        "リソースオーナーが同意画面で、クライアントのアクセスを確認したこと",
+        "発行時に AS がクライアントの鍵を確認済みなので、受信者は所持を確認しなくてよいこと",
+        "JWT の提示者が特定の鍵を所持しており、受信者がその所持を暗号的に確認できること"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "cnf-semantics",
+        "jkt"
+      ]
+    },
+    {
+      "id": "cnf-single-key",
+      "type": "choice",
+      "category": "design",
+      "scenario": "同じユーザーが使う 2 つのクライアントインスタンス（それぞれ別の DPoP 鍵を持つ）で、1 つのアクセストークンを共有したいという要望がありました。",
+      "prompt": "DPoP による送信者制約を保ったまま要望に応えるとき、RFC 7800 と RFC 9449 に沿う設計はどれですか？",
+      "options": [
+        "cnf を省いて、どちらのインスタンスからでも同じように使えるトークンにして発行する",
+        "cnf に一方の鍵の jkt と、もう一方の鍵の jwk を入れて、1 つのトークンで 2 つの鍵を表す",
+        "cnf.jkt を配列にして 2 つの鍵の Thumbprint を並べ、どちらの proof でも照合を通るようにする",
+        "cnf は 1 つの鍵を表すので、インスタンスの鍵ごとに別のトークンを発行する",
+        "2 つの鍵の Thumbprint を連結して SHA-256 をとった値を jkt に入れ、両方の鍵に結び付ける"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "cnf-claim",
+        "jkt",
+        "checks"
+      ]
+    },
+    {
+      "id": "unknown-cnf-ignored",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "DPoP を知らない RS（RFC 6750 だけに対応）が、cnf.jkt を含む JWT アクセストークンを Bearer として受理し得る理由として、RFC 9449 が挙げているものはどれですか？",
+      "options": [
+        "JWT は理解できないクレームを無視し、introspection も追加のメンバーに機能上の要件を課さないため",
+        "AS が、DPoP を知らない RS 向けの introspection 応答からは cnf を取り除いて返すため",
+        "RFC 6750 が、Bearer トークンに含まれる cnf クレームは無視するよう、RS に明記して求めているため",
+        "cnf.jkt は AS が暗号化して埋め込むので、DPoP を知らない RS には中身が読めず、確かめようがないため",
+        "RFC 9449 が、DPoP を知らない RS に、DPoP-bound トークンの Bearer としての受理を求めているため"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "bearer",
+        "jwt-claims",
+        "cnf-claim",
+        "cnf-security"
+      ]
+    },
+    {
+      "id": "aud-and-pop",
+      "type": "choice",
+      "category": "comparison",
+      "prompt": "RFC 9449 §2 は、悪意のある RS がトークンを別のエンドポイントで使う問題には、オーディエンス制限より送信者制約のほうが堅牢だと述べています。一方 RFC 7800 §4 は、所持の証明と一緒にオーディエンス制限も使うよう勧めています。両者と一致する理解はどれですか？",
+      "options": [
+        "DPoP-bound のトークンには aud を含めてはならない。RFC 9449 が、送信者制約との重複を禁じている",
+        "DPoP の proof は URI に結び付かない。そのため、エンドポイントの区別には aud が必須である",
+        "所持の証明は権限のない送信者を、オーディエンス制限は宛先の違うトークンを拒否する。併用できる",
+        "aud を検証すれば、別の RS での使用は防げる。proof の htu と ath の検証は省略できる",
+        "DPoP を使えば aud は意味を持たなくなる。RFC 7800 の勧めは、DPoP のトークンには当てはまらない"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "objectives",
+        "cnf-security",
+        "syntax"
+      ]
+    },
+    {
+      "id": "introspection-facts",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "DPoP-bound のアクセストークンの introspection について、RFC 9449 と RFC 7662 の記述と一致するものはどれですか？",
+      "options": [
+        "Bearer として提示された DPoP-bound トークンを RS が問い合わせると、AS は active=false を返す",
+        "RS は自身の認証情報で問い合わせ、応答の cnf.jkt を使って、結び付けを自分で検証する",
+        "introspection 応答には token_type を必ず含める。その値は DPoP でなければならない",
+        "RS はクライアントの proof を introspection 要求に転送する。AS が結び付けを検証し、結果を active で返す",
+        "AS は応答の cnf に jwk 全体を入れる。Thumbprint だけでは、proof の鍵と比べられないため"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "introspection",
+        "intro-request",
+        "intro-response"
+      ]
+    },
+    {
+      "id": "introspection-cache",
+      "type": "choice",
+      "category": "debugging",
+      "scenario": "RS が introspection の結果（active と cnf.jkt）をトークン値ごとに 5 分間キャッシュし、キャッシュがある間は「このトークンは検証済み」として DPoP proof の検証を省略しています。",
+      "prompt": "正しい修正はどれですか？",
+      "options": [
+        "introspection の代わりに、最初の proof の jti をキャッシュし、同じトークンの以降の要求を通す",
+        "DPoP-bound のトークンでは、introspection の結果をキャッシュしてはならない。毎回問い合わせる",
+        "キャッシュの有効期間を proof の時間窓より短くすれば、キャッシュがある間は proof の検証を省いてよい",
+        "キャッシュがある間は ath の照合だけを省き、署名や htm・htu など、それ以外の proof の検証を行う",
+        "キャッシュしてよいのはトークンの状態や cnf.jkt で、proof の検証は要求ごとに行う"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "intro-response",
+        "proof",
+        "checks",
+        "scheme",
+        "resource"
+      ]
+    },
+    {
+      "id": "hash-inputs",
+      "type": "choice",
+      "category": "comparison",
+      "prompt": "次の値はどれも「SHA-256 の結果を base64url にしたもの」です。それぞれのハッシュの入力として正しい組み合わせはどれですか？",
+      "options": [
+        "ath：アクセストークンの値の ASCII　jkt：公開鍵の DER（SubjectPublicKeyInfo）　dpop_jkt：jkt と同じ計算　code_challenge（S256）：code_verifier の ASCII",
+        "ath：アクセストークンの値の ASCII　jkt：必須メンバーだけの JWK の JSON（UTF-8）　dpop_jkt：jkt と同じ計算　code_challenge（S256）：code_verifier の ASCII",
+        "ath：Authorization ヘッダーの値「DPoP <トークン>」の ASCII　jkt：必須メンバーだけの JWK の JSON（UTF-8）　dpop_jkt：jkt と同じ計算　code_challenge（S256）：code_verifier の ASCII",
+        "ath：JWT アクセストークンを復号したペイロードの JSON　jkt：必須メンバーだけの JWK の JSON（UTF-8）　dpop_jkt：jkt と同じ計算　code_challenge（S256）：code_verifier の ASCII",
+        "ath：アクセストークンの値の ASCII　jkt：必須メンバーだけの JWK の JSON（UTF-8）　dpop_jkt：AS の署名鍵の Thumbprint　code_challenge（S256）：code_verifier の ASCII"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "syntax",
+        "jkt",
+        "code",
+        "pkce-challenge",
+        "thumb-def"
+      ]
+    },
+    {
+      "id": "two-jwts",
+      "type": "choice",
+      "category": "knowledge",
+      "scenario": "RS が、RFC 9068 の JWT アクセストークン（cnf.jkt を含む）と DPoP proof の 2 つの JWT を受け取りました。",
+      "prompt": "それぞれの署名の検証に使う鍵として、正しい組み合わせはどれですか？",
+      "options": [
+        "アクセストークン：AS が提供する鍵　proof：クライアント登録時の jwks の鍵（kid で選ぶ）",
+        "アクセストークン：cnf.jkt が指すクライアントの鍵　proof：proof の jwk の公開鍵",
+        "アクセストークン：AS が提供する鍵（jwks_uri など）　proof：proof の jwk の公開鍵",
+        "アクセストークン：proof の jwk の公開鍵　proof：AS が提供する鍵（jwks_uri など）",
+        "アクセストークン：AS が提供する鍵　proof：AS が提供する鍵（kid で選ぶ）"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "at-validation",
+        "at-header",
+        "checks",
+        "jkt"
+      ]
+    },
+    {
+      "id": "jkt-format",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "次のうち、jkt（または dpop_jkt）の値として正しい形式のものはどれですか？",
+      "options": [
+        "0ZcOCORZNYy-DWpqq30jZyJGHTN0d2HglBV3uiguA4I=",
+        "sha-256:0ZcOCORZNYy-DWpqq30jZyJGHTN0d2HglBV3uiguA4I",
+        "d1970e08e459358cbe0d6a6aab7d236722461d33747761e0941577ba282e0382",
+        "0ZcOCORZNYy-DWpqq30jZyJGHTN0d2HglBV3uiguA4I",
+        "0ZcOCORZNYy+DWpqq30jZyJGHTN0d2HglBV3uiguA4I="
+      ],
+      "points": 1,
+      "referenceIds": [
+        "jkt",
+        "jws-b64url",
+        "code"
+      ]
+    },
+    {
+      "id": "thumbprint-code",
+      "type": "choice",
+      "category": "debugging",
+      "scenario": "RS の実装で、proof の EC 公開鍵 jwk から jkt を計算する式の候補が 5 つあります。sha256 は UTF-8 文字列の SHA-256 をバイト列で返し、b64url はパディングなしの base64url を、hex は 16 進文字列を返します。jwk には kid などの任意メンバーが含まれることがあります。JavaScript の JSON.stringify は、replacer を指定しない場合、crv のような整数の形でないキーを追加した順に出力します。",
+      "prompt": "cnf.jkt と比べる値を正しく計算する式はどれですか？",
+      "options": [
+        "b64url(sha256(JSON.stringify({ crv: jwk.crv, kty: jwk.kty, x: jwk.x, y: jwk.y })))",
+        "b64url(sha256(JSON.stringify(jwk, Object.keys(jwk).sort())))",
+        "hex(sha256(JSON.stringify({ crv: jwk.crv, kty: jwk.kty, x: jwk.x, y: jwk.y })))",
+        "b64url(sha256(JSON.stringify({ kty: jwk.kty, crv: jwk.crv, x: jwk.x, y: jwk.y })))",
+        "b64url(sha256(JSON.stringify({ crv: jwk.crv, kty: jwk.kty, x: jwk.x, y: jwk.y }, null, 1)))"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "thumb-def",
+        "thumb-json",
+        "thumb-order",
+        "jkt"
+      ]
+    },
+    {
+      "id": "inactive-token",
+      "type": "choice",
+      "category": "knowledge",
+      "scenario": "RS が、Authorization: DPoP で受け取ったトークンの introspection を要求したところ、HTTP 200 で {\"active\": false} だけが返りました。",
+      "prompt": "正しい解釈と RS の対応はどれですか？",
+      "options": [
+        "cnf が含まれていないので、DPoP-bound ではないトークンとみなす。Bearer のトークンとして扱い、受理する",
+        "RS の introspection 用の認証情報が無効だという意味である。RS の設定を見直して再試行する",
+        "introspection に失敗したことを示すエラー応答である。RS は時間をおいて、同じ introspection を再試行する",
+        "有効でないトークンを示す正常な応答で、RS は 401 の DPoP の challenge（invalid_token）で拒否する",
+        "AS が無効の理由を返していないのは仕様違反である。RS は AS に理由を含めるよう求める"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "intro-response",
+        "intro-error",
+        "challenge",
+        "bearer-errors"
+      ]
+    },
+    {
+      "id": "jwt-at-dpop",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "RFC 9068 の JWT アクセストークンと DPoP の関係として正しいものはどれですか？",
+      "options": [
+        "RFC 9068 のトークンも DPoP-bound にでき、Authorization: DPoP で送れる。他のスキームは妨げられない",
+        "DPoP で使うときは、アクセストークンの typ を at+jwt から dpop+jwt に変えて区別する必要がある",
+        "RFC 9068 のトークンでは cnf.jkt を使わない。proof の ath だけで、鍵との結び付けを確かめる",
+        "DPoP で使うときは proof の typ を確かめるので、RS は at+jwt の typ の確認を省略してよい",
+        "RFC 9068 のトークンは Bearer 専用である。DPoP-bound にするには opaque なトークンにする必要がある"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "at-validation",
+        "at-header",
+        "jkt",
+        "resource"
+      ]
+    },
+    {
+      "id": "thumbprint-steps",
+      "type": "ordering",
+      "category": "flow",
+      "prompt": "RS が proof の jwk（EC 鍵）から Thumbprint を計算し、アクセストークンの cnf.jkt と照合する手順を並べてください。",
+      "items": [
+        {
+          "id": "compare",
+          "text": "結果をパディングなしの base64url にして、cnf.jkt と完全に一致するか比べる"
+        },
+        {
+          "id": "take",
+          "text": "proof の JOSE ヘッダーから jwk を取り出し、秘密鍵のメンバーがないことを確かめる"
+        },
+        {
+          "id": "utf8",
+          "text": "JSON 文字列を UTF-8 のバイト列にする"
+        },
+        {
+          "id": "hash",
+          "text": "バイト列の SHA-256 を計算する"
+        },
+        {
+          "id": "select",
+          "text": "crv・kty・x・y の 4 つのメンバーだけを取り出す"
+        },
+        {
+          "id": "order",
+          "text": "メンバー名の辞書順に並べ、空白も改行も入れずに JSON にする"
+        }
+      ],
+      "points": 2,
+      "referenceIds": [
+        "thumb-def",
+        "thumb-members",
+        "thumb-order",
+        "jkt",
+        "checks"
+      ]
+    },
+    {
+      "id": "binding-check-design",
+      "type": "written",
+      "category": "design",
+      "scenario": "RS は、JWT 形式のアクセストークン（RFC 9068、cnf.jkt を含む場合がある）と、opaque なアクセストークン（introspection で確かめる）の両方を受け取ります。すべての API で DPoP-bound のトークンを必須にする方針です。",
+      "prompt": "トークンの種類ごとの結び付けの情報源、鍵の照合方法、introspection の結果のキャッシュ、DPoP-bound でないトークンの扱い、失敗時の応答を設計してください。",
+      "points": 6,
+      "referenceIds": [
+        "at-validation",
+        "introspection",
+        "thumb-def",
+        "confirmation",
+        "intro-response",
+        "challenge"
+      ],
+      "answerHint": "箇条書きで構いません。"
+    },
+    {
+      "id": "refresh-binding-impl",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "public client の refresh token を DPoP 鍵に結び付ける方法について、RFC 9449 の記述と一致するものはどれですか？",
+      "options": [
+        "結び付けの検証は任意である。AS は発行時に鍵を記録しておけば、使用時に照合しなくてよい",
+        "refresh token は JWT にして、cnf.jkt を含めなければならない。RS と同じ形式で検証できるようにするため",
+        "RS も refresh token の結び付けを検証できるよう、introspection で cnf.jkt を返さなければならない",
+        "クライアントは refresh 要求で dpop_jkt を送る。AS はその値と proof の鍵で結び付けを確かめる",
+        "結び付けの実装の詳細は AS に任されている。作成も検証も AS が行うので、形式の相互運用は問題にならない"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "refresh",
+        "code"
+      ]
+    }
+  ],
+  "solutions": {
+    "thumbprint-input-ec": {
+      "explanation": "RFC 7638 §3 は、鍵を表すのに必須のメンバーだけを含め、空白や改行を入れず、メンバー名の Unicode コードポイントの辞書順に並べた JSON を UTF-8 にしてハッシュすると定めます。EC 鍵の必須メンバーは crv・kty・x・y です（§3.2）。A は元の順序のままです。B・C は任意メンバーを含めています。§3.2.2 のとおり、任意メンバーの有無で値が変わらないように入力から除きます。D は区切りの後に空白があります。RFC 9449 §6.1 の jkt は、このハッシュを base64url にした値です。",
+      "answer": 4
+    },
+    "thumbprint-members": {
+      "explanation": "RFC 7638 §3.2 は、EC 公開鍵の必須メンバーを\"crv\"・\"kty\"・\"x\"・\"y\"、RSA 公開鍵の必須メンバーを \"e\"・\"kty\"・\"n\" と、辞書順で挙げています。OKP は RFC 8037 §2 が「\"crv\", \"kty\", and \"x\"」と定めています。D は JWK を書くときによく使う順序で、辞書順ではありません。E：OKP に y はありません。C：alg は任意メンバーです。A：kty も必須メンバーなので入力に含めます。",
+      "answer": 1
+    },
+    "kid-change": {
+      "explanation": "RFC 7638 §3.2.2 は、任意メンバーを入力に含めない理由を「so that their absence or presence in the JWK does not alter the resulting value」と述べ、Thumbprint は属性ではなく鍵そのものを指すとしています。RFC 9449 では、RS は proof の jwk から Thumbprint を計算して cnf.jkt などと比べるので（§6.1・§4.3）、kid や use を変えても同じ鍵なら一致します。D：RS は kid ではなく jwk から計算した Thumbprint で比べます。",
+      "answer": 0
+    },
+    "private-jwk-thumbprint": {
+      "explanation": "RFC 7638 §3.2.1 は「The JWK Thumbprint of a JWK representing a private key is computed as the JWK Thumbprint of a JWK representing the corresponding public key」と定めます。公開鍵と秘密鍵のどちらからでも同じ値を計算できるよう、秘密鍵の場合の計算も定義しています（B は誤り）。入力は公開鍵の必須メンバーだけです。C：RFC 9449 §4.2 は jwk に秘密鍵を含めることを禁じています。A：そのような決まりはなく、dpop_jkt は SHA-256 です。E：AS は proof の公開鍵から計算するので、d を含めた値は一致しません。",
+      "answer": 3
+    },
+    "thumbprint-denylist": {
+      "explanation": "RFC 7638 §7 は、e を \"AQAB\" ではなく \"AAEAAQ\" と表すように表現の正しさを検証しない実装では、同じ鍵に別の Thumbprint が生じると述べています。法 N を 3N にした鍵のような変形もあり、「comparing thumbprint values is not a reliable means of excluding (blacklisting) the use of particular keys」としています。D：RFC 9449 §11.8 の第二原像計算困難性は、別の鍵で同じ Thumbprint を作れないことに関する性質で、同じ鍵から別の Thumbprint を作れないことは保証しません。B：必須メンバー自体の表現が変わり得ます。E：dpop_jkt は認可コードを鍵に結び付ける仕組みです。A：base64url は大文字・小文字を区別します。",
+      "answer": 2
+    },
+    "cnf-meaning": {
+      "explanation": "RFC 7800 §3 は「By including a \"cnf\" (confirmation) claim in a JWT, the issuer of the JWT declares that the presenter possesses a particular key and that the recipient can cryptographically confirm that the presenter has possession of that key」と述べています。DPoP では cnf.jkt が、提示者（クライアント）の公開鍵の Thumbprint を表します（RFC 9449 §6.1）。B：アクセストークン自体の署名は AS の鍵で検証します。cnf の鍵は提示者の鍵で、取り違えやすい点です。D：受信者が確認できることを宣言するもので、確認を省いてよいという意味ではありません。",
+      "answer": 4
+    },
+    "cnf-single-key": {
+      "explanation": "RFC 7800 §3.1 は「The \"cnf\" claim value MUST represent only a single proof-of-possession key」と定めます。DPoP の jkt は、その 1 つの鍵の Thumbprint です（RFC 9449 §6.1）。C：jkt は 1 つの文字列です。B：表現の方法を変えても、1 つの cnf に 2 つの鍵を入れることはできません。A：RFC 9449 §5 のとおり AS は Bearer のトークンを発行することもできますが、cnf がなければ DPoP-bound ではなく、送信者制約を保つという条件に合いません。E：RS は proof の jwk から計算した Thumbprint と比べるので、どちらの鍵でも一致しません。",
+      "answer": 3
+    },
+    "unknown-cnf-ignored": {
+      "explanation": "RFC 9449 §7.2 は、RFC 6750 だけに対応する RS が DPoP-bound トークンを Bearer として受理するだろう理由として「JWT [RFC7519] says to ignore unrecognized claims, Introspection [RFC7662] says that other parameters might be present while placing no functional requirements on their presence, and [RFC6750] is effectively silent on the content of the access token」を挙げています。RFC 7519 §4 は、アプリケーションが特に処理を求めていなければ、理解できないクレームを無視しなければならない（MUST）とし、RFC 7800 §3.1 も同じ条件で理解できない確認メンバーを無視するとしています。そのため RFC 7800 §4 は、所持の証明を必要とするアプリケーションに cnf の処理の実装を求めています。C：RFC 6750 はトークンの中身に事実上触れていません。E：RFC 9449 は受理を求めているのではなく、そうなるだろうと説明しています。",
+      "answer": 0
+    },
+    "aud-and-pop": {
+      "explanation": "RFC 7800 §4 は「Proof of possession can be used by recipients to reject messages from unauthorized senders. Audience restriction can be used by recipients to reject messages intended for different recipients」と両者の違いを述べています。RFC 9449 §2 は、オーディエンス制限は多くのデプロイメントで運用が難しかったとして送信者制約を勧めていますが、aud を禁止してはいません。たとえば正規のクライアントが誤って別の RS へトークンを送った場合は、aud が防ぎます。B：proof は htm・htu で、メソッドと URI に結び付きます（§4.2）。D：aud は proof の検証の代わりになりません。",
+      "answer": 2
+    },
+    "introspection-facts": {
+      "explanation": "RFC 9449 §6.2 は、鍵のハッシュを introspection 応答のトップレベルの cnf.jkt で伝え、「the resource server does not send a DPoP proof with the introspection request, and the authorization server does not validate an access token's DPoP binding」と述べています。RS はその情報でローカルに検証します。「If the token_type member is included in the introspection response, it MUST contain the value DPoP」なので、含めること自体は必須ではありません（C は誤り）。RFC 7662 §2.1 は、introspection エンドポイントに呼び出し側の認可（クライアント認証など）を求めています。A：AS は、RS がどの方式でトークンを受け取ったかを知りません。",
+      "answer": 1
+    },
+    "introspection-cache": {
+      "explanation": "RFC 7662 §2.2 は、性能のために応答をキャッシュしてよいが、判断に使う情報の鮮度と引き換えになると述べています（B は誤り）。キャッシュできるのはトークンのメタ情報です。proof は要求ごとに一意で（RFC 9449 §4）、RS は §4.3 の検証を含むすべての検証に成功するまでアクセスを許可できません（§7.1）。D：ath を省くと、同じ鍵に結び付いた別のトークン用の proof を使い回せます（§7）。A・C：要求ごとの proof の検証の代わりにはなりません。",
+      "answer": 4
+    },
+    "hash-inputs": {
+      "explanation": "RFC 9449 §4.2 の ath は「the SHA-256 [SHS] hash of the ASCII encoding of the associated access token's value」、§6.1 の jkt は RFC 7638 の JWK SHA-256 Thumbprint、§10 の dpop_jkt は jkt と同じ値です。RFC 7636 §4.2 の S256 は「BASE64URL-ENCODE(SHA256(ASCII(code_verifier)))」です。C：スキーム名は含めません。D：トークンの形式に関係なく、提示する文字列そのものをハッシュします。A：DER の SPKI をハッシュする方式とは別で、JWK Thumbprint は JSON 表現から計算します。E：dpop_jkt はクライアントの DPoP 鍵の Thumbprint です。",
+      "answer": 1
+    },
+    "two-jwts": {
+      "explanation": "RFC 9068 §4 は、RS が JWT アクセストークンの typ が at+jwt（または application/at+jwt）であることを確かめ、AS の提供する鍵（AS メタデータの jwks_uri など）で署名を検証するよう定めています。proof は RFC 9449 §4.3 のとおり jwk の公開鍵で検証し、その鍵の Thumbprint をアクセストークンの cnf.jkt と照合します。B：cnf.jkt はクライアントの鍵の Thumbprint で、アクセストークンの署名鍵ではありません。A：§4.3 の 6 番目のとおり、proof の署名は jwk ヘッダーの公開鍵で検証します。2 つの JWT は typ（at+jwt と dpop+jwt）でも区別します。",
+      "answer": 2
+    },
+    "jkt-format": {
+      "explanation": "RFC 9449 §6.1 は、jkt を JWK SHA-256 Thumbprint の base64url（RFC 7515 の定義）としています。RFC 7515 §2 の base64url は「-」「_」を使い、末尾の「=」を省くので、32 バイトのハッシュは 43 文字になります。D は RFC 9449 の例の値です。E は base64（「+」とパディング）、A はパディング付き、C は同じハッシュの 16 進表現で、どれも文字列として一致しません。B：値に接頭辞は付けません。§10 の dpop_jkt も jkt と同じ値です。",
+      "answer": 3
+    },
+    "thumbprint-code": {
+      "explanation": "RFC 7638 §3 は、必須メンバーだけを辞書順に並べ、空白なしで JSON にすることを求めます。§4 は「JSON.stringify() cannot be counted on to lexicographically sort the members of JSON objects」と注意し、並べ替えには別のコードが必要になると述べています。A は必須メンバーだけを辞書順に追加した新しいオブジェクトを作るので正しい入力になります。B はすべてのキーを並べるので、kid などの任意メンバーも含めてしまいます。D は順序が辞書順ではありません。E は第 3 引数のために改行と字下げが入ります。C は 16 進表現で、RFC 9449 §6.1 の base64url ではありません。",
+      "answer": 0
+    },
+    "inactive-token": {
+      "explanation": "RFC 7662 §2.2 は、トークンが有効でない、存在しない、または RS が知ることを許されていない場合、AS が active を false にした応答を返し（MUST）、理由などの追加情報は含めるべきではない（SHOULD NOT）としています。§2.3 のとおり、これはエラー応答ではありません。RS の認証情報が無効な場合は 401 のエラー応答になります（B）。RS はクライアントに RFC 9449 §7.1 の challenge を返し、error には RFC 6750 の invalid_token を使えます。A：active が false のトークンは受理できません。",
+      "answer": 3
+    },
+    "jwt-at-dpop": {
+      "explanation": "RFC 9068 §4 は、検証に失敗したら invalid_token を返すよう定めたうえで「this requirement does not prevent JWT access tokens from using authentication schemes other than \"Bearer\"」と述べています。DPoP-bound の JWT アクセストークンは RFC 9449 §6.1 の cnf.jkt を含みます。B：dpop+jwt は proof の型で、アクセストークンの typ は at+jwt のままです（RFC 9068 §2.1）。D：typ の確認は RFC 9068 の必須の検証です。C：ath はトークンと proof の結び付けで、鍵との結び付けは cnf.jkt で確かめます。",
+      "answer": 0
+    },
+    "thumbprint-steps": {
+      "explanation": "RFC 7638 §3 の手順です。必須メンバーを選び（§3.2）、辞書順に並べて空白なしの JSON にし（§3.3）、その UTF-8 のバイト列を SHA-256 でハッシュします。RFC 9449 §6.1 の jkt はその結果を base64url にした値なので、同じ形式にしてから比べます。秘密鍵を含む jwk は、§4.3 の 7 番目の検証で拒否します。",
+      "answer": [
+        "take",
+        "select",
+        "order",
+        "utf8",
+        "hash",
+        "compare"
+      ]
+    },
+    "binding-check-design": {
+      "explanation": "JWT は typ=at+jwt（または application/at+jwt）・iss・aud・exp と AS の鍵による署名を検証してから、cnf.jkt を信頼できる結び付けとして使う。opaque トークンは RS 自身の認証情報で introspection を要求し、active と cnf.jkt（token_type があれば DPoP）を得る。結び付けの検証は AS に任せず RS が行う。proof の jwk から RFC 7638 の Thumbprint（SHA-256、base64url）を計算し、jkt と完全一致で比べる。cnf.jkt のないトークンは方針に従って拒否し、Bearer として届いた DPoP-bound トークンも拒否する。introspection の応答（active・cnf.jkt などのメタ情報）は exp を超えない短い時間に限ってキャッシュしてよいが、proof は要求ごとに検証する。失敗時は 401 と WWW-Authenticate: DPoP の challenge を返す（例：トークンや鍵の結び付けの不備は error=\"invalid_token\"、proof 自体の不備は error=\"invalid_dpop_proof\"）。",
+      "rubric": [
+        {
+          "criterion": "JWT は typ（at+jwt または application/at+jwt）・iss・aud・exp・AS の鍵による署名を検証してから cnf.jkt を使う。",
+          "points": 1,
+          "referenceIds": [
+            "at-validation",
+            "jkt"
+          ]
+        },
+        {
+          "criterion": "opaque トークンは RS 自身の認証情報で introspection し、active と cnf.jkt を得る。結び付けの検証は RS が行う。",
+          "points": 1,
+          "referenceIds": [
+            "introspection",
+            "intro-request"
+          ]
+        },
+        {
+          "criterion": "proof の jwk から RFC 7638 の Thumbprint を計算し、jkt と完全一致で比べる。",
+          "points": 1,
+          "referenceIds": [
+            "thumb-def",
+            "checks"
+          ]
+        },
+        {
+          "criterion": "cnf.jkt のないトークンを方針に従って拒否し、Bearer として届いた DPoP-bound トークンも拒否する。",
+          "points": 1,
+          "referenceIds": [
+            "confirmation",
+            "bearer"
+          ]
+        },
+        {
+          "criterion": "introspection の応答（active・cnf.jkt などのメタ情報）は exp を超えない短い時間に限ってキャッシュしてよく、proof の検証は要求ごとに行う。",
+          "points": 1,
+          "referenceIds": [
+            "intro-response",
+            "intro-cache",
+            "proof"
+          ]
+        },
+        {
+          "criterion": "失敗時は 401 と DPoP の challenge で応答する（例：トークンや鍵の結び付けの不備は error=\"invalid_token\"、proof 自体の不備は error=\"invalid_dpop_proof\"）。",
+          "points": 1,
+          "referenceIds": [
+            "challenge",
+            "challenge-example"
+          ]
+        }
+      ]
+    },
+    "refresh-binding-impl": {
+      "explanation": "§5 は「The implementation details of the binding of the refresh token are at the discretion of the authorization server. Since the authorization server both produces and validates its refresh tokens, there is no interoperability consideration in the specific details of the binding」と述べています。A：結び付けは「MUST be validated when the refresh token is later presented」です。D：dpop_jkt は認可要求のパラメーターで、refresh 要求では同じ鍵で作った proof を示します。C：refresh token は RS に提示しません。",
+      "answer": 4
+    }
+  },
+  "inconsistencies": []
+}

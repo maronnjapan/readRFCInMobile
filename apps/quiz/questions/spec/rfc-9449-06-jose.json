@@ -1,0 +1,1098 @@
+{
+  "format": "spec-understanding-quiz",
+  "version": 1,
+  "id": "rfc-9449-06-jose",
+  "title": "RFC 9449 DPoP 発展 2/7: JOSE の土台 — JWS・JWK・JWA・JWT",
+  "status": "draft",
+  "spec": {
+    "id": "rfc-9449",
+    "status": "adopted",
+    "repository": "maronnjapan/readRFCInMobile",
+    "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+    "path": "rfcs/rfc9449.txt"
+  },
+  "references": [
+    {
+      "id": "jws-b64url",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc7515.txt",
+      "startLine": 287,
+      "endLine": 299,
+      "reason": "§2: base64url（パディングなし）と JWS Signing Input",
+      "excerpt": "   Base64url Encoding\n      Base64 encoding using the URL- and filename-safe character set\n      defined in Section 5 of RFC 4648 [RFC4648], with all trailing '='\n      characters omitted (as permitted by Section 3.2) and without the\n      inclusion of any line breaks, whitespace, or other additional\n      characters.  Note that the base64url encoding of the empty octet\n      sequence is the empty string.  (See Appendix C for notes on\n      implementing base64url encoding without padding.)\n\n   JWS Signing Input\n      The input to the digital signature or MAC computation.  Its value\n      is ASCII(BASE64URL(UTF8(JWS Protected Header)) || '.' ||\n      BASE64URL(JWS Payload))."
+    },
+    {
+      "id": "jws-compact",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc7515.txt",
+      "startLine": 376,
+      "endLine": 390,
+      "reason": "§3.1: JWS Compact Serialization の 3 つの部分",
+      "excerpt": "3.1.  JWS Compact Serialization Overview\n\n   In the JWS Compact Serialization, no JWS Unprotected Header is used.\n   In this case, the JOSE Header and the JWS Protected Header are the\n   same.\n\n   In the JWS Compact Serialization, a JWS is represented as the\n   concatenation:\n\n      BASE64URL(UTF8(JWS Protected Header)) || '.' ||\n      BASE64URL(JWS Payload) || '.' ||\n      BASE64URL(JWS Signature)\n\n   See Section 7.1 for more information about the JWS Compact\n   Serialization."
+    },
+    {
+      "id": "syntax",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 393,
+      "endLine": 448,
+      "reason": "§4.2: JOSE ヘッダー、必須クレーム、ath と nonce",
+      "excerpt": "4.2.  DPoP Proof JWT Syntax\n\n   A DPoP proof is a JWT [RFC7519] that is signed (using JSON Web\n   Signature (JWS) [RFC7515]) with a private key chosen by the client\n   (see below).  The JOSE Header of a DPoP JWT MUST contain at least the\n   following parameters:\n\n   typ:  A field with the value dpop+jwt, which explicitly types the\n      DPoP proof JWT as recommended in Section 3.11 of [RFC8725].\n\n   alg:  An identifier for a JWS asymmetric digital signature algorithm\n      from [IANA.JOSE.ALGS].  It MUST NOT be none or an identifier for a\n      symmetric algorithm (Message Authentication Code (MAC)).\n\n   jwk:  Represents the public key chosen by the client in JSON Web Key\n      (JWK) [RFC7517] format as defined in Section 4.1.3 of [RFC7515].\n      It MUST NOT contain a private key.\n\n   The payload of a DPoP proof MUST contain at least the following\n   claims:\n\n   jti:  Unique identifier for the DPoP proof JWT.  The value MUST be\n      assigned such that there is a negligible probability that the same\n      value will be assigned to any other DPoP proof used in the same\n      context during the time window of validity.  Such uniqueness can\n      be accomplished by encoding (base64url or any other suitable\n      encoding) at least 96 bits of pseudorandom data or by using a\n      version 4 Universally Unique Identifier (UUID) string according to\n      [RFC4122].  The jti can be used by the server for replay detection\n      and prevention; see Section 11.1.\n\n   htm:  The value of the HTTP method (Section 9.1 of [RFC9110]) of the\n      request to which the JWT is attached.\n\n   htu:  The HTTP target URI (Section 7.1 of [RFC9110]) of the request\n      to which the JWT is attached, without query and fragment parts.\n\n   iat:  Creation timestamp of the JWT (Section 4.1.6 of [RFC7519]).\n\n   When the DPoP proof is used in conjunction with the presentation of\n   an access token in protected resource access (see Section 7), the\n   DPoP proof MUST also contain the following claim:\n\n   ath:  Hash of the access token.  The value MUST be the result of a\n      base64url encoding (as defined in Section 2 of [RFC7515]) the\n      SHA-256 [SHS] hash of the ASCII encoding of the associated access\n      token's value.\n\n   When the authentication server or resource server provides a DPoP-\n   Nonce HTTP header in a response (see Sections 8 and 9), the DPoP\n   proof MUST also contain the following claim:\n\n   nonce:  A recent nonce provided via the DPoP-Nonce HTTP header.\n\n   A DPoP proof MAY contain other JOSE Header Parameters or claims as\n   defined by extension, profile, or deployment-specific requirements."
+    },
+    {
+      "id": "header",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 359,
+      "endLine": 391,
+      "reason": "§4.1: DPoP HTTP ヘッダーの構文と大文字・小文字",
+      "excerpt": "4.1.  The DPoP HTTP Header\n\n   A DPoP proof is included in an HTTP request using the following\n   request header field.\n\n   DPoP:  A JWT that adheres to the structure and syntax of Section 4.2.\n\n   Figure 2 shows an example DPoP HTTP header field.  The example uses\n   \"\\\" line wrapping per [RFC8792].\n\n   DPoP: eyJ0eXAiOiJkcG9wK2p3dCIsImFsZyI6IkVTMjU2IiwiandrIjp7Imt0eSI6Ik\\\n    VDIiwieCI6Imw4dEZyaHgtMzR0VjNoUklDUkRZOXpDa0RscEJoRjQyVVFVZldWQVdCR\\\n    nMiLCJ5IjoiOVZFNGpmX09rX282NHpiVFRsY3VOSmFqSG10NnY5VERWclUwQ2R2R1JE\\\n    QSIsImNydiI6IlAtMjU2In19.eyJqdGkiOiItQndDM0VTYzZhY2MybFRjIiwiaHRtIj\\\n    oiUE9TVCIsImh0dSI6Imh0dHBzOi8vc2VydmVyLmV4YW1wbGUuY29tL3Rva2VuIiwia\\\n    WF0IjoxNTYyMjYyNjE2fQ.2-GxA6T8lP4vfrg8v-FdWP0A0zdrj8igiMLvqRMUvwnQg\\\n    4PtFLbdLXiOSsX0x7NVY-FNyJK70nfbV37xRZT3Lg\n\n                       Figure 2: Example DPoP Header\n\n   Note that per [RFC9110], header field names are case insensitive;\n   thus, DPoP, DPOP, dpop, etc., are all valid and equivalent header\n   field names.  However, case is significant in the header field value.\n\n   The DPoP HTTP header field value uses the token68 syntax defined in\n   Section 11.2 of [RFC9110] and is repeated below in Figure 3 for ease\n   of reference.\n\n   DPoP       = token68\n   token68    = 1*( ALPHA / DIGIT /\n                    \"-\" / \".\" / \"_\" / \"~\" / \"+\" / \"/\" ) *\"=\"\n\n                      Figure 3: DPoP Header Field ABNF"
+    },
+    {
+      "id": "jws-validation",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc7515.txt",
+      "startLine": 847,
+      "endLine": 943,
+      "reason": "§5.2: JWS の検証手順と受け入れる alg の判断",
+      "excerpt": "5.2.  Message Signature or MAC Validation\n\n   When validating a JWS, the following steps are performed.  The order\n   of the steps is not significant in cases where there are no\n   dependencies between the inputs and outputs of the steps.  If any of\n   the listed steps fails, then the signature or MAC cannot be\n   validated.\n\n   When there are multiple JWS Signature values, it is an application\n   decision which of the JWS Signature values must successfully validate\n   for the JWS to be accepted.  In some cases, all must successfully\n   validate, or the JWS will be considered invalid.  In other cases,\n   only a specific JWS Signature value needs to be successfully\n   validated.  However, in all cases, at least one JWS Signature value\n   MUST successfully validate, or the JWS MUST be considered invalid.\n\n   1.  Parse the JWS representation to extract the serialized values for\n       the components of the JWS.  When using the JWS Compact\n       Serialization, these components are the base64url-encoded\n       representations of the JWS Protected Header, the JWS Payload, and\n       the JWS Signature, and when using the JWS JSON Serialization,\n       these components also include the unencoded JWS Unprotected\n       Header value.  When using the JWS Compact Serialization, the JWS\n       Protected Header, the JWS Payload, and the JWS Signature are\n       represented as base64url-encoded values in that order, with each\n       value being separated from the next by a single period ('.')\n       character, resulting in exactly two delimiting period characters\n       being used.  The JWS JSON Serialization is described in\n       Section 7.2.\n\n   2.  Base64url-decode the encoded representation of the JWS Protected\n       Header, following the restriction that no line breaks,\n       whitespace, or other additional characters have been used.\n\n   3.  Verify that the resulting octet sequence is a UTF-8-encoded\n       representation of a completely valid JSON object conforming to\n       RFC 7159 [RFC7159]; let the JWS Protected Header be this JSON\n       object.\n\n   4.  If using the JWS Compact Serialization, let the JOSE Header be\n       the JWS Protected Header.  Otherwise, when using the JWS JSON\n       Serialization, let the JOSE Header be the union of the members of\n       the corresponding JWS Protected Header and JWS Unprotected\n       Header, all of which must be completely valid JSON objects.\n       During this step, verify that the resulting JOSE Header does not\n       contain duplicate Header Parameter names.  When using the JWS\n\n\n\n\n\nJones, et al.                Standards Track                   [Page 16]\n\f\nRFC 7515                JSON Web Signature (JWS)                May 2015\n\n\n       JSON Serialization, this restriction includes that the same\n       Header Parameter name also MUST NOT occur in distinct JSON object\n       values that together comprise the JOSE Header.\n\n   5.  Verify that the implementation understands and can process all\n       fields that it is required to support, whether required by this\n       specification, by the algorithm being used, or by the \"crit\"\n       Header Parameter value, and that the values of those parameters\n       are also understood and supported.\n\n   6.  Base64url-decode the encoded representation of the JWS Payload,\n       following the restriction that no line breaks, whitespace, or\n       other additional characters have been used.\n\n   7.  Base64url-decode the encoded representation of the JWS Signature,\n       following the restriction that no line breaks, whitespace, or\n       other additional characters have been used.\n\n   8.  Validate the JWS Signature against the JWS Signing Input\n       ASCII(BASE64URL(UTF8(JWS Protected Header)) || '.' ||\n       BASE64URL(JWS Payload)) in the manner defined for the algorithm\n       being used, which MUST be accurately represented by the value of\n       the \"alg\" (algorithm) Header Parameter, which MUST be present.\n       See Section 10.6 for security considerations on algorithm\n       validation.  Record whether the validation succeeded or not.\n\n   9.  If the JWS JSON Serialization is being used, repeat this process\n       (steps 4-8) for each digital signature or MAC value contained in\n       the representation.\n\n   10. If none of the validations in step 9 succeeded, then the JWS MUST\n       be considered invalid.  Otherwise, in the JWS JSON Serialization\n       case, return a result to the application indicating which of the\n       validations succeeded and failed.  In the JWS Compact\n       Serialization case, the result can simply indicate whether or not\n       the JWS was successfully validated.\n\n   Finally, note that it is an application decision which algorithms may\n   be used in a given context.  Even if a JWS can be successfully\n   validated, unless the algorithm(s) used in the JWS are acceptable to\n   the application, it SHOULD consider the JWS to be invalid."
+    },
+    {
+      "id": "jwa-ecdsa",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc7518.txt",
+      "startLine": 455,
+      "endLine": 539,
+      "reason": "§3.4: ECDSA 署名は R と S を固定長で連結した値",
+      "excerpt": "3.4.  Digital Signature with ECDSA\n\n   The Elliptic Curve Digital Signature Algorithm (ECDSA) [DSS] provides\n   for the use of Elliptic Curve Cryptography, which is able to provide\n   equivalent security to RSA cryptography but using shorter key sizes\n   and with greater processing speed for many operations.  This means\n   that ECDSA digital signatures will be substantially smaller in terms\n   of length than equivalently strong RSA digital signatures.\n\n   This specification defines the use of ECDSA with the P-256 curve and\n   the SHA-256 cryptographic hash function, ECDSA with the P-384 curve\n   and the SHA-384 hash function, and ECDSA with the P-521 curve and the\n   SHA-512 hash function.  The P-256, P-384, and P-521 curves are\n   defined in [DSS].\n\n   The ECDSA P-256 SHA-256 digital signature is generated as follows:\n\n   1.  Generate a digital signature of the JWS Signing Input using ECDSA\n       P-256 SHA-256 with the desired private key.  The output will be\n       the pair (R, S), where R and S are 256-bit unsigned integers.\n\n   2.  Turn R and S into octet sequences in big-endian order, with each\n       array being be 32 octets long.  The octet sequence\n       representations MUST NOT be shortened to omit any leading zero\n       octets contained in the values.\n\n   3.  Concatenate the two octet sequences in the order R and then S.\n       (Note that many ECDSA implementations will directly produce this\n       concatenation as their output.)\n\n   4.  The resulting 64-octet sequence is the JWS Signature value.\n\n   The following \"alg\" (algorithm) Header Parameter values are used to\n   indicate that the JWS Signature is a digital signature value computed\n   using the corresponding algorithm:\n\n           +-------------------+-------------------------------+\n           | \"alg\" Param Value | Digital Signature Algorithm   |\n           +-------------------+-------------------------------+\n           | ES256             | ECDSA using P-256 and SHA-256 |\n           | ES384             | ECDSA using P-384 and SHA-384 |\n           | ES512             | ECDSA using P-521 and SHA-512 |\n           +-------------------+-------------------------------+\n\n\n\n\n\n\n\n\nJones                        Standards Track                    [Page 9]\n\f\nRFC 7518                JSON Web Algorithms (JWA)               May 2015\n\n\n   The ECDSA P-256 SHA-256 digital signature for a JWS is validated as\n   follows:\n\n   1.  The JWS Signature value MUST be a 64-octet sequence.  If it is\n       not a 64-octet sequence, the validation has failed.\n\n   2.  Split the 64-octet sequence into two 32-octet sequences.  The\n       first octet sequence represents R and the second S.  The values R\n       and S are represented as octet sequences using the Integer-to-\n       OctetString Conversion defined in Section 2.3.7 of SEC1 [SEC1]\n       (in big-endian octet order).\n\n   3.  Submit the JWS Signing Input, R, S, and the public key (x, y) to\n       the ECDSA P-256 SHA-256 validator.\n\n   Signing and validation with the ECDSA P-384 SHA-384 and ECDSA P-521\n   SHA-512 algorithms is performed identically to the procedure for\n   ECDSA P-256 SHA-256 -- just using the corresponding hash algorithms\n   with correspondingly larger result values.  For ECDSA P-384 SHA-384,\n   R and S will be 384 bits each, resulting in a 96-octet sequence.  For\n   ECDSA P-521 SHA-512, R and S will be 521 bits each, resulting in a\n   132-octet sequence.  (Note that the Integer-to-OctetString Conversion\n   defined in Section 2.3.7 of SEC1 [SEC1] used to represent R and S as\n   octet sequences adds zero-valued high-order padding bits when needed\n   to round the size up to a multiple of 8 bits; thus, each 521-bit\n   integer is represented using 528 bits in 66 octets.)\n\n   Examples using these algorithms are shown in Appendices A.3 and A.4\n   of [JWS]."
+    },
+    {
+      "id": "jwa-ec-public",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc7518.txt",
+      "startLine": 1543,
+      "endLine": 1603,
+      "reason": "§6.2.1: EC 公開鍵の crv・x・y と座標の長さ",
+      "excerpt": "6.2.1.  Parameters for Elliptic Curve Public Keys\n\n   An Elliptic Curve public key is represented by a pair of coordinates\n   drawn from a finite field, which together define a point on an\n   Elliptic Curve.  The following members MUST be present for all\n   Elliptic Curve public keys:\n\n   o  \"crv\"\n   o  \"x\"\n\n   The following member MUST also be present for Elliptic Curve public\n   keys for the three curves defined in the following section:\n\n   o  \"y\"\n\n6.2.1.1.  \"crv\" (Curve) Parameter\n\n   The \"crv\" (curve) parameter identifies the cryptographic curve used\n   with the key.  Curve values from [DSS] used by this specification\n   are:\n\n   o  \"P-256\"\n   o  \"P-384\"\n   o  \"P-521\"\n\n\n\nJones                        Standards Track                   [Page 28]\n\f\nRFC 7518                JSON Web Algorithms (JWA)               May 2015\n\n\n   These values are registered in the IANA \"JSON Web Key Elliptic Curve\"\n   registry defined in Section 7.6.  Additional \"crv\" values can be\n   registered by other specifications.  Specifications registering\n   additional curves must define what parameters are used to represent\n   keys for the curves registered.  The \"crv\" value is a case-sensitive\n   string.\n\n   SEC1 [SEC1] point compression is not supported for any of these three\n   curves.\n\n6.2.1.2.  \"x\" (X Coordinate) Parameter\n\n   The \"x\" (x coordinate) parameter contains the x coordinate for the\n   Elliptic Curve point.  It is represented as the base64url encoding of\n   the octet string representation of the coordinate, as defined in\n   Section 2.3.5 of SEC1 [SEC1].  The length of this octet string MUST\n   be the full size of a coordinate for the curve specified in the \"crv\"\n   parameter.  For example, if the value of \"crv\" is \"P-521\", the octet\n   string must be 66 octets long.\n\n6.2.1.3.  \"y\" (Y Coordinate) Parameter\n\n   The \"y\" (y coordinate) parameter contains the y coordinate for the\n   Elliptic Curve point.  It is represented as the base64url encoding of\n   the octet string representation of the coordinate, as defined in\n   Section 2.3.5 of SEC1 [SEC1].  The length of this octet string MUST\n   be the full size of a coordinate for the curve specified in the \"crv\"\n   parameter.  For example, if the value of \"crv\" is \"P-521\", the octet\n   string must be 66 octets long."
+    },
+    {
+      "id": "jwk-kty",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc7517.txt",
+      "startLine": 287,
+      "endLine": 303,
+      "reason": "§4.1: kty（大文字・小文字を区別、必須）",
+      "excerpt": "4.1.  \"kty\" (Key Type) Parameter\n\n   The \"kty\" (key type) parameter identifies the cryptographic algorithm\n   family used with the key, such as \"RSA\" or \"EC\".  \"kty\" values should\n   either be registered in the IANA \"JSON Web Key Types\" registry\n   established by [JWA] or be a value that contains a Collision-\n   Resistant Name.  The \"kty\" value is a case-sensitive string.  This\n   member MUST be present in a JWK.\n\n   A list of defined \"kty\" values can be found in the IANA \"JSON Web Key\n   Types\" registry established by [JWA]; the initial contents of this\n   registry are the values defined in Section 6.1 of [JWA].\n\n   The key type definitions include specification of the members to be\n   used for those key types.  Members used with specific \"kty\" values\n   can be found in the IANA \"JSON Web Key Parameters\" registry\n   established by Section 8.1."
+    },
+    {
+      "id": "jwa-ec-private",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc7518.txt",
+      "startLine": 1605,
+      "endLine": 1618,
+      "reason": "§6.2.2: EC 秘密鍵の d",
+      "excerpt": "6.2.2.  Parameters for Elliptic Curve Private Keys\n\n   In addition to the members used to represent Elliptic Curve public\n   keys, the following member MUST be present to represent Elliptic\n   Curve private keys.\n\n6.2.2.1.  \"d\" (ECC Private Key) Parameter\n\n   The \"d\" (ECC private key) parameter contains the Elliptic Curve\n   private key value.  It is represented as the base64url encoding of\n   the octet string representation of the private key value, as defined\n   in Section 2.3.7 of SEC1 [SEC1].  The length of this octet string\n   MUST be ceiling(log-base-2(n)/8) octets (where n is the order of the\n   curve)."
+    },
+    {
+      "id": "checks",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 485,
+      "endLine": 523,
+      "reason": "§4.3: 受信時の必須検証、URI 正規化、検証順序",
+      "excerpt": "4.3.  Checking DPoP Proofs\n\n   To validate a DPoP proof, the receiving server MUST ensure the\n   following:\n\n   1.   There is not more than one DPoP HTTP request header field.\n   2.   The DPoP HTTP request header field value is a single and well-\n        formed JWT.\n   3.   All required claims per Section 4.2 are contained in the JWT.\n   4.   The typ JOSE Header Parameter has the value dpop+jwt.\n   5.   The alg JOSE Header Parameter indicates a registered asymmetric\n        digital signature algorithm [IANA.JOSE.ALGS], is not none, is\n        supported by the application, and is acceptable per local\n        policy.\n   6.   The JWT signature verifies with the public key contained in the\n        jwk JOSE Header Parameter.\n   7.   The jwk JOSE Header Parameter does not contain a private key.\n   8.   The htm claim matches the HTTP method of the current request.\n   9.   The htu claim matches the HTTP URI value for the HTTP request in\n        which the JWT was received, ignoring any query and fragment\n        parts.\n   10.  If the server provided a nonce value to the client, the nonce\n        claim matches the server-provided nonce value.\n   11.  The creation time of the JWT, as determined by either the iat\n        claim or a server managed timestamp via the nonce claim, is\n        within an acceptable window (see Section 11.1).\n   12.  If presented to a protected resource in conjunction with an\n        access token,\n        *  ensure that the value of the ath claim equals the hash of\n           that access token, and\n        *  confirm that the public key to which the access token is\n           bound matches the public key from the DPoP proof.\n\n   To reduce the likelihood of false negatives, servers SHOULD employ\n   syntax-based normalization (Section 6.2.2 of [RFC3986]) and scheme-\n   based normalization (Section 6.2.3 of [RFC3986]) before comparing the\n   htu claim.\n\n   These checks may be performed in any order."
+    },
+    {
+      "id": "jws-jwk",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc7515.txt",
+      "startLine": 572,
+      "endLine": 577,
+      "reason": "§4.1.3: jwk ヘッダーパラメーター（JWS では任意）",
+      "excerpt": "4.1.3.  \"jwk\" (JSON Web Key) Header Parameter\n\n   The \"jwk\" (JSON Web Key) Header Parameter is the public key that\n   corresponds to the key used to digitally sign the JWS.  This key is\n   represented as a JSON Web Key [JWK].  Use of this Header Parameter is\n   OPTIONAL."
+    },
+    {
+      "id": "jws-kid",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc7515.txt",
+      "startLine": 579,
+      "endLine": 588,
+      "reason": "§4.1.4: kid（鍵のヒント）",
+      "excerpt": "4.1.4.  \"kid\" (Key ID) Header Parameter\n\n   The \"kid\" (key ID) Header Parameter is a hint indicating which key\n   was used to secure the JWS.  This parameter allows originators to\n   explicitly signal a change of key to recipients.  The structure of\n   the \"kid\" value is unspecified.  Its value MUST be a case-sensitive\n   string.  Use of this Header Parameter is OPTIONAL.\n\n   When used with a JWK, the \"kid\" value is used to match a JWK \"kid\"\n   parameter value."
+    },
+    {
+      "id": "jkt",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 701,
+      "endLine": 719,
+      "reason": "§6.1: cnf.jkt と RFC 7638 の JWK SHA-256 Thumbprint",
+      "excerpt": "6.1.  JWK Thumbprint Confirmation Method\n\n   When access tokens are represented as JWTs [RFC7519], the public key\n   information is represented using the jkt confirmation method member\n   defined herein.  To convey the hash of a public key in a JWT, this\n   specification introduces the following JWT Confirmation Method\n   [RFC7800] member for use under the cnf claim.\n\n   jkt:  JWK SHA-256 Thumbprint confirmation method.  The value of the\n      jkt member MUST be the base64url encoding (as defined in\n      [RFC7515]) of the JWK SHA-256 Thumbprint (according to [RFC7638])\n      of the DPoP public key (in JWK format) to which the access token\n      is bound.\n\n   The following example JWT in Figure 8 with a decoded JWT payload\n   shown in Figure 9 contains a cnf claim with the jkt JWK Thumbprint\n   confirmation method member.  The jkt value in these examples is the\n   hash of the public key from the DPoP proofs in the examples shown in\n   Section 5.  The example uses \"\\\" line wrapping per [RFC8792]."
+    },
+    {
+      "id": "jws-typ",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc7515.txt",
+      "startLine": 655,
+      "endLine": 694,
+      "reason": "§4.1.9: typ はアプリケーションが処理し、application/ を省略できる",
+      "excerpt": "4.1.9.  \"typ\" (Type) Header Parameter\n\n   The \"typ\" (type) Header Parameter is used by JWS applications to\n   declare the media type [IANA.MediaTypes] of this complete JWS.  This\n   is intended for use by the application when more than one kind of\n   object could be present in an application data structure that can\n   contain a JWS; the application can use this value to disambiguate\n   among the different kinds of objects that might be present.  It will\n   typically not be used by applications when the kind of object is\n   already known.  This parameter is ignored by JWS implementations; any\n   processing of this parameter is performed by the JWS application.\n   Use of this Header Parameter is OPTIONAL.\n\n   Per RFC 2045 [RFC2045], all media type values, subtype values, and\n   parameter names are case insensitive.  However, parameter values are\n   case sensitive unless otherwise specified for the specific parameter.\n\n\n\nJones, et al.                Standards Track                   [Page 12]\n\f\nRFC 7515                JSON Web Signature (JWS)                May 2015\n\n\n   To keep messages compact in common situations, it is RECOMMENDED that\n   producers omit an \"application/\" prefix of a media type value in a\n   \"typ\" Header Parameter when no other '/' appears in the media type\n   value.  A recipient using the media type value MUST treat it as if\n   \"application/\" were prepended to any \"typ\" value not containing a\n   '/'.  For instance, a \"typ\" value of \"example\" SHOULD be used to\n   represent the \"application/example\" media type, whereas the media\n   type \"application/example;part=\"1/2\"\" cannot be shortened to\n   \"example;part=\"1/2\"\".\n\n   The \"typ\" value \"JOSE\" can be used by applications to indicate that\n   this object is a JWS or JWE using the JWS Compact Serialization or\n   the JWE Compact Serialization.  The \"typ\" value \"JOSE+JSON\" can be\n   used by applications to indicate that this object is a JWS or JWE\n   using the JWS JSON Serialization or the JWE JSON Serialization.\n   Other type values can also be used by applications."
+    },
+    {
+      "id": "jws-string-compare",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc7515.txt",
+      "startLine": 945,
+      "endLine": 987,
+      "reason": "§5.3: 文字列比較の規則（typ・cty は例外）",
+      "excerpt": "5.3.  String Comparison Rules\n\n   Processing a JWS inevitably requires comparing known strings to\n   members and values in JSON objects.  For example, in checking what\n   the algorithm is, the Unicode string \"alg\" will be checked against\n   the member names in the JOSE Header to see if there is a matching\n\n\n\nJones, et al.                Standards Track                   [Page 17]\n\f\nRFC 7515                JSON Web Signature (JWS)                May 2015\n\n\n   Header Parameter name.  The same process is then used to determine if\n   the value of the \"alg\" Header Parameter represents a supported\n   algorithm.\n\n   The JSON rules for doing member name comparison are described in\n   Section 8.3 of RFC 7159 [RFC7159].  Since the only string comparison\n   operations that are performed are equality and inequality, the same\n   rules can be used for comparing both member names and member values\n   against known strings.\n\n   These comparison rules MUST be used for all JSON string comparisons\n   except in cases where the definition of the member explicitly calls\n   out that a different comparison rule is to be used for that member\n   value.  Only the \"typ\" and \"cty\" member values defined in this\n   specification do not use these comparison rules.\n\n   Some applications may include case-insensitive information in a case-\n   sensitive value, such as including a DNS name as part of a \"kid\" (key\n   ID) value.  In those cases, the application may need to define a\n   convention for the canonical case to use for representing the case-\n   insensitive portions, such as lowercasing them, if more than one\n   party might need to produce the same value so that they can be\n   compared.  (However, if all other parties consume whatever value the\n   producing party emitted verbatim without attempting to compare it to\n   an independently produced value, then the case used by the producer\n   will not matter.)\n\n   Also, see the JSON security considerations in Section 10.12 and the\n   Unicode security considerations in Section 10.13."
+    },
+    {
+      "id": "jwt-swapping",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 1435,
+      "endLine": 1439,
+      "reason": "§11.5: typ による別用途 JWT の受理防止",
+      "excerpt": "11.5.  Signed JWT Swapping\n\n   Servers accepting signed DPoP proof JWTs MUST verify that the typ\n   field is dpop+jwt in the headers of the JWTs to ensure that\n   adversaries cannot use JWTs created for other purposes."
+    },
+    {
+      "id": "bcp-explicit-typing",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc8725.txt",
+      "startLine": 440,
+      "endLine": 469,
+      "reason": "§3.11: 明示的な型付けとその限界",
+      "excerpt": "3.11.  Use Explicit Typing\n\n   Sometimes, one kind of JWT can be confused for another.  If a\n   particular kind of JWT is subject to such confusion, that JWT can\n   include an explicit JWT type value, and the validation rules can\n   specify checking the type.  This mechanism can prevent such\n   confusion.  Explicit JWT typing is accomplished by using the \"typ\"\n   Header Parameter.  For instance, the [RFC8417] specification uses the\n   \"application/secevent+jwt\" media type to perform explicit typing of\n   Security Event Tokens (SETs).\n\n   Per the definition of \"typ\" in Section 4.1.9 of [RFC7515], it is\n   RECOMMENDED that the \"application/\" prefix be omitted from the \"typ\"\n   value.  Therefore, for example, the \"typ\" value used to explicitly\n   include a type for a SET SHOULD be \"secevent+jwt\".  When explicit\n   typing is employed for a JWT, it is RECOMMENDED that a media type\n   name of the format \"application/example+jwt\" be used, where \"example\"\n   is replaced by the identifier for the specific kind of JWT.\n\n   When applying explicit typing to a Nested JWT, the \"typ\" Header\n   Parameter containing the explicit type value MUST be present in the\n   inner JWT of the Nested JWT (the JWT whose payload is the JWT Claims\n   Set).  In some cases, the same \"typ\" Header Parameter value will be\n   present in the outer JWT as well, to explicitly type the entire\n   Nested JWT.\n\n   Note that the use of explicit typing may not achieve disambiguation\n   from existing kinds of JWTs, as the validation rules for existing\n   kinds of JWTs often do not use the \"typ\" Header Parameter value.\n   Explicit typing is RECOMMENDED for new uses of JWTs."
+    },
+    {
+      "id": "bcp-exclusive-rules",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc8725.txt",
+      "startLine": 471,
+      "endLine": 512,
+      "reason": "§3.12: 種類ごとに相互排他的な検証規則",
+      "excerpt": "3.12.  Use Mutually Exclusive Validation Rules for Different Kinds of\n       JWTs\n\n   Each application of JWTs defines a profile specifying the required\n   and optional JWT claims and the validation rules associated with\n   them.  If more than one kind of JWT can be issued by the same issuer,\n   the validation rules for those JWTs MUST be written such that they\n   are mutually exclusive, rejecting JWTs of the wrong kind.  To prevent\n   substitution of JWTs from one context into another, application\n   developers may employ a number of strategies:\n\n   *  Use explicit typing for different kinds of JWTs.  Then the\n      distinct \"typ\" values can be used to differentiate between the\n      different kinds of JWTs.\n\n   *  Use different sets of required claims or different required claim\n      values.  Then the validation rules for one kind of JWT will reject\n      those with different claims or values.\n\n   *  Use different sets of required Header Parameters or different\n      required Header Parameter values.  Then the validation rules for\n      one kind of JWT will reject those with different Header Parameters\n      or values.\n\n   *  Use different keys for different kinds of JWTs.  Then the keys\n      used to validate one kind of JWT will fail to validate other kinds\n      of JWTs.\n\n   *  Use different \"aud\" values for different uses of JWTs from the\n      same issuer.  Then audience validation will reject JWTs\n      substituted into inappropriate contexts.\n\n   *  Use different issuers for different kinds of JWTs.  Then the\n      distinct \"iss\" values can be used to segregate the different kinds\n      of JWTs.\n\n   Given the broad diversity of JWT usage and applications, the best\n   combination of types, required claims, values, Header Parameters, key\n   usages, and issuers to differentiate among different kinds of JWTs\n   will, in general, be application-specific.  As discussed in\n   Section 3.11, for new JWT applications, the use of explicit typing is\n   RECOMMENDED."
+    },
+    {
+      "id": "jwt-numericdate",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc7519.txt",
+      "startLine": 287,
+      "endLine": 295,
+      "reason": "§2: NumericDate は秒単位",
+      "excerpt": "   NumericDate\n      A JSON numeric value representing the number of seconds from\n      1970-01-01T00:00:00Z UTC until the specified UTC date/time,\n      ignoring leap seconds.  This is equivalent to the IEEE Std 1003.1,\n      2013 Edition [POSIX.1] definition \"Seconds Since the Epoch\", in\n      which each day is accounted for by exactly 86400 seconds, other\n      than that non-integer values can be represented.  See RFC 3339\n      [RFC3339] for details regarding date/times in general and UTC in\n      particular."
+    },
+    {
+      "id": "jwt-iat-jti",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc7519.txt",
+      "startLine": 525,
+      "endLine": 541,
+      "reason": "§4.1.6〜4.1.7: iat と jti（大文字・小文字を区別）",
+      "excerpt": "4.1.6.  \"iat\" (Issued At) Claim\n\n   The \"iat\" (issued at) claim identifies the time at which the JWT was\n   issued.  This claim can be used to determine the age of the JWT.  Its\n   value MUST be a number containing a NumericDate value.  Use of this\n   claim is OPTIONAL.\n\n4.1.7.  \"jti\" (JWT ID) Claim\n\n   The \"jti\" (JWT ID) claim provides a unique identifier for the JWT.\n   The identifier value MUST be assigned in a manner that ensures that\n   there is a negligible probability that the same value will be\n   accidentally assigned to a different data object; if the application\n   uses multiple issuers, collisions MUST be prevented among values\n   produced by different issuers as well.  The \"jti\" claim can be used\n   to prevent the JWT from being replayed.  The \"jti\" value is a case-\n   sensitive string.  Use of this claim is OPTIONAL."
+    },
+    {
+      "id": "jws-header-unique",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc7515.txt",
+      "startLine": 488,
+      "endLine": 518,
+      "reason": "§4: ヘッダーパラメーター名の一意性と未知パラメーターの扱い",
+      "excerpt": "4.  JOSE Header\n\n   For a JWS, the members of the JSON object(s) representing the JOSE\n   Header describe the digital signature or MAC applied to the JWS\n   Protected Header and the JWS Payload and optionally additional\n   properties of the JWS.  The Header Parameter names within the JOSE\n   Header MUST be unique; JWS parsers MUST either reject JWSs with\n   duplicate Header Parameter names or use a JSON parser that returns\n   only the lexically last duplicate member name, as specified in\n   Section 15.12 (\"The JSON Object\") of ECMAScript 5.1 [ECMAScript].\n\n   Implementations are required to understand the specific Header\n   Parameters defined by this specification that are designated as \"MUST\n   be understood\" and process them in the manner defined in this\n   specification.  All other Header Parameters defined by this\n\n\n\nJones, et al.                Standards Track                    [Page 9]\n\f\nRFC 7515                JSON Web Signature (JWS)                May 2015\n\n\n   specification that are not so designated MUST be ignored when not\n   understood.  Unless listed as a critical Header Parameter, per\n   Section 4.1.11, all Header Parameters not defined by this\n   specification MUST be ignored when not understood.\n\n   There are three classes of Header Parameter names: Registered Header\n   Parameter names, Public Header Parameter names, and Private Header\n   Parameter names."
+    },
+    {
+      "id": "jws-json-security",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc7515.txt",
+      "startLine": 1692,
+      "endLine": 1724,
+      "reason": "§10.12: 厳格な JSON 解析と重複メンバー・余分な文字",
+      "excerpt": "10.12.  JSON Security Considerations\n\n   Strict JSON [RFC7159] validation is a security requirement.  If\n   malformed JSON is received, then the intent of the producer is\n   impossible to reliably discern.  Ambiguous and potentially\n   exploitable situations could arise if the JSON parser used does not\n   reject malformed JSON syntax.  In particular, any JSON inputs not\n   conforming to the JSON-text syntax defined in RFC 7159 MUST be\n   rejected in their entirety by JSON parsers.\n\n   Section 4 of \"The JavaScript Object Notation (JSON) Data Interchange\n   Format\" [RFC7159] states, \"The names within an object SHOULD be\n   unique\", whereas this specification states that\n\n      The Header Parameter names within the JOSE Header MUST be unique;\n      JWS parsers MUST either reject JWSs with duplicate Header\n      Parameter names or use a JSON parser that returns only the\n      lexically last duplicate member name, as specified in\n      Section 15.12 (\"The JSON Object\") of ECMAScript 5.1 [ECMAScript].\n\n   Thus, this specification requires that the \"SHOULD\" in Section 4 of\n   [RFC7159] be treated as a \"MUST\" by producers and that it be either\n   treated as a \"MUST\" or treated in the manner specified in ECMAScript\n   5.1 by consumers.  Ambiguous and potentially exploitable situations\n   could arise if the JSON parser used does not enforce the uniqueness\n   of member names or returns an unpredictable value for duplicate\n   member names.\n\n   Some JSON parsers might not reject input that contains extra\n   significant characters after a valid input.  For instance, the input\n   \"{\"tag\":\"value\"}ABCD\" contains a valid JSON-text object followed by\n   the extra characters \"ABCD\".  Implementations MUST consider JWSs\n   containing such input to be invalid."
+    },
+    {
+      "id": "bcp-alg-verify",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc8725.txt",
+      "startLine": 285,
+      "endLine": 293,
+      "reason": "§3.1: ライブラリは許可する alg を呼び出し側が指定できるようにする",
+      "excerpt": "3.1.  Perform Algorithm Verification\n\n   Libraries MUST enable the caller to specify a supported set of\n   algorithms and MUST NOT use any other algorithms when performing\n   cryptographic operations.  The library MUST ensure that the \"alg\" or\n   \"enc\" header specifies the same algorithm that is used for the\n   cryptographic operation.  Moreover, each key MUST be used with\n   exactly one algorithm, and this MUST be checked when the\n   cryptographic operation is performed."
+    },
+    {
+      "id": "jws-crit",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc7515.txt",
+      "startLine": 735,
+      "endLine": 761,
+      "reason": "§4.1.11: crit に挙げた拡張を理解できなければ無効",
+      "excerpt": "4.1.11.  \"crit\" (Critical) Header Parameter\n\n   The \"crit\" (critical) Header Parameter indicates that extensions to\n   this specification and/or [JWA] are being used that MUST be\n   understood and processed.  Its value is an array listing the Header\n   Parameter names present in the JOSE Header that use those extensions.\n   If any of the listed extension Header Parameters are not understood\n   and supported by the recipient, then the JWS is invalid.  Producers\n   MUST NOT include Header Parameter names defined by this specification\n   or [JWA] for use with JWS, duplicate names, or names that do not\n   occur as Header Parameter names within the JOSE Header in the \"crit\"\n   list.  Producers MUST NOT use the empty list \"[]\" as the \"crit\"\n   value.  Recipients MAY consider the JWS to be invalid if the critical\n   list contains any Header Parameter names defined by this\n   specification or [JWA] for use with JWS or if any other constraints\n   on its use are violated.  When used, this Header Parameter MUST be\n   integrity protected; therefore, it MUST occur only within the JWS\n   Protected Header.  Use of this Header Parameter is OPTIONAL.  This\n   Header Parameter MUST be understood and processed by implementations.\n\n   An example use, along with a hypothetical \"exp\" (expiration time)\n   field is:\n\n     {\"alg\":\"ES256\",\n      \"crit\":[\"exp\"],\n      \"exp\":1363284000\n     }"
+    },
+    {
+      "id": "algorithms",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 1441,
+      "endLine": 1446,
+      "reason": "§11.6: 安全な非対称署名アルゴリズムのみの許可",
+      "excerpt": "11.6.  Signature Algorithms\n\n   Implementers MUST ensure that only asymmetric digital signature\n   algorithms (such as ES256) that are deemed secure can be used for\n   signing DPoP proofs.  In particular, the algorithm none MUST NOT be\n   allowed."
+    },
+    {
+      "id": "jws-mac",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc7515.txt",
+      "startLine": 1553,
+      "endLine": 1582,
+      "reason": "§10.5: デジタル署名と MAC の違い",
+      "excerpt": "10.5.  Differences between Digital Signatures and MACs\n\n   While MACs and digital signatures can both be used for integrity\n   checking, there are some significant differences between the security\n   properties that each of them provides.  These need to be taken into\n   consideration when designing protocols and selecting the algorithms\n   to be used in protocols.\n\n   Both signatures and MACs provide for integrity checking -- verifying\n   that the message has not been modified since the integrity value was\n   computed.  However, MACs provide for origination identification only\n   under specific circumstances.  It can normally be assumed that a\n   private key used for a signature is only in the hands of a single\n   entity (although perhaps a distributed entity, in the case of\n\n\n\nJones, et al.                Standards Track                   [Page 28]\n\f\nRFC 7515                JSON Web Signature (JWS)                May 2015\n\n\n   replicated servers); however, a MAC key needs to be in the hands of\n   all the entities that use it for integrity computation and checking.\n   Validation of a MAC only provides corroboration that the message was\n   generated by one of the parties that knows the symmetric MAC key.\n   This means that origination can only be determined if a MAC key is\n   known only to two entities and the recipient knows that it did not\n   create the message.  MAC validation cannot be used to prove\n   origination to a third party."
+    },
+    {
+      "id": "bcp-weak-sig",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc8725.txt",
+      "startLine": 163,
+      "endLine": 179,
+      "reason": "§2.1: alg の書き換え（none、RS256→HS256）",
+      "excerpt": "2.1.  Weak Signatures and Insufficient Signature Validation\n\n   Signed JSON Web Tokens carry an explicit indication of the signing\n   algorithm, in the form of the \"alg\" Header Parameter, to facilitate\n   cryptographic agility.  This, in conjunction with design flaws in\n   some libraries and applications, has led to several attacks:\n\n   *  The algorithm can be changed to \"none\" by an attacker, and some\n      libraries would trust this value and \"validate\" the JWT without\n      checking any signature.\n\n   *  An \"RS256\" (RSA, 2048 bit) parameter value can be changed into\n      \"HS256\" (HMAC, SHA-256), and some libraries would try to validate\n      the signature using HMAC-SHA256 and using the RSA public key as\n      the HMAC shared secret (see [McLean] and [CVE-2015-9235]).\n\n   For mitigations, see Sections 3.1 and 3.2."
+    },
+    {
+      "id": "okp-key",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc8037.txt",
+      "startLine": 134,
+      "endLine": 159,
+      "reason": "§2: OKP 鍵の kty・crv・x・d と Thumbprint のメンバー",
+      "excerpt": "2.  Key Type \"OKP\"\n\n   A new key type (kty) value \"OKP\" (Octet Key Pair) is defined for\n   public key algorithms that use octet strings as private and public\n   keys.  It has the following parameters:\n\n   o  The parameter \"kty\" MUST be \"OKP\".\n\n   o  The parameter \"crv\" MUST be present and contain the subtype of the\n      key (from the \"JSON Web Elliptic Curve\" registry).\n\n   o  The parameter \"x\" MUST be present and contain the public key\n      encoded using the base64url [RFC4648] encoding.\n\n   o  The parameter \"d\" MUST be present for private keys and contain the\n      private key encoded using the base64url encoding.  This parameter\n      MUST NOT be present for public keys.\n\n   Note: Do not assume that there is an underlying elliptic curve,\n   despite the existence of the \"crv\" and \"x\" parameters.  (For\n   instance, this key type could be extended to represent Diffie-Hellman\n   (DH) algorithms based on hyperelliptic surfaces.)\n\n   When calculating JWK Thumbprints [RFC7638], the three public key\n   fields are included in the hash input in lexicographic order: \"crv\",\n   \"kty\", and \"x\"."
+    },
+    {
+      "id": "okp-thumbprint",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc8037.txt",
+      "startLine": 484,
+      "endLine": 495,
+      "reason": "付録 A.3: Ed25519 公開鍵の Thumbprint の入力と値",
+      "excerpt": "A.3.  JWK Thumbprint Canonicalization\n\n   The JWK Thumbprint canonicalization of the two examples above (with a\n   linebreak inserted for formatting reasons) is:\n\n   {\"crv\":\"Ed25519\",\"kty\":\"OKP\",\"x\":\"11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwI\n   aaPcHURo\"}\n\n   Which has the SHA-256 hash (in hexadecimal) of\n   90facafea9b1556698540f70c0117a22ea37bd5cf3ed3c47093c1707282b4b89,\n   which results in the base64url encoded JWK Thumbprint representation\n   of \"kPrK_qmxVWaYVA9wwBF6Iuo3vVzz7TxHCTwXBygrS4k\"."
+    },
+    {
+      "id": "thumb-members",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc7638.txt",
+      "startLine": 287,
+      "endLine": 315,
+      "reason": "§3.2: 鍵の種類ごとの必須メンバー",
+      "excerpt": "3.2.  JWK Members Used in the Thumbprint Computation\n\n   Only the required members of a key's representation are used when\n   computing its JWK Thumbprint value.  As defined in \"JSON Web Key\n   (JWK)\" [JWK] and \"JSON Web Algorithms (JWA)\" [JWA], the required\n   members for an elliptic curve public key for the curves specified in\n   Section 6.2.1.1 of RFC 7518 [JWA], in lexicographic order, are:\n\n   o  \"crv\"\n   o  \"kty\"\n   o  \"x\"\n   o  \"y\"\n\n   The required members for an RSA public key, in lexicographic order,\n   are:\n\n   o  \"e\"\n   o  \"kty\"\n   o  \"n\"\n\n   The required members for a symmetric key, in lexicographic order,\n   are:\n\n   o  \"k\"\n   o  \"kty\"\n\n   As other \"kty\" (key type) values are defined, the specifications\n   defining them should be similarly consulted to determine which\n   members, in addition to \"kty\", are required."
+    },
+    {
+      "id": "jwa-pss",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc7518.txt",
+      "startLine": 541,
+      "endLine": 551,
+      "reason": "§3.5: RSASSA-PSS と鍵長",
+      "excerpt": "3.5.  Digital Signature with RSASSA-PSS\n\n   This section defines the use of the RSASSA-PSS digital signature\n   algorithm as defined in Section 8.1 of RFC 3447 [RFC3447] with the\n   MGF1 mask generation function and SHA-2 hash functions, always using\n   the same hash function for both the RSASSA-PSS hash function and the\n   MGF1 hash function.  The size of the salt value is the same size as\n   the hash function output.  All other algorithm parameters use the\n   defaults specified in Appendix A.2.3 of RFC 3447.\n\n   A key of size 2048 bits or larger MUST be used with this algorithm."
+    },
+    {
+      "id": "jwa-rs",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc7518.txt",
+      "startLine": 407,
+      "endLine": 413,
+      "reason": "§3.3: RSASSA-PKCS1-v1_5 は 2048 ビット以上の鍵",
+      "excerpt": "3.3.  Digital Signature with RSASSA-PKCS1-v1_5\n\n   This section defines the use of the RSASSA-PKCS1-v1_5 digital\n   signature algorithm as defined in Section 8.2 of RFC 3447 [RFC3447]\n   (commonly known as PKCS #1), using SHA-2 [SHS] hash functions.\n\n   A key of size 2048 bits or larger MUST be used with these algorithms."
+    },
+    {
+      "id": "jws-jku",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc7515.txt",
+      "startLine": 551,
+      "endLine": 570,
+      "reason": "§4.1.2: jku（JWK Set URL）",
+      "excerpt": "4.1.2.  \"jku\" (JWK Set URL) Header Parameter\n\n   The \"jku\" (JWK Set URL) Header Parameter is a URI [RFC3986] that\n   refers to a resource for a set of JSON-encoded public keys, one of\n   which corresponds to the key used to digitally sign the JWS.  The\n   keys MUST be encoded as a JWK Set [JWK].  The protocol used to\n   acquire the resource MUST provide integrity protection; an HTTP GET\n   request to retrieve the JWK Set MUST use Transport Layer Security\n\n\n\nJones, et al.                Standards Track                   [Page 10]\n\f\nRFC 7515                JSON Web Signature (JWS)                May 2015\n\n\n   (TLS) [RFC2818] [RFC5246]; and the identity of the server MUST be\n   validated, as per Section 6 of RFC 6125 [RFC6125].  Also, see\n   Section 8 on TLS requirements.  Use of this Header Parameter is\n   OPTIONAL."
+    },
+    {
+      "id": "bcp-untrusted",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc8725.txt",
+      "startLine": 426,
+      "endLine": 438,
+      "reason": "§3.10: kid・jku・x5u を信用しない",
+      "excerpt": "3.10.  Do Not Trust Received Claims\n\n   The \"kid\" (key ID) header is used by the relying application to\n   perform key lookup.  Applications should ensure that this does not\n   create SQL or LDAP injection vulnerabilities by validating and/or\n   sanitizing the received value.\n\n   Similarly, blindly following a \"jku\" (JWK set URL) or \"x5u\" (X.509\n   URL) header, which may contain an arbitrary URL, could result in\n   server-side request forgery (SSRF) attacks.  Applications SHOULD\n   protect against such attacks, e.g., by matching the URL to a\n   whitelist of allowed locations and ensuring no cookies are sent in\n   the GET request."
+    },
+    {
+      "id": "bcp-alg-choice",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc8725.txt",
+      "startLine": 295,
+      "endLine": 338,
+      "reason": "§3.2: 適切なアルゴリズムと決定的 ECDSA",
+      "excerpt": "3.2.  Use Appropriate Algorithms\n\n   As Section 5.2 of [RFC7515] says, \"it is an application decision\n   which algorithms may be used in a given context.  Even if a JWS can\n   be successfully validated, unless the algorithm(s) used in the JWS\n   are acceptable to the application, it SHOULD consider the JWS to be\n   invalid.\"\n\n   Therefore, applications MUST only allow the use of cryptographically\n   current algorithms that meet the security requirements of the\n   application.  This set will vary over time as new algorithms are\n   introduced and existing algorithms are deprecated due to discovered\n   cryptographic weaknesses.  Applications MUST therefore be designed to\n   enable cryptographic agility.\n\n   That said, if a JWT is cryptographically protected end-to-end by a\n   transport layer, such as TLS using cryptographically current\n   algorithms, there may be no need to apply another layer of\n   cryptographic protections to the JWT.  In such cases, the use of the\n   \"none\" algorithm can be perfectly acceptable.  The \"none\" algorithm\n   should only be used when the JWT is cryptographically protected by\n   other means.  JWTs using \"none\" are often used in application\n   contexts in which the content is optionally signed; then, the URL-\n   safe claims representation and processing can be the same in both the\n   signed and unsigned cases.  JWT libraries SHOULD NOT generate JWTs\n   using \"none\" unless explicitly requested to do so by the caller.\n   Similarly, JWT libraries SHOULD NOT consume JWTs using \"none\" unless\n   explicitly requested by the caller.\n\n   Applications SHOULD follow these algorithm-specific recommendations:\n\n   *  Avoid all RSA-PKCS1 v1.5 encryption algorithms ([RFC8017],\n      Section 7.2), preferring RSAES-OAEP ([RFC8017], Section 7.1).\n\n   *  Elliptic Curve Digital Signature Algorithm (ECDSA) signatures\n      [ANSI-X962-2005] require a unique random value for every message\n      that is signed.  If even just a few bits of the random value are\n      predictable across multiple messages, then the security of the\n      signature scheme may be compromised.  In the worst case, the\n      private key may be recoverable by an attacker.  To counter these\n      attacks, JWT libraries SHOULD implement ECDSA using the\n      deterministic approach defined in [RFC6979].  This approach is\n      completely compatible with existing ECDSA verifiers and so can be\n      implemented without new algorithm identifiers being required."
+    },
+    {
+      "id": "thumb-security",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc7638.txt",
+      "startLine": 546,
+      "endLine": 596,
+      "reason": "§7: 表現の検証と、Thumbprint による鍵の除外の限界",
+      "excerpt": "7.  Security Considerations\n\n   The JSON Security Considerations and Unicode Comparison Security\n   Considerations described in Sections 10.12 and 10.13 of \"JSON Web\n   Signature (JWS)\" [JWS] also apply to this specification.\n\n   Also, as described in Section 4, some implementations may produce\n   incorrect results if esoteric or escaped characters are used in the\n   member names.  The security implications of this appear to be limited\n   for JWK Thumbprints of public keys, because while it may result in\n   implementations failing to identify the intended key, it should not\n   leak information.  The information in a public key is already public\n   in nature, by definition.\n\n\n\nJones & Sakimura             Standards Track                   [Page 10]\n\f\nRFC 7638              JSON Web Key (JWK) Thumbprint       September 2015\n\n\n   A hash of a symmetric key has the potential to leak information about\n   the key value.  Thus, the JWK Thumbprint of a symmetric key should\n   typically be concealed from parties not in possession of the\n   symmetric key, unless in the application context, the cryptographic\n   hash used, such as SHA-256, is known to provide sufficient protection\n   against disclosure of the key value.\n\n   A JWK Thumbprint will only uniquely identify a particular key if a\n   single unambiguous JWK representation for that key is defined and\n   used when computing the JWK Thumbprint.  (Such representations are\n   defined for all the key types defined in \"JSON Web Algorithms (JWA)\"\n   [JWA].)  For example, if an RSA key were to use \"e\":\"AAEAAQ\"\n   (representing [0, 1, 0, 1]) rather than the specified correct\n   representation of \"e\":\"AQAB\" (representing [1, 0, 1]), then a\n   different thumbprint value would be produced for what could be\n   effectively the same key, at least for implementations that are lax\n   in validating the JWK values that they accept.  Thus, JWK Thumbprint\n   values can only be relied upon to be unique for a given key if the\n   implementation also validates that the correct representation of the\n   key is used.\n\n   Even more insidious is that an attacker may supply a key that is a\n   transformation of a legal key in order to have it appear to be a\n   different key.  For instance, if a legitimate RSA key uses a modulus\n   value N and an attacker supplies a key with modulus 3*N, the modified\n   key would still work about 1/3 of the time, but would appear to be a\n   different key.  Thus, while thumbprint values are valuable for\n   identifying legitimate keys, comparing thumbprint values is not a\n   reliable means of excluding (blacklisting) the use of particular keys\n   (or transformations thereof)."
+    },
+    {
+      "id": "code",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 1237,
+      "endLine": 1273,
+      "reason": "§10: dpop_jkt、トークン要求時の照合、PKCE との併用",
+      "excerpt": "10.  Authorization Code Binding to a DPoP Key\n\n   Binding the authorization code issued to the client's proof-of-\n   possession key can enable end-to-end binding of the entire\n   authorization flow.  This specification defines the dpop_jkt\n   authorization request parameter for this purpose.  The value of the\n   dpop_jkt authorization request parameter is the JWK Thumbprint\n   [RFC7638] of the proof-of-possession public key using the SHA-256\n   hash function, which is the same value as used for the jkt\n   confirmation method defined in Section 6.1.\n\n   When a token request is received, the authorization server computes\n   the JWK Thumbprint of the proof-of-possession public key in the DPoP\n   proof and verifies that it matches the dpop_jkt parameter value in\n   the authorization request.  If they do not match, it MUST reject the\n   request.\n\n   An example authorization request using the dpop_jkt authorization\n   request parameter is shown below and uses \"\\\" line wrapping per\n   [RFC8792].\n\n   GET /authorize?response_type=code&client_id=s6BhdRkqt3&state=xyz\\\n       &redirect_uri=https%3A%2F%2Fclient%2Eexample%2Ecom%2Fcb\\\n       &code_challenge=E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM\\\n       &code_challenge_method=S256\\\n       &dpop_jkt=NzbLsXh8uDCcd-6MNwXF4W_7noWXFZAfHkxZsRGC9Xs HTTP/1.1\n   Host: server.example.com\n\n       Figure 25: Authorization Request Using the dpop_jkt Parameter\n\n   Use of the dpop_jkt authorization request parameter is OPTIONAL.\n   Note that the dpop_jkt authorization request parameter MAY also be\n   used in combination with Proof Key for Code Exchange (PKCE)\n   [RFC7636], which is recommended by [SECURITY-TOPICS] as a\n   countermeasure to authorization code injection.  The dpop_jkt\n   authorization request parameter only provides similar protections\n   when a unique DPoP key is used for each authorization request."
+    },
+    {
+      "id": "jws-b64url-impl",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc7515.txt",
+      "startLine": 3031,
+      "endLine": 3072,
+      "reason": "付録 C: パディングなし base64url の実装",
+      "excerpt": "Appendix C.  Notes on Implementing base64url Encoding without Padding\n\n   This appendix describes how to implement base64url encoding and\n   decoding functions without padding based upon standard base64\n   encoding and decoding functions that do use padding.\n\n   To be concrete, example C# code implementing these functions is shown\n   below.  Similar code could be used in other languages.\n\n     static string base64urlencode(byte [] arg)\n     {\n       string s = Convert.ToBase64String(arg); // Regular base64 encoder\n       s = s.Split('=')[0]; // Remove any trailing '='s\n       s = s.Replace('+', '-'); // 62nd char of encoding\n       s = s.Replace('/', '_'); // 63rd char of encoding\n       return s;\n     }\n\n     static byte [] base64urldecode(string arg)\n     {\n       string s = arg;\n       s = s.Replace('-', '+'); // 62nd char of encoding\n       s = s.Replace('_', '/'); // 63rd char of encoding\n       switch (s.Length % 4) // Pad with trailing '='s\n       {\n         case 0: break; // No pad chars in this case\n         case 2: s += \"==\"; break; // Two pad chars\n         case 3: s += \"=\"; break; // One pad char\n         default: throw new System.Exception(\n           \"Illegal base64url string!\");\n       }\n       return Convert.FromBase64String(s); // Standard base64 decoder\n     }\n\n   As per the example code above, the number of '=' padding characters\n   that needs to be added to the end of a base64url-encoded string\n   without padding to turn it into one with padding is a deterministic\n   function of the length of the encoded string.  Specifically, if the\n   length mod 4 is 0, no padding is added; if the length mod 4 is 2, two\n   '=' padding characters are added; if the length mod 4 is 3, one '='\n   padding character is added; if the length mod 4 is 1, the input is\n   malformed."
+    },
+    {
+      "id": "thumb-def",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc7638.txt",
+      "startLine": 130,
+      "endLine": 148,
+      "reason": "§3: JWK Thumbprint の計算手順",
+      "excerpt": "3.  JSON Web Key (JWK) Thumbprint\n\n   The thumbprint of a JSON Web Key (JWK) is computed as follows:\n\n   1.  Construct a JSON object [RFC7159] containing only the required\n       members of a JWK representing the key and with no whitespace or\n       line breaks before or after any syntactic elements and with the\n       required members ordered lexicographically by the Unicode\n       [UNICODE] code points of the member names.  (This JSON object is\n       itself a legal JWK representation of the key.)\n\n   2.  Hash the octets of the UTF-8 representation of this JSON object\n       with a cryptographic hash function H.  For example, SHA-256 [SHS]\n       might be used as H.  See Section 3.4 for a discussion on the\n       choice of hash function.\n\n   The resulting value is the JWK Thumbprint with H of the JWK.  The\n   details of this computation are further described in subsequent\n   sections."
+    },
+    {
+      "id": "http-method",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc9110.txt",
+      "startLine": 3728,
+      "endLine": 3758,
+      "reason": "§9.1: メソッドトークンは大文字・小文字を区別",
+      "excerpt": "9.1.  Overview\n\n   The request method token is the primary source of request semantics;\n   it indicates the purpose for which the client has made this request\n   and what is expected by the client as a successful result.\n\n   The request method's semantics might be further specialized by the\n   semantics of some header fields when present in a request if those\n   additional semantics do not conflict with the method.  For example, a\n   client can send conditional request header fields (Section 13.1) to\n   make the requested action conditional on the current state of the\n   target resource.\n\n   HTTP is designed to be usable as an interface to distributed object\n   systems.  The request method invokes an action to be applied to a\n   target resource in much the same way that a remote method invocation\n   can be sent to an identified object.\n\n     method = token\n\n   The method token is case-sensitive because it might be used as a\n   gateway to object-based systems with case-sensitive method names.  By\n   convention, standardized methods are defined in all-uppercase US-\n   ASCII letters.\n\n   Unlike distributed objects, the standardized request methods in HTTP\n   are not resource-specific, since uniform interfaces provide for\n   better visibility and reuse in network-based systems [REST].  Once\n   defined, a standardized method ought to have the same semantics when\n   applied to any resource, though each resource determines for itself\n   whether those semantics are implemented or allowed."
+    }
+  ],
+  "questions": [
+    {
+      "id": "signing-input",
+      "type": "choice",
+      "category": "vocabulary",
+      "term": "JWS Signing Input（DPoP proof の署名対象）",
+      "prompt": "JWS Compact Serialization の DPoP proof で、秘密鍵による署名の入力になるのはどれですか？",
+      "options": [
+        "ASCII(BASE64URL(UTF8(JOSE ヘッダー)) || \".\" || BASE64URL(ペイロード) || \".\")",
+        "UTF8(JOSE ヘッダーの JSON) || \".\" || UTF8(ペイロードの JSON)",
+        "ASCII(BASE64URL(UTF8(JOSE ヘッダー)) || \".\" || BASE64URL(ペイロード))",
+        "SHA-256(UTF8(JOSE ヘッダー) || UTF8(ペイロード)) を base64url にした文字列",
+        "ASCII(BASE64(UTF8(JOSE ヘッダー)) || \".\" || BASE64(ペイロード))（パディングあり）"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "jws-b64url",
+        "jws-compact",
+        "syntax"
+      ]
+    },
+    {
+      "id": "padding-token68",
+      "type": "choice",
+      "category": "debugging",
+      "scenario": "クライアントのライブラリが、JWT の各部分をパディング付きで出力していました。DPoP ヘッダーは「DPoP: eyJ0eXAi…fQ==.eyJqdGki…fQ==.Mr4n…A==」のようになり、RS の JWT パーサーが拒否します。開発者は「RFC 9449 の token68 は「=」を許すので、RS は受理すべきだ」と主張しています。",
+      "prompt": "この主張の評価として正しいものはどれですか？",
+      "options": [
+        "RFC 9449 は寛容な復号を勧めている（SHOULD）。RS は「=」を取り除いて受理すべきである",
+        "「=」は問題ではない。拒否の原因は、token68 で「.」を使えないことにある",
+        "RFC 7515 では base64url の末尾のパディングは付けても付けなくてもよい。RS はどちらの形も受理しなければならない",
+        "token68 の ABNF は「=」を値のどこにでも置けると定めている。したがって RS は受理しなければならない",
+        "token68 の「=」は末尾だけで、JWS の各部分もパディングなしの base64url なので、主張は誤り"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "header",
+        "jws-b64url",
+        "jws-validation"
+      ]
+    },
+    {
+      "id": "es256-der",
+      "type": "choice",
+      "category": "debugging",
+      "scenario": "Node.js の crypto.sign(\"sha256\", 署名入力, P-256 の秘密鍵) で ES256 の proof を作ったところ、署名が 70 バイト前後の DER 形式になり、RS の JOSE ライブラリが署名を拒否しました。",
+      "prompt": "原因と直し方として正しいものはどれですか？",
+      "options": [
+        "ES256 のハッシュは SHA-512 である。crypto.sign の第 1 引数を \"sha512\" に変えて署名し直す",
+        "R と S の先頭の 0x00 を取り除いて連結する。合計の長さは 62〜64 バイトで変わってよい",
+        "署名を base64url ではなく base64 で符号化する。そうすれば DER のままでも検証できる",
+        "ES256 の署名は、R と S を 32 バイトずつ連結した 64 バイトである。DER を R||S に変換する",
+        "DER のままでよい。RS が alg を ES256K として扱えば、同じ署名を検証できる"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "jwa-ecdsa",
+        "syntax"
+      ]
+    },
+    {
+      "id": "ec-jwk-members",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "ES256 の proof の jwk に入れる P-256 公開鍵について、必須のメンバーの組み合わせはどれですか？",
+      "options": [
+        "kty・crv・x・y（use・kid・alg は任意）",
+        "kty・crv・x・y・kid（kid で鍵を識別するため必須）",
+        "kty・crv・x（P-256 では y を省略できる）",
+        "kty・x・y（crv は alg の ES256 から決まるので不要）",
+        "kty・crv・x・y・d（署名の検証に d が必要）"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "jwa-ec-public",
+        "jwk-kty",
+        "jwa-ec-private",
+        "syntax"
+      ]
+    },
+    {
+      "id": "kid-vs-jwk",
+      "type": "choice",
+      "category": "debugging",
+      "scenario": "RS の実装が、proof の JOSE ヘッダーの kid でクライアントの登録済み JWK Set から公開鍵を選び、その鍵で署名を検証しています。jwk ヘッダーパラメーターは読んでいません。",
+      "prompt": "RFC 9449 に照らして正しい指摘はどれですか？",
+      "options": [
+        "kid は DPoP proof に含めてはならないヘッダーである。kid を含む proof は、それだけで拒否しなければならない",
+        "署名は jwk の公開鍵で検証し、その鍵の Thumbprint を結び付けと照合する。kid は無視してよい",
+        "kid と jwk の両方がある場合は kid を優先する。RFC 7515 がそう定めている",
+        "登録済みの鍵で検証できたなら問題ない。jwk と異なる鍵でも RFC 9449 に適合する",
+        "kid の値が cnf.jkt と一致すれば、その鍵との結び付けを確認できる。jwk は読まなくてよい"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "checks",
+        "syntax",
+        "jws-jwk",
+        "jws-kid",
+        "jkt"
+      ]
+    },
+    {
+      "id": "typ-application",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "JWS の typ ヘッダーパラメーターについて、RFC 7515 の記述と一致するものはどれですか？",
+      "options": [
+        "typ は JWS のライブラリでは無視され、アプリケーションが処理する。署名の検証とは別に確かめる",
+        "Compact Serialization では typ は署名の保護対象に入らない。そのため途中で改ざんされ得る",
+        "JWS のライブラリが typ を処理する。署名を検証する前に、ライブラリが typ を必ず確認しなければならない",
+        "「application/」は省略してはならない。\"application/dpop+jwt\" と書くことが推奨される",
+        "typ の値は alg と同じ規則で比べる。大文字・小文字を区別しなければならない"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "jws-typ",
+        "jws-string-compare",
+        "jws-compact",
+        "checks",
+        "jwt-swapping"
+      ]
+    },
+    {
+      "id": "typing-direction",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "RFC 8725 §3.11 の明示的な型付けと、RFC 9449 の typ=dpop+jwt の確認について正しいものはどれですか？",
+      "options": [
+        "明示的な型付けでは、完全なメディアタイプが必要である。typ には「application/」を付けて書く",
+        "typ は署名で保護される。typ=dpop+jwt の proof は、DPoP 以外のどの種類の JWT の検証処理でも受理されなくなる",
+        "typ の確認で、別用途の JWT を proof として受理することは防げる。typ を見ない別の検証処理は守れない",
+        "署名を jwk の公開鍵で検証できれば、別用途の JWT は混ざらない。typ の確認は省略できる",
+        "typ の確認が必要なのは、サーバーが nonce を提供して proof の寿命を制限している場合だけである"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "bcp-explicit-typing",
+        "bcp-exclusive-rules",
+        "jwt-swapping",
+        "checks"
+      ]
+    },
+    {
+      "id": "iat-milliseconds",
+      "type": "choice",
+      "category": "debugging",
+      "scenario": "ブラウザーの SPA が、proof の iat に Date.now() の値（例：1794528000000）を入れていました。RS は iat が現在時刻の前後 60 秒以内かを確かめており、proof を未来の時刻として拒否します。",
+      "prompt": "正しい修正はどれですか？",
+      "options": [
+        "iat を文字列の \"1794528000\" にする。そうすれば RS は数値として比較しないので受理される",
+        "nonce を使えば iat は不要になる。RS に nonce を要求させて、iat を proof から削除する",
+        "iat を ISO 8601 形式の文字列（例：\"2026-11-13T00:00:00Z\"）にして、単位の誤解をなくす",
+        "iat は秒単位の NumericDate である。Math.floor(Date.now() / 1000) などの秒の値にする",
+        "NumericDate は小数も表せるので、ミリ秒の値でも仕様上は正しい。RS が 1000 で割るべきである"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "jwt-numericdate",
+        "jwt-iat-jti",
+        "syntax",
+        "checks"
+      ]
+    },
+    {
+      "id": "duplicate-header",
+      "type": "choice",
+      "category": "debugging",
+      "scenario": "proof の JOSE ヘッダーを base64url で復号すると、{\"typ\":\"dpop+jwt\",\"alg\":\"ES256\",\"jwk\":{…},\"alg\":\"none\"} でした。",
+      "prompt": "RFC 7515 に沿う扱いはどれですか？",
+      "options": [
+        "重複はヘッダーの書式の問題にすぎない。ES256 で署名を検証できれば受理する",
+        "DPoP では jwk の鍵の種類から署名方式が決まる。alg は読まずに、鍵の種類に合う方式で検証してよい",
+        "両方の alg の値で、署名をそれぞれ検証する。どちらかが成功すれば受理する",
+        "最初に現れた値（ES256）を採用する。その後の alg は無視し、jwk の公開鍵で ES256 の署名を検証して判断する",
+        "重複のある JWS として拒否する。最後の値を採るパーサーでも alg=none となり、拒否する"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "jws-header-unique",
+        "jws-json-security",
+        "checks",
+        "bcp-alg-verify",
+        "jws-validation"
+      ]
+    },
+    {
+      "id": "crit-unknown",
+      "type": "choice",
+      "category": "knowledge",
+      "scenario": "proof の JOSE ヘッダーに \"crit\":[\"ext\"] と \"ext\":\"v1\" が含まれています。RS は ext という拡張を実装していません。",
+      "prompt": "RS の扱いとして正しいものはどれですか？",
+      "options": [
+        "ext と crit をヘッダーから取り除いてから、署名を検証する",
+        "crit に挙げられた拡張を理解できないので、この JWS を無効として拒否する",
+        "crit は JWE だけで使うパラメーターなので、無視して検証を続ける",
+        "理解できないヘッダーパラメーターは無視しなければならないので、ext を無視して受理する",
+        "RFC 9449 §4.2 が他のヘッダーパラメーターを MAY で認めているので、受理しなければならない"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "jws-crit",
+        "jws-header-unique",
+        "syntax"
+      ]
+    },
+    {
+      "id": "hs256-danger",
+      "type": "choice",
+      "category": "comparison",
+      "prompt": "DPoP で HS256（HMAC）の proof を受理してしまう実装が、特に危険な理由はどれですか？",
+      "options": [
+        "HS256 の検証は遅い。リプレイを検出する時間窓のあいだに検証が終わらないことがある",
+        "HS256 の署名値は base64url で表せない。DPoP ヘッダーの token68 の構文に入らない",
+        "HS256 も SHA-256 を使うので、ath の SHA-256 と衝突する。RS が ath を正しく検証できなくなる",
+        "公開鍵は過去の proof から誰でも分かる。それを HMAC の鍵にすれば、秘密鍵なしで proof を作れる",
+        "HS256 は client_secret のない public client で使えないだけである。confidential client なら安全に使える"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "syntax",
+        "algorithms",
+        "jws-mac",
+        "bcp-weak-sig"
+      ]
+    },
+    {
+      "id": "okp-jwk",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "Ed25519 の公開鍵を DPoP の jwk に入れ、その JWK Thumbprint を計算します。正しいものはどれですか？",
+      "options": [
+        "kty は \"OKP\"、crv は \"Ed25519\" で、公開鍵は x に入れる。Thumbprint の入力は crv・kty・x の 3 つ",
+        "kty は \"EC\"、crv は \"Ed25519\" で、x と y を入れる。Thumbprint の入力は crv・kty・x・y の 4 つ",
+        "kty は \"OKP\"、crv は \"Ed25519\" で、x と y を入れる。Thumbprint の入力は crv・kty・x・y の 4 つ",
+        "kty は \"OKP\"、crv は \"Ed25519\" で、d と x を入れる。Thumbprint の入力は crv・d・kty・x の 4 つ",
+        "kty は \"OKP\"、crv は \"Ed25519\" で、x を入れる。Thumbprint の入力は kty・x の 2 つ"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "okp-key",
+        "okp-thumbprint",
+        "thumb-members",
+        "syntax"
+      ]
+    },
+    {
+      "id": "rsa-key-size",
+      "type": "choice",
+      "category": "knowledge",
+      "scenario": "クライアントが 1024 ビットの RSA 鍵で、alg=PS256 の proof を送ってきました。署名自体は検証できます。RS の許可リストには PS256 が含まれています。",
+      "prompt": "RS の判断として正しいものはどれですか？",
+      "options": [
+        "鍵長が足りない場合は use_dpop_nonce を返し、別の鍵での再試行をクライアントに求める",
+        "2048 ビット以上という制限は RS256 だけにあり、PS256 にはないので、そのまま受理する",
+        "RFC 9449 は鍵長を規定していないので、署名が検証できれば RS は受理しなければならない",
+        "1024 ビットでも、jti と nonce を検証していれば同等の安全性になるので受理する",
+        "PS256 には 2048 ビット以上の鍵が必要（RFC 7518）なので、ローカルポリシーで受け入れない"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "jwa-pss",
+        "jwa-rs",
+        "checks",
+        "algorithms",
+        "jws-validation"
+      ]
+    },
+    {
+      "id": "jku-instead",
+      "type": "choice",
+      "category": "debugging",
+      "scenario": "汎用の JWT 検証ライブラリは、ヘッダーに jwk がなく jku（JWK Set の URL）がある場合、その URL から鍵を取得して検証します。RS はこのライブラリで proof を検証しています。",
+      "prompt": "jwk がなく jku だけを含む proof の扱いとして正しいものはどれですか？",
+      "options": [
+        "jku の URL が HTTPS なら安全に取得できる。DPoP の要件も満たすので受理する",
+        "jwk は proof に必須なので拒否する。jku の URL を自動で取得すること自体にも危険がある",
+        "jku は AS のメタデータの jwks_uri と同じ役割である。AS の鍵で署名を検証する",
+        "jku から取得した鍵の Thumbprint が cnf.jkt と一致すれば、jwk の代わりとして受理する",
+        "RFC 7515 では jwk も jku も任意である。jku から鍵を取得できれば受理する"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "syntax",
+        "checks",
+        "jws-jku",
+        "jws-jwk",
+        "bcp-untrusted"
+      ]
+    },
+    {
+      "id": "trailing-json",
+      "type": "choice",
+      "category": "debugging",
+      "scenario": "proof の JOSE ヘッダーを復号すると、{\"typ\":\"dpop+jwt\",\"alg\":\"ES256\",\"jwk\":{…}}xyz のように、正しい JSON オブジェクトの後に余分な文字が続いていました。RS の JSON パーサーは先頭の JSON だけを読み、エラーにしません。",
+      "prompt": "RFC 7515 に沿う扱いはどれですか？",
+      "options": [
+        "余分な文字を取り除いてから base64url に戻し、署名を検証し直す",
+        "JSON オブジェクトとして読める部分があるので、余分な文字を無視して検証を続ける",
+        "余分な文字を含む入力の JWS は、無効として拒否する",
+        "署名入力には元の文字列を使うので、署名が検証できれば受理してよい",
+        "余分な文字が base64url の文字だけなら受理する"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "jws-json-security",
+        "jws-validation"
+      ]
+    },
+    {
+      "id": "deterministic-ecdsa",
+      "type": "choice",
+      "category": "knowledge",
+      "scenario": "組み込み機器のクライアントが、品質の低い乱数生成器のまま、同じ P-256 鍵で ES256 の proof を毎日数千件作っています。",
+      "prompt": "この構成の危険と対策として、RFC 8725 の記述に沿うものはどれですか？",
+      "options": [
+        "決定的 ECDSA は検証側の対応が必要である。RS に新しい alg 値を登録してもらってから使う必要がある",
+        "ECDSA の署名は毎回同じ値になり、RS がリプレイと区別できない。HS256 に変える",
+        "危険なのは jti の乱数だけである。jti を UUID v4 にすれば、ECDSA の署名の乱数の質は問題にならない",
+        "ECDSA は署名ごとに一意な乱数が必要で、予測できると秘密鍵が漏れ得る。決定的 ECDSA を使う",
+        "proof の数が多いと鍵が劣化する。proof ごとに鍵を作り直す"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "bcp-alg-choice",
+        "syntax",
+        "jkt"
+      ]
+    },
+    {
+      "id": "coordinate-length",
+      "type": "choice",
+      "category": "debugging",
+      "scenario": "クライアントは、鍵ストアから取り出した JWK（x は 43 文字）で dpop_jkt を計算しています。一方、proof の jwk は別のライブラリが作っており、座標の先頭の 0x00 を取り除くため、一部の鍵では x が 42 文字（31 バイト）になります。その鍵のときだけ、トークン要求が dpop_jkt の不一致で拒否されます。",
+      "prompt": "原因の説明として最も適切なものはどれですか？",
+      "options": [
+        "P-256 では x の先頭が 0x00 になることはない。鍵の生成そのものが壊れている",
+        "x・y は座標の全長（32 オクテット）で表す。42 文字の表現では Thumbprint が別の値になる",
+        "Thumbprint は kid の値から計算する。x の長さはこの不一致の原因にならない",
+        "42 文字は 4 の倍数ではないので、base64url として不正である。AS がパディングを補ってから計算すれば一致する",
+        "Thumbprint は x・y を復号したバイト列から計算する。0x00 の有無は値に影響しない"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "jwa-ec-public",
+        "thumb-security",
+        "code",
+        "jws-b64url-impl",
+        "thumb-def"
+      ]
+    },
+    {
+      "id": "proof-creation",
+      "type": "ordering",
+      "category": "flow",
+      "prompt": "ブラウザーで ES256 の DPoP proof を作る手順を並べてください。鍵ペアは作成済みです。",
+      "items": [
+        {
+          "id": "header",
+          "text": "typ・alg・jwk を持つ JOSE ヘッダーを作る"
+        },
+        {
+          "id": "encode",
+          "text": "ヘッダーとペイロードの UTF-8 表現をそれぞれ base64url にして、ピリオドでつなぐ"
+        },
+        {
+          "id": "sign",
+          "text": "つないだ ASCII 文字列を秘密鍵で ES256 署名し、64 バイトの R||S を得る"
+        },
+        {
+          "id": "export",
+          "text": "公開鍵を JWK としてエクスポートし、秘密鍵のメンバーが含まれないことを確かめる"
+        },
+        {
+          "id": "payload",
+          "text": "jti・htm・htu・iat（必要なら ath・nonce）を持つペイロードを作る"
+        },
+        {
+          "id": "assemble",
+          "text": "署名を base64url にしてピリオドに続けて付け、DPoP ヘッダーの値にする"
+        }
+      ],
+      "points": 2,
+      "referenceIds": [
+        "syntax",
+        "jws-b64url",
+        "jws-compact",
+        "jwa-ecdsa"
+      ]
+    },
+    {
+      "id": "broken-proof-audit",
+      "type": "written",
+      "category": "debugging",
+      "scenario": "RS に届いた proof を復号すると、次のとおりでした。要求は GET https://api.example.com/orders?id=7 で、Authorization: DPoP T が付いています。\nヘッダー:\n{\"typ\":\"JWT\",\"alg\":\"ES256\",\n \"jwk\":{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"…\",\"y\":\"…\",\"d\":\"…\"}}\nペイロード:\n{\"jti\":\"1\",\"htm\":\"get\",\n \"htu\":\"https://api.example.com/orders?id=7\",\n \"iat\":1731500000000,\n \"ath\":\"fUHyO2r2+3DZ53EsNrWBb0xWXoaNy59IiKCAqksmQEo=\"}",
+      "prompt": "この proof の問題をすべて挙げ、それぞれ正しい値や作り方を示してください。",
+      "points": 7,
+      "referenceIds": [
+        "syntax",
+        "jwt-swapping",
+        "checks",
+        "http-method",
+        "jwt-numericdate",
+        "jws-b64url"
+      ],
+      "answerHint": "項目ごとに 1 行で構いません。何が誤りで、どう直すかを書いてください。"
+    },
+    {
+      "id": "library-vs-application",
+      "type": "written",
+      "category": "design",
+      "scenario": "RS の開発者が、汎用の JOSE ライブラリに「alg の許可リスト」と「検証に使う公開鍵」を渡して署名を検証する部分と、DPoP 固有の処理を分けて実装しようとしています。",
+      "prompt": "JOSE ライブラリに任せられる処理と、DPoP の検証として RS のアプリケーションが自分で行う必要がある処理を分けて説明してください。",
+      "points": 6,
+      "referenceIds": [
+        "checks",
+        "jws-validation",
+        "jws-typ",
+        "bcp-alg-verify",
+        "jkt",
+        "jws-json-security",
+        "jws-crit",
+        "algorithms",
+        "syntax"
+      ],
+      "answerHint": "箇条書きで構いません。「ライブラリ」と「アプリケーション」に分けて書いてください。"
+    }
+  ],
+  "solutions": {
+    "signing-input": {
+      "explanation": "RFC 7515 §2 の JWS Signing Input は「ASCII(BASE64URL(UTF8(JWS Protected Header)) || '.' || BASE64URL(JWS Payload))」です。署名するのは JSON そのものではなく、base64url にした 2 つの部分をピリオドでつないだ ASCII 文字列です。B は JSON を直接つないでいます。A は末尾のピリオドが余分です。署名値の前のピリオドは署名入力に含まれません。E：base64 は「+」「/」とパディングを使うので、それらが現れる場合は base64url（「-」「_」、パディングなし）と別のバイト列になります。JWS の定義は BASE64URL です。D：ハッシュはアルゴリズム（ES256 なら SHA-256）の内部で計算するもので、アプリケーションがハッシュを署名入力にするわけではありません。",
+      "answer": 2
+    },
+    "padding-token68": {
+      "explanation": "§4.1 の DPoP ヘッダーは token68 の構文で、「1*( ALPHA / DIGIT / \"-\" / \".\" / \"_\" / \"~\" / \"+\" / \"/\" ) *\"=\"」のとおり「=」は末尾にだけ置けます。中身の JWT は JWS Compact Serialization で、RFC 7515 §2 の base64url は末尾の「=」を省きます（任意ではありません）。RFC 7515 §5.2 の検証は、改行・空白・その他の文字を使っていないことを前提に復号します。D・C：途中の「=」は token68 にも base64url にも合いません。A：RFC 9449 にそのような規定はありません。B：「.」は token68 で使える文字で、JWT の区切りです。",
+      "answer": 4
+    },
+    "es256-der": {
+      "explanation": "RFC 7518 §3.4 は、ES256 の署名を「R と S をそれぞれ 32 オクテットのビッグエンディアンにし、R、S の順に連結した 64 オクテット」と定めます。「MUST NOT be shortened to omit any leading zero octets」なので B は誤りで、検証側は 64 オクテットでなければ失敗とします。DER（ASN.1 の SEQUENCE）は別の表現で、多くのライブラリは IEEE P1363 形式（R||S）で出力するオプションを持ちます。A：ES256 は P-256 と SHA-256 です。E：ES256K は別の曲線のアルゴリズムです。C：符号化を変えても署名の形式は変わりません。",
+      "answer": 3
+    },
+    "ec-jwk-members": {
+      "explanation": "RFC 7518 §6.2.1 は EC 公開鍵に crv と x を必須とし、P-256・P-384・P-521 では y も必須です。kty は RFC 7517 §4.1 で必須です。C：この 3 つの曲線では y を省略できず、SEC1 の点圧縮もサポートされません。D：crv は必須で、alg から推測しません。B：kid は任意です。DPoP では鍵を jwk そのもので示し、結び付けは JWK Thumbprint で照合します。E：d は秘密鍵で、RFC 9449 §4.2 は jwk に秘密鍵を含めることを禁じています（MUST NOT）。",
+      "answer": 0
+    },
+    "kid-vs-jwk": {
+      "explanation": "§4.3 の 6 番目は「The JWT signature verifies with the public key contained in the jwk JOSE Header Parameter」です。§4.2 は jwk を必須ヘッダーにしています（RFC 7515 §4.1.3 では任意）。結び付けは jwk の JWK Thumbprint を cnf.jkt などと照合して確かめます（§6）。A：§4.2 は他のヘッダーパラメーターを含めることを許しています（MAY）。E：kid は鍵のヒントで、値の構造は規定されていません（RFC 7515 §4.1.4）。kid を thumbprint と比べても、その鍵で署名されたことは示せません。D：§4.3 の 6 番目の検証を満たしません。C：そのような優先順位の規定はありません。",
+      "answer": 1
+    },
+    "typ-application": {
+      "explanation": "RFC 7515 §4.1.9 は「This parameter is ignored by JWS implementations; any processing of this parameter is performed by the JWS application」と述べています。RFC 9449 §4.3 の 4 番目と §11.5 の typ の確認は、DPoP の検証処理（アプリケーション）が行う必要があります。E：§5.3 は typ と cty を通常の文字列比較の例外とし、§4.1.9 のとおりメディアタイプの値は大文字・小文字を区別しません。D：「application/」は省略することが推奨（RECOMMENDED）され、RFC 9449 も typ の値を dpop+jwt としています。B：Compact Serialization では JOSE ヘッダー全体が保護ヘッダーです（§3.1）。",
+      "answer": 0
+    },
+    "typing-direction": {
+      "explanation": "RFC 8725 §3.11 は「the use of explicit typing may not achieve disambiguation from existing kinds of JWTs, as the validation rules for existing kinds of JWTs often do not use the \"typ\" Header Parameter value」と注意しています。型付けは、型を確認する側を守る仕組みです。別の種類の JWT の検証では、§3.12 のように必須クレームなどを相互排他的にして取り違えを防ぎます。D：RFC 9449 §11.5 は、proof を受け付けるサーバーが typ を確認することを MUST としています。A：「application/」は省略が推奨されます。E：typ の確認に条件はありません。",
+      "answer": 2
+    },
+    "iat-milliseconds": {
+      "explanation": "RFC 7519 §2 の NumericDate は「the number of seconds from 1970-01-01T00:00:00Z UTC」で、§4.1.6 の iat は NumericDate の数値でなければなりません（MUST）。小数を含む値も表せますが、単位は秒です。E：ミリ秒の値は 1000 倍も先の時刻を表すので、仕様上も誤りです。C・A：iat は数値です。B：RFC 9449 §4.2 で iat は必須クレームです。§4.3 は生成時刻を nonce に入れたサーバーの時刻で判断することも認めていますが、iat を省略してよいわけではありません。",
+      "answer": 3
+    },
+    "duplicate-header": {
+      "explanation": "RFC 7515 §4 は、ヘッダーパラメーター名は一意でなければならず、パーサーは重複のある JWS を拒否するか、ECMAScript 5.1 のように最後の重複だけを返すパーサーを使わなければならないとしています（§10.12 も参照）。最後の値は alg=none なので、RFC 9449 §4.3 の 5 番目で拒否します。D：最初の値を採用する処理は認められていません。パーサーによって解釈が分かれる曖昧さは攻撃に使われます。C：alg は 1 つです。B：RFC 7515 §5.2 は alg が示すアルゴリズムで検証することを求め、RFC 8725 §3.1 も alg と実際の処理の一致を確かめるよう求めています。A：重複の扱いは署名の検証より前の構文の問題で、受理の理由になりません。",
+      "answer": 4
+    },
+    "crit-unknown": {
+      "explanation": "RFC 7515 §4.1.11 は「If any of the listed extension Header Parameters are not understood and supported by the recipient, then the JWS is invalid」と定めます。理解できないヘッダーパラメーターを無視する原則（§4）は、crit に挙げられていない場合に限ります。E：RFC 9449 が他のパラメーターを許すことは、JWS の処理規則を変えません。C：crit は JWS の登録済みヘッダーパラメーターです。A：ヘッダーを書き換えると署名入力が変わり、検証できなくなります。",
+      "answer": 1
+    },
+    "hs256-danger": {
+      "explanation": "RFC 9449 §4.2 は alg に MAC（共通鍵）のアルゴリズムを禁じ、§11.6 は安全な非対称署名だけを許すよう求めています。MAC は鍵を知る者なら誰でも作れ、作成者を第三者に示せません（RFC 7515 §10.5）。DPoP の jwk は公開鍵で、過去の proof を見た者にも分かります。RFC 8725 §2.1 の攻撃（RSA の公開鍵を HMAC の鍵として使わせる）と同じ形で、攻撃者は盗んだトークンに結び付いた公開鍵を使って、照合を通る proof を作れてしまいます。C・B：HS256 の値も base64url で表せ、ath とは独立です。A：HMAC の計算はむしろ速く、速さは危険の理由ではありません。E：DPoP の鍵はクライアント認証の client_secret とは関係がなく、HS256 はどのクライアントでも禁止です。",
+      "answer": 3
+    },
+    "okp-jwk": {
+      "explanation": "RFC 8037 §2 は鍵の種類 OKP（Octet Key Pair）を定義し、crv と x を必須、d を秘密鍵の場合だけのメンバーとしています。y はありません。Thumbprint の入力は「\"crv\", \"kty\", and \"x\"」の辞書順で、付録 A.3 に例があります。B：Ed25519 の鍵は kty=EC ではありません。C：OKP に y はありません。E：crv も必須メンバーなので入力に含めます。D：d は秘密鍵で、DPoP の jwk に含めてはならず（RFC 9449 §4.2）、Thumbprint の入力にもなりません。",
+      "answer": 0
+    },
+    "rsa-key-size": {
+      "explanation": "RFC 7518 §3.5 は RSASSA-PSS に「A key of size 2048 bits or larger MUST be used」と定め、§3.3 の RS256 なども同じです（B は誤り）。RFC 9449 §4.3 の 5 番目は、alg が「acceptable per local policy」であることも求め、§11.6 は安全と判断できる非対称署名だけを許すよう求めています。RFC 7515 §5.2 も、検証できてもアルゴリズムを受け入れられない場合は無効とすべき（SHOULD）としています。D：jti や nonce は鍵の強度を補いません。A：use_dpop_nonce は nonce を要求するためのエラーです。",
+      "answer": 4
+    },
+    "jku-instead": {
+      "explanation": "RFC 9449 §4.2 は JOSE ヘッダーに typ・alg・jwk を必須とし、§4.3 は jwk の公開鍵で署名を検証することを求めます。RFC 7515 では jwk も jku も任意ですが（§4.1.2・§4.1.3）、DPoP（RFC 9449 §4.2）は jwk を必須にしており、jku で鍵を示す proof は認めていません。RFC 8725 §3.10 は、jku や x5u の任意の URL を盲目的に取得すると SSRF（サーバー側リクエストフォージェリ）につながると注意しています。D：一致を確かめる前に、攻撃者が指定した URL へ RS がアクセスしてしまいます。C：jwks_uri は AS の署名鍵で、proof の鍵ではありません。",
+      "answer": 1
+    },
+    "trailing-json": {
+      "explanation": "RFC 7515 §10.12 は厳格な JSON の検証をセキュリティ上の要件とし、「{\"tag\":\"value\"}ABCD」のように正しい JSON の後に余分な文字が続く入力について「Implementations MUST consider JWSs containing such input to be invalid」と定めています。§5.2 の 3 番目も、復号した結果が完全に正しい JSON オブジェクトであることを確かめる手順です。D：署名が検証できても、送信側と検証側で JSON の解釈が食い違う余地が残ります。A：署名入力を作り直すと、元の署名とは一致しません。",
+      "answer": 2
+    },
+    "deterministic-ecdsa": {
+      "explanation": "RFC 8725 §3.2 は、ECDSA の署名は「require a unique random value for every message that is signed」とし、乱数が予測できると最悪の場合は秘密鍵が復元され得るため、ライブラリは RFC 6979 の決定的な方式で ECDSA を実装すべき（SHOULD）としています。決定的 ECDSA は既存の検証側と完全に互換で、新しいアルゴリズム識別子は不要です（A は誤り）。C：jti の一意性と署名の乱数は別の問題です。B：MAC は RFC 9449 §4.2 で禁止されています。E：DPoP のトークンは鍵に結び付くので、proof ごとに鍵を替えるとトークンを使えなくなります。",
+      "answer": 3
+    },
+    "coordinate-length": {
+      "explanation": "RFC 7518 §6.2.1.2 は、x を「the full size of a coordinate for the curve」の長さで表すことを MUST としています（y も同じ）。RFC 7638 は JWK のメンバーの値（base64url の文字列）をそのまま含む JSON から Thumbprint を計算するので（§3）、同じ鍵でも表現が違えば値が変わります。クライアントは x が 43 文字の JWK から dpop_jkt を、AS は x が 42 文字の proof の jwk から Thumbprint を計算するので一致しません。§7 は、表現の正しさを検証しない実装では、同じ鍵に別の Thumbprint が生じると注意しています。D：42 文字は 4 で割った余りが 2 で、31 バイトを表す正しい base64url です（RFC 7515 付録 C）。E・C：Thumbprint は base64url の文字列を含む JSON から計算し、kid は使いません。A：座標の先頭バイトが 0 になることは起こり得ます。",
+      "answer": 1
+    },
+    "proof-creation": {
+      "explanation": "ヘッダーの jwk には公開鍵の JWK が必要なので、エクスポートはヘッダーより前です。ペイロードは鍵に依存しないので、ヘッダーの前後どちらで作っても構いません（3 通りの順序を正解とします）。署名入力は RFC 7515 §2 のとおり、base64url にしたヘッダーとペイロードをピリオドでつないだ ASCII 文字列です。ES256 の署名は RFC 7518 §3.4 の 64 バイトの R||S で、RFC 7515 §3.1 の Compact Serialization のとおり 3 つの部分をピリオドでつなぎます。",
+      "answer": [
+        "export",
+        "header",
+        "payload",
+        "encode",
+        "sign",
+        "assemble"
+      ],
+      "acceptedOrders": [
+        [
+          "export",
+          "payload",
+          "header",
+          "encode",
+          "sign",
+          "assemble"
+        ],
+        [
+          "payload",
+          "export",
+          "header",
+          "encode",
+          "sign",
+          "assemble"
+        ]
+      ]
+    },
+    "broken-proof-audit": {
+      "explanation": "typ を \"dpop+jwt\" にする（\"JWT\" は DPoP proof として受理されない）。jwk から秘密鍵の d を取り除く。jti は同じ文脈・時間窓で他の proof と衝突しない値（96 ビット以上の擬似乱数を符号化した値や UUID v4 など）にする。htm はメソッドと同じ \"GET\" にする（メソッドは大文字・小文字を区別する）。htu は query を除いた \"https://api.example.com/orders\" にする。iat は秒単位の NumericDate（例：1731500000）にする。ath は T の ASCII 表現の SHA-256 を base64url で表す。「+」や末尾の「=」を含む base64 の表現は誤り。なお、d を送ってしまった鍵は漏えいしたとみなし、鍵ペアを作り直す（その鍵に結び付いたトークンも使わない）。",
+      "rubric": [
+        {
+          "criterion": "typ を dpop+jwt にすると指摘する。",
+          "points": 1,
+          "referenceIds": [
+            "syntax",
+            "jwt-swapping"
+          ]
+        },
+        {
+          "criterion": "jwk から秘密鍵の d を取り除き、公開鍵だけにすると指摘する。",
+          "points": 1,
+          "referenceIds": [
+            "syntax",
+            "checks"
+          ]
+        },
+        {
+          "criterion": "jti を、衝突の確率が無視できる一意な値（96 ビット以上の乱数や UUID v4 など）にすると指摘する。",
+          "points": 1,
+          "referenceIds": [
+            "syntax"
+          ]
+        },
+        {
+          "criterion": "htm を GET にする（メソッドは大文字・小文字を区別する）と指摘する。",
+          "points": 1,
+          "referenceIds": [
+            "syntax",
+            "http-method"
+          ]
+        },
+        {
+          "criterion": "htu から query を除き https://api.example.com/orders にすると指摘する。",
+          "points": 1,
+          "referenceIds": [
+            "syntax"
+          ]
+        },
+        {
+          "criterion": "iat を秒単位の NumericDate にすると指摘する。",
+          "points": 1,
+          "referenceIds": [
+            "jwt-numericdate",
+            "syntax"
+          ]
+        },
+        {
+          "criterion": "ath を T の SHA-256 の base64url（「-」「_」を使いパディングなし）にすると指摘する。",
+          "points": 1,
+          "referenceIds": [
+            "syntax",
+            "jws-b64url"
+          ]
+        }
+      ]
+    },
+    "library-vs-application": {
+      "explanation": "ライブラリ：Compact Serialization の分解、パディングなし base64url の厳格な復号、JSON の厳格な解析（重複の拒否、または最後の値だけを返すパーサーの使用、余分な文字の拒否）、crit の処理、呼び出し側が指定した許可リストの alg と渡した公開鍵による署名の検証。許可リストに none や MAC を入れない。アプリケーション：DPoP ヘッダーが 1 つで単一の JWT か、typ=dpop+jwt か（typ の確認は署名の検証に含まれない）。jwk を取り出して検証用の鍵として渡し、秘密鍵を含まないことの確認。§4.2 の必須クレーム（jti・htm・htu・iat、トークンと一緒なら ath）がそろうことと、htm、正規化した htu、iat または nonce による時間窓、nonce、jti の検証。提示されたトークンからの ath の計算と照合、jwk の JWK Thumbprint と cnf.jkt などの照合。",
+      "rubric": [
+        {
+          "criterion": "ライブラリ：Compact Serialization の分解、base64url の厳格な復号、JSON の厳格な解析（重複・余分な文字）、crit の処理を挙げる。",
+          "points": 1,
+          "referenceIds": [
+            "jws-validation",
+            "jws-json-security",
+            "jws-crit"
+          ]
+        },
+        {
+          "criterion": "ライブラリ：呼び出し側が指定した許可リストの alg だけで、渡した公開鍵で署名を検証する。none や MAC を許可しない。",
+          "points": 1,
+          "referenceIds": [
+            "bcp-alg-verify",
+            "checks",
+            "algorithms"
+          ]
+        },
+        {
+          "criterion": "アプリケーション：DPoP ヘッダーが 1 つか、typ=dpop+jwt かを確認する（typ の確認は JWS の署名検証に含まれない。ライブラリのオプションで確認させる場合も、アプリケーションが指定する）。",
+          "points": 1,
+          "referenceIds": [
+            "checks",
+            "jws-typ"
+          ]
+        },
+        {
+          "criterion": "アプリケーション：jwk を検証に使う鍵として取り出し、秘密鍵を含まないことを確認する。",
+          "points": 1,
+          "referenceIds": [
+            "checks",
+            "syntax"
+          ]
+        },
+        {
+          "criterion": "アプリケーション：必須クレーム（jti・htm・htu・iat、トークンと一緒なら ath）がそろうことと、htm・正規化した htu・時間窓（iat または nonce）・nonce・jti を検証する。",
+          "points": 1,
+          "referenceIds": [
+            "checks",
+            "syntax"
+          ]
+        },
+        {
+          "criterion": "アプリケーション：ath を計算して照合し、jwk の JWK Thumbprint をトークンの結び付けと照合する。",
+          "points": 1,
+          "referenceIds": [
+            "checks",
+            "jkt"
+          ]
+        }
+      ]
+    }
+  },
+  "inconsistencies": []
+}

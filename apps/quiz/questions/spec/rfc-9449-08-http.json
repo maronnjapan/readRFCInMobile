@@ -1,0 +1,995 @@
+{
+  "format": "spec-understanding-quiz",
+  "version": 1,
+  "id": "rfc-9449-08-http",
+  "title": "RFC 9449 DPoP 発展 4/7: HTTP の細部 — メソッド・URI・認証ヘッダー",
+  "status": "draft",
+  "spec": {
+    "id": "rfc-9449",
+    "status": "adopted",
+    "repository": "maronnjapan/readRFCInMobile",
+    "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+    "path": "rfcs/rfc9449.txt"
+  },
+  "references": [
+    {
+      "id": "http-method",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc9110.txt",
+      "startLine": 3728,
+      "endLine": 3758,
+      "reason": "§9.1: メソッドトークンは大文字・小文字を区別",
+      "excerpt": "9.1.  Overview\n\n   The request method token is the primary source of request semantics;\n   it indicates the purpose for which the client has made this request\n   and what is expected by the client as a successful result.\n\n   The request method's semantics might be further specialized by the\n   semantics of some header fields when present in a request if those\n   additional semantics do not conflict with the method.  For example, a\n   client can send conditional request header fields (Section 13.1) to\n   make the requested action conditional on the current state of the\n   target resource.\n\n   HTTP is designed to be usable as an interface to distributed object\n   systems.  The request method invokes an action to be applied to a\n   target resource in much the same way that a remote method invocation\n   can be sent to an identified object.\n\n     method = token\n\n   The method token is case-sensitive because it might be used as a\n   gateway to object-based systems with case-sensitive method names.  By\n   convention, standardized methods are defined in all-uppercase US-\n   ASCII letters.\n\n   Unlike distributed objects, the standardized request methods in HTTP\n   are not resource-specific, since uniform interfaces provide for\n   better visibility and reuse in network-based systems [REST].  Once\n   defined, a standardized method ought to have the same semantics when\n   applied to any resource, though each resource determines for itself\n   whether those semantics are implemented or allowed."
+    },
+    {
+      "id": "checks",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 485,
+      "endLine": 523,
+      "reason": "§4.3: 受信時の必須検証、URI 正規化、検証順序",
+      "excerpt": "4.3.  Checking DPoP Proofs\n\n   To validate a DPoP proof, the receiving server MUST ensure the\n   following:\n\n   1.   There is not more than one DPoP HTTP request header field.\n   2.   The DPoP HTTP request header field value is a single and well-\n        formed JWT.\n   3.   All required claims per Section 4.2 are contained in the JWT.\n   4.   The typ JOSE Header Parameter has the value dpop+jwt.\n   5.   The alg JOSE Header Parameter indicates a registered asymmetric\n        digital signature algorithm [IANA.JOSE.ALGS], is not none, is\n        supported by the application, and is acceptable per local\n        policy.\n   6.   The JWT signature verifies with the public key contained in the\n        jwk JOSE Header Parameter.\n   7.   The jwk JOSE Header Parameter does not contain a private key.\n   8.   The htm claim matches the HTTP method of the current request.\n   9.   The htu claim matches the HTTP URI value for the HTTP request in\n        which the JWT was received, ignoring any query and fragment\n        parts.\n   10.  If the server provided a nonce value to the client, the nonce\n        claim matches the server-provided nonce value.\n   11.  The creation time of the JWT, as determined by either the iat\n        claim or a server managed timestamp via the nonce claim, is\n        within an acceptable window (see Section 11.1).\n   12.  If presented to a protected resource in conjunction with an\n        access token,\n        *  ensure that the value of the ath claim equals the hash of\n           that access token, and\n        *  confirm that the public key to which the access token is\n           bound matches the public key from the DPoP proof.\n\n   To reduce the likelihood of false negatives, servers SHOULD employ\n   syntax-based normalization (Section 6.2.2 of [RFC3986]) and scheme-\n   based normalization (Section 6.2.3 of [RFC3986]) before comparing the\n   htu claim.\n\n   These checks may be performed in any order."
+    },
+    {
+      "id": "resource",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 796,
+      "endLine": 828,
+      "reason": "§7: ath によるトークン差し替え防止と残る検証",
+      "excerpt": "7.  Protected Resource Access\n\n   Requests to DPoP-protected resources MUST include both a DPoP proof\n   as per Section 4 and the access token as described in Section 7.1.\n   The DPoP proof MUST include the ath claim with a valid hash of the\n   associated access token.\n\n   Binding the token value to the proof in this way prevents a proof to\n   be used with multiple different access token values across different\n   requests.  For example, if a client holds tokens bound to two\n   different resource owners, AT1 and AT2, and uses the same key when\n   talking to the authorization server, it's possible that these tokens\n   could be swapped.  Without the ath field to bind it, a captured\n   signature applied to AT1 could be replayed with AT2 instead, changing\n   the rights and access of the intended request.  This same\n   substitution prevention remains for rotated access tokens within the\n   same combination of client and resource owner -- a rotated token\n   value would require the calculation of a new proof.  This binding\n   additionally ensures that a proof intended for use with the access\n   token is not usable without an access token, or vice-versa.\n\n   The resource server is required to calculate the hash of the token\n   value presented and verify that it is the same as the hash value in\n   the ath field as described in Section 4.3.  Since the ath field value\n   is covered by the DPoP proof's signature, its inclusion binds the\n   access token value to the holder of the key used to generate the\n   signature.\n\n   Note that the ath field alone does not prevent replay of the DPoP\n   proof or provide binding to the request in which the proof is\n   presented, and it is still important to check the time window of the\n   proof as well as the included message parameters, such as htm and\n   htu."
+    },
+    {
+      "id": "uri-syntax-normalize",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc3986.txt",
+      "startLine": 2197,
+      "endLine": 2257,
+      "reason": "§6.2.2: 構文ベースの正規化",
+      "excerpt": "6.2.2.  Syntax-Based Normalization\n\n   Implementations may use logic based on the definitions provided by\n   this specification to reduce the probability of false negatives.\n   This processing is moderately higher in cost than character-for-\n   character string comparison.  For example, an application using this\n   approach could reasonably consider the following two URIs equivalent:\n\n      example://a/b/c/%7Bfoo%7D\n      eXAMPLE://a/./b/../b/%63/%7bfoo%7d\n\n   Web user agents, such as browsers, typically apply this type of URI\n   normalization when determining whether a cached response is\n   available.  Syntax-based normalization includes such techniques as\n   case normalization, percent-encoding normalization, and removal of\n   dot-segments.\n\n6.2.2.1.  Case Normalization\n\n   For all URIs, the hexadecimal digits within a percent-encoding\n   triplet (e.g., \"%3a\" versus \"%3A\") are case-insensitive and therefore\n   should be normalized to use uppercase letters for the digits A-F.\n\n   When a URI uses components of the generic syntax, the component\n   syntax equivalence rules always apply; namely, that the scheme and\n   host are case-insensitive and therefore should be normalized to\n   lowercase.  For example, the URI <HTTP://www.EXAMPLE.com/> is\n   equivalent to <http://www.example.com/>.  The other generic syntax\n   components are assumed to be case-sensitive unless specifically\n   defined otherwise by the scheme (see Section 6.2.3).\n\n6.2.2.2.  Percent-Encoding Normalization\n\n   The percent-encoding mechanism (Section 2.1) is a frequent source of\n   variance among otherwise identical URIs.  In addition to the case\n   normalization issue noted above, some URI producers percent-encode\n   octets that do not require percent-encoding, resulting in URIs that\n   are equivalent to their non-encoded counterparts.  These URIs should\n   be normalized by decoding any percent-encoded octet that corresponds\n   to an unreserved character, as described in Section 2.3.\n\n\n\n\n\nBerners-Lee, et al.         Standards Track                    [Page 40]\n\f\nRFC 3986                   URI Generic Syntax               January 2005\n\n\n6.2.2.3.  Path Segment Normalization\n\n   The complete path segments \".\" and \"..\" are intended only for use\n   within relative references (Section 4.1) and are removed as part of\n   the reference resolution process (Section 5.2).  However, some\n   deployed implementations incorrectly assume that reference resolution\n   is not necessary when the reference is already a URI and thus fail to\n   remove dot-segments when they occur in non-relative paths.  URI\n   normalizers should remove dot-segments by applying the\n   remove_dot_segments algorithm to the path, as described in\n   Section 5.2.4."
+    },
+    {
+      "id": "uri-scheme-normalize",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc3986.txt",
+      "startLine": 2259,
+      "endLine": 2321,
+      "reason": "§6.2.3: スキームベースの正規化",
+      "excerpt": "6.2.3.  Scheme-Based Normalization\n\n   The syntax and semantics of URIs vary from scheme to scheme, as\n   described by the defining specification for each scheme.\n   Implementations may use scheme-specific rules, at further processing\n   cost, to reduce the probability of false negatives.  For example,\n   because the \"http\" scheme makes use of an authority component, has a\n   default port of \"80\", and defines an empty path to be equivalent to\n   \"/\", the following four URIs are equivalent:\n\n      http://example.com\n      http://example.com/\n      http://example.com:/\n      http://example.com:80/\n\n   In general, a URI that uses the generic syntax for authority with an\n   empty path should be normalized to a path of \"/\".  Likewise, an\n   explicit \":port\", for which the port is empty or the default for the\n   scheme, is equivalent to one where the port and its \":\" delimiter are\n   elided and thus should be removed by scheme-based normalization.  For\n   example, the second URI above is the normal form for the \"http\"\n   scheme.\n\n   Another case where normalization varies by scheme is in the handling\n   of an empty authority component or empty host subcomponent.  For many\n   scheme specifications, an empty authority or host is considered an\n   error; for others, it is considered equivalent to \"localhost\" or the\n   end-user's host.  When a scheme defines a default for authority and a\n   URI reference to that default is desired, the reference should be\n   normalized to an empty authority for the sake of uniformity, brevity,\n   and internationalization.  If, however, either the userinfo or port\n   subcomponents are non-empty, then the host should be given explicitly\n   even if it matches the default.\n\n   Normalization should not remove delimiters when their associated\n   component is empty unless licensed to do so by the scheme\n\n\n\nBerners-Lee, et al.         Standards Track                    [Page 41]\n\f\nRFC 3986                   URI Generic Syntax               January 2005\n\n\n   specification.  For example, the URI \"http://example.com/?\" cannot be\n   assumed to be equivalent to any of the examples above.  Likewise, the\n   presence or absence of delimiters within a userinfo subcomponent is\n   usually significant to its interpretation.  The fragment component is\n   not subject to any scheme-based normalization; thus, two URIs that\n   differ only by the suffix \"#\" are considered different regardless of\n   the scheme.\n\n   Some schemes define additional subcomponents that consist of case-\n   insensitive data, giving an implicit license to normalizers to\n   convert this data to a common case (e.g., all lowercase).  For\n   example, URI schemes that define a subcomponent of path to contain an\n   Internet hostname, such as the \"mailto\" URI scheme, cause that\n   subcomponent to be case-insensitive and thus subject to case\n   normalization (e.g., \"mailto:Joe@Example.COM\" is equivalent to\n   \"mailto:Joe@example.com\", even though the generic syntax considers\n   the path component to be case-sensitive).\n\n   Other scheme-specific normalizations are possible."
+    },
+    {
+      "id": "http-uri-normalize",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc9110.txt",
+      "startLine": 1158,
+      "endLine": 1197,
+      "reason": "§4.2.3: http(s) URI の正規化と比較",
+      "excerpt": "4.2.3.  http(s) Normalization and Comparison\n\n   URIs with an \"http\" or \"https\" scheme are normalized and compared\n   according to the methods defined in Section 6 of [URI], using the\n   defaults described above for each scheme.\n\n   HTTP does not require the use of a specific method for determining\n   equivalence.  For example, a cache key might be compared as a simple\n   string, after syntax-based normalization, or after scheme-based\n   normalization.\n\n   Scheme-based normalization (Section 6.2.3 of [URI]) of \"http\" and\n   \"https\" URIs involves the following additional rules:\n\n   *  If the port is equal to the default port for a scheme, the normal\n      form is to omit the port subcomponent.\n\n   *  When not being used as the target of an OPTIONS request, an empty\n      path component is equivalent to an absolute path of \"/\", so the\n      normal form is to provide a path of \"/\" instead.\n\n   *  The scheme and host are case-insensitive and normally provided in\n      lowercase; all other components are compared in a case-sensitive\n      manner.\n\n   *  Characters other than those in the \"reserved\" set are equivalent\n      to their percent-encoded octets: the normal form is to not encode\n      them (see Sections 2.1 and 2.2 of [URI]).\n\n   For example, the following three URIs are equivalent:\n\n      http://example.com:80/~smith/home.html\n      http://EXAMPLE.com/%7Esmith/home.html\n      http://EXAMPLE.com:/%7esmith/home.html\n\n   Two HTTP URIs that are equivalent after normalization (using any\n   method) can be assumed to identify the same resource, and any HTTP\n   component MAY perform normalization.  As a result, distinct resources\n   SHOULD NOT be identified by HTTP URIs that are equivalent after\n   normalization (using any method defined in Section 6.2 of [URI])."
+    },
+    {
+      "id": "uri-protocol-normalize",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc3986.txt",
+      "startLine": 2323,
+      "endLine": 2341,
+      "reason": "§6.2.4: プロトコルベースの正規化（末尾のスラッシュ）",
+      "excerpt": "6.2.4.  Protocol-Based Normalization\n\n   Substantial effort to reduce the incidence of false negatives is\n   often cost-effective for web spiders.  Therefore, they implement even\n   more aggressive techniques in URI comparison.  For example, if they\n   observe that a URI such as\n\n      http://example.com/data\n\n   redirects to a URI differing only in the trailing slash\n\n      http://example.com/data/\n\n   they will likely regard the two as equivalent in the future.  This\n   kind of technique is only appropriate when equivalence is clearly\n   indicated by both the result of accessing the resources and the\n   common conventions of their scheme's dereference algorithm (in this\n   case, use of redirection by HTTP origin servers to avoid problems\n   with relative references)."
+    },
+    {
+      "id": "uri-unreserved",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc3986.txt",
+      "startLine": 718,
+      "endLine": 745,
+      "reason": "§2.3: 非予約文字とパーセントエンコーディング",
+      "excerpt": "2.3.  Unreserved Characters\n\n   Characters that are allowed in a URI but do not have a reserved\n   purpose are called unreserved.  These include uppercase and lowercase\n   letters, decimal digits, hyphen, period, underscore, and tilde.\n\n      unreserved  = ALPHA / DIGIT / \"-\" / \".\" / \"_\" / \"~\"\n\n\n\n\n\nBerners-Lee, et al.         Standards Track                    [Page 13]\n\f\nRFC 3986                   URI Generic Syntax               January 2005\n\n\n   URIs that differ in the replacement of an unreserved character with\n   its corresponding percent-encoded US-ASCII octet are equivalent: they\n   identify the same resource.  However, URI comparison implementations\n   do not always perform normalization prior to comparison (see Section\n   6).  For consistency, percent-encoded octets in the ranges of ALPHA\n   (%41-%5A and %61-%7A), DIGIT (%30-%39), hyphen (%2D), period (%2E),\n   underscore (%5F), or tilde (%7E) should not be created by URI\n   producers and, when found in a URI, should be decoded to their\n   corresponding unreserved characters by URI normalizers.\n\n2.4.  When to Encode or Decode"
+    },
+    {
+      "id": "uri-reserved",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc3986.txt",
+      "startLine": 656,
+      "endLine": 695,
+      "reason": "§2.2: 予約文字とパーセントエンコーディングは同じではない",
+      "excerpt": "2.2.  Reserved Characters\n\n   URIs include components and subcomponents that are delimited by\n   characters in the \"reserved\" set.  These characters are called\n   \"reserved\" because they may (or may not) be defined as delimiters by\n   the generic syntax, by each scheme-specific syntax, or by the\n   implementation-specific syntax of a URI's dereferencing algorithm.\n   If data for a URI component would conflict with a reserved\n   character's purpose as a delimiter, then the conflicting data must be\n   percent-encoded before the URI is formed.\n\n\n\n\n\n\n\n\nBerners-Lee, et al.         Standards Track                    [Page 12]\n\f\nRFC 3986                   URI Generic Syntax               January 2005\n\n\n      reserved    = gen-delims / sub-delims\n\n      gen-delims  = \":\" / \"/\" / \"?\" / \"#\" / \"[\" / \"]\" / \"@\"\n\n      sub-delims  = \"!\" / \"$\" / \"&\" / \"'\" / \"(\" / \")\"\n                  / \"*\" / \"+\" / \",\" / \";\" / \"=\"\n\n   The purpose of reserved characters is to provide a set of delimiting\n   characters that are distinguishable from other data within a URI.\n   URIs that differ in the replacement of a reserved character with its\n   corresponding percent-encoded octet are not equivalent.  Percent-\n   encoding a reserved character, or decoding a percent-encoded octet\n   that corresponds to a reserved character, will change how the URI is\n   interpreted by most applications.  Thus, characters in the reserved\n   set are protected from normalization and are therefore safe to be\n   used by scheme-specific and producer-specific algorithms for\n   delimiting data subcomponents within a URI."
+    },
+    {
+      "id": "http-target-uri",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc9110.txt",
+      "startLine": 2370,
+      "endLine": 2410,
+      "reason": "§7.1: target URI とサーバーによる再構成",
+      "excerpt": "7.1.  Determining the Target Resource\n\n   Although HTTP is used in a wide variety of applications, most clients\n   rely on the same resource identification mechanism and configuration\n   techniques as general-purpose Web browsers.  Even when communication\n   options are hard-coded in a client's configuration, we can think of\n   their combined effect as a URI reference (Section 4.1).\n\n   A URI reference is resolved to its absolute form in order to obtain\n   the \"target URI\".  The target URI excludes the reference's fragment\n   component, if any, since fragment identifiers are reserved for\n   client-side processing ([URI], Section 3.5).\n\n   To perform an action on a \"target resource\", the client sends a\n   request message containing enough components of its parsed target URI\n   to enable recipients to identify that same resource.  For historical\n   reasons, the parsed target URI components, collectively referred to\n   as the \"request target\", are sent within the message control data and\n   the Host header field (Section 7.2).\n\n   There are two unusual cases for which the request target components\n   are in a method-specific form:\n\n   *  For CONNECT (Section 9.3.6), the request target is the host name\n      and port number of the tunnel destination, separated by a colon.\n\n   *  For OPTIONS (Section 9.3.7), the request target can be a single\n      asterisk (\"*\").\n\n   See the respective method definitions for details.  These forms MUST\n   NOT be used with other methods.\n\n   Upon receipt of a client's request, a server reconstructs the target\n   URI from the received components in accordance with their local\n   configuration and incoming connection context.  This reconstruction\n   is specific to each major protocol version.  For example, Section 3.3\n   of [HTTP/1.1] defines how a server determines the target URI of an\n   HTTP/1.1 request.\n\n      |  *Note:* Previous specifications defined the recomposed target\n      |  URI as a distinct concept, the \"effective request URI\"."
+    },
+    {
+      "id": "security-intro",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 1310,
+      "endLine": 1320,
+      "reason": "§11: URI・メソッドへの結び付けと TLS 方式との違い",
+      "excerpt": "11.  Security Considerations\n\n   In DPoP, the prevention of token replay at a different endpoint (see\n   Section 2) is achieved through authentication of the server per\n   [RFC6125] and the binding of the DPoP proof to a certain URI and HTTP\n   method.  However, DPoP has a somewhat different nature of protection\n   than TLS-based methods such as OAuth Mutual TLS [RFC8705] or OAuth\n   Token Binding [TOKEN-BINDING] (see also Sections 11.1 and 11.7).\n   TLS-based mechanisms can leverage a tight integration between the TLS\n   layer and the application layer to achieve strong message integrity,\n   authenticity, and replay protection."
+    },
+    {
+      "id": "http-auth-scheme",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc9110.txt",
+      "startLine": 4859,
+      "endLine": 4875,
+      "reason": "§11.1: 認証スキームは大文字・小文字を区別しない",
+      "excerpt": "11.1.  Authentication Scheme\n\n   HTTP provides a general framework for access control and\n   authentication, via an extensible set of challenge-response\n   authentication schemes, which can be used by a server to challenge a\n   client request and by a client to provide authentication information.\n   It uses a case-insensitive token to identify the authentication\n   scheme:\n\n     auth-scheme    = token\n\n   Aside from the general framework, this document does not specify any\n   authentication schemes.  New and existing authentication schemes are\n   specified independently and ought to be registered within the\n   \"Hypertext Transfer Protocol (HTTP) Authentication Scheme Registry\".\n   For example, the \"basic\" and \"digest\" authentication schemes are\n   defined by [RFC7617] and [RFC7616], respectively."
+    },
+    {
+      "id": "scheme",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 830,
+      "endLine": 854,
+      "reason": "§7.1: Authorization: DPoP とアクセス許可の条件",
+      "excerpt": "7.1.  The DPoP Authentication Scheme\n\n   A DPoP-bound access token is sent using the Authorization request\n   header field per Section 11.6.2 of [RFC9110] with an authentication\n   scheme of DPoP.  The syntax of the Authorization header field for the\n   DPoP scheme uses the token68 syntax defined in Section 11.2 of\n   [RFC9110] for credentials and is repeated below for ease of\n   reference.  The ABNF notation syntax for DPoP authentication scheme\n   credentials is as follows:\n\n   token68    = 1*( ALPHA / DIGIT /\n                    \"-\" / \".\" / \"_\" / \"~\" / \"+\" / \"/\" ) *\"=\"\n\n   credentials = \"DPoP\" 1*SP token68\n\n                 Figure 12: DPoP Authentication Scheme ABNF\n\n   For such an access token, a resource server MUST check that a DPoP\n   proof was also received in the DPoP header field of the HTTP request,\n   check the DPoP proof according to the rules in Section 4.3, and check\n   that the public key of the DPoP proof matches the public key to which\n   the access token is bound per Section 6.\n\n   The resource server MUST NOT grant access to the resource unless all\n   checks are successful."
+    },
+    {
+      "id": "header",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 359,
+      "endLine": 391,
+      "reason": "§4.1: DPoP HTTP ヘッダーの構文と大文字・小文字",
+      "excerpt": "4.1.  The DPoP HTTP Header\n\n   A DPoP proof is included in an HTTP request using the following\n   request header field.\n\n   DPoP:  A JWT that adheres to the structure and syntax of Section 4.2.\n\n   Figure 2 shows an example DPoP HTTP header field.  The example uses\n   \"\\\" line wrapping per [RFC8792].\n\n   DPoP: eyJ0eXAiOiJkcG9wK2p3dCIsImFsZyI6IkVTMjU2IiwiandrIjp7Imt0eSI6Ik\\\n    VDIiwieCI6Imw4dEZyaHgtMzR0VjNoUklDUkRZOXpDa0RscEJoRjQyVVFVZldWQVdCR\\\n    nMiLCJ5IjoiOVZFNGpmX09rX282NHpiVFRsY3VOSmFqSG10NnY5VERWclUwQ2R2R1JE\\\n    QSIsImNydiI6IlAtMjU2In19.eyJqdGkiOiItQndDM0VTYzZhY2MybFRjIiwiaHRtIj\\\n    oiUE9TVCIsImh0dSI6Imh0dHBzOi8vc2VydmVyLmV4YW1wbGUuY29tL3Rva2VuIiwia\\\n    WF0IjoxNTYyMjYyNjE2fQ.2-GxA6T8lP4vfrg8v-FdWP0A0zdrj8igiMLvqRMUvwnQg\\\n    4PtFLbdLXiOSsX0x7NVY-FNyJK70nfbV37xRZT3Lg\n\n                       Figure 2: Example DPoP Header\n\n   Note that per [RFC9110], header field names are case insensitive;\n   thus, DPoP, DPOP, dpop, etc., are all valid and equivalent header\n   field names.  However, case is significant in the header field value.\n\n   The DPoP HTTP header field value uses the token68 syntax defined in\n   Section 11.2 of [RFC9110] and is repeated below in Figure 3 for ease\n   of reference.\n\n   DPoP       = token68\n   token68    = 1*( ALPHA / DIGIT /\n                    \"-\" / \".\" / \"_\" / \"~\" / \"+\" / \"/\" ) *\"=\"\n\n                      Figure 3: DPoP Header Field ABNF"
+    },
+    {
+      "id": "syntax",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 393,
+      "endLine": 448,
+      "reason": "§4.2: JOSE ヘッダー、必須クレーム、ath と nonce",
+      "excerpt": "4.2.  DPoP Proof JWT Syntax\n\n   A DPoP proof is a JWT [RFC7519] that is signed (using JSON Web\n   Signature (JWS) [RFC7515]) with a private key chosen by the client\n   (see below).  The JOSE Header of a DPoP JWT MUST contain at least the\n   following parameters:\n\n   typ:  A field with the value dpop+jwt, which explicitly types the\n      DPoP proof JWT as recommended in Section 3.11 of [RFC8725].\n\n   alg:  An identifier for a JWS asymmetric digital signature algorithm\n      from [IANA.JOSE.ALGS].  It MUST NOT be none or an identifier for a\n      symmetric algorithm (Message Authentication Code (MAC)).\n\n   jwk:  Represents the public key chosen by the client in JSON Web Key\n      (JWK) [RFC7517] format as defined in Section 4.1.3 of [RFC7515].\n      It MUST NOT contain a private key.\n\n   The payload of a DPoP proof MUST contain at least the following\n   claims:\n\n   jti:  Unique identifier for the DPoP proof JWT.  The value MUST be\n      assigned such that there is a negligible probability that the same\n      value will be assigned to any other DPoP proof used in the same\n      context during the time window of validity.  Such uniqueness can\n      be accomplished by encoding (base64url or any other suitable\n      encoding) at least 96 bits of pseudorandom data or by using a\n      version 4 Universally Unique Identifier (UUID) string according to\n      [RFC4122].  The jti can be used by the server for replay detection\n      and prevention; see Section 11.1.\n\n   htm:  The value of the HTTP method (Section 9.1 of [RFC9110]) of the\n      request to which the JWT is attached.\n\n   htu:  The HTTP target URI (Section 7.1 of [RFC9110]) of the request\n      to which the JWT is attached, without query and fragment parts.\n\n   iat:  Creation timestamp of the JWT (Section 4.1.6 of [RFC7519]).\n\n   When the DPoP proof is used in conjunction with the presentation of\n   an access token in protected resource access (see Section 7), the\n   DPoP proof MUST also contain the following claim:\n\n   ath:  Hash of the access token.  The value MUST be the result of a\n      base64url encoding (as defined in Section 2 of [RFC7515]) the\n      SHA-256 [SHS] hash of the ASCII encoding of the associated access\n      token's value.\n\n   When the authentication server or resource server provides a DPoP-\n   Nonce HTTP header in a response (see Sections 8 and 9), the DPoP\n   proof MUST also contain the following claim:\n\n   nonce:  A recent nonce provided via the DPoP-Nonce HTTP header.\n\n   A DPoP proof MAY contain other JOSE Header Parameters or claims as\n   defined by extension, profile, or deployment-specific requirements."
+    },
+    {
+      "id": "http-field-order",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc9110.txt",
+      "startLine": 1515,
+      "endLine": 1545,
+      "reason": "§5.3: 同名のフィールド行の結合",
+      "excerpt": "5.3.  Field Order\n\n   A recipient MAY combine multiple field lines within a field section\n   that have the same field name into one field line, without changing\n   the semantics of the message, by appending each subsequent field line\n   value to the initial field line value in order, separated by a comma\n   (\",\") and optional whitespace (OWS, defined in Section 5.6.3).  For\n   consistency, use comma SP.\n\n   The order in which field lines with the same name are received is\n   therefore significant to the interpretation of the field value; a\n   proxy MUST NOT change the order of these field line values when\n   forwarding a message.\n\n   This means that, aside from the well-known exception noted below, a\n   sender MUST NOT generate multiple field lines with the same name in a\n   message (whether in the headers or trailers) or append a field line\n   when a field line of the same name already exists in the message,\n   unless that field's definition allows multiple field line values to\n   be recombined as a comma-separated list (i.e., at least one\n   alternative of the field's definition allows a comma-separated list,\n   such as an ABNF rule of #(values) defined in Section 5.6.1).\n\n      |  *Note:* In practice, the \"Set-Cookie\" header field ([COOKIE])\n      |  often appears in a response message across multiple field lines\n      |  and does not use the list syntax, violating the above\n      |  requirements on multiple field lines with the same field name.\n      |  Since it cannot be combined into a single field value,\n      |  recipients ought to handle \"Set-Cookie\" as a special case while\n      |  processing fields.  (See Appendix A.2.3 of [Kri2001] for\n      |  details.)"
+    },
+    {
+      "id": "http-auth-params",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc9110.txt",
+      "startLine": 4877,
+      "endLine": 4907,
+      "reason": "§11.2: token68 と auth-param（token / quoted-string）",
+      "excerpt": "11.2.  Authentication Parameters\n\n   The authentication scheme is followed by additional information\n   necessary for achieving authentication via that scheme as either a\n   comma-separated list of parameters or a single sequence of characters\n   capable of holding base64-encoded information.\n\n     token68        = 1*( ALPHA / DIGIT /\n                          \"-\" / \".\" / \"_\" / \"~\" / \"+\" / \"/\" ) *\"=\"\n\n   The token68 syntax allows the 66 unreserved URI characters ([URI]),\n   plus a few others, so that it can hold a base64, base64url (URL and\n   filename safe alphabet), base32, or base16 (hex) encoding, with or\n   without padding, but excluding whitespace ([RFC4648]).\n\n   Authentication parameters are name/value pairs, where the name token\n   is matched case-insensitively and each parameter name MUST only occur\n   once per challenge.\n\n     auth-param     = token BWS \"=\" BWS ( token / quoted-string )\n\n   Parameter values can be expressed either as \"token\" or as \"quoted-\n   string\" (Section 5.6).  Authentication scheme definitions need to\n   accept both notations, both for senders and recipients, to allow\n   recipients to use generic parsing components regardless of the\n   authentication scheme.\n\n   For backwards compatibility, authentication scheme definitions can\n   restrict the format for senders to one of the two variants.  This can\n   be important when it is known that deployed implementations will fail\n   when encountering one of the two formats."
+    },
+    {
+      "id": "challenge",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 899,
+      "endLine": 936,
+      "reason": "§7.1: WWW-Authenticate のエラー・algs・未知パラメーター",
+      "excerpt": "   Upon receipt of a request to a protected resource within the\n   protection space requiring DPoP authentication, the server can\n   respond with a challenge to the client to provide DPoP authentication\n   information if the request does not include valid credentials or does\n   not contain an access token sufficient for access.  Such a challenge\n   is made using the 401 (Unauthorized) response status code ([RFC9110],\n   Section 15.5.2) and the WWW-Authenticate header field ([RFC9110],\n   Section 11.6.1).  The server MAY include the WWW-Authenticate header\n   in response to other conditions as well.\n\n   In such challenges:\n\n   *  The scheme name is DPoP.\n   *  The authentication parameter realm MAY be included to indicate the\n      scope of protection in the manner described in [RFC9110],\n      Section 11.5.\n   *  A scope authentication parameter MAY be included as defined in\n      [RFC6750], Section 3.\n   *  An error parameter ([RFC6750], Section 3) SHOULD be included to\n      indicate the reason why the request was declined, if the request\n      included an access token but failed authentication.  The error\n      parameter values described in [RFC6750], Section 3.1 are suitable,\n      as are any appropriate values defined by extension.  The value\n      use_dpop_nonce can be used as described in Section 9 to signal\n      that a nonce is needed in the DPoP proof of a subsequent\n      request(s).  Additionally, invalid_dpop_proof is used to indicate\n      that the DPoP proof itself was deemed invalid based on the\n      criteria of Section 4.3.\n   *  An error_description parameter ([RFC6750], Section 3) MAY be\n      included along with the error parameter to provide developers a\n      human-readable explanation that is not meant to be displayed to\n      end-users.\n   *  An algs parameter SHOULD be included to signal to the client the\n      JWS algorithms that are acceptable for the DPoP proof JWT.  The\n      value of the parameter is a space-delimited list of JWS alg\n      (Algorithm) header values ([RFC7515], Section 4.1.1).\n   *  Additional authentication parameters MAY be used, and unknown\n      parameters MUST be ignored by recipients."
+    },
+    {
+      "id": "http-www-authenticate",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc9110.txt",
+      "startLine": 5018,
+      "endLine": 5060,
+      "reason": "§11.6.1: WWW-Authenticate の複数 challenge",
+      "excerpt": "11.6.1.  WWW-Authenticate\n\n   The \"WWW-Authenticate\" response header field indicates the\n   authentication scheme(s) and parameters applicable to the target\n   resource.\n\n     WWW-Authenticate = #challenge\n\n   A server generating a 401 (Unauthorized) response MUST send a WWW-\n   Authenticate header field containing at least one challenge.  A\n   server MAY generate a WWW-Authenticate header field in other response\n   messages to indicate that supplying credentials (or different\n   credentials) might affect the response.\n\n   A proxy forwarding a response MUST NOT modify any WWW-Authenticate\n   header fields in that response.\n\n   User agents are advised to take special care in parsing the field\n   value, as it might contain more than one challenge, and each\n   challenge can contain a comma-separated list of authentication\n   parameters.  Furthermore, the header field itself can occur multiple\n   times.\n\n   For instance:\n\n   WWW-Authenticate: Basic realm=\"simple\", Newauth realm=\"apps\",\n                    type=1, title=\"Login to \\\"apps\\\"\"\n\n   This header field contains two challenges, one for the \"Basic\" scheme\n   with a realm value of \"simple\" and another for the \"Newauth\" scheme\n   with a realm value of \"apps\".  It also contains two additional\n   parameters, \"type\" and \"title\".\n\n   Some user agents do not recognize this form, however.  As a result,\n   sending a WWW-Authenticate field value with more than one member on\n   the same field line might not be interoperable.\n\n      |  *Note:* The challenge grammar production uses the list syntax\n      |  as well.  Therefore, a sequence of comma, whitespace, and comma\n      |  can be considered either as applying to the preceding\n      |  challenge, or to be an empty entry in the list of challenges.\n      |  In practice, this ambiguity does not affect the semantics of\n      |  the header field value and thus is harmless."
+    },
+    {
+      "id": "http-challenge",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc9110.txt",
+      "startLine": 4909,
+      "endLine": 4935,
+      "reason": "§11.3: challenge の構文",
+      "excerpt": "11.3.  Challenge and Response\n\n   A 401 (Unauthorized) response message is used by an origin server to\n   challenge the authorization of a user agent, including a\n   WWW-Authenticate header field containing at least one challenge\n   applicable to the requested resource.\n\n   A 407 (Proxy Authentication Required) response message is used by a\n   proxy to challenge the authorization of a client, including a\n   Proxy-Authenticate header field containing at least one challenge\n   applicable to the proxy for the requested resource.\n\n     challenge   = auth-scheme [ 1*SP ( token68 / #auth-param ) ]\n\n      |  *Note:* Many clients fail to parse a challenge that contains an\n      |  unknown scheme.  A workaround for this problem is to list well-\n      |  supported schemes (such as \"basic\") first.\n\n   A user agent that wishes to authenticate itself with an origin server\n   -- usually, but not necessarily, after receiving a 401 (Unauthorized)\n   -- can do so by including an Authorization header field with the\n   request.\n\n   A client that wishes to authenticate itself with a proxy -- usually,\n   but not necessarily, after receiving a 407 (Proxy Authentication\n   Required) -- can do so by including a Proxy-Authorization header\n   field with the request."
+    },
+    {
+      "id": "multi-challenge",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 1023,
+      "endLine": 1057,
+      "reason": "§7.2: 複数 challenge と 2 方式同時使用の 400 の例",
+      "excerpt": "   The following examples use \"\\\" line wrapping per [RFC8792].\n\n   GET /protectedresource HTTP/1.1\n   Host: resource.example.org\n\n   HTTP/1.1 401 Unauthorized\n   WWW-Authenticate: Bearer, DPoP algs=\"ES256 PS256\"\n\n    Figure 17: HTTP 401 Response to a Protected Resource Request without\n                               Authentication\n\n   GET /protectedresource HTTP/1.1\n   Host: resource.example.org\n   Authorization: Bearer INVALID_TOKEN\n\n   HTTP/1.1 401 Unauthorized\n   WWW-Authenticate: Bearer error=\"invalid_token\", \\\n       error_description=\"Invalid token\", DPoP algs=\"ES256 PS256\"\n\n     Figure 18: HTTP 401 Response to a Protected Resource Request with\n                           Invalid Authentication\n\n   GET /protectedresource HTTP/1.1\n   Host: resource.example.org\n   Authorization: Bearer Kz~8mXK1EalYznwH-LC-1fBAo.4Ljp~zsPE_NeO.gxU\n   Authorization: DPoP Kz~8mXK1EalYznwH-LC-1fBAo.4Ljp~zsPE_NeO.gxU\n\n   HTTP/1.1 400 Bad Request\n   WWW-Authenticate: Bearer error=\"invalid_request\", \\\n    error_description=\"Multiple methods used to include access token\", \\\n    DPoP algs=\"ES256 PS256\", error=\"invalid_request\", \\\n    error_description=\"Multiple methods used to include access token\"\n\n     Figure 19: HTTP 400 Response to a Protected Resource Request with\n                          Ambiguous Authentication"
+    },
+    {
+      "id": "bearer",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 977,
+      "endLine": 1021,
+      "reason": "§7.2: Bearer との互換性と複数 challenge のエラー情報",
+      "excerpt": "7.2.  Compatibility with the Bearer Authentication Scheme\n\n   Protected resources simultaneously supporting both the DPoP and\n   Bearer schemes need to update how the evaluation process is performed\n   for bearer tokens to prevent downgraded usage of a DPoP-bound access\n   token.  Specifically, such a protected resource MUST reject a DPoP-\n   bound access token received as a bearer token per [RFC6750].\n\n   Section 11.6.1 of [RFC9110] allows a protected resource to indicate\n   support for multiple authentication schemes (i.e., Bearer and DPoP)\n   with the WWW-Authenticate header field of a 401 (Unauthorized)\n   response.\n\n   A protected resource that supports only [RFC6750] and is unaware of\n   DPoP would most presumably accept a DPoP-bound access token as a\n   bearer token (JWT [RFC7519] says to ignore unrecognized claims,\n   Introspection [RFC7662] says that other parameters might be present\n   while placing no functional requirements on their presence, and\n   [RFC6750] is effectively silent on the content of the access token\n   since it relates to validity).  As such, a client can send a DPoP-\n   bound access token using the Bearer scheme upon receipt of a WWW-\n   Authenticate: Bearer challenge from a protected resource (or it can\n   send a DPoP-bound access token if it has prior knowledge of the\n   capabilities of the protected resource).  The effect of this likely\n   simplifies the logistics of phased upgrades to protected resources in\n   their support DPoP or prolonged deployments of protected resources\n   with mixed token type support.\n\n   If a protected resource supporting both Bearer and DPoP schemes\n   elects to respond with multiple WWW-Authenticate challenges,\n   attention should be paid to which challenge(s) should deliver the\n   actual error information.  It is RECOMMENDED that the following rules\n   be adhered to:\n\n   *  If no authentication information has been included with the\n      request, then the challenges SHOULD NOT include an error code or\n      other error information, as per Section 3.1 of [RFC6750]\n      (Figure 17).\n\n   *  If the mechanism used to attempt authentication could be\n      established unambiguously, then the corresponding challenge SHOULD\n      be used to deliver error information (Figure 18).\n\n   *  Otherwise, both Bearer and DPoP challenges MAY be used to deliver\n      error information (Figure 19)."
+    },
+    {
+      "id": "bearer-errors",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc6750.txt",
+      "startLine": 463,
+      "endLine": 498,
+      "reason": "§3.1: invalid_request・invalid_token・insufficient_scope",
+      "excerpt": "3.1.  Error Codes\n\n   When a request fails, the resource server responds using the\n   appropriate HTTP status code (typically, 400, 401, 403, or 405) and\n   includes one of the following error codes in the response:\n\n   invalid_request\n         The request is missing a required parameter, includes an\n         unsupported parameter or parameter value, repeats the same\n         parameter, uses more than one method for including an access\n         token, or is otherwise malformed.  The resource server SHOULD\n         respond with the HTTP 400 (Bad Request) status code.\n\n   invalid_token\n         The access token provided is expired, revoked, malformed, or\n         invalid for other reasons.  The resource SHOULD respond with\n         the HTTP 401 (Unauthorized) status code.  The client MAY\n         request a new access token and retry the protected resource\n         request.\n\n   insufficient_scope\n         The request requires higher privileges than provided by the\n         access token.  The resource server SHOULD respond with the HTTP\n         403 (Forbidden) status code and MAY include the \"scope\"\n         attribute with the scope necessary to access the protected\n         resource.\n\n   If the request lacks any authentication information (e.g., the client\n   was unaware that authentication is necessary or attempted using an\n   unsupported authentication method), the resource server SHOULD NOT\n   include an error code or other error information.\n\n   For example:\n\n     HTTP/1.1 401 Unauthorized\n     WWW-Authenticate: Bearer realm=\"example\""
+    },
+    {
+      "id": "rs-nonce",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 1205,
+      "endLine": 1235,
+      "reason": "§9: RS の 401 challenge、発行元別の nonce、OIDC との区別",
+      "excerpt": "9.  Resource Server-Provided Nonce\n\n   Resource servers can also choose to provide a nonce value to be\n   included in DPoP proofs sent to them.  They provide the nonce using\n   the DPoP-Nonce header in the same way that authorization servers do\n   as described in Sections 8 and 8.2.  The error signaling is performed\n   as described in Section 7.1.  Resource servers use an HTTP 401\n   (Unauthorized) error code with an accompanying WWW-Authenticate: DPoP\n   value and DPoP-Nonce value to accomplish this.\n\n   For example, in response to a resource request without a nonce when\n   the resource server requires one, the resource server can respond\n   with a DPoP-Nonce value such as the following to provide a nonce\n   value to include in the DPoP proof.  The example below uses \"\\\" line\n   wrapping per [RFC8792].\n\n    HTTP/1.1 401 Unauthorized\n    WWW-Authenticate: DPoP error=\"use_dpop_nonce\", \\\n      error_description=\"Resource server requires nonce in DPoP proof\"\n    DPoP-Nonce: eyJ7S_zG.eyJH0-Z.HX4w-7v\n\n     Figure 24: HTTP 401 Response to a Resource Request without a Nonce\n\n   Note that the nonces provided by an authorization server and a\n   resource server are different and should not be confused with one\n   another since nonces will be only accepted by the server that issued\n   them.  Likewise, should a client use multiple authorization servers\n   and/or resource servers, a nonce issued by any of them should be used\n   only at the issuing server.  Developers should also be careful to not\n   confuse DPoP nonces with the OpenID Connect [OpenID.Core] ID Token\n   nonce."
+    },
+    {
+      "id": "http-credentials",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc9110.txt",
+      "startLine": 4937,
+      "endLine": 4979,
+      "reason": "§11.4: 認証情報と 401・403",
+      "excerpt": "11.4.  Credentials\n\n   Both the Authorization field value and the Proxy-Authorization field\n   value contain the client's credentials for the realm of the resource\n   being requested, based upon a challenge received in a response\n   (possibly at some point in the past).  When creating their values,\n   the user agent ought to do so by selecting the challenge with what it\n   considers to be the most secure auth-scheme that it understands,\n   obtaining credentials from the user as appropriate.  Transmission of\n   credentials within header field values implies significant security\n   considerations regarding the confidentiality of the underlying\n   connection, as described in Section 17.16.1.\n\n     credentials = auth-scheme [ 1*SP ( token68 / #auth-param ) ]\n\n   Upon receipt of a request for a protected resource that omits\n   credentials, contains invalid credentials (e.g., a bad password) or\n   partial credentials (e.g., when the authentication scheme requires\n   more than one round trip), an origin server SHOULD send a 401\n   (Unauthorized) response that contains a WWW-Authenticate header field\n   with at least one (possibly new) challenge applicable to the\n   requested resource.\n\n   Likewise, upon receipt of a request that omits proxy credentials or\n   contains invalid or partial proxy credentials, a proxy that requires\n   authentication SHOULD generate a 407 (Proxy Authentication Required)\n   response that contains a Proxy-Authenticate header field with at\n   least one (possibly new) challenge applicable to the proxy.\n\n   A server that receives valid credentials that are not adequate to\n   gain access ought to respond with the 403 (Forbidden) status code\n   (Section 15.5.4).\n\n   HTTP does not restrict applications to this simple challenge-response\n   framework for access authentication.  Additional mechanisms can be\n   used, such as authentication at the transport level or via message\n   encapsulation, and with additional header fields specifying\n   authentication information.  However, such additional mechanisms are\n   not defined by this specification.\n\n   Note that various custom mechanisms for user authentication use the\n   Set-Cookie and Cookie header fields, defined in [COOKIE], for passing\n   tokens related to authentication."
+    },
+    {
+      "id": "as-nonce",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 1073,
+      "endLine": 1118,
+      "reason": "§8: AS の nonce challenge、予測不能性、ヘッダー数",
+      "excerpt": "8.  Authorization Server-Provided Nonce\n\n   This section specifies a mechanism using opaque nonces provided by\n   the server that can be used to limit the lifetime of DPoP proofs.\n   Without employing such a mechanism, a malicious party controlling the\n   client (potentially including the end-user) can create DPoP proofs\n   for use arbitrarily far in the future.\n\n   Including a nonce value contributed by the authorization server in\n   the DPoP proof MAY be used by authorization servers to limit the\n   lifetime of DPoP proofs.  The server determines when to issue a new\n   DPoP nonce challenge and if it is needed, thereby requiring the use\n   of the nonce value in subsequent DPoP proofs.  The logic through\n   which the server makes that determination is out of scope of this\n   document.\n\n   An authorization server MAY supply a nonce value to be included by\n   the client in DPoP proofs sent.  In this case, the authorization\n   server responds to requests that do not include a nonce with an HTTP\n   400 (Bad Request) error response per Section 5.2 of [RFC6749] using\n   use_dpop_nonce as the error code value.  The authorization server\n   includes a DPoP-Nonce HTTP header in the response supplying a nonce\n   value to be used when sending the subsequent request.  Nonce values\n   MUST be unpredictable.  This same error code is used when supplying a\n   new nonce value when there was a nonce mismatch.  The client will\n   typically retry the request with the new nonce value supplied upon\n   receiving a use_dpop_nonce error with an accompanying nonce value.\n\n   For example, in response to a token request without a nonce when the\n   authorization server requires one, the authorization server can\n   respond with a DPoP-Nonce value such as the following to provide a\n   nonce value to include in the DPoP proof:\n\n    HTTP/1.1 400 Bad Request\n    DPoP-Nonce: eyJ7S_zG.eyJH0-Z.HX4w-7v\n\n    {\n     \"error\": \"use_dpop_nonce\",\n     \"error_description\":\n       \"Authorization server requires nonce in DPoP proof\"\n    }\n\n      Figure 20: HTTP 400 Response to a Token Request without a Nonce\n\n   Other HTTP headers and JSON fields MAY also be included in the error\n   response, but there MUST NOT be more than one DPoP-Nonce header."
+    },
+    {
+      "id": "bearer-body",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc6750.txt",
+      "startLine": 260,
+      "endLine": 310,
+      "reason": "§2.2: フォーム本文の access_token",
+      "excerpt": "2.2.  Form-Encoded Body Parameter\n\n   When sending the access token in the HTTP request entity-body, the\n   client adds the access token to the request-body using the\n   \"access_token\" parameter.  The client MUST NOT use this method unless\n   all of the following conditions are met:\n\n   o  The HTTP request entity-header includes the \"Content-Type\" header\n      field set to \"application/x-www-form-urlencoded\".\n\n   o  The entity-body follows the encoding requirements of the\n      \"application/x-www-form-urlencoded\" content-type as defined by\n      HTML 4.01 [W3C.REC-html401-19991224].\n\n   o  The HTTP request entity-body is single-part.\n\n\n\n\n\n\n\nJones & Hardt                Standards Track                    [Page 5]\n\f\nRFC 6750              OAuth 2.0 Bearer Token Usage          October 2012\n\n\n   o  The content to be encoded in the entity-body MUST consist entirely\n      of ASCII [USASCII] characters.\n\n   o  The HTTP request method is one for which the request-body has\n      defined semantics.  In particular, this means that the \"GET\"\n      method MUST NOT be used.\n\n   The entity-body MAY include other request-specific parameters, in\n   which case the \"access_token\" parameter MUST be properly separated\n   from the request-specific parameters using \"&\" character(s) (ASCII\n   code 38).\n\n   For example, the client makes the following HTTP request using\n   transport-layer security:\n\n     POST /resource HTTP/1.1\n     Host: server.example.com\n     Content-Type: application/x-www-form-urlencoded\n\n     access_token=mF_9.B5f-4.1JqM\n\n   The \"application/x-www-form-urlencoded\" method SHOULD NOT be used\n   except in application contexts where participating browsers do not\n   have access to the \"Authorization\" request header field.  Resource"
+    },
+    {
+      "id": "bearer-methods",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc6750.txt",
+      "startLine": 216,
+      "endLine": 220,
+      "reason": "§2: 1 つの要求で複数の方法を使わない",
+      "excerpt": "2.  Authenticated Requests\n\n   This section defines three methods of sending bearer access tokens in\n   resource requests to resource servers.  Clients MUST NOT use more\n   than one method to transmit the token in each request."
+    },
+    {
+      "id": "replay",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 1322,
+      "endLine": 1358,
+      "reason": "§11.1: 有効時間、jti 記録、メモリー対策、時計差、nonce 再利用",
+      "excerpt": "11.1.  DPoP Proof Replay\n\n   If an adversary is able to get hold of a DPoP proof JWT, the\n   adversary could replay that token at the same endpoint (the HTTP\n   endpoint and method are enforced via the respective claims in the\n   JWTs).  To limit this, servers MUST only accept DPoP proofs for a\n   limited time after their creation (preferably only for a relatively\n   brief period on the order of seconds or minutes).\n\n   In the context of the target URI, servers can store the jti value of\n   each DPoP proof for the time window in which the respective DPoP\n   proof JWT would be accepted to prevent multiple uses of the same DPoP\n   proof.  HTTP requests to the same URI for which the jti value has\n   been seen before would be declined.  When strictly enforced, such a\n   single-use check provides a very strong protection against DPoP proof\n   replay, but it may not always be feasible in practice, e.g., when\n   multiple servers behind a single endpoint have no shared state.\n\n   In order to guard against memory exhaustion attacks, a server that is\n   tracking jti values should reject DPoP proof JWTs with unnecessarily\n   large jti values or store only a hash thereof.\n\n   Note: To accommodate for clock offsets, the server MAY accept DPoP\n   proofs that carry an iat time in the reasonably near future (on the\n   order of seconds or minutes).  Because clock skews between servers\n   and clients may be large, servers MAY limit DPoP proof lifetimes by\n   using server-provided nonce values containing the time at the server\n   rather than comparing the client-supplied iat time to the time at the\n   server.  Nonces created in this way yield the same result even in the\n   face of arbitrarily large clock skews.\n\n   Server-provided nonces are an effective means for further reducing\n   the chances for successful DPoP proof replay.  Unlike cryptographic\n   nonces, it is acceptable for clients to use the same nonce multiple\n   times and for the server to accept the same nonce multiple times.  As\n   long as the jti value is tracked and duplicates are rejected for the\n   lifetime of the nonce, there is no additional risk of token replay."
+    },
+    {
+      "id": "integrity",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 1448,
+      "endLine": 1464,
+      "reason": "§11.7: 本文・一般のヘッダーの完全性と TLS",
+      "excerpt": "11.7.  Request Integrity\n\n   DPoP does not ensure the integrity of the payload or headers of\n   requests.  The DPoP proof only contains claims for the HTTP URI and\n   method, but not the message body or general request headers, for\n   example.\n\n   This is an intentional design decision intended to keep DPoP simple\n   to use, but as described, it makes DPoP potentially susceptible to\n   replay attacks where an attacker is able to modify message contents\n   and headers.  In many setups, the message integrity and\n   confidentiality provided by TLS is sufficient to provide a good level\n   of protection.\n\n   Note: While signatures covering other parts of requests are out of\n   the scope of this specification, additional information to be signed\n   can be added into DPoP proofs."
+    },
+    {
+      "id": "token-example",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 572,
+      "endLine": 608,
+      "reason": "§5: トークン応答と refresh_token グラントの要求例",
+      "excerpt": "   HTTP/1.1 200 OK\n   Content-Type: application/json\n   Cache-Control: no-store\n\n   {\n    \"access_token\": \"Kz~8mXK1EalYznwH-LC-1fBAo.4Ljp~zsPE_NeO.gxU\",\n    \"token_type\": \"DPoP\",\n    \"expires_in\": 2677,\n    \"refresh_token\": \"Q..Zkm29lexi8VnWg2zPW1x-tgGad0Ibc3s3EwM_Ni4-g\"\n   }\n\n                      Figure 6: Access Token Response\n\n   The example response in Figure 6 includes a refresh token that the\n   client can use to obtain a new access token when the previous one\n   expires.  Refreshing an access token is a token request using the\n   refresh_token grant type made to the authorization server's token\n   endpoint.  As with all access token requests, the client makes it a\n   DPoP request by including a DPoP proof, as shown in Figure 7.\n   Figure 7 uses \"\\\" line wrapping per [RFC8792].\n\n   POST /token HTTP/1.1\n   Host: server.example.com\n   Content-Type: application/x-www-form-urlencoded\n   DPoP: eyJ0eXAiOiJkcG9wK2p3dCIsImFsZyI6IkVTMjU2IiwiandrIjp7Imt0eSI6Ik\\\n    VDIiwieCI6Imw4dEZyaHgtMzR0VjNoUklDUkRZOXpDa0RscEJoRjQyVVFVZldWQVdCR\\\n    nMiLCJ5IjoiOVZFNGpmX09rX282NHpiVFRsY3VOSmFqSG10NnY5VERWclUwQ2R2R1JE\\\n    QSIsImNydiI6IlAtMjU2In19.eyJqdGkiOiItQndDM0VTYzZhY2MybFRjIiwiaHRtIj\\\n    oiUE9TVCIsImh0dSI6Imh0dHBzOi8vc2VydmVyLmV4YW1wbGUuY29tL3Rva2VuIiwia\\\n    WF0IjoxNTYyMjY1Mjk2fQ.pAqut2IRDm_De6PR93SYmGBPXpwrAk90e8cP2hjiaG5Qs\\\n    GSuKDYW7_X620BxqhvYC8ynrrvZLTk41mSRroapUA\n\n   grant_type=refresh_token\\\n   &client_id=s6BhdRkqt\\\n   &refresh_token=Q..Zkm29lexi8VnWg2zPW1x-tgGad0Ibc3s3EwM_Ni4-g\n\n    Figure 7: Token Request for a DPoP-Bound Token Using a Refresh Token"
+    },
+    {
+      "id": "http-401",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc9110.txt",
+      "startLine": 7548,
+      "endLine": 7563,
+      "reason": "§15.5.2: 401 には WWW-Authenticate が必須",
+      "excerpt": "15.5.2.  401 Unauthorized\n\n   The 401 (Unauthorized) status code indicates that the request has not\n   been applied because it lacks valid authentication credentials for\n   the target resource.  The server generating a 401 response MUST send\n   a WWW-Authenticate header field (Section 11.6.1) containing at least\n   one challenge applicable to the target resource.\n\n   If the request included authentication credentials, then the 401\n   response indicates that authorization has been refused for those\n   credentials.  The user agent MAY repeat the request with a new or\n   replaced Authorization header field (Section 11.6.2).  If the 401\n   response contains the same challenge as the prior response, and the\n   user agent has already attempted authentication at least once, then\n   the user agent SHOULD present the enclosed representation to the\n   user, since it usually contains relevant diagnostic information."
+    },
+    {
+      "id": "http-403",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc9110.txt",
+      "startLine": 7569,
+      "endLine": 7585,
+      "reason": "§15.5.4: 403 と同じ認証情報での再試行",
+      "excerpt": "15.5.4.  403 Forbidden\n\n   The 403 (Forbidden) status code indicates that the server understood\n   the request but refuses to fulfill it.  A server that wishes to make\n   public why the request has been forbidden can describe that reason in\n   the response content (if any).\n\n   If authentication credentials were provided in the request, the\n   server considers them insufficient to grant access.  The client\n   SHOULD NOT automatically repeat the request with the same\n   credentials.  The client MAY repeat the request with new or different\n   credentials.  However, a request might be forbidden for reasons\n   unrelated to the credentials.\n\n   An origin server that wishes to \"hide\" the current existence of a\n   forbidden target resource MAY instead respond with a status code of\n   404 (Not Found)."
+    },
+    {
+      "id": "proof",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 337,
+      "endLine": 357,
+      "reason": "§4: リクエストごとの proof と単独では認可できない理由",
+      "excerpt": "4.  DPoP Proof JWTs\n\n   DPoP introduces the concept of a DPoP proof, which is a JWT created\n   by the client and sent with an HTTP request using the DPoP header\n   field.  Each HTTP request requires a unique DPoP proof.\n\n   A valid DPoP proof demonstrates to the server that the client holds\n   the private key that was used to sign the DPoP proof JWT.  This\n   enables authorization servers to bind issued tokens to the\n   corresponding public key (as described in Section 5) and enables\n   resource servers to verify the key-binding of tokens that it receives\n   (see Section 7.1), which prevents said tokens from being used by any\n   entity that does not have access to the private key.\n\n   The DPoP proof demonstrates possession of a key and, by itself, is\n   not an authentication or access control mechanism.  When presented in\n   conjunction with a key-bound access token as described in\n   Section 7.1, the DPoP proof provides additional assurance about the\n   legitimacy of the client to present the access token.  However, a\n   valid DPoP proof JWT is not sufficient alone to make access control\n   decisions."
+    },
+    {
+      "id": "cors-proxy",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 958,
+      "endLine": 968,
+      "reason": "§7.1: CORS でのヘッダー公開とプロキシ認証への使用禁止",
+      "excerpt": "   Note that browser-based client applications using Cross-Origin\n   Resource Sharing (CORS) [WHATWG.Fetch] only have access to CORS-\n   safelisted response HTTP headers by default.  In order for the\n   application to obtain and use the WWW-Authenticate HTTP response\n   header value, the server needs to make it available to the\n   application by including WWW-Authenticate in the Access-Control-\n   Expose-Headers response header list value.\n\n   This authentication scheme is for origin-server authentication only.\n   Therefore, this authentication scheme MUST NOT be used with the\n   Proxy-Authenticate or Proxy-Authorization header fields."
+    },
+    {
+      "id": "rotation",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 1170,
+      "endLine": 1203,
+      "reason": "§8.2: 成功応答による nonce 更新とキャッシュ",
+      "excerpt": "8.2.  Providing a New Nonce Value\n\n   It is up to the authorization server when to supply a new nonce value\n   for the client to use.  The client is expected to use the existing\n   supplied nonce in DPoP proofs until the server supplies a new nonce\n   value.\n\n   The authorization server MAY supply the new nonce in the same way\n   that the initial one was supplied: by using a DPoP-Nonce HTTP header\n   in the response.  The DPoP-Nonce HTTP header field uses the nonce\n   syntax defined in Section 8.1.  Each time this happens, it requires\n   an extra protocol round trip.\n\n   A more efficient manner of supplying a new nonce value is also\n   defined by including a DPoP-Nonce HTTP header in the HTTP 200 (OK)\n   response from the previous request.  The client MUST use the new\n   nonce value supplied for the next token request and for all\n   subsequent token requests until the authorization server supplies a\n   new nonce.\n\n   Responses that include the DPoP-Nonce HTTP header should be\n   uncacheable (e.g., using Cache-Control: no-store in response to a GET\n   request) to prevent the response from being used to serve a\n   subsequent request and a stale nonce value from being used as a\n   result.\n\n   An example 200 OK response providing a new nonce value is shown\n   below.\n\n    HTTP/1.1 200 OK\n    Cache-Control: no-store\n    DPoP-Nonce: eyJ7S_zG.eyJbYu3.xQmBj-1\n\n        Figure 23: HTTP 200 Response Providing the Next Nonce Value"
+    },
+    {
+      "id": "nonce-state",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 1120,
+      "endLine": 1159,
+      "reason": "§8: opaque な nonce の完全一致・最近の値・CORS",
+      "excerpt": "   Upon receiving the nonce, the client is expected to retry its token\n   request using a DPoP proof including the supplied nonce value in the\n   nonce claim of the DPoP proof.  An example unencoded JWT payload of\n   such a DPoP proof including a nonce is shown below.\n\n    {\n     \"jti\": \"-BwC3ESc6acc2lTc\",\n     \"htm\": \"POST\",\n     \"htu\": \"https://server.example.com/token\",\n     \"iat\": 1562262616,\n     \"nonce\": \"eyJ7S_zG.eyJH0-Z.HX4w-7v\"\n    }\n\n           Figure 21: DPoP Proof Payload including a Nonce Value\n\n   The nonce is opaque to the client.\n\n   If the nonce claim in the DPoP proof does not exactly match a nonce\n   recently supplied by the authorization server to the client, the\n   authorization server MUST reject the request.  The rejection response\n   MAY include a DPoP-Nonce HTTP header providing a new nonce value to\n   use for subsequent requests.\n\n   The intent is that clients need to keep only one nonce value and\n   servers need to keep a window of recent nonces.  That said, transient\n   circumstances may arise in which the stored nonce values for the\n   server and the client differ.  However, this situation is self-\n   correcting.  With any rejection message, the server can send the\n   client the nonce value it wants to use to the client, and the client\n   can store that nonce value and retry the request with it.  Even if\n   the client and/or server discard their stored nonce values, that\n   situation is also self-correcting because new nonce values can be\n   communicated when responding to or retrying failed requests.\n\n   Note that browser-based client applications using CORS [WHATWG.Fetch]\n   only have access to CORS-safelisted response HTTP headers by default.\n   In order for the application to obtain and use the DPoP-Nonce HTTP\n   response header value, the server needs to make it available to the\n   application by including DPoP-Nonce in the Access-Control-Expose-\n   Headers response header list value."
+    }
+  ],
+  "questions": [
+    {
+      "id": "htm-case",
+      "type": "choice",
+      "category": "debugging",
+      "scenario": "クライアントが GET の要求に、htm を \"get\" とした proof を付けました。他の検証はすべて成功します。",
+      "prompt": "RS の判断として正しいものはどれですか？",
+      "options": [
+        "htm は小文字で書く決まりなので、\"get\" が正しい値である。受理する",
+        "RFC 9449 は htm も htu と同じく正規化して比べることを勧めているので、大文字にして受理する",
+        "HTTP のメソッドは大文字・小文字を区別するので、\"get\" は GET と一致しない。拒否する",
+        "HTTP のメソッドは大文字・小文字を区別しないので、\"get\" も GET と一致する。受理する",
+        "htm の不一致は ath が一致していれば問題にならないので、アクセストークンが有効なら受理する"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "http-method",
+        "checks",
+        "resource"
+      ]
+    },
+    {
+      "id": "htu-not-equivalent",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "RFC 9449 が勧める正規化（RFC 3986 の構文ベース・スキームベース）の後でも、一致しない組み合わせはどれですか？",
+      "options": [
+        "https://api.example.com/Orders と https://api.example.com/orders",
+        "https://api.example.com:443/orders と https://api.example.com/orders",
+        "https://API.Example.COM/orders と https://api.example.com/orders",
+        "https://api.example.com/%7Euser と https://api.example.com/~user",
+        "https://api.example.com と https://api.example.com/"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "checks",
+        "uri-syntax-normalize",
+        "uri-scheme-normalize",
+        "http-uri-normalize"
+      ]
+    },
+    {
+      "id": "trailing-slash",
+      "type": "choice",
+      "category": "knowledge",
+      "scenario": "proof の htu は https://api.example.com/v1/data/ で、要求の URI は https://api.example.com/v1/data でした。このサーバーは /v1/data/ への要求を /v1/data へリダイレクトしています。",
+      "prompt": "RFC 9449 が勧める正規化に従って照合した結果と、その理由として正しいものはどれですか？",
+      "options": [
+        "一致する。空のパスと「/」が等しいという規則は、パスの末尾にあるスラッシュにも同じように当てはまる",
+        "一致する。スキームベースの正規化では、パスの末尾のスラッシュを取り除いてから比べることになっている",
+        "一致する。リダイレクトで同じリソースだと分かるので、サーバーは等しいとみなさなければならない",
+        "一致しない。htu は正規化せずに、文字列として完全に比べることが MUST だから",
+        "一致しない。末尾のスラッシュを同じとみなすのはプロトコルベースの正規化で、勧められた正規化ではない"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "checks",
+        "uri-protocol-normalize",
+        "uri-scheme-normalize",
+        "http-uri-normalize"
+      ]
+    },
+    {
+      "id": "percent-encoding",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "htu を比べる前のパーセントエンコーディングの扱いとして、RFC 3986 の構文ベースの正規化に沿うものはどれですか？",
+      "options": [
+        "%7e は ~ に戻す。ただし 16 進の大文字・小文字は区別されるので、%3a と %3A は別の URI になる",
+        "%2F は / に戻すが、%7e は予約文字なので戻さない。16 進は小文字にそろえる",
+        "パーセントエンコーディングは一切変えない。16 進の大文字・小文字も含め、文字列のまま比べる",
+        "%7e は ~ に戻し、%2F は戻さない。16 進の小文字（%3a）は大文字にそろえる",
+        "%7e も %2F も、対応する文字（~ と /）に戻す。16 進の大文字・小文字はそのまま比べる"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "uri-syntax-normalize",
+        "uri-unreserved",
+        "checks",
+        "uri-reserved"
+      ]
+    },
+    {
+      "id": "reverse-proxy",
+      "type": "choice",
+      "category": "debugging",
+      "scenario": "RS は TLS を終端するロードバランサーの後ろにあり、アプリケーションには http://10.0.0.12:8080/v1/orders として要求が届きます。クライアントは htu を https://api.example.com/v1/orders にして proof を作るので、htu の照合が失敗します。",
+      "prompt": "最も適切な対応はどれですか？",
+      "options": [
+        "ロードバランサーの後ろでは htu を正しく照合できない。この構成に限り、htu の検証を省く",
+        "設定した外部のスキームとホスト、または信頼できるプロキシの情報から、元の target URI を組み立てる",
+        "クライアントに内部の URL（http://10.0.0.12:8080/v1/orders）を知らせ、htu にはその URL を入れてもらう",
+        "スキームとホストは環境によって変わるので照合しない。パスだけを比べ、一致すれば受理する",
+        "要求に付いている X-Forwarded-Host ヘッダーを、送信元を確かめずにそのまま使って URI を組み立てる"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "checks",
+        "http-target-uri",
+        "security-intro"
+      ]
+    },
+    {
+      "id": "scheme-case",
+      "type": "choice",
+      "category": "knowledge",
+      "scenario": "要求に「Authorization: dpop Kz~8mXK1EalYznwH-LC-1fBAo.4Ljp~zsPE_NeO.gxU」と、正しい DPoP ヘッダーが付いています。",
+      "prompt": "RS の扱いとして正しいものはどれですか？",
+      "options": [
+        "RFC 9449 の ABNF は \"DPoP\" と大文字で書いている。\"dpop\" は別のスキームとして拒否する",
+        "スキーム名が小文字の場合は Bearer スキームとみなす。DPoP の proof は検証しない",
+        "スキーム名もトークンの値も、大文字・小文字を区別しない。トークンを小文字にしてから照合する",
+        "スキーム名を DPoP に書き換えた値「DPoP Kz~8…」から ath を計算し直し、proof と照合する",
+        "スキーム名は大文字・小文字を区別しないので、DPoP スキームとして扱う。トークンの値は区別する"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "http-auth-scheme",
+        "scheme",
+        "header",
+        "syntax"
+      ]
+    },
+    {
+      "id": "combined-headers",
+      "type": "choice",
+      "category": "debugging",
+      "scenario": "RS のフレームワークは、同じ名前のヘッダーが複数あると「, 」でつないだ 1 つの値にします。ある要求で、DPoP ヘッダーの値が「eyJ…(JWT A), eyJ…(JWT B)」でした。RS の実装は最初の「,」より前を proof として検証しています。",
+      "prompt": "正しい修正はどれですか？",
+      "options": [
+        "「, 」で分割してそれぞれ検証する。どちらかの JWT が有効であれば、その proof で受理する",
+        "後から付けたヘッダーが優先される。「,」より後にある最後の JWT を、proof として検証する",
+        "2 つの JWT がどちらも有効で、内容も完全に同じであれば、重複とはみなさずに受理する",
+        "DPoP ヘッダーが複数ある要求として拒否する。token68 は「,」を含まないので、結合や不正な値と分かる",
+        "RFC 9110 ではフィールドの順序に意味がある。最初の JWT だけを検証する今の実装で、仕様に合っている"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "checks",
+        "http-field-order",
+        "header"
+      ]
+    },
+    {
+      "id": "challenge-param-syntax",
+      "type": "choice",
+      "category": "knowledge",
+      "scenario": "クライアントが「WWW-Authenticate: DPoP error=use_dpop_nonce, ALGS=\"ES256 PS256\"」を受け取りました。",
+      "prompt": "この challenge の解釈として正しいものはどれですか？",
+      "options": [
+        "error の値が引用符で囲まれていないので、challenge 全体が不正な値になる。クライアントはこの challenge を無視しなければならない",
+        "error の値は token 形式で正しい。パラメーター名は区別しないので、ALGS は algs で 2 つの alg を示す",
+        "パラメーター名は大文字・小文字を区別するので、ALGS は未知のパラメーターである。無視する",
+        "algs の値は「ES256 PS256」という 1 つの alg 名である。スペースを含む名前として扱う",
+        "algs はカンマで区切るリストなので、スペースで区切られた値は不正である。無視する"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "http-auth-params",
+        "challenge"
+      ]
+    },
+    {
+      "id": "challenge-ownership",
+      "type": "choice",
+      "category": "knowledge",
+      "scenario": "RS の 401 応答に「WWW-Authenticate: Bearer realm=\"api\", DPoP algs=\"ES256\", error=\"invalid_token\"」が含まれていました。",
+      "prompt": "error=\"invalid_token\" はどの challenge のパラメーターですか？",
+      "options": [
+        "DPoP の challenge。DPoP の後の auth-param は、次のスキーム名までその challenge に属する",
+        "両方の challenge。error は WWW-Authenticate の値全体に適用されるパラメーターである",
+        "どちらにも属さない。1 つのフィールドに複数の challenge を書くことは、HTTP で禁止されている",
+        "Bearer の challenge。error は、どこに書いても先頭の challenge に属するパラメーターである",
+        "Bearer の challenge。realm を持つ challenge が、その後のカンマ区切りのパラメーターをすべて受け取る"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "http-www-authenticate",
+        "http-challenge",
+        "multi-challenge"
+      ]
+    },
+    {
+      "id": "status-matrix",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "Bearer と DPoP の両方に対応する RS の応答として、RFC 9449（例を含む）と RFC 6750 に沿う組み合わせはどれですか？\n(1) 認証情報のない要求\n(2) 有効な DPoP-bound トークンと proof だが、スコープが足りない\n(3) Authorization: Bearer と Authorization: DPoP の両方がある\n(4) RS が nonce を要求する",
+      "options": [
+        "(1) 401・error なし　(2) 403・insufficient_scope　(3) 401・invalid_token　(4) 401・use_dpop_nonce",
+        "(1) 401・error なし　(2) 403・insufficient_scope　(3) 400・invalid_request　(4) 400・use_dpop_nonce",
+        "(1) 401・error なし　(2) 403・insufficient_scope　(3) 400・invalid_request　(4) 401・use_dpop_nonce",
+        "(1) 401・error なし　(2) 401・insufficient_scope　(3) 400・invalid_request　(4) 401・use_dpop_nonce",
+        "(1) 401・invalid_token　(2) 403・insufficient_scope　(3) 400・invalid_request　(4) 401・use_dpop_nonce"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "bearer",
+        "multi-challenge",
+        "bearer-errors",
+        "rs-nonce",
+        "http-credentials",
+        "as-nonce",
+        "challenge"
+      ]
+    },
+    {
+      "id": "form-body-token",
+      "type": "choice",
+      "category": "debugging",
+      "scenario": "Bearer と DPoP の両方に対応する RS に、DPoP-bound のアクセストークンが RFC 6750 のフォーム本文（access_token=…）で届きました。要求には有効な DPoP ヘッダー（ath もそのトークンと一致）も付いています。",
+      "prompt": "RS の扱いとして正しいものはどれですか？",
+      "options": [
+        "proof が有効で ath も一致するので、DPoP として受理する",
+        "Bearer の方法で受け取った DPoP-bound トークンなので拒否する",
+        "POST の要求なら受理する。フォーム本文の方法は POST でしか使えないため",
+        "フォーム本文の方法は Authorization ヘッダーより優先されるので受理する",
+        "DPoP ヘッダーがあるので、フォーム本文のトークンを DPoP スキームで送られたものとして受理する"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "scheme",
+        "bearer",
+        "bearer-body",
+        "bearer-methods"
+      ]
+    },
+    {
+      "id": "jti-context-query",
+      "type": "choice",
+      "category": "design",
+      "scenario": "RS は「要求の URI（query を含む）と jti」の組をキーにして jti を記録し、重複を拒否しています。攻撃者が GET /orders?status=open の要求からトークンと proof を盗み、時間窓のうちに GET /orders?status=all として送りました。",
+      "prompt": "この状況の説明と対応として最も適切なものはどれですか？",
+      "options": [
+        "proof は query に結び付かず、query 込みのキーでは重複も見つからない。jti は query を除いた単位以上で記録する",
+        "ath は query を含めた要求全体から計算するハッシュである。ath の照合で拒否される",
+        "htu には query が含まれていないので、要求の URI と一致しない。htu の照合で拒否される",
+        "jti の記録は「can」とされた任意の対策にすぎない。RFC 9449 には、query を変えたこの再送を防ぐ方法は書かれていない",
+        "クライアントに query まで含めた htu を作らせる。そうすれば、query を変えた再送は htu の照合で拒否できるようになる"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "syntax",
+        "checks",
+        "replay",
+        "integrity",
+        "http-target-uri"
+      ]
+    },
+    {
+      "id": "token68-values",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "Authorization: DPoP で送るアクセストークンの値として、RFC 9449 の ABNF（token68）に合うものはどれですか？",
+      "options": [
+        "Kz~8mXK1EalYznwH-LC-1fBAo 4Ljp~zsPE_NeO.gxU",
+        "Kz~8mXK1EalYznwH-LC-1fBAo:4Ljp~zsPE_NeO.gxU",
+        "Kz~8mXK1EalYznwH-LC-1fBAo,4Ljp~zsPE_NeO.gxU",
+        "Kz~8mXK1EalYznwH-LC-1fBAo.4Ljp~zsPE_NeO.gxU",
+        "Kz~8mXK1EalYznwH-LC-1fBAo==4Ljp~zsPE_NeO.gxU"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "scheme",
+        "token-example",
+        "http-auth-params"
+      ]
+    },
+    {
+      "id": "challenge-401-must",
+      "type": "choice",
+      "category": "debugging",
+      "scenario": "RS は nonce を要求するとき、401 の本文に {\"error\":\"use_dpop_nonce\"} を入れ、DPoP-Nonce ヘッダーを付けて返しています。WWW-Authenticate ヘッダーは付けていません。",
+      "prompt": "正しい指摘はどれですか？",
+      "options": [
+        "nonce は DPoP-Nonce ヘッダーではなく、JSON の本文の nonce メンバーに入れて返すべきである",
+        "RS が nonce を要求するときは 400 で返すべきで、401 を使っている点が誤りである。本文はこのままでよい",
+        "AS のトークンエンドポイントと同じく、JSON の本文でエラーを返す形式なので、この応答に問題はない",
+        "nonce の要求には 403 を使い、WWW-Authenticate は付けずに DPoP-Nonce ヘッダーだけを返す",
+        "401 には WWW-Authenticate が必須で、RS は WWW-Authenticate: DPoP error=\"use_dpop_nonce\" で要求する"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "http-401",
+        "rs-nonce",
+        "challenge",
+        "as-nonce"
+      ]
+    },
+    {
+      "id": "forbidden-retry",
+      "type": "choice",
+      "category": "knowledge",
+      "scenario": "クライアントが有効な DPoP-bound トークンと proof で要求したところ、403 と「WWW-Authenticate: DPoP error=\"insufficient_scope\", scope=\"orders:write\"」が返りました。",
+      "prompt": "クライアントの対応として正しいものはどれですか？",
+      "options": [
+        "トークンが無効になったことを示している。refresh token で、同じスコープのトークンを取り直す",
+        "nonce が足りないことを示している。DPoP-Nonce を受け取ってから、同じトークンで再試行する",
+        "同じトークンで proof だけ作り直しても結果は変わらない。必要なスコープのトークンを得てから要求する",
+        "Bearer 方式に切り替える。同じトークンでも、Bearer なら DPoP の検証を通らないので、スコープの不足も問われずに再試行できる",
+        "新しい jti の proof を作る。同じトークンでも、proof を作り直せば受理される見込みがある"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "http-403",
+        "bearer-errors",
+        "challenge",
+        "bearer"
+      ]
+    },
+    {
+      "id": "redirect-proof",
+      "type": "choice",
+      "category": "debugging",
+      "scenario": "クライアントの HTTP ライブラリは、307 の応答を受けると同じヘッダーのまま Location の URI へ自動で再送します。GET https://api.example.com/v1/orders に付けた proof が、https://api2.example.com/v1/orders への再送にもそのまま使われ、拒否されました。",
+      "prompt": "正しい対応はどれですか？",
+      "options": [
+        "自動の再送をやめ、送り先が意図した RS かを確かめたうえで、新しい URI と jti で proof を作り直す",
+        "メソッドとトークンが同じなので、proof を作り直す必要はない。ath を計算し直して付けるだけでよい",
+        "htu に、リダイレクト元とリダイレクト先の両方の URI を入れておく。どちらでも照合を通るようにする",
+        "リダイレクト先には DPoP ヘッダーを外して送る。Authorization: DPoP だけで送れば受理される",
+        "リダイレクト元の RS が案内した URI である。リダイレクト先の RS は、htu の不一致を許容すべきである"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "proof",
+        "syntax",
+        "checks",
+        "resource"
+      ]
+    },
+    {
+      "id": "proxy-auth",
+      "type": "choice",
+      "category": "knowledge",
+      "scenario": "社内のフォワードプロキシが認証を求めます（407）。クライアントは同時に、外部の RS へ DPoP-bound のトークンを送る必要があります。",
+      "prompt": "RFC 9449 に沿う構成はどれですか？",
+      "options": [
+        "プロキシに DPoP の秘密鍵を預ける。プロキシが要求ごとに proof を作り、RS へ送る",
+        "Proxy-Authorization: DPoP にアクセストークンを入れる。プロキシから RS へ、そのまま転送してもらう",
+        "プロキシにも Proxy-Authorization: DPoP を使う。htu をプロキシの URI にした proof を別に作って付ければ、両方で検証できる",
+        "DPoP はプロキシ経由では使えない。プロキシを通す要求に限り、Bearer 方式に切り替える",
+        "プロキシには Proxy-Authorization で別のスキームを使い、RS には Authorization: DPoP と DPoP ヘッダーを送る"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "cors-proxy",
+        "http-challenge"
+      ]
+    },
+    {
+      "id": "head-vs-get",
+      "type": "choice",
+      "category": "debugging",
+      "scenario": "クライアントが、GET 用に作った proof（htm=\"GET\"）を同じ URI への HEAD 要求に付けました。",
+      "prompt": "RS の判断と、その理由として正しいものはどれですか？",
+      "options": [
+        "HEAD は GET と同じ意味を持つメソッドである。htm=GET の proof でも、同じ要求とみなして受理してよい",
+        "安全なメソッドでは htm の照合を省いてよい。HEAD も GET も安全なメソッドなので受理する",
+        "htm は要求のメソッドと一致しなければならない。HEAD 要求に htm=GET の proof は使えないので拒否する",
+        "HEAD は本文を返さないメソッドである。proof もアクセストークンも、この要求には要らない",
+        "HEAD の場合は htm を省いた proof を使う決まりである。htm=GET の proof はその点で拒否する"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "checks",
+        "syntax",
+        "http-method",
+        "resource"
+      ]
+    },
+    {
+      "id": "rs-nonce-retry",
+      "type": "ordering",
+      "category": "flow",
+      "prompt": "RS が nonce を要求する場合の、保護されたリソースへのアクセスの流れを並べてください。トークンは有効で、他の検証はすべて成功します。",
+      "items": [
+        {
+          "id": "challenge",
+          "text": "RS が 401、WWW-Authenticate: DPoP error=\"use_dpop_nonce\"、DPoP-Nonce: N1 を返す"
+        },
+        {
+          "id": "first",
+          "text": "クライアントがトークンと、nonce を含まない proof（ath あり）を RS に送る"
+        },
+        {
+          "id": "store",
+          "text": "クライアントが N1 を、この RS 向けの nonce として保存する"
+        },
+        {
+          "id": "next",
+          "text": "クライアントは、この RS への次の要求の proof に N2 を使う"
+        },
+        {
+          "id": "ok",
+          "text": "RS が 200 の応答に DPoP-Nonce: N2 を付けて返す"
+        },
+        {
+          "id": "retry",
+          "text": "クライアントが nonce=N1 と新しい jti を含む proof を作り、同じトークンで再送する"
+        }
+      ],
+      "points": 2,
+      "referenceIds": [
+        "rs-nonce",
+        "rotation",
+        "proof"
+      ]
+    },
+    {
+      "id": "challenge-handler-design",
+      "type": "written",
+      "category": "design",
+      "scenario": "SPA が 1 つの AS と 2 つの RS を使います。RS は Bearer と DPoP の challenge を同時に返すことがあり、AS も RS も nonce を要求することがあります。",
+      "prompt": "クライアントが受け取る 401・403・400 の応答と、WWW-Authenticate・DPoP-Nonce をどう解釈し、どう再試行するかを設計してください。",
+      "points": 6,
+      "referenceIds": [
+        "http-www-authenticate",
+        "challenge",
+        "rs-nonce",
+        "bearer-errors",
+        "http-403",
+        "bearer",
+        "http-auth-params",
+        "rotation",
+        "multi-challenge",
+        "as-nonce",
+        "cors-proxy",
+        "nonce-state"
+      ],
+      "answerHint": "箇条書きで構いません。条件ごとの対応を書いてください。"
+    }
+  ],
+  "solutions": {
+    "htm-case": {
+      "explanation": "RFC 9110 §9.1 は「The method token is case-sensitive」と定め、標準のメソッドは慣例で大文字です。RFC 9449 §4.3 の 8 番目は、htm が現在の要求のメソッドと一致することを求めます。§4.3 が正規化を勧めているのは htu だけです（B は誤り）。A：そのような決まりはありません。E：ath はトークンとの結び付けで、メソッドへの結び付けの代わりになりません（§7）。",
+      "answer": 2
+    },
+    "htu-not-equivalent": {
+      "explanation": "RFC 3986 §6.2.2.1 は、スキームとホストは大文字・小文字を区別せず、その他の部分は区別するとしています。パスの Orders と orders は別の URI です。RFC 9110 §4.2.3 のとおり、https の既定のポート（443）は省き、空のパスは（OPTIONS 要求の対象でない限り）「/」と同じで、非予約文字（~ など）とそのパーセントエンコーディングは同じです。したがって E・C・B・D は、§4.3 の SHOULD に従った正規化の後で一致します。",
+      "answer": 0
+    },
+    "trailing-slash": {
+      "explanation": "RFC 9449 §4.3 が SHOULD とするのは、RFC 3986 の構文ベース（§6.2.2）とスキームベース（§6.2.3）の正規化です。末尾のスラッシュの違いを、リダイレクトの結果から同じとみなすのは §6.2.4 のプロトコルベースの正規化で、ウェブクローラーなどが使う手法です。A：空のパスを「/」とする規則は、パスが空の場合だけに当てはまります。D：正規化しない比較は MUST ではなく、正規化が SHOULD です。",
+      "answer": 4
+    },
+    "percent-encoding": {
+      "explanation": "RFC 3986 §6.2.2.1 は、パーセントエンコーディングの 16 進の数字は大文字・小文字を区別しないので大文字にそろえるとし、§6.2.2.2 は非予約文字（英字、数字、-、.、_、~）に当たるものだけを復号するとしています。「/」は予約文字で、RFC 3986 §2.2 は予約文字とそのパーセントエンコーディングを置き換えた URI は同じではないとしています。%2F を / に戻すとパスの区切りが変わります。C：§4.3 は、正当な proof を誤って拒否すること（偽陰性）を減らすために、この正規化を勧めています（SHOULD）。",
+      "answer": 3
+    },
+    "reverse-proxy": {
+      "explanation": "RFC 9449 §4.3 の 9 番目は、htu が proof を受け取った要求の URI と一致することを求めます。RFC 9110 §7.1 は「a server reconstructs the target URI from the received components in accordance with their local configuration and incoming connection context」と述べており、TLS を終端する構成では外部の URI を組み立てる必要があります。D：同じパスを持つ別のホスト向けの proof を流用できてしまいます。DPoP は proof を URI に結び付けて、別のエンドポイントでの使用を防ぎます（§11）。C：クライアントは内部の URL を知らず、知るべきでもありません。E：利用者が付けたヘッダーは偽れるので、信頼できるプロキシが付けた値だけを使います。A：§4.3 の検証は MUST です。",
+      "answer": 1
+    },
+    "scheme-case": {
+      "explanation": "RFC 9110 §11.1 は「It uses a case-insensitive token to identify the authentication scheme」と定めています。一方、トークンの値（token68 の部分）は変えずに扱い、ath もトークンの値だけから計算します（RFC 9449 §4.2）。なお §4.1 の「case is significant in the header field value」は DPoP ヘッダー（proof）についての記述で、Authorization ヘッダーのスキーム名には当てはまりません。D：ath の入力にスキーム名は含めません。",
+      "answer": 4
+    },
+    "combined-headers": {
+      "explanation": "RFC 9449 §4.3 の 1 番目は DPoP ヘッダーが 2 つ以上ないこと、2 番目は値が単一の正しい JWT であることです。RFC 9110 §5.3 は、受信側が同じ名前のフィールド行をカンマでつないでよいとし、リスト構文でないフィールドを送信者が複数行で送ることを禁じています。DPoP の値は token68 で（§4.1）カンマを含まないので、カンマがあれば、結合された値か不正な値なので、どちらにしても拒否します。C：同じ内容でも、ヘッダーが 2 つある要求は 1 番目の検証で拒否します。",
+      "answer": 3
+    },
+    "challenge-param-syntax": {
+      "explanation": "RFC 9110 §11.2 は、パラメーター名を大文字・小文字を区別せずに照合し、値は token と quoted-string のどちらでもよく、受信側は両方を受け付ける必要があるとしています。RFC 9449 §7.1 の algs は、JWS の alg 値をスペースで区切ったリストです。C：ALGS は algs と同じ名前なので、未知のパラメーターではありません。",
+      "answer": 1
+    },
+    "challenge-ownership": {
+      "explanation": "RFC 9110 §11.6.1 は、WWW-Authenticate の値に複数の challenge を含められ、各 challenge がカンマ区切りの auth-param を持つと述べています。§11.3 の構文（challenge = auth-scheme [ 1*SP ( token68 / #auth-param ) ]）では、スキーム名の後のパラメーターがその challenge に属します。RFC 9449 §7.2 の Figure 19 も、DPoP の後に algs・error・error_description を続けています。C：同じ行に複数の challenge を書くことは禁止されていません（相互運用性への注意はあります）。",
+      "answer": 0
+    },
+    "status-matrix": {
+      "explanation": "(1) RFC 9449 §7.2 と RFC 6750 §3.1 は、認証情報のない要求にはエラーコードを含めるべきではない（SHOULD NOT）としています。(2) RFC 9449 §7.1 は、十分なトークンがない要求に 401 の challenge で応じられると書いていますが、RFC 6750 §3.1 は insufficient_scope に 403 を使うべきである（SHOULD）とし、RFC 9110 §11.4 も、有効だがアクセスに足りない認証情報には 403 を勧めています。両方に沿うのは 403 です（D は誤り）。(3) Figure 19 は、複数の方法でトークンを送った要求に 400 と invalid_request を返しています。RFC 6750 §3.1 の invalid_request も「uses more than one method for including an access token」を含みます。(4) §9 で RS は 401、WWW-Authenticate: DPoP の error=\"use_dpop_nonce\"、DPoP-Nonce を使います。B の 400 は、§8 の AS のトークンエンドポイントでの形式です。",
+      "answer": 2
+    },
+    "form-body-token": {
+      "explanation": "RFC 9449 §7.1 は、DPoP-bound のアクセストークンを Authorization ヘッダーの DPoP スキームで送ると定めています。フォーム本文（RFC 6750 §2.2）は Bearer の送り方で、§7.2 は両方に対応する RS に「MUST reject a DPoP-bound access token received as a bearer token per [RFC6750]」と求めています。有効な proof が付いていても、Bearer として受け取ったことは変わりません。ダウングレードを防ぐための規定です。",
+      "answer": 1
+    },
+    "jti-context-query": {
+      "explanation": "§4.2 の htu は query と fragment を除いた URI で、§4.3 の 9 番目も query を無視して照合します。§11.1 は「In the context of the target URI」で jti を記録し、同じ URI への 2 回目を拒否する方法を挙げています。ただし RFC 9110 §7.1 の target URI は query を含むので、query 込みのキーで実装すると、query を変えた再送を見逃します。RFC 9449 は記録の単位を htu とは定めていませんが、proof が結び付くのは query を除いた htu なので、その単位か、より広い単位で記録するのが安全です。C：query は無視されるので照合は通ります。B：ath はトークンだけのハッシュです。D：jti の記録は任意（can）ですが §11.1 に書かれた方法で、単位を htu 以上にすればこの再送を拒否できます。E：§4.2 に反します。",
+      "answer": 0
+    },
+    "token68-values": {
+      "explanation": "§7.1 の credentials は「\"DPoP\" 1*SP token68」で、token68 は「1*( ALPHA / DIGIT / \"-\" / \".\" / \"_\" / \"~\" / \"+\" / \"/\" ) *\"=\"」です。D は §5 の例のトークンです。B の「:」、A のスペース、C の「,」は使えない文字です。E：「=」は末尾にだけ置けます。Authorization: DPoP で送る以上、トークンの値は token68 に収まる必要があります（RFC 9449 が AS の要件として明記しているわけではありません）。",
+      "answer": 3
+    },
+    "challenge-401-must": {
+      "explanation": "RFC 9110 §15.5.2 は「The server generating a 401 response MUST send a WWW-Authenticate header field」と定めます。RFC 9449 §9 で RS は、401 と WWW-Authenticate: DPoP（error=\"use_dpop_nonce\"）と DPoP-Nonce で nonce を要求します。エラーの伝え方は §7.1 のとおりです。C・B：400 と JSON の本文（RFC 6749 §5.2 の形式）は、AS のトークンエンドポイントの方法です。A：nonce は DPoP-Nonce ヘッダーで渡します。",
+      "answer": 4
+    },
+    "forbidden-retry": {
+      "explanation": "RFC 9110 §15.5.4 は、403 は認証情報が不十分なことを示し、クライアントは同じ認証情報で自動的に再試行すべきでない（SHOULD NOT）としています。RFC 6750 §3.1 の insufficient_scope は、より高い権限が必要なことを示し、必要なスコープを scope で示せます。proof を作り直してもトークンの権限は変わりません。A：invalid_token とは別のエラーで、同じスコープで取り直しても足りません。D：両方に対応する RS は、Bearer として届いた DPoP-bound トークンを拒否します（RFC 9449 §7.2）。",
+      "answer": 2
+    },
+    "redirect-proof": {
+      "explanation": "§4 は「Each HTTP request requires a unique DPoP proof」とし、§4.2 の htu は proof を付ける要求の target URI です。リダイレクト後の要求は target URI が違うので、§4.3 の 9 番目に合う新しい proof（新しい jti）が必要です。リダイレクトで別のホストにトークンを送ることになる場合は、その送り先にトークンを渡してよいかも確かめます。C：htu は 1 つの URI です。B：ath は同じでも、htu が合いません。D：§7 は、保護されたリソースへの要求に proof を必須としています。",
+      "answer": 0
+    },
+    "proxy-auth": {
+      "explanation": "RFC 9449 §7.1 は「This authentication scheme is for origin-server authentication only. Therefore, this authentication scheme MUST NOT be used with the Proxy-Authenticate or Proxy-Authorization header fields」と定めています。プロキシの認証は RFC 9110 §11.3 の 407 と Proxy-Authorization の仕組みで、DPoP とは別に行います。A：秘密鍵を預けると、鍵の所持で送信者を限る意味がなくなります。D：そのような制限はありません。",
+      "answer": 4
+    },
+    "head-vs-get": {
+      "explanation": "RFC 9449 §4.3 の 8 番目は「The htm claim matches the HTTP method of the current request」です。HEAD は GET に近い意味を持ちますが、メソッドトークンは別で（RFC 9110 §9.1）、htm には proof を付ける要求のメソッドそのものを入れます（§4.2）。D：保護されたリソースへの要求には proof とトークンが必要です（§7）。B：そのような例外はありません。E：htm は必須クレームです。",
+      "answer": 2
+    },
+    "rs-nonce-retry": {
+      "explanation": "§9 で RS は 401 と WWW-Authenticate: DPoP と DPoP-Nonce で nonce を要求し、§8 と同じ方法で nonce を提供します。nonce は発行したサーバーでだけ使うので、送信元ごとに保存します。§8.2 のとおり、成功応答で新しい nonce を受け取ったら、次の要求からその値を使います。再送の proof にも新しい jti を使います（§4）。",
+      "answer": [
+        "first",
+        "challenge",
+        "store",
+        "retry",
+        "ok",
+        "next"
+      ]
+    },
+    "challenge-handler-design": {
+      "explanation": "WWW-Authenticate は複数の challenge と複数のフィールド行を含み得るので、スキームごとに分けて解析する。パラメーター名は大文字・小文字を区別せず、値は token と quoted-string の両方を受け付ける。DPoP の challenge の algs（スペース区切り）で使える alg を確かめ、未知のパラメーターは無視する。RS の 401 の use_dpop_nonce なら、DPoP-Nonce を送信元のサーバーごとに保存し、その値を nonce クレームに入れた新しい jti の proof で再試行する。200 の応答の DPoP-Nonce でも更新する。AS のトークンエンドポイントの 400 は、WWW-Authenticate ではなく JSON 本文の error で判断する。use_dpop_nonce なら DPoP-Nonce を AS 用に保存して再試行し、invalid_dpop_proof なら proof を見直す。RS の invalid_token ではトークンの更新や再認可を検討し、invalid_dpop_proof なら proof の作り方を見直す。403（insufficient_scope）では同じトークンで自動的に再試行せず、必要なスコープのトークンを取得する。RS の 400（invalid_request）では送り方を直し、DPoP-bound トークンを Bearer に切り替えて再試行しない。SPA では、AS と RS が Access-Control-Expose-Headers で WWW-Authenticate と DPoP-Nonce を公開していないと読めない。",
+      "rubric": [
+        {
+          "criterion": "WWW-Authenticate を challenge ごとに分けて解析し、パラメーター名の大文字・小文字を区別せず、token と quoted-string の両方を受け付ける。",
+          "points": 1,
+          "referenceIds": [
+            "http-www-authenticate",
+            "http-auth-params"
+          ]
+        },
+        {
+          "criterion": "DPoP の challenge の algs（スペース区切り）を使い、未知のパラメーターは無視する。",
+          "points": 1,
+          "referenceIds": [
+            "challenge"
+          ]
+        },
+        {
+          "criterion": "use_dpop_nonce では DPoP-Nonce を送信元ごとに保存し、その値を nonce クレームに入れた新しい jti の proof で再試行する。200 の応答の DPoP-Nonce でも更新する（SPA では、これらのヘッダーが公開されている必要があることに触れてもよい）。",
+          "points": 1,
+          "referenceIds": [
+            "rs-nonce",
+            "rotation",
+            "nonce-state"
+          ]
+        },
+        {
+          "criterion": "invalid_token ではトークンの更新や再認可、invalid_dpop_proof では proof の作り方の見直しというように、エラーで対応を分ける。",
+          "points": 1,
+          "referenceIds": [
+            "challenge",
+            "bearer-errors"
+          ]
+        },
+        {
+          "criterion": "403（insufficient_scope）では同じトークンで自動的に再試行せず、必要なスコープのトークンを取得する。",
+          "points": 1,
+          "referenceIds": [
+            "http-403",
+            "bearer-errors"
+          ]
+        },
+        {
+          "criterion": "AS の 400 は JSON 本文の error（use_dpop_nonce・invalid_dpop_proof）で判断し、RS の 400（invalid_request）は送り方の誤りとして直す。DPoP-bound トークンを Bearer に切り替えて再試行しない。",
+          "points": 1,
+          "referenceIds": [
+            "as-nonce",
+            "multi-challenge",
+            "bearer"
+          ]
+        }
+      ]
+    }
+  },
+  "inconsistencies": []
+}
