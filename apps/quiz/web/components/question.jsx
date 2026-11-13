@@ -8,10 +8,13 @@ export function References({ set, ids }) {
   return <details><summary>出典を確認</summary>{ids.map((id) => {
     const ref = set.references.find((item) => item.id === id);
     if (!ref) return null;
-    const href = ref.kind === 'diff' && set.pullRequest
+    const rfc = ref.kind === 'spec' && /^rfcs\/rfc(\d{1,5})\.txt$/.exec(ref.path);
+    const href = rfc
+      ? `/?rfc=${Number(rfc[1])}#L${ref.startLine}-L${ref.endLine}`
+      : ref.kind === 'diff' && set.pullRequest
       ? `https://github.com/${ref.repository}/compare/${set.pullRequest.baseSha}...${set.pullRequest.headSha}`
       : `https://github.com/${ref.repository}/blob/${ref.commit}/${ref.path.split('/').map(encodeURIComponent).join('/')}#L${ref.startLine}-L${ref.endLine}`;
-    return <p><a href={href} target="_blank" rel="noopener">{ref.path}:{ref.startLine}–{ref.endLine}</a><span> — {ref.reason}</span></p>;
+    return <p><a href={href} target="_blank" rel="noopener">{rfc ? `RFC ${Number(rfc[1])} の該当箇所` : `${ref.path}:${ref.startLine}–${ref.endLine}`}</a><span> — {ref.reason}</span></p>;
   })}</details>;
 }
 

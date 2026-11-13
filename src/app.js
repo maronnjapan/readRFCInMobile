@@ -1,5 +1,6 @@
 import { parseRfc } from './rfc-parser.js';
 import { renderDocument } from './render.js';
+import { sourceTargetIndex } from './source-location.js';
 import { normalizePdfInput, openPdf, createRegionRenderer, completePdfMeta, sha256Hex, pdfStore, fileKey, findStoredPdf, storedPdfKey, storedPdfPath } from './pdf-reader.js';
 import { parseTranslation, applyTranslation, makeTemplate, stringifyTranslation, rfcTranslationPath, pdfTranslationPath } from './translation.js';
 
@@ -442,7 +443,7 @@ async function showRfc(n, { hash = '', restore = true, lang = null } = {}) {
   }
   const tr = await trPromise;
   if (stale()) return;
-  current = { kind: 'rfc', n, doc, source: result.source, posKey: POS_PREFIX + n, notices: '' };
+  current = { kind: 'rfc', n, doc, source: result.source, sourceText: result.text, posKey: POS_PREFIX + n, notices: '' };
   prepareTranslation(current, tr, lang);
   if (!present({ hash, restore })) {
     leaveDocument();
@@ -743,11 +744,31 @@ function savedPosition(key) {
   }
 }
 
+function hashTarget(hash) {
+  const id = decodeURIComponent(hash.replace(/^#/, ''));
+  els.doc.querySelector('.source-target')?.classList.remove('source-target');
+  const target = document.getElementById(id);
+  if (target) return target;
+  const lines = /^L(\d+)(?:-L(\d+))?$/.exec(id);
+  if (!lines || current?.kind !== 'rfc') return null;
+  const shown = anchorElements().filter((el) => el.closest('.rfc-body'));
+  let original = shown;
+  if (current.lang === 'ja') {
+    // 原文と訳文は同じ要素構造を保つ。原文で位置を探し、表示中の訳文へ移る。
+    const root = document.createElement('div');
+    root.innerHTML = renderDocument(current.doc).html;
+    original = [...root.querySelectorAll(ANCHOR_SEL)].filter((el) => el.closest('.rfc-body') && !el.closest('.toc-inline'));
+  }
+  const index = sourceTargetIndex(current.sourceText, Number(lines[1]), Number(lines[2] || lines[1]), original.map((el) => el.textContent));
+  shown[index]?.classList.add('source-target');
+  return shown[index] || null;
+}
+
 // スクロール位置: ハッシュがあればそこへ、なければ前回位置へ
 function restoreScroll(hash, restore) {
   requestAnimationFrame(() => {
     if (hash) {
-      const target = document.getElementById(decodeURIComponent(hash.replace(/^#/, '')));
+      const target = hashTarget(hash);
       if (target) target.scrollIntoView();
       else window.scrollTo(0, 0);
     } else if (restore && current) {
@@ -1007,7 +1028,7 @@ function route({ restore = true } = {}) {
       present({ hash, restore: false, anchor });
       return;
     }
-    const target = hash && document.getElementById(decodeURIComponent(hash.slice(1)));
+    const target = hash && hashTarget(hash);
     if (target) target.scrollIntoView();
     else if (!hash) window.scrollTo(0, 0);
     return;
@@ -1050,7 +1071,7 @@ document.addEventListener('click', (e) => {
   e.preventDefault();
   const u = new URL(a.getAttribute('href'), location.href);
   if (current && current.n === n && u.hash) {
-    const t = document.getElementById(decodeURIComponent(u.hash.slice(1)));
+    const t = hashTarget(u.hash);
     if (t) {
       const lang = new URLSearchParams(location.search).get('lang');
       history.pushState(null, '', `?rfc=${n}${lang ? `&lang=${encodeURIComponent(lang)}` : ''}${u.hash}`);

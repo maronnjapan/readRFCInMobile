@@ -244,6 +244,7 @@ h1.rfc-title { font-size: 1.65rem; line-height: 1.3; margin: 0 0 0.6rem; letter-
 .rfc-body h3 { font-size: 1.18rem; }
 .rfc-body h4 { font-size: 1.05rem; }
 .rfc-body h5, .rfc-body h6 { font-size: 1rem; }
+.rfc-body .source-target { scroll-margin-top: calc(var(--topbar-h) + 0.75rem); outline: 2px solid var(--accent); outline-offset: 0.3rem; }
 .sec a { color: inherit; }
 .sec a:hover { text-decoration: none; }
 .secno { color: var(--accent); margin-right: 0.5em; font-variant-numeric: tabular-nums; font-weight: 700; }

@@ -35,6 +35,9 @@ test('Hono renders list, setup and first question in the HTTP response without a
   assert.match(html, /^<!doctype html>/i);
   assert.match(html, /redirect_uris/);
   assert.match(html, /即時採点 1 \/ 5/);
+  assert.match(html, /href="\/\?rfc=7591#L417-L444"/);
+  assert.match(html, /RFC 7591 の該当箇所/);
+  assert.ok(!html.includes('https://github.com/maronnjapan/readRFCInMobile/blob/'));
   assert.ok(!html.includes(patternsFixture.questions[1].prompt), 'future questions are not rendered');
   assert.ok(!html.includes('solutions'));
   assert.ok(!html.includes('sourceMaterials'));
@@ -50,6 +53,7 @@ test('Hono form actions save and immediately grade one choice before the next qu
   const html = await (await get(location)).text();
   assert.match(html, /不正解/);
   assert.ok(html.includes(patternsFixture.solutions['redirect-uris-meaning'].explanation));
+  assert.match(html, /href="\/\?rfc=7591#L417-L444"/);
   assert.match(html, /id="next-question"/);
   assert.ok(!html.includes(patternsFixture.questions[1].prompt));
   assert.equal((await post(`/quiz/attempts/${run.id}/instant-answers`, { questionId: 'redirect-uris-meaning', 'redirect-uris-meaning': '0' }, { json: true })).status, 409);
@@ -89,6 +93,7 @@ test('written save, separate grading request and raw AI text produce a Hono resu
   const result = await (await get(`/quiz?attempt=${run.id}`)).text();
   assert.match(result, /9 \/ 9点/);
   assert.match(result, /制約を満たしています。/);
+  assert.match(result, /href="\/\?rfc=7591#L417-L444"/);
 });
 
 test('Hono escapes question HTML and safely serializes ordering data into its document', async () => {
