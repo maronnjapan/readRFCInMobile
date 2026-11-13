@@ -519,7 +519,7 @@
       "category": "knowledge",
       "prompt": "ES256 の proof の jwk に入れる P-256 公開鍵について、必須のメンバーの組み合わせはどれですか？",
       "options": [
-        "kty・crv・x・y（use・kid・alg は任意）",
+        "kty・crv・x・y（use・kid・alg などは任意）",
         "kty・crv・x・y・kid（kid で鍵を識別するため必須）",
         "kty・crv・x（P-256 では y を省略できる）",
         "kty・x・y（crv は alg の ES256 から決まるので不要）",
@@ -943,7 +943,7 @@
       "answer": 2
     },
     "deterministic-ecdsa": {
-      "explanation": "RFC 8725 §3.2 は、ECDSA の署名は「require a unique random value for every message that is signed」とし、乱数が予測できると最悪の場合は秘密鍵が復元され得るため、ライブラリは RFC 6979 の決定的な方式で ECDSA を実装すべき（SHOULD）としています。決定的 ECDSA は既存の検証側と完全に互換で、新しいアルゴリズム識別子は不要です（A は誤り）。C：jti の一意性と署名の乱数は別の問題です。B：MAC は RFC 9449 §4.2 で禁止されています。E：DPoP のトークンは鍵に結び付くので、proof ごとに鍵を替えるとトークンを使えなくなります。",
+      "explanation": "RFC 8725 §3.2 は、ECDSA の署名は「require a unique random value for every message that is signed」とし、乱数が予測できると最悪の場合は秘密鍵が復元され得るため、ライブラリは RFC 6979 の決定的な方式で ECDSA を実装すべき（SHOULD）としています。決定的 ECDSA は既存の検証側と完全に互換で、新しいアルゴリズム識別子は不要です（A は誤り）。C：jti の一意性と署名の乱数は別の問題です。B：通常の ECDSA は署名ごとに乱数を使うので値は毎回変わり、決定的 ECDSA でも jti・iat が違えば署名は変わります。リプレイは jti で検出します（RFC 9449 §4.2）。また MAC は §4.2 で禁止されています。E：DPoP のトークンは鍵に結び付くので、proof ごとに鍵を替えるとトークンを使えなくなります。",
       "answer": 3
     },
     "coordinate-length": {
@@ -1039,7 +1039,7 @@
       ]
     },
     "library-vs-application": {
-      "explanation": "ライブラリ：Compact Serialization の分解、パディングなし base64url の厳格な復号、JSON の厳格な解析（重複の拒否、または最後の値だけを返すパーサーの使用、余分な文字の拒否）、crit の処理、呼び出し側が指定した許可リストの alg と渡した公開鍵による署名の検証。許可リストに none や MAC を入れない。アプリケーション：DPoP ヘッダーが 1 つで単一の JWT か、typ=dpop+jwt か（typ の確認は署名の検証に含まれない）。jwk を取り出して検証用の鍵として渡し、秘密鍵を含まないことの確認。§4.2 の必須クレーム（jti・htm・htu・iat、トークンと一緒なら ath）がそろうことと、htm、正規化した htu、iat または nonce による時間窓、nonce、jti の検証。提示されたトークンからの ath の計算と照合、jwk の JWK Thumbprint と cnf.jkt などの照合。",
+      "explanation": "ライブラリ：Compact Serialization の分解、パディングなし base64url の厳格な復号、JSON の厳格な解析（重複の拒否、または最後の値だけを返すパーサーの使用、余分な文字の拒否）、crit の処理、呼び出し側が指定した許可リストの alg と渡した公開鍵による署名の検証。アプリケーション：ライブラリに渡す許可リストを非対称署名の alg に限ること（none や MAC を入れない）。DPoP ヘッダーが 1 つで単一の JWT か、typ=dpop+jwt か（typ の確認は署名の検証に含まれない）。jwk を取り出して検証用の鍵として渡し、秘密鍵を含まないことの確認。§4.2 の必須クレーム（jti・htm・htu・iat、トークンと一緒なら ath）がそろうことと、htm、正規化した htu、iat または nonce による時間窓、nonce、jti の検証。提示されたトークンからの ath の計算と照合、jwk の JWK Thumbprint と cnf.jkt などの照合。",
       "rubric": [
         {
           "criterion": "ライブラリ：Compact Serialization の分解、base64url の厳格な復号、JSON の厳格な解析（重複・余分な文字）、crit の処理を挙げる。",
@@ -1051,7 +1051,7 @@
           ]
         },
         {
-          "criterion": "ライブラリ：呼び出し側が指定した許可リストの alg だけで、渡した公開鍵で署名を検証する。none や MAC を許可しない。",
+          "criterion": "ライブラリ：呼び出し側が指定した許可リストの alg だけで、渡した公開鍵で署名を検証する（許可リストを非対称署名に限るのはアプリケーションの責任。どちらに書いても認める）。",
           "points": 1,
           "referenceIds": [
             "bcp-alg-verify",

@@ -808,7 +808,7 @@
       "options": [
         "code_verifier の検証に成功すれば十分である。dpop_jkt の不一致は、警告として記録するだけでよい",
         "dpop_jkt を使う場合は、code_challenge_method を S256 ではなく plain にしなければならない",
-        "両方を検証する。code_verifier と dpop_jkt のどちらかの照合に失敗すれば拒否する",
+        "両方を独立に検証する。code_verifier と dpop_jkt のどちらかの照合に失敗すれば、要求を拒否する",
         "proof の鍵の Thumbprint が dpop_jkt と一致すれば十分である。code_verifier の検証は省略できる",
         "code_challenge と dpop_jkt を同じ認可要求に含めることは、RFC 9449 で禁止されている"
       ],

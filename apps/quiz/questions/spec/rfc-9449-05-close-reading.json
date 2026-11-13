@@ -319,6 +319,28 @@
       "endLine": 1057,
       "reason": "§7.2: 複数 challenge と 2 方式同時使用の 400 の例",
       "excerpt": "   The following examples use \"\\\" line wrapping per [RFC8792].\n\n   GET /protectedresource HTTP/1.1\n   Host: resource.example.org\n\n   HTTP/1.1 401 Unauthorized\n   WWW-Authenticate: Bearer, DPoP algs=\"ES256 PS256\"\n\n    Figure 17: HTTP 401 Response to a Protected Resource Request without\n                               Authentication\n\n   GET /protectedresource HTTP/1.1\n   Host: resource.example.org\n   Authorization: Bearer INVALID_TOKEN\n\n   HTTP/1.1 401 Unauthorized\n   WWW-Authenticate: Bearer error=\"invalid_token\", \\\n       error_description=\"Invalid token\", DPoP algs=\"ES256 PS256\"\n\n     Figure 18: HTTP 401 Response to a Protected Resource Request with\n                           Invalid Authentication\n\n   GET /protectedresource HTTP/1.1\n   Host: resource.example.org\n   Authorization: Bearer Kz~8mXK1EalYznwH-LC-1fBAo.4Ljp~zsPE_NeO.gxU\n   Authorization: DPoP Kz~8mXK1EalYznwH-LC-1fBAo.4Ljp~zsPE_NeO.gxU\n\n   HTTP/1.1 400 Bad Request\n   WWW-Authenticate: Bearer error=\"invalid_request\", \\\n    error_description=\"Multiple methods used to include access token\", \\\n    DPoP algs=\"ES256 PS256\", error=\"invalid_request\", \\\n    error_description=\"Multiple methods used to include access token\"\n\n     Figure 19: HTTP 400 Response to a Protected Resource Request with\n                          Ambiguous Authentication"
+    },
+    {
+      "id": "http-authorization",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc9110.txt",
+      "startLine": 5062,
+      "endLine": 5081,
+      "reason": "§11.6.2: Authorization ヘッダー",
+      "excerpt": "11.6.2.  Authorization\n\n   The \"Authorization\" header field allows a user agent to authenticate\n   itself with an origin server -- usually, but not necessarily, after\n   receiving a 401 (Unauthorized) response.  Its value consists of\n   credentials containing the authentication information of the user\n   agent for the realm of the resource being requested.\n\n     Authorization = credentials\n\n   If a request is authenticated and a realm specified, the same\n   credentials are presumed to be valid for all other requests within\n   this realm (assuming that the authentication scheme itself does not\n   require otherwise, such as credentials that vary according to a\n   challenge value or using synchronized clocks).\n\n   A proxy forwarding a request MUST NOT modify any Authorization header\n   fields in that request.  See Section 3.5 of [CACHING] for details of\n   and requirements pertaining to handling of the Authorization header\n   field by HTTP caches."
+    },
+    {
+      "id": "http-field-order",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc9110.txt",
+      "startLine": 1515,
+      "endLine": 1545,
+      "reason": "§5.3: 同名のフィールド行の結合",
+      "excerpt": "5.3.  Field Order\n\n   A recipient MAY combine multiple field lines within a field section\n   that have the same field name into one field line, without changing\n   the semantics of the message, by appending each subsequent field line\n   value to the initial field line value in order, separated by a comma\n   (\",\") and optional whitespace (OWS, defined in Section 5.6.3).  For\n   consistency, use comma SP.\n\n   The order in which field lines with the same name are received is\n   therefore significant to the interpretation of the field value; a\n   proxy MUST NOT change the order of these field line values when\n   forwarding a message.\n\n   This means that, aside from the well-known exception noted below, a\n   sender MUST NOT generate multiple field lines with the same name in a\n   message (whether in the headers or trailers) or append a field line\n   when a field line of the same name already exists in the message,\n   unless that field's definition allows multiple field line values to\n   be recombined as a comma-separated list (i.e., at least one\n   alternative of the field's definition allows a comma-separated list,\n   such as an ABNF rule of #(values) defined in Section 5.6.1).\n\n      |  *Note:* In practice, the \"Set-Cookie\" header field ([COOKIE])\n      |  often appears in a response message across multiple field lines\n      |  and does not use the list syntax, violating the above\n      |  requirements on multiple field lines with the same field name.\n      |  Since it cannot be combined into a single field value,\n      |  recipients ought to handle \"Set-Cookie\" as a special case while\n      |  processing fields.  (See Appendix A.2.3 of [Kri2001] for\n      |  details.)"
     }
   ],
   "questions": [
@@ -329,7 +351,7 @@
       "prompt": "次のうち、RFC 9449 が MUST（必須）として定めているものはどれですか？",
       "options": [
         "RS が challenge に algs パラメーターを含め、受け入れる alg を示す",
-        "proof を受理するのは、生成後の限られた時間に限る",
+        "サーバーが proof を受理するのは、その proof の生成後の限られた時間のあいだに限る",
         "jti を記録するサーバーが、不必要に大きい jti を拒否するか hash だけを保存する",
         "htu を比較する前に、RFC 3986 の構文ベース・スキームベースの正規化を行う",
         "対象 URI の文脈で jti を記録し、同じ proof の 2 回目の利用を拒否する"
@@ -491,7 +513,7 @@
         "scope パラメーターは Bearer のためのもので、DPoP の challenge には含めてはならない（MUST NOT）",
         "algs は SHOULD で含め、受信側は未知のパラメーターを無視しなければならない（MUST）",
         "algs は MUST で含め、値は JWS の alg 値をカンマで区切ったリストにしなければならない",
-        "401 応答には、理由を示す error パラメーターを、要求の内容によらず常に含めなければならない（MUST）"
+        "401 応答には、理由を示す error パラメーターを常に含めなければならない（MUST）"
       ],
       "points": 1,
       "referenceIds": [
@@ -732,7 +754,9 @@
       "referenceIds": [
         "bearer",
         "multi-challenge",
-        "scheme"
+        "scheme",
+        "http-authorization",
+        "http-field-order"
       ]
     }
   ],
@@ -866,7 +890,7 @@
       ]
     },
     "bearer-challenge-client": {
-      "explanation": "§7.2 は、RFC 6750 だけに対応し DPoP を知らない RS は DPoP-bound トークンを Bearer として受理すると考えられ、クライアントは WWW-Authenticate: Bearer の challenge を受けたら Bearer 方式で送れると述べています。段階的な移行のための互換性です。一方、Bearer と DPoP の両方に対応する RS は、Bearer として届いた DPoP-bound トークンを拒否しなければなりません（MUST）。DPoP を知らない RS は proof を検証しないので、その RS に対しては送信者制約が働きません。A：両方式に対応する RS は、Figure 19 のように 2 つの方式を同時に使った要求を 400 の invalid_request で拒否します。E：DPoP を知らない RS は DPoP ヘッダーを検証しません。",
+      "explanation": "§7.2 は、RFC 6750 だけに対応し DPoP を知らない RS は DPoP-bound トークンを Bearer として受理すると考えられ、クライアントは WWW-Authenticate: Bearer の challenge を受けたら Bearer 方式で送れると述べています。段階的な移行のための互換性です。一方、Bearer と DPoP の両方に対応する RS は、Bearer として届いた DPoP-bound トークンを拒否しなければなりません（MUST）。DPoP を知らない RS は proof を検証しないので、その RS に対しては送信者制約が働きません。A：Authorization の値は 1 つの資格情報で（RFC 9110 §11.6.2）、カンマ区切りのリストを認めないフィールドの行を複数送ってはなりません（MUST NOT、§5.3）。Figure 19 は、両方式に対応する RS がそのような要求を 400 の invalid_request で拒否する例です。E：DPoP を知らない RS は DPoP ヘッダーを検証しません。",
       "answer": 3
     }
   },

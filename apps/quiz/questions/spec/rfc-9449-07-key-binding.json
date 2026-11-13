@@ -551,7 +551,7 @@
         "cnf を省いて、どちらのインスタンスからでも同じように使えるトークンにして発行する",
         "cnf に一方の鍵の jkt と、もう一方の鍵の jwk を入れて、1 つのトークンで 2 つの鍵を表す",
         "cnf.jkt を配列にして 2 つの鍵の Thumbprint を並べ、どちらの proof でも照合を通るようにする",
-        "cnf は 1 つの鍵を表すので、インスタンスの鍵ごとに別のトークンを発行する",
+        "cnf は 1 つの鍵だけを表すので、インスタンスの鍵ごとに、それぞれ別のトークンを発行する",
         "2 つの鍵の Thumbprint を連結して SHA-256 をとった値を jkt に入れ、両方の鍵に結び付ける"
       ],
       "points": 1,
@@ -630,7 +630,7 @@
         "DPoP-bound のトークンでは、introspection の結果をキャッシュしてはならない。毎回問い合わせる",
         "キャッシュの有効期間を proof の時間窓より短くすれば、キャッシュがある間は proof の検証を省いてよい",
         "キャッシュがある間は ath の照合だけを省き、署名や htm・htu など、それ以外の proof の検証を行う",
-        "キャッシュしてよいのはトークンの状態や cnf.jkt で、proof の検証は要求ごとに行う"
+        "キャッシュしてよいのはトークンの状態や cnf.jkt などで、proof の検証は要求ごとに必ず行う"
       ],
       "points": 1,
       "referenceIds": [
@@ -846,7 +846,7 @@
       "answer": 4
     },
     "thumbprint-members": {
-      "explanation": "RFC 7638 §3.2 は、EC 公開鍵の必須メンバーを\"crv\"・\"kty\"・\"x\"・\"y\"、RSA 公開鍵の必須メンバーを \"e\"・\"kty\"・\"n\" と、辞書順で挙げています。OKP は RFC 8037 §2 が「\"crv\", \"kty\", and \"x\"」と定めています。D は JWK を書くときによく使う順序で、辞書順ではありません。E：OKP に y はありません。C：alg は任意メンバーです。A：kty も必須メンバーなので入力に含めます。",
+      "explanation": "RFC 7638 §3.2 は、EC 公開鍵の必須メンバーを \"crv\"・\"kty\"・\"x\"・\"y\"、RSA 公開鍵の必須メンバーを \"e\"・\"kty\"・\"n\" と、辞書順で挙げています。OKP は RFC 8037 §2 が「\"crv\", \"kty\", and \"x\"」と定めています。D は JWK を書くときによく使う順序で、辞書順ではありません。E：OKP に y はありません。C：alg は任意メンバーです。A：kty も必須メンバーなので入力に含めます。",
       "answer": 1
     },
     "kid-change": {
@@ -866,7 +866,7 @@
       "answer": 4
     },
     "cnf-single-key": {
-      "explanation": "RFC 7800 §3.1 は「The \"cnf\" claim value MUST represent only a single proof-of-possession key」と定めます。DPoP の jkt は、その 1 つの鍵の Thumbprint です（RFC 9449 §6.1）。C：jkt は 1 つの文字列です。B：表現の方法を変えても、1 つの cnf に 2 つの鍵を入れることはできません。A：RFC 9449 §5 のとおり AS は Bearer のトークンを発行することもできますが、cnf がなければ DPoP-bound ではなく、送信者制約を保つという条件に合いません。E：RS は proof の jwk から計算した Thumbprint と比べるので、どちらの鍵でも一致しません。",
+      "explanation": "RFC 7800 §3.1 は「The \"cnf\" claim value MUST represent only a single proof-of-possession key」と定めます。DPoP の jkt は、その 1 つの鍵の Thumbprint です（RFC 9449 §6.1）。RFC 7800 §3.1 は cnf 以外のクレーム名で追加の鍵を表す方法も挙げていますが、RFC 9449 はそのようなクレームを定義しておらず、RS は cnf.jkt の 1 つの鍵と照合します（§6.1・§4.3）。C：jkt は 1 つの文字列です。B：表現の方法を変えても、1 つの cnf に 2 つの鍵を入れることはできません。A：RFC 9449 §5 のとおり AS は Bearer のトークンを発行することもできますが、cnf がなければ DPoP-bound ではなく、送信者制約を保つという条件に合いません。E：RS は proof の jwk から計算した Thumbprint と比べるので、どちらの鍵でも一致しません。",
       "answer": 3
     },
     "unknown-cnf-ignored": {

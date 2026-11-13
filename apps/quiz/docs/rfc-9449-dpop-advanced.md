@@ -55,7 +55,7 @@
 次のうち、RFC 9449 が MUST（必須）として定めているものはどれですか？
 
 - **A.** RS が challenge に algs パラメーターを含め、受け入れる alg を示す
-- **B.** proof を受理するのは、生成後の限られた時間に限る
+- **B.** サーバーが proof を受理するのは、その proof の生成後の限られた時間のあいだに限る
 - **C.** jti を記録するサーバーが、不必要に大きい jti を拒否するか hash だけを保存する
 - **D.** htu を比較する前に、RFC 3986 の構文ベース・スキームベースの正規化を行う
 - **E.** 対象 URI の文脈で jti を記録し、同じ proof の 2 回目の利用を拒否する
@@ -256,7 +256,7 @@ RS が返す WWW-Authenticate: DPoP の challenge について、RFC 9449 の記
 - **B.** scope パラメーターは Bearer のためのもので、DPoP の challenge には含めてはならない（MUST NOT）
 - **C.** algs は SHOULD で含め、受信側は未知のパラメーターを無視しなければならない（MUST）
 - **D.** algs は MUST で含め、値は JWS の alg 値をカンマで区切ったリストにしなければならない
-- **E.** 401 応答には、理由を示す error パラメーターを、要求の内容によらず常に含めなければならない（MUST）
+- **E.** 401 応答には、理由を示す error パラメーターを常に含めなければならない（MUST）
 
 <details>
 <summary>解答・解説</summary>
@@ -541,9 +541,9 @@ RFC 9449 の記述と一致する説明はどれですか？
 
 **正解：D**
 
-§7.2 は、RFC 6750 だけに対応し DPoP を知らない RS は DPoP-bound トークンを Bearer として受理すると考えられ、クライアントは WWW-Authenticate: Bearer の challenge を受けたら Bearer 方式で送れると述べています。段階的な移行のための互換性です。一方、Bearer と DPoP の両方に対応する RS は、Bearer として届いた DPoP-bound トークンを拒否しなければなりません（MUST）。DPoP を知らない RS は proof を検証しないので、その RS に対しては送信者制約が働きません。A：両方式に対応する RS は、Figure 19 のように 2 つの方式を同時に使った要求を 400 の invalid_request で拒否します。E：DPoP を知らない RS は DPoP ヘッダーを検証しません。
+§7.2 は、RFC 6750 だけに対応し DPoP を知らない RS は DPoP-bound トークンを Bearer として受理すると考えられ、クライアントは WWW-Authenticate: Bearer の challenge を受けたら Bearer 方式で送れると述べています。段階的な移行のための互換性です。一方、Bearer と DPoP の両方に対応する RS は、Bearer として届いた DPoP-bound トークンを拒否しなければなりません（MUST）。DPoP を知らない RS は proof を検証しないので、その RS に対しては送信者制約が働きません。A：Authorization の値は 1 つの資格情報で（RFC 9110 §11.6.2）、カンマ区切りのリストを認めないフィールドの行を複数送ってはなりません（MUST NOT、§5.3）。Figure 19 は、両方式に対応する RS がそのような要求を 400 の invalid_request で拒否する例です。E：DPoP を知らない RS は DPoP ヘッダーを検証しません。
 
-**出典：** [§7.2: Bearer との互換性と複数 challenge のエラー情報](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L977-L1021) / [§7.2: 複数 challenge と 2 方式同時使用の 400 の例](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L1023-L1057) / [§7.1: Authorization: DPoP とアクセス許可の条件](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L830-L854)
+**出典：** [§7.2: Bearer との互換性と複数 challenge のエラー情報](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L977-L1021) / [§7.2: 複数 challenge と 2 方式同時使用の 400 の例](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L1023-L1057) / [§7.1: Authorization: DPoP とアクセス許可の条件](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L830-L854) / [RFC 9110 §11.6.2: Authorization ヘッダー](https://github.com/maronnjapan/readRFCInMobile/blob/1ae11d196faad317d95d4d02e402621dcde76d49/rfcs/rfc9110.txt#L5062-L5081) / [RFC 9110 §5.3: 同名のフィールド行の結合](https://github.com/maronnjapan/readRFCInMobile/blob/1ae11d196faad317d95d4d02e402621dcde76d49/rfcs/rfc9110.txt#L1515-L1545)
 
 </details>
 
@@ -634,7 +634,7 @@ RFC 7518 §3.4 は、ES256 の署名を「R と S をそれぞれ 32 オクテ�
 
 ES256 の proof の jwk に入れる P-256 公開鍵について、必須のメンバーの組み合わせはどれですか？
 
-- **A.** kty・crv・x・y（use・kid・alg は任意）
+- **A.** kty・crv・x・y（use・kid・alg などは任意）
 - **B.** kty・crv・x・y・kid（kid で鍵を識別するため必須）
 - **C.** kty・crv・x（P-256 では y を省略できる）
 - **D.** kty・x・y（crv は alg の ES256 から決まるので不要）
@@ -937,7 +937,7 @@ RFC 7515 §10.12 は厳格な JSON の検証をセキュリティ上の要件と
 
 **正解：D**
 
-RFC 8725 §3.2 は、ECDSA の署名は「require a unique random value for every message that is signed」とし、乱数が予測できると最悪の場合は秘密鍵が復元され得るため、ライブラリは RFC 6979 の決定的な方式で ECDSA を実装すべき（SHOULD）としています。決定的 ECDSA は既存の検証側と完全に互換で、新しいアルゴリズム識別子は不要です（A は誤り）。C：jti の一意性と署名の乱数は別の問題です。B：MAC は RFC 9449 §4.2 で禁止されています。E：DPoP のトークンは鍵に結び付くので、proof ごとに鍵を替えるとトークンを使えなくなります。
+RFC 8725 §3.2 は、ECDSA の署名は「require a unique random value for every message that is signed」とし、乱数が予測できると最悪の場合は秘密鍵が復元され得るため、ライブラリは RFC 6979 の決定的な方式で ECDSA を実装すべき（SHOULD）としています。決定的 ECDSA は既存の検証側と完全に互換で、新しいアルゴリズム識別子は不要です（A は誤り）。C：jti の一意性と署名の乱数は別の問題です。B：通常の ECDSA は署名ごとに乱数を使うので値は毎回変わり、決定的 ECDSA でも jti・iat が違えば署名は変わります。リプレイは jti で検出します（RFC 9449 §4.2）。また MAC は §4.2 で禁止されています。E：DPoP のトークンは鍵に結び付くので、proof ごとに鍵を替えるとトークンを使えなくなります。
 
 **出典：** [RFC 8725 §3.2: 適切なアルゴリズムと決定的 ECDSA](https://github.com/maronnjapan/readRFCInMobile/blob/1ae11d196faad317d95d4d02e402621dcde76d49/rfcs/rfc8725.txt#L295-L338) / [§4.2: JOSE ヘッダー、必須クレーム、ath と nonce](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L393-L448) / [§6.1: cnf.jkt と RFC 7638 の JWK SHA-256 Thumbprint](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L701-L719)
 
@@ -1051,12 +1051,12 @@ JOSE ライブラリに任せられる処理と、DPoP の検証として RS の
 
 **解答例**
 
-ライブラリ：Compact Serialization の分解、パディングなし base64url の厳格な復号、JSON の厳格な解析（重複の拒否、または最後の値だけを返すパーサーの使用、余分な文字の拒否）、crit の処理、呼び出し側が指定した許可リストの alg と渡した公開鍵による署名の検証。許可リストに none や MAC を入れない。アプリケーション：DPoP ヘッダーが 1 つで単一の JWT か、typ=dpop+jwt か（typ の確認は署名の検証に含まれない）。jwk を取り出して検証用の鍵として渡し、秘密鍵を含まないことの確認。§4.2 の必須クレーム（jti・htm・htu・iat、トークンと一緒なら ath）がそろうことと、htm、正規化した htu、iat または nonce による時間窓、nonce、jti の検証。提示されたトークンからの ath の計算と照合、jwk の JWK Thumbprint と cnf.jkt などの照合。
+ライブラリ：Compact Serialization の分解、パディングなし base64url の厳格な復号、JSON の厳格な解析（重複の拒否、または最後の値だけを返すパーサーの使用、余分な文字の拒否）、crit の処理、呼び出し側が指定した許可リストの alg と渡した公開鍵による署名の検証。アプリケーション：ライブラリに渡す許可リストを非対称署名の alg に限ること（none や MAC を入れない）。DPoP ヘッダーが 1 つで単一の JWT か、typ=dpop+jwt か（typ の確認は署名の検証に含まれない）。jwk を取り出して検証用の鍵として渡し、秘密鍵を含まないことの確認。§4.2 の必須クレーム（jti・htm・htu・iat、トークンと一緒なら ath）がそろうことと、htm、正規化した htu、iat または nonce による時間窓、nonce、jti の検証。提示されたトークンからの ath の計算と照合、jwk の JWK Thumbprint と cnf.jkt などの照合。
 
 **採点基準（各 1 点）**
 
 - ライブラリ：Compact Serialization の分解、base64url の厳格な復号、JSON の厳格な解析（重複・余分な文字）、crit の処理を挙げる。
-- ライブラリ：呼び出し側が指定した許可リストの alg だけで、渡した公開鍵で署名を検証する。none や MAC を許可しない。
+- ライブラリ：呼び出し側が指定した許可リストの alg だけで、渡した公開鍵で署名を検証する（許可リストを非対称署名に限るのはアプリケーションの責任。どちらに書いても認める）。
 - アプリケーション：DPoP ヘッダーが 1 つか、typ=dpop+jwt かを確認する（typ の確認は JWS の署名検証に含まれない。ライブラリのオプションで確認させる場合も、アプリケーションが指定する）。
 - アプリケーション：jwk を検証に使う鍵として取り出し、秘密鍵を含まないことを確認する。
 - アプリケーション：必須クレーム（jti・htm・htu・iat、トークンと一緒なら ath）がそろうことと、htm・正規化した htu・時間窓（iat または nonce）・nonce・jti を検証する。
@@ -1114,7 +1114,7 @@ RFC 7638 §3 は、鍵を表すのに必須のメンバーだけを含め、空�
 
 **正解：B**
 
-RFC 7638 §3.2 は、EC 公開鍵の必須メンバーを"crv"・"kty"・"x"・"y"、RSA 公開鍵の必須メンバーを "e"・"kty"・"n" と、辞書順で挙げています。OKP は RFC 8037 §2 が「"crv", "kty", and "x"」と定めています。D は JWK を書くときによく使う順序で、辞書順ではありません。E：OKP に y はありません。C：alg は任意メンバーです。A：kty も必須メンバーなので入力に含めます。
+RFC 7638 §3.2 は、EC 公開鍵の必須メンバーを "crv"・"kty"・"x"・"y"、RSA 公開鍵の必須メンバーを "e"・"kty"・"n" と、辞書順で挙げています。OKP は RFC 8037 §2 が「"crv", "kty", and "x"」と定めています。D は JWK を書くときによく使う順序で、辞書順ではありません。E：OKP に y はありません。C：alg は任意メンバーです。A：kty も必須メンバーなので入力に含めます。
 
 **出典：** [RFC 7638 §3.2: 鍵の種類ごとの必須メンバー](https://github.com/maronnjapan/readRFCInMobile/blob/1ae11d196faad317d95d4d02e402621dcde76d49/rfcs/rfc7638.txt#L287-L315) / [RFC 8037 §2: OKP 鍵の kty・crv・x・d と Thumbprint のメンバー](https://github.com/maronnjapan/readRFCInMobile/blob/1ae11d196faad317d95d4d02e402621dcde76d49/rfcs/rfc8037.txt#L134-L159) / [RFC 7638 §3.3: メンバーの順序とエスケープ・数値の表現](https://github.com/maronnjapan/readRFCInMobile/blob/1ae11d196faad317d95d4d02e402621dcde76d49/rfcs/rfc7638.txt#L367-L408)
 
@@ -1231,7 +1231,7 @@ DPoP による送信者制約を保ったまま要望に応えるとき、RFC 78
 - **A.** cnf を省いて、どちらのインスタンスからでも同じように使えるトークンにして発行する
 - **B.** cnf に一方の鍵の jkt と、もう一方の鍵の jwk を入れて、1 つのトークンで 2 つの鍵を表す
 - **C.** cnf.jkt を配列にして 2 つの鍵の Thumbprint を並べ、どちらの proof でも照合を通るようにする
-- **D.** cnf は 1 つの鍵を表すので、インスタンスの鍵ごとに別のトークンを発行する
+- **D.** cnf は 1 つの鍵だけを表すので、インスタンスの鍵ごとに、それぞれ別のトークンを発行する
 - **E.** 2 つの鍵の Thumbprint を連結して SHA-256 をとった値を jkt に入れ、両方の鍵に結び付ける
 
 <details>
@@ -1239,7 +1239,7 @@ DPoP による送信者制約を保ったまま要望に応えるとき、RFC 78
 
 **正解：D**
 
-RFC 7800 §3.1 は「The "cnf" claim value MUST represent only a single proof-of-possession key」と定めます。DPoP の jkt は、その 1 つの鍵の Thumbprint です（RFC 9449 §6.1）。C：jkt は 1 つの文字列です。B：表現の方法を変えても、1 つの cnf に 2 つの鍵を入れることはできません。A：RFC 9449 §5 のとおり AS は Bearer のトークンを発行することもできますが、cnf がなければ DPoP-bound ではなく、送信者制約を保つという条件に合いません。E：RS は proof の jwk から計算した Thumbprint と比べるので、どちらの鍵でも一致しません。
+RFC 7800 §3.1 は「The "cnf" claim value MUST represent only a single proof-of-possession key」と定めます。DPoP の jkt は、その 1 つの鍵の Thumbprint です（RFC 9449 §6.1）。RFC 7800 §3.1 は cnf 以外のクレーム名で追加の鍵を表す方法も挙げていますが、RFC 9449 はそのようなクレームを定義しておらず、RS は cnf.jkt の 1 つの鍵と照合します（§6.1・§4.3）。C：jkt は 1 つの文字列です。B：表現の方法を変えても、1 つの cnf に 2 つの鍵を入れることはできません。A：RFC 9449 §5 のとおり AS は Bearer のトークンを発行することもできますが、cnf がなければ DPoP-bound ではなく、送信者制約を保つという条件に合いません。E：RS は proof の jwk から計算した Thumbprint と比べるので、どちらの鍵でも一致しません。
 
 **出典：** [RFC 7800 §3.1: cnf は 1 つの鍵を表し、理解できないメンバーは無視する](https://github.com/maronnjapan/readRFCInMobile/blob/1ae11d196faad317d95d4d02e402621dcde76d49/rfcs/rfc7800.txt#L303-L346) / [§6.1: cnf.jkt と RFC 7638 の JWK SHA-256 Thumbprint](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L701-L719) / [§4.3: 受信時の必須検証、URI 正規化、検証順序](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt#L485-L523)
 
@@ -1326,7 +1326,7 @@ RS が introspection の結果（active と cnf.jkt）をトークン値ごと�
 - **B.** DPoP-bound のトークンでは、introspection の結果をキャッシュしてはならない。毎回問い合わせる
 - **C.** キャッシュの有効期間を proof の時間窓より短くすれば、キャッシュがある間は proof の検証を省いてよい
 - **D.** キャッシュがある間は ath の照合だけを省き、署名や htm・htu など、それ以外の proof の検証を行う
-- **E.** キャッシュしてよいのはトークンの状態や cnf.jkt で、proof の検証は要求ごとに行う
+- **E.** キャッシュしてよいのはトークンの状態や cnf.jkt などで、proof の検証は要求ごとに必ず行う
 
 <details>
 <summary>解答・解説</summary>
@@ -1648,7 +1648,7 @@ htu を比べる前のパーセントエンコーディングの扱いとして�
 - **A.** %7e は ~ に戻す。ただし 16 進の大文字・小文字は区別されるので、%3a と %3A は別の URI になる
 - **B.** %2F は / に戻すが、%7e は予約文字なので戻さない。16 進は小文字にそろえる
 - **C.** パーセントエンコーディングは一切変えない。16 進の大文字・小文字も含め、文字列のまま比べる
-- **D.** %7e は ~ に戻し、%2F は戻さない。16 進の小文字（%3a）は大文字にそろえる
+- **D.** %7e は ~ に戻し、予約文字（/）を表す %2F は戻さない。16 進の小文字（%3a）は大文字にそろえる
 - **E.** %7e も %2F も、対応する文字（~ と /）に戻す。16 進の大文字・小文字はそのまま比べる
 
 <details>
@@ -2501,7 +2501,7 @@ public client が、DPoP に対応しているか分からない AS に DPoP ヘ
 
 - **A.** code_verifier の検証に成功すれば十分である。dpop_jkt の不一致は、警告として記録するだけでよい
 - **B.** dpop_jkt を使う場合は、code_challenge_method を S256 ではなく plain にしなければならない
-- **C.** 両方を検証する。code_verifier と dpop_jkt のどちらかの照合に失敗すれば拒否する
+- **C.** 両方を独立に検証する。code_verifier と dpop_jkt のどちらかの照合に失敗すれば、要求を拒否する
 - **D.** proof の鍵の Thumbprint が dpop_jkt と一致すれば十分である。code_verifier の検証は省略できる
 - **E.** code_challenge と dpop_jkt を同じ認可要求に含めることは、RFC 9449 で禁止されている
 
