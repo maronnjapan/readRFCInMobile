@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { fixture } from '../test-support/quiz-worker.mjs';
+import { fixture, pullRequestFixture } from '../test-support/quiz-worker.mjs';
 import { validateSet, validateAnswers, validateGrades } from '../worker/contracts.js';
 import { excerpt, inScope } from '../tools/authoring/context.mjs';
 
@@ -33,4 +33,16 @@ test('code search limits paths and preserves line numbers around a keyword', () 
   const result = excerpt(content, ['audience']);
   assert.equal(result.startLine, 36);
   assert.ok(result.excerpt.includes('validate audience'));
+});
+
+test('PR-only data requires a pinned diff and binds description snapshots to the same PR', () => {
+  const value = pullRequestFixture();
+  assert.equal(validateSet(value).public.spec, null);
+  for (const change of [
+    (v) => { v.pullRequest = null; },
+    (v) => { v.references = v.references.filter((r) => r.kind !== 'diff'); },
+    (v) => { v.references[1].commit = 'd'.repeat(40); },
+    (v) => { v.references[1].path = 'pulls/195'; },
+    (v) => { v.spec = false; },
+  ]) { const invalid = structuredClone(value); change(invalid); assert.throws(() => validateSet(invalid)); }
 });

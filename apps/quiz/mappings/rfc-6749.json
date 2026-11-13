@@ -1,0 +1,5 @@
+{
+  "specId": "rfc-6749",
+  "codeSource": "maronn-openid-connect",
+  "searchTerms": ["client_credentials", "client credentials grant", "confidential client", "scope"]
+}

@@ -1,5 +1,11 @@
 [
   {
+    "number": 6749,
+    "title": "The OAuth 2.0 Authorization Framework",
+    "date": "October 2012",
+    "category": "Standards Track"
+  },
+  {
     "number": 7521,
     "title": "Assertion Framework for OAuth 2.0 Client Authentication and Authorization Grants",
     "date": "May 2015",

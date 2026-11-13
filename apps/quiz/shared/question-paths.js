@@ -7,6 +7,6 @@ export function questionKind(path) {
 
 export function questionFilePath(artifact) {
   return artifact.pullRequest
-    ? `${QUESTION_DIRECTORY}/pr/${artifact.pullRequest.repository}/${artifact.pullRequest.number}.json`
+    ? `${QUESTION_DIRECTORY}/pr/${artifact.pullRequest.repository}/${artifact.pullRequest.number}/${artifact.id}.json`
     : `${QUESTION_DIRECTORY}/spec/${artifact.spec.id}.json`;
 }

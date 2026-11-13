@@ -1,6 +1,6 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { promptData, startQuizWorker, fixture, accessToken, executorApiKey, submitAttemptAnswers } from '../test-support/quiz-worker.mjs';
+import { promptData, startQuizWorker, fixture, pullRequestFixture, accessToken, executorApiKey, submitAttemptAnswers } from '../test-support/quiz-worker.mjs';
 import { recoverJobs } from '../worker/jobs/recovery.js';
 import { randomUUID } from 'node:crypto';
 
@@ -247,6 +247,39 @@ test('PR publishing records an immutable diff and posts an informational link an
     const comment = app.githubWrites.find((w) => w.path.endsWith('/comments'));
     assert.ok(comment.body.body.includes(set.id));
     assert.ok(comment.body.body.includes('参考情報'));
+  } finally { await app.mf.dispose(); }
+});
+
+test('PR-only quizzes pass through generation, publication, anonymous answering and neutral GitHub synchronization', async () => {
+  const app = await startQuizWorker({ github: true });
+  try {
+    const artifact = pullRequestFixture();
+    const author = app.client('author');
+    const submitted = await author('/api/authoring/requests', { method: 'POST', body: { context: artifact, material: 'PR の変更内容を出題する', questionCount: 2 } });
+    assert.equal(submitted.status, 202);
+    const job = await submitted.json();
+    await app.complete(job.id, { output: JSON.stringify(artifact) });
+    const generated = await (await author(`/api/authoring/requests/${job.id}`)).json();
+    assert.equal(generated.status, 'completed');
+    assert.equal(generated.artifact.spec, null);
+    assert.equal(generated.artifact.status, 'draft');
+    assert.match(generated.artifact.references.find((r) => r.kind === 'pull_request').excerpt, /レビュー/);
+    const set = await app.publish({ ...generated.artifact, status: 'published' }, 'e'.repeat(40));
+    const anonymous = app.anonymousClient();
+    const list = await (await anonymous('/api/question-sets')).json();
+    assert.ok(list.sets.some((s) => s.id === set.id && s.spec === null));
+    assert.equal((await anonymous(`/quiz?set=${set.id}`)).status, 200);
+    const setup = await (await anonymous(`/quiz?set=${set.id}`)).text();
+    assert.match(setup, /example\/product · PR #194/);
+    assert.match(setup, /href="https:\/\/github.com\/example\/product\/pull\/194"/);
+    assert.match(setup, /PRに戻る/);
+    const attempt = await (await anonymous(`/api/question-sets/${set.id}/attempts`, { method: 'POST', body: {} })).json();
+    const page = await (await anonymous(`/quiz?attempt=${attempt.id}`)).text();
+    assert.match(page, /作問時の PR 本文・レビューの保存資料/);
+    assert.ok(page.includes(`/blob/${'e'.repeat(40)}/${set.revision?.path || `apps/quiz/questions/pr/example/product/194/${artifact.id}.json`}`));
+    assert.equal((await anonymous(`/api/attempts/${attempt.id}/instant-answers`, { method: 'POST', body: { questionId: artifact.questions[0].id, answer: artifact.solutions[artifact.questions[0].id].answer } })).status, 200);
+    for (let i = 0; i < 100 && !app.githubWrites.some((w) => w.path.endsWith('/comments')); i++) await new Promise((r) => setTimeout(r, 30));
+    assert.equal(app.githubWrites.find((w) => w.path.endsWith('/check-runs')).body.conclusion, 'neutral');
   } finally { await app.mf.dispose(); }
 });
 

@@ -4,9 +4,11 @@ import { Question, References, correct } from './components/question.jsx';
 
 const states = { proposed: '提案中', adopted: '採用済み', draft: '草案', obsolete: '廃止済み' };
 const attemptUrl = (id, question) => `/quiz?${new URLSearchParams({ attempt: id, ...(question ? { question } : {}) })}`;
-const backLink = (set) => /^rfc-(\d+)$/.test(set.spec.id) ? `/?rfc=${set.spec.id.slice(4)}` : '/';
+const backLink = (set) => /^rfc-(\d+)$/.test(set.spec?.id || '') ? `/?rfc=${set.spec.id.slice(4)}` : set.pullRequest ? `https://github.com/${set.pullRequest.repository}/pull/${set.pullRequest.number}` : '/';
+const backLabel = (set) => backLink(set).startsWith('https://github.com/') ? 'PRに戻る' : '本文に戻る';
+const sourceLabel = (set) => set.spec ? `${set.spec.id} · ${states[set.spec.status]}` : `${set.pullRequest.repository} · PR #${set.pullRequest.number}`;
 function Source({ set }) {
-  return <p class="quiz-source" id="source-title">{set.spec.id} · {states[set.spec.status]} · 問題の版 {set.revision.commit.slice(0, 8)}</p>;
+  return <p class="quiz-source" id="source-title">{sourceLabel(set)} · 問題の版 {set.revision.commit.slice(0, 8)}</p>;
 }
 function Retention() {
   return <p class="help" id="retention">ログインなしで回答できます。匿名の回答はこのブラウザで続きから開けます（Cookieを削除すると開けなくなります）。記述式・実装のAI採点を利用するときだけ、許可されたアカウントでログインしてください。AI採点には誤りが含まれることがあります。実装コードは実行せず、ケースと採点基準に照らして評価します。</p>;
@@ -26,7 +28,7 @@ export function QuizPage({ page }) {
   if (page.kind === 'setup') {
     const { set, attempts } = page;
     const categories = [...new Set(set.questions.map((q) => QUESTION_CATEGORIES[categoryOf(q)]))].join('・');
-    return <Document title={set.title} back={backLink(set)}><Source set={set} /><section id="setup">
+    return <Document title={set.title} back={backLink(set)} backLabel={backLabel(set)}><Source set={set} /><section id="setup">
       <p id="set-description">全{set.questions.length}問（{categories}）。ログインなしで回答できます。選択式・並べ替えは1問ずつ即時採点し、記述式・実装は回答を保存できます。AI採点の利用時だけログインが必要です。</p>
       {set.questions.some((q) => q.implementation) && <p class="help">実装問題はPCでコードを書いて回答します。スマホ画面ではコードを読んで関数や処理を選ぶ問題になります。開始時の回答形式で続きから再開できます。</p>}
       <div id="previous-attempts">{attempts.map((attempt) => <p><a href={attemptUrl(attempt.id)}>{attempt.status === 'graded' ? '採点結果を見る' : '前の回答を開く'}{set.questions.some((q) => q.implementation) ? ` · ${attempt.implementation_mode === 'reading' ? 'コード読解' : 'コード実装'}` : ''} ({new Date(attempt.created_at * 1000).toLocaleDateString('ja-JP')})</a></p>)}</div>
@@ -34,7 +36,7 @@ export function QuizPage({ page }) {
     </section></Document>;
   }
   return <Document><p class="quiz-source" id="source-title">{page.spec || '仕様そのものと、PR の変更内容を確認できます。'}</p><section id="set-list"><h2>問題を選ぶ</h2><ul class="cardlist" id="sets">
-    {page.sets.map((set) => <li><a href={`/quiz?set=${set.id}`}>{set.title}<span class="when">{set.spec.id} · {states[set.spec.status]}{set.pullRequest ? ` · PR #${set.pullRequest.number}` : ''}</span></a></li>)}
+    {page.sets.map((set) => <li><a href={`/quiz?set=${set.id}`}>{set.title}<span class="when">{sourceLabel(set)}{set.spec && set.pullRequest ? ` · PR #${set.pullRequest.number}` : ''}</span></a></li>)}
     {!page.sets.length && <li>公開済みの問題はまだありません。</li>}
   </ul></section></Document>;
 }
@@ -49,7 +51,7 @@ function AttemptPage({ page }) {
   const points = (data.results || []).reduce((sum, result) => sum + (result.score || 0), 0);
   const maximum = data.set.questions.reduce((sum, q) => sum + q.points, 0);
   const codeAttempt = data.set.questions.some((q) => q.type === 'implementation');
-  return <Document title={data.set.title} back={backLink(data.set)} ordering={ordering} grading={data.status === 'grading'} implementation={codeAttempt}>
+  return <Document title={data.set.title} back={backLink(data.set)} backLabel={backLabel(data.set)} ordering={ordering} grading={data.status === 'grading'} implementation={codeAttempt}>
     <Source set={data.set} />
     {data.set.questions.some((q) => q.implementation) && <p class="help">回答形式: {data.implementationMode === 'reading' ? 'コード読解・選択式' : 'PCでコード実装'}</p>}
     {codeAttempt && !data.completed && <aside class="quiz-mobile-resume"><p>この回答はPC向けの実装形式で開始しています。スマホではコード読解・選択式の新しい回答を開始できます。</p><StartForm set={data.set} readingOnly /></aside>}

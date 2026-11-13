@@ -1,0 +1,5 @@
+{
+  "specId": "oidc-core-1_0",
+  "codeSource": "maronn-openid-connect",
+  "searchTerms": ["openid", "scope parameter", "AuthRequestValidation", "id_token"]
+}

@@ -8,8 +8,7 @@ on:
         options: [generate, publish]
         required: true
       spec_id:
-        description: apps/quiz/specs/index.json の ID
-        default: rfc-7523
+        description: apps/quiz/specs/index.json の ID (空なら PR のみ)
       code_source:
         description: apps/quiz/code-sources.yaml の ID (空なら仕様のみ)
       pr_number:
@@ -24,6 +23,11 @@ on:
         description: 公開する問題ファイルの固定コミット (publish の場合)
       path:
         description: 公開する apps/quiz/questions/spec/ または pr/ 内の JSON (publish の場合)
+      focus_paths:
+        description: 作問対象のファイル・ディレクトリ (カンマ区切り。ディレクトリは末尾 /)
+      part:
+        description: PR の分割番号 (8変更ファイルずつ。1から開始)
+        default: '1'
 
 permissions:
   contents: write
@@ -48,6 +52,8 @@ jobs:
       QUESTION_CATEGORIES: ${{ inputs.question_categories }}
       PUBLISH_COMMIT: ${{ inputs.commit }}
       PUBLISH_PATH: ${{ inputs.path }}
+      FOCUS_PATHS: ${{ inputs.focus_paths }}
+      PART: ${{ inputs.part || '1' }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -64,6 +70,8 @@ jobs:
           args=(generate --spec "$SPEC_ID" --count "$QUESTION_COUNT" --categories "$QUESTION_CATEGORIES")
           if [[ -n "$CODE_SOURCE" ]]; then args+=(--source "$CODE_SOURCE"); fi
           if [[ -n "$PR_NUMBER" ]]; then args+=(--pr "$PR_NUMBER"); fi
+          if [[ -n "$FOCUS_PATHS" ]]; then args+=(--paths "$FOCUS_PATHS"); fi
+          args+=(--part "$PART")
           node apps/quiz/tools/authoring/quiz.mjs "${args[@]}"
       - if: env.OPERATION == 'generate'
         env:
@@ -75,5 +83,12 @@ jobs:
           git add -- "$GENERATED_PATH"
           git commit -m 'Generate draft quiz for review'
           git push origin HEAD
+          {
+            echo '### 作問候補のレビュー'
+            echo "[候補を見る](https://github.com/${GITHUB_REPOSITORY}/blob/$(git rev-parse HEAD)/${GENERATED_PATH})"
+            echo
+            echo 'レビュー後に status を published に変更してコミット・push し、同じ Workflow の publish を実行してください。'
+            echo "問題ファイル: ${GENERATED_PATH}"
+          } >> "$GITHUB_STEP_SUMMARY"
       - if: env.OPERATION == 'publish'
         run: node apps/quiz/tools/authoring/quiz.mjs publish --commit "$PUBLISH_COMMIT" --path "$PUBLISH_PATH"

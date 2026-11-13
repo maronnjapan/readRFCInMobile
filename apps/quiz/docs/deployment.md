@@ -30,7 +30,7 @@ CIのVariablesは次のとおり。未指定の場合は既存Workerの値を維
 | `ACCESS_ISSUER`, `ACCESS_AUD` | AI採点・管理操作に使うCloudflare Accessのissuerとaudience（通常回答には不要） |
 | `AUTHOR_SUBJECTS`, `AUTHOR_EMAILS` | 作問・公開を許可する利用者／Service Token |
 | `AI_EXECUTOR_URL`, `AI_EXECUTOR_TRANSPORT`, `AI_EXECUTOR_AUTH` | 外部AI API。既定は `https` と `api-key` |
-| `CODE_REPOSITORIES` | PR問題の対象とする公開コードリポジトリ |
+| `CODE_REPOSITORIES` | PR問題の対象とする公開コードリポジトリ。既定は `maronnjapan/readRFCInMobile,maronnjapan/maronn-openid-connect`。既存の Variable / Worker の値が優先されるため、連携追加時は明示して更新する |
 | `QUESTION_DEFAULT_BRANCH` | 定番問題の標準ブランチ。既定は `main` |
 | `AUTHORING_PROFILE`, `GRADING_PROFILE` | 共通AI APIで承認された実行設定 |
 

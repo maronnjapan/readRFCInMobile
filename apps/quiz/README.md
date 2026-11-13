@@ -6,6 +6,8 @@ Cloudflare Workers Paid・Hono・D1・Queuesで動く問題アプリ。API、PC�
 
 AIが作問するときの共通skillはリポジトリ直下の [skills/quiz-authoring/SKILL.md](../../skills/quiz-authoring/SKILL.md)。`.agents/skills/quiz-authoring`・`.claude/skills/quiz-authoring`の両方から同じファイルを参照する。
 
+maronn-openid-connect の PR は、仕様を指定した作問・PR 単独の作問と、対象パス・分割番号による範囲指定に対応する。同リポジトリの手動 Workflow からの起動、必要な設定、レビュー・公開は [PR 連携の手順](docs/pr-integration.md)を参照する。
+
 ## 収録している DPoP 問題集
 
 [RFC 9449 DPoP の問題集（80 問）](docs/rfc-9449-dpop.md)は、保存済みの `rfcs/rfc9449.txt` を使った 4 セットです。選択式 68 問・並べ替え 4 問・記述式 8 問に、解説・採点基準・コミット固定の出典を付けています。自習用ページでは解答を折りたたんで表示します。

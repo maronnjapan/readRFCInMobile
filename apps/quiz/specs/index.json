@@ -1,5 +1,31 @@
 [
   {
+    "id": "oidc-core-1_0",
+    "title": "OpenID Connect Core 1.0（承認済み Errata 1 の仕様ソース）",
+    "status": "adopted",
+    "path": "apps/quiz/specs/oidc-core-1_0-errata1.xml",
+    "mapping": "mappings/oidc-core-1_0.json"
+  },
+  {
+    "id": "rfc-6749",
+    "title": "RFC 6749: OAuth 2.0 認可フレームワーク",
+    "status": "adopted",
+    "path": "rfcs/rfc6749.txt",
+    "mapping": "mappings/rfc-6749.json"
+  },
+  {
+    "id": "rfc-9101",
+    "title": "RFC 9101: JWT による認可リクエスト（JAR）",
+    "status": "adopted",
+    "path": "rfcs/rfc9101.txt"
+  },
+  {
+    "id": "rfc-9126",
+    "title": "RFC 9126: 認可リクエストの事前送信（PAR）",
+    "status": "adopted",
+    "path": "rfcs/rfc9126.txt"
+  },
+  {
     "id": "rfc-7523",
     "title": "RFC 7523: JWT による認可グラントとクライアント認証",
     "status": "adopted",
