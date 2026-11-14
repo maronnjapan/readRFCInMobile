@@ -22,7 +22,7 @@ export function References({ set, ids }) {
 
 function Feedback({ data, question, result }) {
   if (!result) return null;
-  if (result.status !== 'graded') return <div class="quiz-feedback" tabindex="-1"><p>{data.status === 'grading_failed' ? '採点を完了できませんでした。回答は保存済みです。' : '記述式・実装は採点待ちです。'}</p></div>;
+  if (result.status !== 'graded') return <div class="quiz-feedback" tabindex="-1"><p>{data.status === 'grading_failed' ? '採点を完了できませんでした。回答は保存済みです。' : !data.completed ? 'この問題の回答を保存しました。次の問題へ進めます。' : '回答は保存済みです。記述式・実装は採点待ちです。'}</p></div>;
   const outcome = isImmediate(question) ? correct(result) ? '正解 · ' : question.type === 'choice' ? `不正解（正解: ${String.fromCharCode(65 + result.answer)}）· ` : '不正解 · ' : '';
   return <div class="quiz-feedback" tabindex="-1">
     <strong>{outcome}{result.score} / {result.maxScore}点</strong><p>{result.reason}</p>
@@ -31,7 +31,7 @@ function Feedback({ data, question, result }) {
 }
 
 export function Question({ data, question: q }) {
-  const saved = isImmediate(q) ? Object.hasOwn(data.answers || {}, q.id) : data.completed;
+  const saved = Object.hasOwn(data.answers || {}, q.id);
   const result = data.results?.find((item) => item.questionId === q.id);
   const number = data.set.questions.findIndex((item) => item.id === q.id) + 1;
   return <fieldset disabled={saved}>
@@ -42,7 +42,9 @@ export function Question({ data, question: q }) {
     {q.implementation && <Implementation data={data} question={q} saved={saved} />}
     {q.type === 'choice' && q.options.map((option, index) => <label class={`quiz-choice${q.implementation ? ' quiz-code-choice' : ''}${result?.answer === index ? ' is-correct' : ''}`}>
       <input type="radio" name={q.id} value={index} required checked={data.answers?.[q.id] === index} />
-      <span>{String.fromCharCode(65 + index)}. {option}</span>
+      {q.implementation ? <span class="quiz-code-option"><span>{String.fromCharCode(65 + index)}.</span>
+        <span class="quiz-code-preview" data-code-preview data-language={q.implementation.language} tabindex="0" role="region" aria-label={`選択肢 ${String.fromCharCode(65 + index)} のコード`}><code>{option}</code></span>
+      </span> : <span>{String.fromCharCode(65 + index)}. {option}</span>}
     </label>)}
     {q.type === 'ordering' && <div id="ordering-editor"><OrderingEditor question={q} answer={data.answers?.[q.id]} seed={`${data.id}:${q.id}`} /></div>}
     {q.type === 'written' && <>

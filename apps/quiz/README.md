@@ -2,7 +2,7 @@
 
 Cloudflare Workers Paid・Hono・D1・Queuesで動く問題アプリ。API、PC・スマホ向け画面、作問ツール、問題データ、設定、テストをこのディレクトリで管理する。
 
-7カテゴリ・4回答方式（選択式・並べ替え・記述式・コード実装）に対応する。実装問題はケース・制約・入出力例を提示し、PCではCodeMirror 6の補完・シンタックスハイライト付きエディタでコードを書く。JavaScript・TypeScript・Pythonに対応し、スマホ幅では同じ題材のコード読解・関数選択問題に切り替えて出題する。[実装問題のサンプル](questions/spec/rfc-7591-implementation.json)と[形式・採点の説明](docs/quiz-service.md#実装問題)を参照する。
+7カテゴリ・4回答方式（選択式・並べ替え・記述式・コード実装）に対応し、すべて1問ずつ出題・保存する。実装問題はケース・制約・入出力例を提示し、PCではCodeMirror 6の補完・シンタックスハイライト付きエディタでコードを書く。JavaScript・TypeScriptの補完はWeb Worker内のTypeScript言語サービスで変数の型や標準API・Node.js APIを解析する。Pythonにも対応し、スマホ幅では同じ題材のコード読解・関数選択問題に切り替えて出題する。問題・選択肢のコードは構文強調し、スクロールして読める。[実装問題のサンプル](questions/spec/rfc-7591-implementation.json)と[形式・採点の説明](docs/quiz-service.md#実装問題)を参照する。
 
 AIが作問するときの共通skillはリポジトリ直下の [skills/quiz-authoring/SKILL.md](../../skills/quiz-authoring/SKILL.md)。`.agents/skills/quiz-authoring`・`.claude/skills/quiz-authoring`の両方から同じファイルを参照する。
 

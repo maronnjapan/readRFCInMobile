@@ -48,6 +48,13 @@ export async function instantProgress(env, row, set) {
 export async function attemptView(env, row) {
   const set = parseAttemptSet(await getSet(env, row.set_id), row);
   const progress = row.answers_json ? null : await instantProgress(env, row, set);
+  if (progress) {
+    Object.assign(progress.answers, JSON.parse(row.written_answers_json));
+    progress.results = set.questions.flatMap((q) => {
+      const result = progress.results.find((r) => r.questionId === q.id);
+      return result ? [result] : Object.hasOwn(progress.answers, q.id) ? [{ questionId: q.id, status: 'pending', score: null, maxScore: q.points }] : [];
+    });
+  }
   return { id: row.id, status: row.status, implementationMode: row.implementation_mode, completed: Boolean(row.answers_json), set,
     answers: row.answers_json ? JSON.parse(row.answers_json) : progress.results.length ? progress.answers : null,
     results: row.results_json ? JSON.parse(row.results_json) : progress.results.length ? progress.results : null,

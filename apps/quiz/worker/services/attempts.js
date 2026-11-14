@@ -70,18 +70,46 @@ export async function saveInstantAnswers(env, user, id, body) {
 }
 
 export async function saveWrittenAnswers(env, user, id, submitted) {
-  const row = await getAttempt(env, id, user);
+  let row = await getAttempt(env, id, user);
   const setRow = await getSet(env, row.set_id);
   const set = parseAttemptSet(setRow, row);
-  if (!submitted || typeof submitted !== 'object' || Array.isArray(submitted)) fail('回答を指定してください。');
-  const progress = row.answers_json ? { answers: JSON.parse(row.answers_json) } : await instantProgress(env, row, set);
-  for (const question of set.questions.filter(isImmediate)) {
-    if (!Object.hasOwn(progress.answers, question.id)) throw new HttpError(409, '先に選択式・並べ替えの問題を1問ずつ回答してください。');
-    if (Object.hasOwn(submitted, question.id) && !sameAnswer(submitted[question.id], progress.answers[question.id])) throw new HttpError(409, '採点済みの回答は変更できません。');
+  if (!submitted || typeof submitted !== 'object' || Array.isArray(submitted) || !Object.keys(submitted).length) fail('回答を指定してください。');
+  const submittedQuestions = set.questions.filter((q) => Object.hasOwn(submitted, q.id));
+  validateAnswers(submitted, { questions: submittedQuestions });
+  const immediate = await instantProgress(env, row, set);
+  for (let retry = 0; retry < 3; retry++) {
+    const saved = row.answers_json ? JSON.parse(row.answers_json) : { ...immediate.answers, ...JSON.parse(row.written_answers_json) };
+    for (const question of set.questions.filter(isImmediate)) {
+      if (!Object.hasOwn(saved, question.id)) throw new HttpError(409, '先に選択式・並べ替えの問題を1問ずつ回答してください。');
+    }
+    for (const question of submittedQuestions) {
+      if (Object.hasOwn(saved, question.id) && !sameAnswer(saved[question.id], submitted[question.id])) throw new HttpError(409, '保存済みの回答は変更できません。');
+    }
+    if (row.answers_json) return attemptView(env, row);
+    const proposed = { ...saved, ...submitted };
+    let missing = false;
+    for (const question of set.questions.filter(needsGrading)) {
+      if (!Object.hasOwn(proposed, question.id)) missing = true;
+      else if (missing) throw new HttpError(409, '表示中の問題から順番に回答してください。');
+    }
+    // 途中保存にも全体の文字数制限を適用する。
+    const answeredQuestions = set.questions.filter((q) => Object.hasOwn(proposed, q.id));
+    const answers = validateAnswers(proposed, { questions: answeredQuestions });
+    const completed = answeredQuestions.length === set.questions.length;
+    const status = completed ? (set.questions.some(needsGrading) ? 'saved' : 'graded') : 'answering';
+    const written = Object.fromEntries(set.questions.filter((q) => needsGrading(q) && Object.hasOwn(answers, q.id)).map((q) => [q.id, answers[q.id]]));
+    const results = completed ? initialResults(set, JSON.parse(setRow.solutions_json), answers) : null;
+    // 比較して更新することで、別タブからの保存による上書き・回答の消失を防ぐ。
+    const update = await env.DB.prepare('UPDATE attempts SET written_answers_json = ?, answers_json = ?, results_json = ?, status = ?, updated_at = ? WHERE id = ? AND answers_json IS NULL AND written_answers_json = ?')
+      .bind(JSON.stringify(written), completed ? JSON.stringify(answers) : null, results ? JSON.stringify(results) : null,
+        status, now(), id, row.written_answers_json).run();
+    row = await getAttempt(env, id, user);
+    if (update.meta.changes) {
+      if (completed) await requestPullRequestSync(env, row.set_id);
+      return attemptView(env, row);
+    }
   }
-  // 記述式を一括保存する。採点済みの回答を含む再送も、内容が同じなら許可する。
-  const immediate = Object.fromEntries(set.questions.filter(isImmediate).map((q) => [q.id, progress.answers[q.id]]));
-  return completeAnswers(env, row, setRow, { ...immediate, ...submitted });
+  throw new HttpError(409, '別の画面で回答が保存されました。再読み込みして続けてください。');
 }
 
 export async function requestWrittenGrading(env, user, id) {
