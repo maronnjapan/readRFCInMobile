@@ -150,7 +150,10 @@
     "number": 9449,
     "title": "OAuth 2.0 Demonstrating Proof of Possession (DPoP)",
     "date": "September 2023",
-    "category": "Standards Track"
+    "category": "Standards Track",
+    "translations": {
+      "ja": "OAuth 2.0 所有証明の提示 (DPoP)"
+    }
   },
   {
     "number": 9700,

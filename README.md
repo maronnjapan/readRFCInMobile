@@ -158,7 +158,7 @@ node scripts/translation.mjs template rfc 7591   # 既存のファイルの訳�
 
 ### 収録済みの日本語訳
 
-このリポジトリには、次の 6 つの日本語訳を収録しています。どれも全文を訳してあります。
+このリポジトリには、次の 7 つの日本語訳を収録しています。どれも全文を訳してあります。
 
 | 文書 | 翻訳ファイル | 原文の利用条件 |
 | --- | --- | --- |
@@ -167,6 +167,7 @@ node scripts/translation.mjs template rfc 7591   # 既存のファイルの訳�
 | [RFC 7591](https://www.rfc-editor.org/rfc/rfc7591) OAuth 2.0 Dynamic Client Registration Protocol | `rfcs/ja/rfc7591.json` | IETF Trust の Legal Provisions Relating to IETF Documents の条件で公開された文書で、翻訳を作ることが認められています |
 | [RFC 9101](https://www.rfc-editor.org/rfc/rfc9101) The OAuth 2.0 Authorization Framework: JWT-Secured Authorization Request (JAR) | `rfcs/ja/rfc9101.json` | IETF Trust の Legal Provisions Relating to IETF Documents の条件で公開された文書で、翻訳を作ることが認められています |
 | [RFC 9126](https://www.rfc-editor.org/rfc/rfc9126) OAuth 2.0 Pushed Authorization Requests | `rfcs/ja/rfc9126.json` | IETF Trust の Legal Provisions Relating to IETF Documents の条件で公開された文書で、翻訳を作ることが認められています |
+| [RFC 9449](https://www.rfc-editor.org/rfc/rfc9449) OAuth 2.0 Demonstrating Proof of Possession (DPoP) | `rfcs/ja/rfc9449.json` | IETF Trust の Legal Provisions Relating to IETF Documents の条件で公開された文書で、翻訳を作ることが認められています |
 | [NIST SP 800-207](https://doi.org/10.6028/NIST.SP.800-207) Zero Trust Architecture（`pdfs/NIST.SP.800-207.pdf`） | `pdfs/ja/0290d6ece2487428.json` | 米国政府 (NIST) の刊行物で、米国内では著作権による保護を受けません |
 
 AI が作成した翻訳で、公式の訳ではありません。正確さが必要な場面では原文を参照してください。誤訳や不自然な箇所は、JSON の `dst` を直接直せます。
@@ -323,4 +324,4 @@ test/                 パーサー・レンダラー・保存処理・PDF 解析
 
 ## ライセンス
 
-このリポジトリのコードは MIT ライセンスです。`rfcs/` と `test/fixtures/` 以下の RFC 本文は IETF Trust の著作物で、RFC の再配布条件に従って無改変で収録しています。`pdfs/` に保存した PDF の権利はそれぞれの著作者にあります。`rfcs/ja/`・`pdfs/ja/` の翻訳ファイルは利用者が用意するもので、原文の著作権はそれぞれの権利者にあります（収録している RFC 7521・RFC 7523・RFC 7591・RFC 9101・RFC 9126 と NIST SP 800-207 の日本語訳は、上の「収録済みの日本語訳」のとおり、原文の利用条件の範囲で作成したものです）。`test/fixtures/pdf/` の PDF はテスト用に作った架空の文書です。`vendor/pdfjs/` は Mozilla の PDF.js で、Apache License 2.0 です（`vendor/pdfjs/LICENSE`）。
+このリポジトリのコードは MIT ライセンスです。`rfcs/` と `test/fixtures/` 以下の RFC 本文は IETF Trust の著作物で、RFC の再配布条件に従って無改変で収録しています。`pdfs/` に保存した PDF の権利はそれぞれの著作者にあります。`rfcs/ja/`・`pdfs/ja/` の翻訳ファイルは利用者が用意するもので、原文の著作権はそれぞれの権利者にあります（収録している RFC 7521・RFC 7523・RFC 7591・RFC 9101・RFC 9126・RFC 9449 と NIST SP 800-207 の日本語訳は、上の「収録済みの日本語訳」のとおり、原文の利用条件の範囲で作成したものです）。`test/fixtures/pdf/` の PDF はテスト用に作った架空の文書です。`vendor/pdfjs/` は Mozilla の PDF.js で、Apache License 2.0 です（`vendor/pdfjs/LICENSE`）。
