@@ -159,6 +159,7 @@ test('mobile form submissions grade reading choices immediately and persist thei
   assert.equal(saved.status, 'graded');
   assert.equal(saved.completed, true);
   assert.equal(saved.results[0].reason, sample().solutions[qid].mobileExplanation);
+  assert.deepEqual(saved.solutions, {}, 'reading choices keep their existing feedback instead of revealing code grading data');
   assert.equal(worker.executions.size, executions, 'no paid AI job for reading choices');
   assert.equal((await call(`/api/attempts/${id}/instant-answers`, { questionId: qid, answer: 1 })).status, 409);
   assert.equal((await call(`/api/attempts/${id}/instant-answers`, { questionId: qid, answer: 0 })).status, 200);
@@ -170,7 +171,12 @@ test('anonymous code saves retain the code mode through login and grading', asyn
   const state = await (await anonymous(`/api/question-sets/${set.id}/attempts`, { method: 'POST', body: { implementationMode: 'code' } })).json();
   const saved = await anonymous(`/api/attempts/${state.id}/answers`, { method: 'POST', body: { answers: { [qid]: sample().solutions[qid].referenceCode } } });
   assert.equal(saved.status, 200);
-  assert.equal((await saved.json()).implementationMode, 'code');
+  const savedState = await saved.json();
+  assert.equal(savedState.implementationMode, 'code');
+  assert.equal(savedState.solutions[qid].referenceCode, sample().solutions[qid].referenceCode);
+  const review = await (await anonymous(`/quiz?attempt=${state.id}`)).text();
+  assert.match(review, /aria-label="回答例のコード"/);
+  assert.match(review, /採点基準/);
   const loginPage = await anonymous(`/quiz/ai-grading?attempt=${state.id}`, { subject: 'reader' });
   assert.equal(loginPage.status, 200);
   assert.match(await loginPage.text(), /id="grading-form"/);
@@ -184,6 +190,7 @@ test('anonymous code saves retain the code mode through login and grading', asyn
   assert.equal(result.status, 'graded');
   assert.equal(result.implementationMode, 'code');
   assert.equal(result.results[0].score, 3);
+  assert.deepEqual(result.solutions, savedState.solutions, 'AI grading preserves the saved question solution');
 });
 
 test('mixed sets grade mobile implementation with choices and only send written responses to AI', async () => {
@@ -224,12 +231,17 @@ test('written and multiple code implementations each save and resume independent
   artifact.references.push(...fixture.references);
   artifact.solutions[written.id] = structuredClone(fixture.solutions[written.id]);
   artifact.solutions[second.id] = structuredClone(artifact.solutions[qid]);
+  artifact.solutions[qid].privateField = 'PRIVATE_SOLUTION_FIELD';
+  artifact.solutions[qid].rubric[0].privateField = 'PRIVATE_RUBRIC_FIELD';
+  artifact.solutions[qid].rubric[0].referenceIds = ['jwt-claims'];
   const published = await worker.publish(artifact, 'b'.repeat(40));
   const state = await start('code', published.id);
+  assert.deepEqual(state.solutions, {});
   const save = (answers) => call(`/api/attempts/${state.id}/answers`, { answers });
   assert.equal((await save({ [qid]: artifact.solutions[qid].referenceCode })).status, 409);
   const first = await (await save({ [written.id]: '受信者を確認する。' })).json();
   assert.equal(first.completed, false);
+  assert.deepEqual(Object.keys(first.solutions), [written.id]);
   const nextPage = await (await call(`/quiz?attempt=${state.id}`)).text();
   assert.equal((nextPage.match(/data-code-input/g) || []).length, 1);
   assert.match(nextPage, /記述式・実装 2 \/ 3/);
@@ -238,17 +250,46 @@ test('written and multiple code implementations each save and resume independent
   assert.equal(partial.completed, false);
   assert.equal(partial.answers[qid], code);
   assert.equal(partial.answers[written.id], '受信者を確認する。');
+  assert.deepEqual(Object.keys(partial.solutions), [written.id, qid]);
+  assert.equal(partial.solutions[qid].referenceCode, code);
+  assert.deepEqual(Object.keys(partial.solutions[qid]).sort(), ['explanation', 'referenceCode', 'rubric']);
+  assert.deepEqual(Object.keys(partial.solutions[qid].rubric[0]).sort(), ['criterion', 'points', 'referenceIds']);
+  assert.ok(!JSON.stringify(partial).includes('PRIVATE_'));
+  const review = await (await call(`/quiz?attempt=${state.id}&question=${qid}`)).text();
+  assert.match(review, /aria-label="回答例のコード"/);
+  assert.match(review, /href="\/\?rfc=7523#L287-L321"/, 'rubric-only references can be opened');
+  assert.ok(review.includes(artifact.solutions[qid].explanation));
   const resumed = await (await call(`/quiz?attempt=${state.id}`)).text();
   assert.match(resumed, /記述式・実装 3 \/ 3/);
   assert.match(resumed, /name="second-implementation"/);
   assert.ok(!resumed.includes(`name="${qid}"`));
+  assert.ok(!resumed.includes('class="quiz-solution"'));
+  assert.equal((await call(`/api/attempts/${state.id}`, undefined, 'other')).status, 404);
   const saved = await (await save({ [second.id]: code })).json();
   assert.equal(saved.completed, true);
   assert.equal(saved.status, 'saved');
   assert.equal(saved.results.length, 3);
   assert.deepEqual(saved.answers, { [written.id]: '受信者を確認する。', [qid]: code, [second.id]: code });
+  assert.deepEqual(Object.keys(saved.solutions), [written.id, qid, second.id]);
+  const resultsPage = await (await call(`/quiz?attempt=${state.id}`)).text();
+  assert.equal((resultsPage.match(/class="quiz-solution"/g) || []).length, 3);
+  assert.equal((await worker.db.prepare('SELECT COUNT(*) AS count FROM ai_jobs WHERE target_id = ?').bind(state.id).first()).count, 0);
   const job = await (await call(`/api/attempts/${state.id}/grading-requests`, {})).json();
   assert.deepEqual(promptData(await worker.waitForExecution(job.id)).questions.map((q) => q.type), ['written', 'implementation', 'implementation']);
   await worker.complete(job.id);
   assert.equal((await (await call(`/api/attempts/${state.id}`)).json()).status, 'graded');
+});
+
+test('solution explanations, reference code and rubric text are escaped in review pages', async () => {
+  const artifact = sample();
+  const payload = '<script>globalThis.quizInjected=true</script>';
+  artifact.solutions[qid].explanation = payload;
+  artifact.solutions[qid].referenceCode = payload;
+  artifact.solutions[qid].rubric[0].criterion = payload;
+  const published = await worker.publish(artifact, 'c'.repeat(40));
+  const state = await start('code', published.id);
+  await call(`/api/attempts/${state.id}/answers`, { answers: { [qid]: 'function resolveAuthMethod() {}' } });
+  const html = await (await call(`/quiz?attempt=${state.id}`)).text();
+  assert.ok(!html.includes(payload));
+  assert.equal((html.match(/&lt;script&gt;globalThis.quizInjected=true&lt;\/script&gt;/g) || []).length, 3);
 });

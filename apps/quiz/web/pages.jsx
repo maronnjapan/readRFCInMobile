@@ -29,7 +29,7 @@ export function QuizPage({ page }) {
     const { set, attempts } = page;
     const categories = [...new Set(set.questions.map((q) => QUESTION_CATEGORIES[categoryOf(q)]))].join('・');
     return <Document title={set.title} back={backLink(set)} backLabel={backLabel(set)}><Source set={set} /><section id="setup">
-      <p id="set-description">全{set.questions.length}問（{categories}）。ログインなしで回答できます。すべて1問ずつ出題し、選択式・並べ替えは即時採点、記述式・実装は1問ごとに回答を保存できます。AI採点の利用時だけログインが必要です。</p>
+      <p id="set-description">全{set.questions.length}問（{categories}）。ログインなしで回答できます。すべて1問ずつ出題し、選択式・並べ替えは即時採点、記述式・実装は1問ごとに回答を保存できます。保存後は回答例・採点基準を確認できます。AI採点の利用時だけログインが必要です。</p>
       {set.questions.some((q) => q.implementation) && <p class="help">実装問題はPCでコードを書いて回答します。スマホ画面ではコードを読んで関数や処理を選ぶ問題になります。開始時の回答形式で続きから再開できます。</p>}
       <div id="previous-attempts">{attempts.map((attempt) => <p><a href={attemptUrl(attempt.id)}>{attempt.status === 'graded' ? '採点結果を見る' : '前の回答を開く'}{set.questions.some((q) => q.implementation) ? ` · ${attempt.implementation_mode === 'reading' ? 'コード読解' : 'コード実装'}` : ''} ({new Date(attempt.created_at * 1000).toLocaleDateString('ja-JP')})</a></p>)}</div>
       <StartForm set={set} />
@@ -65,7 +65,7 @@ function AttemptPage({ page }) {
           : <p class="help" id="grading-unavailable">回答は保存済みです。記述式・実装のAI採点は現在利用できません。</p>)}
       <form method="get" action="/quiz" hidden={data.status !== 'grading'}><input type="hidden" name="attempt" value={data.id} /><button class="btn secondary" id="refresh" type="submit">採点状況を確認</button></form>
     </div>
-    {results && <h2 id="score" tabindex="-1">{data.status === 'graded' ? `${points} / ${maximum}点` : `${points}点獲得 · 記述式・実装は採点待ち`}</h2>}
+    {results && <h2 id="score" tabindex="-1">{data.status === 'graded' ? `${points} / ${maximum}点` : `${points}点獲得 · 記述式・実装は${data.status === 'grading' ? 'AI採点中' : '未採点'}`}</h2>}
     {results && immediate.length > 0 && <section id="choice-summary" aria-labelledby="choice-summary-title"><h2 id="choice-summary-title">選択式・並べ替えの結果</h2><ul id="choice-results">{immediate.map((q, index) => {
       const result = data.results?.find((item) => item.questionId === q.id);
       return result && <li><a class="linkbtn" href={attemptUrl(data.id, q.id)}>{QUESTION_CATEGORIES[categoryOf(q)]} {index + 1}: {correct(result) ? '正解' : '不正解'}（{result.score} / {q.points}点）を確認</a></li>;

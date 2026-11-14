@@ -100,6 +100,7 @@ test('previously submitted attempts remain readable without per-choice rows', as
   assert.equal(reloaded.completed, true);
   assert.deepEqual(reloaded.answers, answers);
   assert.deepEqual(reloaded.results, results);
+  assert.deepEqual(reloaded.solutions, { 'audience-validation': fixture.solutions['audience-validation'] });
   assert.equal((await choice('client-sub', 0)).status, 200);
   assert.equal((await choice('client-sub', 2)).status, 409);
 });
@@ -114,6 +115,7 @@ function writtenFixture() {
 
 test('written responses save one at a time and survive reload without completing or grading early', async () => {
   const { call, state } = await start(writtenFixture(), '3'.repeat(40));
+  assert.deepEqual(state.solutions, {});
   const save = (answers) => call(`/api/attempts/${state.id}/answers`, { method: 'POST', body: { answers } });
   assert.equal((await save({ 'audience-validation-next': '先の問題への回答。' })).status, 409);
   for (const answers of [{}, { missing: '回答' }, { 'audience-validation': '' }, { 'audience-validation': 'x'.repeat(8001) }]) assert.equal((await save(answers)).status, 400);
@@ -126,7 +128,10 @@ test('written responses save one at a time and survive reload without completing
   assert.deepEqual(partial.answers, { 'audience-validation': answer });
   assert.equal(partial.results.length, 1);
   assert.equal(partial.results[0].status, 'pending');
-  assert.deepEqual((await (await call(`/api/attempts/${state.id}`)).json()).answers, partial.answers);
+  assert.deepEqual(partial.solutions, { 'audience-validation': fixture.solutions['audience-validation'] });
+  const resumed = await (await call(`/api/attempts/${state.id}`)).json();
+  assert.deepEqual(resumed.answers, partial.answers);
+  assert.deepEqual(resumed.solutions, partial.solutions);
   assert.equal((await save({ 'audience-validation': answer })).status, 200);
   assert.equal((await save({ 'audience-validation': '変更した回答。' })).status, 409);
   assert.equal((await call(`/api/attempts/${state.id}/grading-requests`, { method: 'POST', body: {} })).status, 409);
@@ -135,6 +140,7 @@ test('written responses save one at a time and survive reload without completing
   assert.equal(last.status, 'saved');
   assert.equal(last.answers['audience-validation'], answer);
   assert.equal(last.results.length, 2);
+  assert.deepEqual(Object.keys(last.solutions), ['audience-validation', 'audience-validation-next']);
   assert.equal(worker.executions.size, 0);
   assert.equal((await save({ 'audience-validation': answer })).status, 200);
   assert.equal((await save({ 'audience-validation-next': '変更。' })).status, 409);

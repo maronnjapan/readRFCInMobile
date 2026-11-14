@@ -33,6 +33,10 @@
 .quiz-feedback { border-top: 1px solid var(--line); padding-top: 0.8rem; margin-top: 1rem; }
 .quiz-feedback p { margin: 0.4rem 0; white-space: pre-wrap; }
 .quiz-feedback blockquote { color: var(--muted); font-size: 0.9rem; border-left: 3px solid var(--line); margin: 0.8rem 0; padding-left: 0.8rem; white-space: pre-wrap; }
+.quiz-solution { border: 1px solid var(--line); border-radius: 8px; padding: 0.4rem 0.8rem; }
+.quiz-solution h3 { font-size: 1rem; color: var(--fg); }
+.quiz-solution p, .quiz-solution li { white-space: pre-wrap; color: var(--fg); }
+.quiz-solution li { margin: 0.6rem 0; }
 .quiz-error { color: var(--fg); border-left: 3px solid #d93025; padding-left: 0.8rem; }
 .quiz-actions { display: flex; flex-wrap: wrap; gap: 0.6rem; }
 .quiz-page button:disabled { opacity: 0.6; cursor: default; }
