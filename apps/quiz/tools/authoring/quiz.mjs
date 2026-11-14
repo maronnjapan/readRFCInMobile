@@ -52,7 +52,7 @@ try {
     }
     const requestedCount = options.count || (command === 'generate' ? payload.questionCount || Object.keys(QUESTION_CATEGORIES).length : undefined);
     const questionCount = requestedCount === undefined ? undefined : Number(requestedCount);
-    if (questionCount !== undefined && (!Number.isSafeInteger(questionCount) || questionCount < 1 || (command === 'generate' && !payload.context.pullRequest && (questionCount < 2 || questionCount > 10)))) throw new Error('問題数は正の整数で指定してください。仕様のみの AI 作問は2〜10問です。');
+    if (questionCount !== undefined && (!Number.isSafeInteger(questionCount) || questionCount < 1 || (command === 'generate' && !payload.context.pullRequest ))) throw new Error('問題数は正の整数で指定してください。仕様のみの AI 作問は2〜10問です。');
     const questionCategories = validateCategories(options.categories ? options.categories.split(',').map((v) => v.trim()) : payload.questionCategories || Object.keys(QUESTION_CATEGORIES), command === 'prepare' ? Number.MAX_SAFE_INTEGER : questionCount);
     Object.assign(payload, { questionCount, questionCategories });
     if (command === 'prepare') {
