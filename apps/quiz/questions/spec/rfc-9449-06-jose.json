@@ -3,7 +3,7 @@
   "version": 1,
   "id": "rfc-9449-06-jose",
   "title": "RFC 9449 DPoP 発展 2/7: JOSE の土台 — JWS・JWK・JWA・JWT",
-  "status": "draft",
+  "status": "published",
   "spec": {
     "id": "rfc-9449",
     "status": "adopted",

@@ -3,7 +3,7 @@
   "version": 1,
   "id": "rfc-9449-10-design-threats",
   "title": "RFC 9449 DPoP 発展 6/7: 方式比較と脅威モデル — mTLS・Bearer・セキュリティ BCP",
-  "status": "draft",
+  "status": "published",
   "spec": {
     "id": "rfc-9449",
     "status": "adopted",

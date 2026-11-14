@@ -3,7 +3,7 @@
   "version": 1,
   "id": "rfc-9449-08-http",
   "title": "RFC 9449 DPoP 発展 4/7: HTTP の細部 — メソッド・URI・認証ヘッダー",
-  "status": "draft",
+  "status": "published",
   "spec": {
     "id": "rfc-9449",
     "status": "adopted",

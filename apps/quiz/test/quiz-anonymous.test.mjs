@@ -100,12 +100,12 @@ test('login preserves anonymous answers and only their owner can request paid gr
   assert.equal((await (await worker.client('reader')(`/api/attempts/${attempt.id}`)).json()).status, 'graded', 'the signed-in owner can also resume elsewhere');
 });
 
-test('all four RFC 9449 files added on main are discoverable and answerable without Access or importing', async () => {
+test('all eleven RFC 9449 files are discoverable and answerable without Access or importing', async () => {
   const app = await startQuizWorker({ access: false });
   try {
     const call = app.anonymousClient();
     const list = await (await call('/api/question-sets?spec=rfc-9449')).json();
-    assert.equal(list.sets.length, 4);
+    assert.equal(list.sets.length, 11);
     let count = 0;
     for (const set of list.sets) {
       const file = set.revision.path.split('/').at(-1);
@@ -113,20 +113,40 @@ test('all four RFC 9449 files added on main are discoverable and answerable with
       const start = await call(`/api/question-sets/${set.id}/attempts`, { method: 'POST', body: {} });
       assert.equal(start.status, 201);
       const attempt = await start.json();
-      assert.equal(attempt.set.questions.length, 20);
+      assert.deepEqual(attempt.set.questions.map((q) => q.id), artifact.questions.map((q) => q.id));
       for (const question of artifact.questions.filter(isImmediate)) {
         const result = await call(`/api/attempts/${attempt.id}/instant-answers`, { method: 'POST', body: {
           questionId: question.id, answer: artifact.solutions[question.id].answer,
         } });
         assert.equal(result.status, 200, `${file}: ${question.id}`);
       }
-      const answers = Object.fromEntries(artifact.questions.filter((q) => !isImmediate(q)).map((q) => [q.id, '仕様の要件に沿って検証し、条件に一致しない要求を拒否する。']));
+      const answers = Object.fromEntries(artifact.questions.filter((q) => !isImmediate(q)).map((q) => [q.id,
+        q.type === 'implementation' ? artifact.solutions[q.id].referenceCode : '仕様の要件に沿って検証し、条件に一致しない要求を拒否する。',
+      ]));
       const saved = await call(`/api/attempts/${attempt.id}/answers`, { method: 'POST', body: { answers } });
       assert.equal(saved.status, 200, file);
       assert.equal((await saved.json()).status, 'saved');
       count += artifact.questions.length;
+
+      if (artifact.questions.some((q) => q.type === 'implementation')) {
+        const readingStart = await call(`/api/question-sets/${set.id}/attempts`, { method: 'POST', body: { implementationMode: 'reading' } });
+        assert.equal(readingStart.status, 201);
+        const reading = await readingStart.json();
+        assert.equal(reading.set.questions.length, 8);
+        assert.ok(reading.set.questions.every((q) => q.type === 'choice' && q.implementationMode === 'reading'));
+        for (const question of reading.set.questions) {
+          const result = await call(`/api/attempts/${reading.id}/instant-answers`, { method: 'POST', body: {
+            questionId: question.id, answer: artifact.solutions[question.id].mobileAnswer,
+          } });
+          assert.equal(result.status, 200, `${file}: ${question.id} (reading)`);
+          assert.equal((await result.json()).results.at(-1).score, question.points);
+        }
+        const completed = await (await call(`/api/attempts/${reading.id}`)).json();
+        assert.equal(completed.status, 'graded');
+        assert.equal(completed.completed, true);
+      }
     }
-    assert.equal(count, 80);
+    assert.equal(count, 208);
     assert.equal(app.executions.size, 0);
   } finally { await app.mf.dispose(); }
 });

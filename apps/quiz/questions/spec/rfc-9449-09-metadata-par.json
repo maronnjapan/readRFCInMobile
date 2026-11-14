@@ -3,7 +3,7 @@
   "version": 1,
   "id": "rfc-9449-09-metadata-par",
   "title": "RFC 9449 DPoP 発展 5/7: 相互運用 — メタデータ・登録・PAR・PKCE",
-  "status": "draft",
+  "status": "published",
   "spec": {
     "id": "rfc-9449",
     "status": "adopted",

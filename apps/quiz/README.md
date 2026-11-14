@@ -33,7 +33,7 @@ maronn-openid-connect から受け取った PR 情報は作問資料として保
 | 10. 方式比較と脅威モデル — mTLS・Bearer・セキュリティ BCP | [rfc-9449-10-design-threats.json](questions/spec/rfc-9449-10-design-threats.json) |
 | 11. 実装 — DPoP の処理を自分で書く | [rfc-9449-11-implementation.json](questions/spec/rfc-9449-11-implementation.json) |
 
-7 ファイルは公開前の候補で、`status` は `draft` です。draft のファイルはデプロイ時の出題対象に入りません。レビュー後に `published` にして main に反映すると、基本の 4 セットと同じ `/quiz?spec=rfc-9449` に並びます。
+7 ファイルの `status` は `published` です。main に反映してデプロイすると、基本の 4 セットと合わせて全 11 セット・208 問が取り込み操作なしで `/quiz?spec=rfc-9449` に並び、ログインなしで回答できます。実装問題は PC ではコード実装、スマホではコード読解で回答します。
 
 ## コードの入口
 

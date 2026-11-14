@@ -3,7 +3,7 @@
   "version": 1,
   "id": "rfc-9449-11-implementation",
   "title": "RFC 9449 DPoP 発展 7/7: 実装 — DPoP の処理を自分で書く",
-  "status": "draft",
+  "status": "published",
   "spec": {
     "id": "rfc-9449",
     "status": "adopted",
