@@ -31,7 +31,7 @@ NIST SP や論文などの PDF も、段組を解いて同じ形式で表示で�
 
 ケース・制約・入出力例を満たす実装問題も作成できます。PCではCodeMirrorの補完・構文強調付きエディタで解答し、スマホ画面ではコードを読んで関数や処理を選びます。実装のAI採点はケースとコードの静的な照合で、利用時にログインします。AI向けの作問形式は [共通skill](skills/quiz-authoring/SKILL.md)にまとめ、`.agents`・`.claude`の両方から同じファイルを参照します。
 
-作問情報の受信は資料保存までを担当し、問題の作成方法はローカルの Claude Code・手作業・別途の AI API などから選べます。[所定の形式の問題 JSON](apps/quiz/docs/question-files.md)を用意すれば、AI 作問を使わず公開・回答できます。PR 連携では公開後に元の PR へ回答 URL を返します。
+作問情報の受信は資料保存までを担当し、問題の作成方法はローカルの Claude Code・手作業・別途の AI API などから選べます。[所定の形式の問題 JSON](apps/quiz/docs/question-files.md)を用意すれば、AI 作問を使わず公開・回答できます。PR 連携では公開後に元の PR へ回答 URL を返します。maronn-openid-connect の PR 情報を送り、資料保存・問題作成・main への反映を経て画面に表示する操作は、[ステップごとの手順書](apps/quiz/docs/pr-quiz-walkthrough.md)を参照してください。
 
 ログイン後の記述式・実装の AI 採点と、任意の手動 AI 作問には、別サービスの共通 AI 実行 API を HTTPS + API キーで使います。呼び出し認証は独立したアダプタにし、将来の OAuth + DPoP へ差し替えられる構成です。共通 API 用のキーはサーバーの Secrets に保存し、Claude キーは共通 API 側だけに置きます。AI 実行の依頼と結果の受信は別エンドポイントです。作問・採点のプロンプトは資料・回答・採点基準まで問題アプリで組み立て、共通 AI API へ完成済みの system と messages を渡します。
 
