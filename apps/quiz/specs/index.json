@@ -43,5 +43,11 @@
     "title": "RFC 9449: DPoP によるトークンの送信者制約",
     "status": "adopted",
     "path": "rfcs/rfc9449.txt"
+  },
+  {
+    "id": "pdf-0290d6ece2487428",
+    "title": "NIST SP 800-207: ゼロトラストアーキテクチャ",
+    "status": "adopted",
+    "path": "apps/quiz/specs/nist-sp-800-207.txt"
   }
 ]
