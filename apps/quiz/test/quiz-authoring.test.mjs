@@ -102,35 +102,29 @@ test('PR-only authoring captures the description and review snapshot without inv
   assert.match(questionFilePath(context), new RegExp(`/pr/example/product/7/${context.id}.json$`));
 });
 
-test('large PRs can be covered completely by explicit parts without dropping files after the sixth diff', async (t) => {
-  const files = Array.from({ length: 19 }, (_, i) => ({ filename: `src/file-${String(i).padStart(2, '0')}.js`, status: 'modified', patch: '@@ -1 +1 @@\n-old()\n+newCode()' }));
+test('PR preparation includes every changed file without eight-file parts or a forty-reference cap', async (t) => {
+  const files = Array.from({ length: 43 }, (_, i) => ({ filename: `src/file-${String(i).padStart(2, '0')}.js`, status: 'modified', patch: '@@ -1 +1 @@\n-old()\n+newCode()' }));
   const fixture = await authoringFixture(t, { files });
-  const covered = [], ids = new Set();
-  for (const part of [1, 2, 3]) {
-    const { context, material } = await buildContext({ ...fixture, part });
-    const paths = context.references.filter((r) => r.kind === 'diff').map((r) => r.path);
-    covered.push(...paths); ids.add(context.id);
-    assert.equal(paths.length, part === 3 ? 3 : 8);
-    assert.ok(context.references.length <= 40);
-    assert.match(material, new RegExp(`"part":${part},"parts":3`));
-  }
-  assert.deepEqual(covered.sort(), files.map((f) => f.filename).sort());
-  assert.equal(ids.size, 3);
-  await assert.rejects(buildContext({ ...fixture, part: 4 }), /1〜3/);
+  const payload = await buildContext(fixture);
+  assert.deepEqual(payload.context.references.filter((r) => r.kind === 'diff').map((r) => r.path), files.map((f) => f.filename));
+  assert.ok(payload.context.references.length > 40);
+  assert.equal(payload.files.filter((f) => f.kind === 'code').length, 86);
+  assert.equal(payload.format, 'quiz-authoring-materials');
 });
 
-test('focus paths enforce the allowlist and independently identify the chosen subject', async (t) => {
+test('focus paths select a subject without restricting it to configured directories', async (t) => {
   const fixture = await authoringFixture(t);
   const all = await buildContext(fixture);
   const focused = await buildContext({ ...fixture, focusPaths: ['src/auth.js'] });
   assert.notEqual(all.context.id, focused.context.id);
-  await assert.rejects(buildContext({ ...fixture, focusPaths: ['../secrets'] }), /許可パス/);
-  await assert.rejects(buildContext({ ...fixture, focusPaths: ['private/'] }), /許可パス/);
+  await assert.rejects(buildContext({ ...fixture, focusPaths: ['../secrets'] }), /対象パス/);
+  await assert.rejects(buildContext({ ...fixture, focusPaths: ['private/'] }), /変更がありません/);
   await assert.rejects(buildContext({ ...fixture, focusPaths: ['src/missing.js'] }), /変更がありません/);
-  await assert.rejects(buildContext({ ...fixture, part: 1.5 }), /整数/);
+  const outside = await authoringFixture(t, { files: [{ filename: 'new-directory/feature.js', status: 'added', patch: '@@ -0,0 +1 @@\n+feature()' }] });
+  assert.ok((await buildContext(outside)).context.references.some((r) => r.path === 'new-directory/feature.js'));
 });
 
-test('removed files use their base version and renames from outside allowed paths do not fetch that old path', async (t) => {
+test('removed and renamed files retain their full before versions, including formerly excluded paths', async (t) => {
   const fixture = await authoringFixture(t, { files: [
     { filename: 'src/removed.js', status: 'removed', patch: '@@ -1 +0,0 @@\n-old()' },
     { filename: 'src/moved.js', previous_filename: 'private/moved.js', status: 'renamed', patch: '@@ -1 +1 @@\n-old()\n+newCode()' },
@@ -138,7 +132,29 @@ test('removed files use their base version and renames from outside allowed path
   const { context } = await buildContext(fixture);
   assert.equal(context.references.filter((r) => r.kind === 'diff').length, 2);
   assert.ok(context.references.some((r) => r.path === 'src/removed.js' && r.commit === fixture.base));
-  assert.equal(fixture.calls.some((p) => p.includes('contents/private/')), false);
+  assert.equal(fixture.calls.some((p) => p.includes('contents/private/')), true);
+});
+
+test('an unregistered repository can supply PR materials and specification selection is independent of source mappings', async (t) => {
+  const fixture = await authoringFixture(t);
+  const payload = await buildContext({ ...fixture, codeSource: 'another/project', specId: 'oauth',
+    github: (path) => fixture.github(path.replace('/repos/another/project', '/repos/example/product')) });
+  assert.equal(payload.context.pullRequest.repository, 'another/project');
+  assert.ok(payload.files.some((f) => f.kind === 'spec'));
+});
+
+test('material files preserve full code, PR text and all discussion pages independently of AI excerpts', async (t) => {
+  const fixture = await authoringFixture(t, { discussion: true });
+  const text = 'full source line\n'.repeat(2000);
+  const payload = await buildContext({ ...fixture, github: async (path) => {
+    if (path.includes('/contents/')) return { encoding: 'base64', content: Buffer.from(text).toString('base64') };
+    if (path.includes('/issues/7/comments')) return path.endsWith('page=1') ? Array.from({ length: 100 }, (_, i) => ({ id: i, body: 'Discussion'.repeat(100) })) : [{ id: 101, body: 'Last page retained' }];
+    return fixture.github(path);
+  } });
+  assert.equal(payload.files.find((f) => f.kind === 'code').content, text);
+  assert.match(payload.files.find((f) => f.kind === 'pull_request').content, /Last page retained/);
+  assert.ok(payload.context.references.find((r) => r.kind === 'code').excerpt.length <= 3000);
+  assert.ok(fixture.calls.every((p) => !p.includes('/api/authoring')));
 });
 
 test('specification lookup finds relevant passages beyond the former 40000-character prefix', async (t) => {

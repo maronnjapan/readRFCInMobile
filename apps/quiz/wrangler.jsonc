@@ -28,7 +28,6 @@
     "AI_EXECUTOR_AUTH": "api-key",
     "QUESTION_REPOSITORY": "maronnjapan/readRFCInMobile",
     "QUESTION_DEFAULT_BRANCH": "main",
-    "CODE_REPOSITORIES": "maronnjapan/readRFCInMobile,maronnjapan/maronn-openid-connect",
     "ACCESS_ISSUER": "",
     "ACCESS_AUD": "",
     "AUTHOR_SUBJECTS": "",

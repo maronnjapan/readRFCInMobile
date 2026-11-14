@@ -1,8 +1,95 @@
-# PR の問題を作って公開する：初期設定からの作業手順
+# PR 情報の受け取りと、問題ファイルの公開
 
-この手順書は、**readRFCInMobile で問題を作り、maronn-openid-connect の PR に問題へのリンクを付ける**ためのものです。上から順に進めてください。設定済みの項目は作り直さず、各節の「完了の確認」ができれば次へ進みます。
+maronn-openid-connect は PR 番号や対象仕様などの情報を渡す。readRFCInMobile はその情報を作問資料として保存し、別途作られた問題ファイルを公開・出題する。作問する人やツールは、ローカルの Claude Code、手作業、任意の AI API などから選べる。
 
-初期設定後は、maronn-openid-connect の GitHub 画面で PR 番号を入力して作問を依頼し、readRFCInMobile で内容を確認して公開します。
+```text
+maronn-openid-connect → 作問情報を送信
+  → readRFCInMobile の prepare → 作問資料を Git に保存
+  → 別途、資料から問題 JSON を作成
+  → 問題 JSON を main に反映・デプロイ、または固定版を publish
+  → 回答ページを公開 → 元の PR に回答 URL を返す
+```
+
+資料の受信・保存と、作成済み問題の公開・回答は、AI 作問 API の設定なしで利用できる。ログイン後に依頼する記述式・実装の AI 採点は独立した機能として残る。
+
+## 1. PR の情報を受け取る
+
+送信側の **Request PR quiz materials** から、このリポジトリの `quiz-authoring.yml` を `workflow_dispatch` で呼ぶ。
+
+| 入力 | 内容 |
+| --- | --- |
+| `ref` | `main` |
+| `operation` | `prepare` |
+| `code_source` | `maronn-openid-connect`。登録済み ID のほか `owner/repository` も指定可能 |
+| `pr_number` | 対象 PR 番号 |
+| `spec_id` | 任意。仕様と照合するときだけ指定 |
+| `focus_paths` | 任意の対象パス。空欄なら PR の変更ファイル全体 |
+| `question_count` / `question_categories` | 作問する人・ツールへの任意のメモ。ここでは作問しない |
+
+旧送信側の `operation=generate` も、受信側では `prepare` として扱う。旧 `part` 入力は互換用で、ファイルを分割・制限しない。
+
+受信側の **Prepare quiz materials or publish a quiz** は、公開 PR の base/head と共通祖先を固定し、変更一覧、本文・議論、取得できる差分、変更前後の全文コード、対応テスト、指定された仕様を保存する。コードは実行しない。バイナリは変更情報と固定版を残し、本文の省略を明記する。GitHub API 自体の取得上限・省略も確認済みの資料として扱わない。
+
+保存先は `apps/quiz/materials/pr/<owner>/<repo>/<PR番号>/<資料ID>.json`、ブランチは `quiz/materials-<run>-<attempt>`。Summary の「資料を見る」から開く。資料の形式は `format:"quiz-authoring-materials",version:1` で、`context` に出典の抜粋、`files` に取得した全文資料を持つ。PR の本文・議論も全文を `files` に残す。
+
+この操作に Cloudflare Access の Service Token、作問 AI、PR コメント用の GitHub App は不要。送信側は readRFCInMobile の Actions: write を持つ `QUIZ_DISPATCH_TOKEN` を設定する。受信側は自分の `GITHUB_TOKEN` で資料を取得・保存する。
+
+ローカルでも同じ資料を保存できる。
+
+```sh
+npm ci
+node apps/quiz/tools/authoring/quiz.mjs prepare --source maronn-openid-connect --pr 194
+node apps/quiz/tools/authoring/quiz.mjs prepare --source maronnjapan/maronn-openid-connect --pr 194 --spec rfc-6749 --paths packages/core/src/
+```
+
+## 2. 問題 JSON を別途作る
+
+保存された資料を読み、[共通の作問形式](../../../skills/quiz-authoring/SKILL.md)に従って問題を作る。作問方法や使用モデルの情報、AI のジョブ ID は問題ファイルの必須項目ではない。
+
+公開用ファイルには次を持たせる。
+
+- `format:"spec-understanding-quiz",version:1,status:"published"`。
+- `id,title,spec,pullRequest,references,questions,solutions,inconsistencies`。
+- PR の repository・番号・baseSha・headSha と、固定した出典。仕様を指定しない場合は `spec:null`。
+- 各問題の `id,type,category,prompt,points,referenceIds` と回答方式に必要な項目。
+- `solutions` に正解・解説・採点基準。未回答の画面や静的アセットには配信しない。
+
+保存先は `apps/quiz/questions/pr/<owner>/<repo>/<PR番号>/<問題ID>.json`。PR 問題の問題数・出典数、対象リポジトリ・ディレクトリに独自の上限や許可リストはない。8変更ファイルずつの分割も行わない。ファイル形式・出典の固定版・認証・HTTP サイズなどの入力検証は適用する。保存した版の問題は PR の head が更新された後も回答できる。
+
+```sh
+node apps/quiz/tools/authoring/quiz.mjs check --path apps/quiz/questions/pr/owner/repository/194/example.json
+```
+
+## 3. 問題を公開し、PR へ URL を返す
+
+次のどちらでも公開でき、AI 作問を経由する必要はない。
+
+1. 公開用 JSON を main にコミット・push する。通常の Worker デプロイが問題ファイルを取り込み、`/quiz` の一覧から匿名で回答できる。GitHub App の設定があれば Cron が PR 問題を登録し、Queue が元の PR のコメントと neutral Check に URL を返す。
+2. 別ブランチのファイルを公開する場合は、コミット・push 後に **Prepare quiz materials or publish a quiz** を main 上で実行する。`operation=publish`、`commit=<問題の40文字SHA>`、`path=<問題JSONのパス>` を指定する。Summary に回答 URL が表示され、設定済みなら PR への返却を Queue に依頼する。同じ固定版の再登録は同じ URL になる。
+
+`publish` は出題 Worker の `QUIZ_API_URL` と作問者の Access Service Token を使う。AI API は呼ばない。GitHub App が未設定でも公開・回答でき、その場合の PR 連携結果は `not_configured`。設定済みの `queued` は非同期の投稿依頼済みを表す。PR リンクが出ない場合は Worker のログと App のインストール先・権限を確認する。投稿失敗は outbox と Cron で再試行する。
+
+| 設定先 | 公開・回答・採点に必要な設定 |
+| --- | --- |
+| Worker | [デプロイ設定](deployment.md)。AI 作問の接続は任意 |
+| readRFCInMobile の `quiz-authoring` Environment | 手動 `publish` 用の `QUIZ_API_URL`、`CF_ACCESS_CLIENT_ID`、`CF_ACCESS_CLIENT_SECRET` |
+| Worker の `AUTHOR_SUBJECTS` | 上記 Access Service Token の `service:<common_name>` |
+| `quiz-production` Environment | PR にリンクを返す場合は `QUIZ_GITHUB_APP_ID`・`QUIZ_GITHUB_INSTALLATION_ID`・`QUIZ_GITHUB_APP_PRIVATE_KEY`。App を返却先にインストールし Checks: write・Pull requests: write を付与 |
+| Worker の Access・共通 AI API 設定 | ログイン後の記述式・実装の AI 採点を利用する場合に設定 |
+
+## 任意の AI 作問
+
+保存済み資料から AI に候補を作らせる場合だけ、独立した **Generate a draft quiz with AI (optional)**（`quiz-ai-authoring.yml`）を手動実行する。資料の固定コミット・パスと、問題数・カテゴリを指定する。生成候補は draft として保存し、自動公開しない。
+
+```sh
+node apps/quiz/tools/authoring/quiz.mjs generate --materials apps/quiz/materials/pr/owner/repository/194/material.json --count 2 --categories knowledge,debugging
+```
+
+既存の共通 AI API の契約を使う。入力サイズ・モデル出力の制約があるため、巨大な資料は参照箇所を選ぶか、全文資料をローカルの作問ツールへ渡す。これらの制約は、資料の受信や完成済み PR 問題の公開とは独立している。
+
+## 接続設定の画面操作
+
+以下は、公開・ログイン後の AI 採点・PR へのリンク返却・任意の AI 作問に使う設定です。資料の受け取りには不要で、利用する機能の節を設定します。既存の設定は作り直さず、各節の「完了の確認」で確認できます。
 
 ## 0. 最初に確認すること
 
@@ -14,8 +101,8 @@
 | Cloudflare | 作問用の鍵、作問を許可するルール | 3〜4 |
 | GitHub の個人設定 | PR に投稿するアプリ | 5 |
 | readRFCInMobile の GitHub 設定 | 上で取得した値の登録 | 6 |
-| readRFCInMobile の Actions | 設定の反映、最初の作問・公開 | 7〜10 |
-| maronn-openid-connect の GitHub 設定 | readRFCInMobile の作問を起動する鍵の登録 | 11 |
+| readRFCInMobile の Actions | 設定の反映 | 7 |
+| maronn-openid-connect の GitHub 設定 | 資料保存を依頼する鍵の登録 | [送信側の手順](https://github.com/maronnjapan/maronn-openid-connect/blob/main/docs/pr-quizzes.md) |
 
 GitHub の **Environment** は、設定をまとめて保存する場所です。この手順では `quiz-production` と `quiz-authoring` という名前で作ります。同じ名前でも、リポジトリが違えば別の保存場所です。
 
@@ -26,19 +113,19 @@ GitHub の **Environment** は、設定をまとめて保存する場所です�
 - GitHub で両リポジトリの Settings を編集できること。
 - 問題アプリを置く Cloudflare アカウントを管理できること。このアプリは Workers Paid を前提にしています。
 - 問題アプリのコードが readRFCInMobile の main に入っていること。[作問処理のファイル](https://github.com/maronnjapan/readRFCInMobile/blob/main/.github/workflows/quiz-authoring.yml)が開ければ確認できます。
-- **自動作問には、別の「AI 実行サーバー」が必要です。** このサーバーの実装は、今回の2リポジトリには含まれていません。
+- **ログイン後の AI 採点・任意の AI 作問を使う場合だけ、別の「AI 実行サーバー」が必要です。** このサーバーの実装は、今回の2リポジトリには含まれていません。資料保存や問題ファイルの公開・通常の回答には不要です。
 
 「AI 実行サーバー」は、問題アプリから依頼を受けて Claude を呼び、結果を問題アプリに返すサーバーです。Claude の API キー、ChatGPT の契約、Claude Code のルーチンの URL だけでは代わりになりません。
 
-すでにそのサーバーがある場合は、管理者から次の3点を入手します。
+AI 採点や任意の AI 作問を利用する場合は、管理者から次の接続情報を入手します。
 
 | 入手するもの | あとで登録する名前 | 値の例・確認すること |
 | --- | --- | --- |
-| 作問依頼を受ける HTTPS URL | `AI_EXECUTOR_URL` | `/v1/requests` などを含む**完全な受付 URL** |
+| 採点依頼・任意の作問依頼を受ける HTTPS URL | `AI_EXECUTOR_URL` | `/v1/requests` などを含む**完全な受付 URL** |
 | 問題アプリ用に発行した接続用の鍵 | `AI_EXECUTOR_API_KEY` | サーバーが `Authorization: Bearer` で受け付ける鍵。Claude 自体の API キーとは別 |
-| 実行設定の名前 | `AUTHORING_PROFILE`、`GRADING_PROFILE` | 既定は `quiz-generate-v1`、`quiz-written-v1`。サーバー側に同じ名前の設定が必要 |
+| 実行設定の名前 | `AUTHORING_PROFILE`、`GRADING_PROFILE` | AI 採点は `quiz-written-v1`、任意の AI 作問は `quiz-generate-v1`。利用する機能の設定がサーバー側に必要 |
 
-**AI 実行サーバーがまだない場合、自動作問の動作確認はここでは完了できません。** [AI 実行サーバーの準備状況を確認する](ai-executor-preparation.md)に、必要な実装と、AI サーバーを用意せずに問題を公開する手順を記載しています。以降の画面設定をするだけで AI サーバーが作られるわけではありません。
+AI 採点・任意の AI 作問を利用する場合のサーバー仕様は [AI 実行サーバーの準備状況](ai-executor-preparation.md)を参照します。サーバーがなくても、本書の資料保存と、別途作成した問題 JSON の公開・回答は進められます。
 
 ### 0-3. 問題アプリの URL を控える
 
@@ -47,7 +134,7 @@ GitHub の **Environment** は、設定をまとめて保存する場所です�
 3. **Summary → Quiz deployment → URL** をコピーします。末尾の `/quiz` は付けません。
 4. その URL に `/quiz` を付けてブラウザで開き、既存の問題一覧が表示されることを確認します。
 
-この作業環境で確認した公開先は `https://spec-understanding-quiz.maronn.workers.dev` です。以降はこの値を例にします。別の URL で公開している場合は置き換えてください。
+公開先の例は `https://spec-understanding-quiz.maronn.workers.dev` です。以降はこの値を例にします。別の URL で公開している場合は置き換えてください。
 
 まだ公開処理が成功していない場合は、2で Cloudflare の公開用の鍵を登録し、7で初回公開を実行します。
 
@@ -65,7 +152,7 @@ GitHub の **Environment** は、設定をまとめて保存する場所です�
 | 保存場所 | 用途 |
 | --- | --- |
 | `quiz-production` | 問題アプリ本体に設定を反映するときに使う |
-| `quiz-authoring` | GitHub 上で作問・問題の公開を依頼するときに使う |
+| `quiz-authoring` | 固定版の手動公開・任意の AI 作問に使う。資料保存には不要 |
 
 既存の承認ルールがある場合、Actions の実行時に **Review deployments** から承認する必要があります。両方の処理は main を選んだときに動きます。
 
@@ -97,7 +184,7 @@ GitHub の **Environment** は、設定をまとめて保存する場所です�
 
 **完了の確認：** `quiz-production` に Secret `CLOUDFLARE_API_TOKEN` と Variable `CLOUDFLARE_ACCOUNT_ID` が表示されること。
 
-## 3. Cloudflare で「GitHub からの作問を許可する鍵」を作る
+## 3. Cloudflare で固定版の手動公開・任意の AI 作問用の鍵を作る
 
 1. [Cloudflare](https://dash.cloudflare.com/)で問題アプリを置いたアカウントを開き、**Zero Trust** を開きます。
 2. 初めて開く場合はチーム名を決め、Zero Trust の初期設定を完了します。チーム名は `自分のチーム名.cloudflareaccess.com` の一部になります。
@@ -230,18 +317,17 @@ readRFCInMobile の **Settings → Environments → quiz-production** を開き�
 | `ACCESS_AUD` | 控えた AUD の文字列 | 4-3の Application Audience (AUD) Tag |
 | `AUTHOR_SUBJECTS` | `service:` に3の Client IDを続けた値 | 例：Client ID が `abc123.access` なら `service:abc123.access`。トークンの名前ではありません |
 | `AUTHOR_EMAILS` | 自分のログイン用メールアドレス | 4-2の Allow で許可したメールアドレス |
-| `CODE_REPOSITORIES` | `maronnjapan/readRFCInMobile,maronnjapan/maronn-openid-connect` | この値をそのまま。既存の許可先がある場合は残して追加 |
 | `AI_EXECUTOR_TRANSPORT` | `https` | この値をそのまま |
 | `AI_EXECUTOR_AUTH` | `api-key` | この値をそのまま |
-| `AI_EXECUTOR_URL` | AI 実行サーバーの完全な受付 URL | 0-2で入手した値 |
+| `AI_EXECUTOR_URL` | AI 採点・任意の AI 作問を使う場合に、そのサーバーの受付 URL | 0-2で入手した値 |
 | `AUTHORING_PROFILE` | `quiz-generate-v1`、またはサーバー側で指定された作問設定名 | 0-2で確認した値 |
 | `GRADING_PROFILE` | `quiz-written-v1`、またはサーバー側で指定された採点設定名 | 0-2で確認した値 |
 
-同じ画面の **Secrets** に `AI_EXECUTOR_API_KEY` を追加し、0-2で入手した問題アプリ用の接続の鍵を保存します。Claude 自体の API キーをこの欄へ入れても、この構成の AI 実行サーバーの代わりにはなりません。
+AI 採点・任意の AI 作問を使う場合は、同じ画面の **Secrets** に `AI_EXECUTOR_API_KEY` を追加し、0-2で入手した問題アプリ用の接続の鍵を保存します。Claude 自体の API キーをこの欄へ入れても、この構成の AI 実行サーバーの代わりにはなりません。
 
 `AI_CALLBACK_SECRET` は問題アプリが初回公開時に自動作成します。通常は手作業で作成・変更しません。
 
-**完了の確認：** 次の表に必要な項目が揃っていること。Secret の値が表示されないのは正常です。
+**完了の確認：** 利用する機能の項目が揃っていること。AI の項目は AI 採点・任意の AI 作問、GitHub App の項目は PR への URL 返却、quiz-authoring の項目は固定版の手動公開・任意の AI 作問に使います。資料保存だけならこの接続設定は不要です。Secret の値が表示されないのは正常です。
 
 | readRFCInMobile の保存場所 | 種類 | 名前 |
 | --- | --- | --- |
@@ -262,7 +348,7 @@ readRFCInMobile の **Settings → Environments → quiz-production** を開き�
 
 設定を GitHub に保存しただけでは、稼働中の問題アプリへ反映されません。この公開処理を実行する必要があります。問題の本文・回答を保存するためのデータベースと処理待ちのキューは、この処理が作成・更新します。管理画面で同名のものを追加作成する必要はありません。
 
-### 作問の認証を、AI を使わずに確認する
+### 固定版の手動公開・任意の AI 作問の認証を確認する
 
 ターミナルを開き、`bash` を実行してから次を実行できます。Client ID と Client Secret は3で作った値を入力します。Client Secret の入力内容は画面に表示されません。
 
@@ -282,102 +368,3 @@ unset CF_ACCESS_CLIENT_ID CF_ACCESS_CLIENT_SECRET
 `401`・`403`・ログイン画面なら3〜4と `AUTHOR_SUBJECTS`、`503`なら6〜7を確認します。
 
 **完了の確認：** 問題一覧が開け、上の認証確認で指定した404の JSON が返ること。
-
-## 8. readRFCInMobile から最初の問題を2問だけ作る
-
-まず受け側だけで作問できることを確認します。maronn-openid-connect 側の起動設定は、その後で行います。
-
-1. [Author or publish a quiz (manual)](https://github.com/maronnjapan/readRFCInMobile/actions/workflows/quiz-authoring.yml)を開きます。
-2. **Run workflow** を押し、Branch は **main** を選びます。
-3. 最初は次の値を入力します。PR #194 の2ファイルだけを対象に、知識・誤り発見の問題を作る例です。
-
-| 入力欄 | 入れる値 |
-| --- | --- |
-| `operation` | `generate` |
-| `spec_id` | `rfc-6749` |
-| `code_source` | `maronn-openid-connect` |
-| `pr_number` | `194` |
-| `question_count` | `2` |
-| `question_categories` | `knowledge,debugging` |
-| `focus_paths` | `packages/core/src/client-credentials-grant.ts,packages/core/src/client-credentials-grant.test.ts` |
-| `part` | `1` |
-| `commit` | 空欄 |
-| `path` | 空欄 |
-
-4. **Run workflow** で実行し、新しい実行を開きます。
-5. 処理が終わったら **Summary → 作問候補のレビュー → 候補を見る** を開きます。
-6. 問題・正解・解説を保存した JSON ファイルが開きます。この時点では `"status": "draft"` で、一般の回答者へは公開されていません。
-
-**完了の確認：** 作問処理が成功し、候補ファイルに問題が2問あること。起動だけ成功して結果がない場合は未完了です。
-
-## 9. 問題を確認して、公開する版を保存する
-
-1. 8の Summary に書かれた問題ファイルのパスを控えます。
-2. 候補を見るリンクで開いた URL の `blob/` の直後にある40文字が、その候補を保存したコミット番号です。`quiz/generated-...` という専用ブランチも作成されています。
-3. 作問した Actions の実行画面で **author** を開き、`git switch -c` で始まる保存ステップのログを開きます。`Switched to a new branch 'quiz/generated-...'` に表示されたブランチ名をコピーします。**Code** タブへ戻り、左上のブランチ選択にその名前を貼り付けて選びます。選んだブランチの最新コミット番号が2の番号と一致することを確認します。
-4. 控えたパスのファイルを開きます。問題文、選択肢、`solutions` 内の正解と解説、出典を確認します。間違いがあれば鉛筆の編集ボタンで修正します。
-5. 公開してよければ、ファイル内の `"status": "draft"` を `"status": "published"` に変えます。
-6. **Commit changes** を押し、**Commit directly to the 選択した専用ブランチ** を選んで保存します。main へのマージは、この公開方法では必要ありません。
-7. コミット名のリンクを開き、**40文字の完全なコミット番号**をコピーします。これは5〜6で状態を変更した**後の**番号です。変更前の番号や7文字の短い番号は使いません。
-
-パソコンで形式の検査も行う場合は、次のコマンドでそのブランチを取得します。`作問用ブランチ名` は3でコピーした名前、`問題ファイルのパス` は8の Summary のパスに置き換えます。すでに取得済みの場合は既存のリポジトリで対象ブランチへ切り替えます。
-
-```sh
-git clone --branch '作問用ブランチ名' https://github.com/maronnjapan/readRFCInMobile.git
-cd readRFCInMobile
-npm ci
-node apps/quiz/tools/authoring/quiz.mjs check --path '問題ファイルのパス'
-```
-
-**完了の確認：** 専用ブランチの問題が `published` になっており、その更新を保存した40文字のコミット番号と問題ファイルのパスを控えていること。
-
-## 10. 問題を公開して、回答と PR のリンクを確認する
-
-1. [Author or publish a quiz (manual)](https://github.com/maronnjapan/readRFCInMobile/actions/workflows/quiz-authoring.yml)で **Run workflow** を押します。
-2. Branch を **main**、`operation` を **publish** にします。
-3. `commit` に9-7の40文字のコミット番号、`path` に問題ファイルのパスを入れます。この操作では他の作問入力欄は使用しません。
-4. 実行が成功したら、Summary の **問題に回答する** を開きます。
-5. プライベートウィンドウでも同じ URL を開き、ログインせず回答できることを確認します。
-6. [maronn-openid-connect の対象 PR](https://github.com/maronnjapan/maronn-openid-connect/pull/194)を開きます。
-7. **Conversation** に問題へのリンクが付き、**Checks** に **仕様理解クイズ** が出ることを確認します。表示されるのは回答件数・採点済み件数で、個人の回答本文は投稿されません。
-
-Summary の `PR 連携: queued` は投稿の処理待ちを意味します。少し待って7を確認します。`not_configured` なら、問題は公開できていますが5の GitHub App の設定が必要です。
-
-**完了の確認：** 公開 URL で問題を解け、対象 PR からその URL を開けること。
-
-## 11. maronn-openid-connect 側の起動設定をする
-
-ここまでで readRFCInMobile から作問・公開できます。次に、maronn-openid-connect の画面から同じ作問を起動できるようにします。
-
-1. [maronn-openid-connect の手順書](https://github.com/maronnjapan/maronn-openid-connect/blob/main/docs/pr-quizzes.md)を開きます。まだ main にない場合は、[追加 PR #195](https://github.com/maronnjapan/maronn-openid-connect/pull/195)の変更を先に反映します。
-2. そちらの手順1〜3で、readRFCInMobile の処理を起動できる GitHub の鍵を作り、maronn-openid-connect に保存します。
-3. 同手順4で PR #194 の2問を依頼します。
-4. readRFCInMobile 側に新しい作問実行が現れたことを確認します。
-
-**完了の確認：** maronn-openid-connect の実行だけでなく、readRFCInMobile 側で候補の作成まで成功すること。
-
-## 12. 次からの使い方
-
-1. maronn-openid-connect の **Actions → Request a PR quiz** を開き、作問したい PR 番号を入れます。
-2. 最初は小さい対象パス・2問で作問し、慣れてから対象や問題数を広げます。
-3. readRFCInMobile 側で候補を確認し、9〜10の手順で公開します。
-4. 仕様と照合しない、PR の変更内容だけの問題なら `spec_id` を空欄にします。
-
-対象の変更が多い場合、パス順に8ファイルずつ分かれます。`part=1` の次は `part=2` として作問します。全体のうち何番目かは作問資料と候補の説明に残ります。PR が更新された場合は新しく作問します。古い回答は元の問題の版に残ります。
-
-## 困ったときに確認する場所
-
-| 起きたこと | 確認・修正する場所 |
-| --- | --- |
-| Actions に処理名が見当たらない | そのリポジトリの main に `.github/workflows/` のファイルがあるか。PR のブランチにだけある場合は main への反映が必要 |
-| 処理が承認待ち | 実行画面の Review deployments。Environment の既存の承認ルールを確認 |
-| `QUIZ_API_URL` が必要と言われる | readRFCInMobile の **quiz-authoring → Variables** に問題アプリの URL を保存 |
-| `401`・`403`・Cloudflare のログイン画面 | 3〜4の Service Token、Service Auth ポリシー、6の `AUTHOR_SUBJECTS`、4-3の AUD とチーム URL を確認 |
-| 作問が長く待機し、AI 実行 API のエラーになる | 0-2の AI サーバーの有無、6の受付 URL・接続用の鍵・実行設定名と、サーバー側の実行・結果配送を確認 |
-| 公開できない | 保存したファイルが `published` か、変更後の40文字のコミット番号か、`path` が完全一致するか確認 |
-| 問題は解けるが PR にリンクがない | 5の App ID・Installation ID・秘密鍵・インストール先・権限、6の `CODE_REPOSITORIES`、7の設定反映を確認 |
-| 設定を変えたのに変わらない | quiz-production の値は7の公開処理を再実行して反映。起動用トークンは登録先リポジトリ・Environment も確認 |
-
-実装の契約は [AI 実行サーバーとの接続仕様](ai-executor-contract.md)、公開処理の詳細は [デプロイの説明](deployment.md)、問題形式は [作問用スキル](../../../skills/quiz-authoring/SKILL.md)にあります。
-
-画面名の確認には Cloudflare 公式の [Service Tokens](https://developers.cloudflare.com/cloudflare-one/access-controls/service-credentials/service-tokens/)、[Workers と Access](https://developers.cloudflare.com/workers/configuration/cloudflare-access/)、[保護対象パス](https://developers.cloudflare.com/cloudflare-one/access-controls/policies/app-paths/)を参照しています。

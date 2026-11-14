@@ -10,3 +10,9 @@ export function questionFilePath(artifact) {
     ? `${QUESTION_DIRECTORY}/pr/${artifact.pullRequest.repository}/${artifact.pullRequest.number}/${artifact.id}.json`
     : `${QUESTION_DIRECTORY}/spec/${artifact.spec.id}.json`;
 }
+
+export function materialFilePath(context) {
+  return context.pullRequest
+    ? `apps/quiz/materials/pr/${context.pullRequest.repository}/${context.pullRequest.number}/${context.id}.json`
+    : `apps/quiz/materials/spec/${context.id}.json`;
+}

@@ -75,7 +75,6 @@ npm run deploy:workers
 - `AI_EXECUTOR_TRANSPORT=https`, `AI_EXECUTOR_AUTH=api-key`: 現在の共通 AI API 呼び出し方式
 - `QUESTION_REPOSITORY`: 問題を読む公開リポジトリ
 - `QUESTION_DEFAULT_BRANCH`: 定番問題を管理する標準ブランチ（既定 `main`）。仕様問題の公開時は、そのコミットが標準ブランチの履歴に含まれることを確認する
-- `CODE_REPOSITORIES`: PR 連携を許可する公開リポジトリ（カンマ区切り）
 - `ACCESS_ISSUER`, `ACCESS_AUD`: Cloudflare Access アプリの issuer と Application Audience
 - `AUTHOR_SUBJECTS` または `AUTHOR_EMAILS`: 作問・公開を許可する Access の subject／メールアドレス。Access Service Token は JWT の `sub` が空なので、署名検証した `common_name` に `service:` を付けた値（例: `service:abc123.access`）を `AUTHOR_SUBJECTS` に含める
 - 共通 AI API の接続先は [非同期 AI 実行契約](ai-executor-contract.md) に対応させる
@@ -112,7 +111,11 @@ Service binding を使用する場合は、標準の HTTPS 設定から明示的
 
 ローカル開発は `npm run db:migrate:local` と `npm run dev` を使う。通常回答はAccess設定なしで確認できる。AI採点・作問は `.dev.vars.example` を `.dev.vars` にコピーして設定し、対応するAccess・共通AI APIの開発環境に接続する。依存サービスを使用せず確認する場合は、統合テストのモックを使う。有料AI操作の認証を省略する本番コード用スイッチは設けていない。
 
-## 手動で作問する
+## 資料の準備と、別途の作問
+
+完成済みの問題 JSON があれば、AI 作問 API を使わず公開・回答できる。[問題ファイルだけで公開する手順](question-files.md)と[PR 連携](pr-integration.md)を参照する。
+
+`prepare` は取得した全文資料を `apps/quiz/materials/` へ保存し、AI や出題 API を呼ばない。ローカルの Claude Code・手作業・外部の AI API などで、その資料から問題を別途作る。次の `generate` は、既存の共通 AI API で候補を作る場合だけ明示的に実行する任意の操作。
 
 仕様だけの場合、コードの取得は不要。
 
@@ -128,28 +131,30 @@ node tools/authoring/quiz.mjs generate --spec rfc-7591 --count 2 --categories kn
 ```sh
 node tools/authoring/quiz.mjs generate --spec rfc-7523 --source reader --ref main
 node tools/authoring/quiz.mjs generate --spec rfc-7523 --source reader --pr 42
-node tools/authoring/quiz.mjs generate --spec rfc-6749 --source maronn-openid-connect --pr 194 --paths packages/core/src/ --part 1
-node tools/authoring/quiz.mjs prepare --source maronn-openid-connect --pr 194 --paths packages/core/src/ --part 1
+node tools/authoring/quiz.mjs prepare --source maronn-openid-connect --pr 194
+node tools/authoring/quiz.mjs prepare --spec rfc-6749 --source maronn-openid-connect --pr 194 --paths packages/core/src/
+# 保存した資料から任意の AI 作問を依頼する場合だけ:
+node tools/authoring/quiz.mjs generate --materials apps/quiz/materials/pr/owner/repo/194/material.json
 ```
 
-必要な環境変数:
+任意の AI 作問・固定版の手動登録に使う環境変数（資料保存と、main に保存した問題の出題には不要）:
 
 - `QUIZ_API_URL`: 出題 Worker の HTTPS URL
 - `CF_ACCESS_CLIENT_ID`, `CF_ACCESS_CLIENT_SECRET`: 作問用 Access Service Token。CLI は Access の入口へ送り、Claude キーは扱わない
 - `QUESTION_REPOSITORY`: 仕様・問題リポジトリ（省略時は本リポジトリ）
 - `GITHUB_TOKEN`: 公開資料の取得用（任意。指定した場合も GitHub だけに送る）
 
-ツールは仕様を `git show <固定SHA>:<path>` で読み、コードの標準ブランチや PR の base/head を開始時に SHA へ解決する。取得先が公開リポジトリかを確認し、許可パスのファイル名・本文の検索語からコード・関連テストを読む。PR は差分と変更前・変更後を資料に含める。取得したコードを実行したり、そのコードの CI を権限付きで実行したりしない。
+ツールは仕様を `git show <固定SHA>:<path>` で読み、コードの標準ブランチや PR の base/head を開始時に SHA へ解決する。取得先が公開リポジトリかを確認し、PR の変更一覧と前後コード・関連テストを読む。PR のリポジトリ・ディレクトリを許可リストで制限しない。取得したコードを実行したり、そのコードの CI を権限付きで実行したりしない。
 
-仕様は検索語に関連する本文を先頭の説明とともに最大6か所読む。PR は対象パスを指定でき、変更ファイルをパス順で8件ずつ分割する。選択した差分と前後コードに加え、対応する既存テストを最大2件取得する。PR 本文と議論は取得時刻付きの抜粋を保存する。PR 以外のコード候補は最大10ファイル。対象外の箇所や API が省略した差分を確認済みにしない。変更前が許可パス外になる rename は古いパスの本文を取得しない。ベクトル化・ベクトル DB は使用しない。仕様を指定しない PR 単独の作問もできる。設定・版・範囲の扱いは [PR 連携の手順](pr-integration.md)を参照する。
+PR の対象パスは任意指定で、既定は変更ファイル全体。8ファイル分割は行わない。取得できる全文コード・本文・議論・差分は資料 JSON の `files` に保存する。AI 用の `context.references` は行番号付きの抜粋で、仕様も検索語に関連する抜粋を最大6か所選ぶ。全文資料と抜粋を区別し、API が省略した箇所を確認済みにしない。PR 以外のコード候補の自動選択は最大10ファイル。ベクトル化・ベクトル DB は使用しない。
 
-生成候補にはカテゴリ、回答方式、正解、配点付き採点基準、解説、固定版の出典と参照理由、仕様・実装の不整合を記録する。指定カテゴリを各1問以上含むことを結果受信時に検証する。問題数は2〜10問、指定カテゴリ数以上とする。出典は GitHub のコミット固定リンクで確認できる。候補は `draft` で保存し、自動公開しない。
+生成候補にはカテゴリ、回答方式、正解、配点付き採点基準、解説、固定版の出典と参照理由、仕様・実装の不整合を記録する。任意の AI 作問では指定カテゴリを各1問以上含むことを結果受信時に検証する。PR の問題数は正の整数で、仕様のみの AI 作問は2〜10問。指定カテゴリ数以上の問題数を選ぶ。AI 作問候補は `draft` で保存し、自動公開しない。資料を受け取る CI は作問を開始しない。
 
 ## レビュー・固定版の公開
 
 1. 候補の問題、選択肢、正解、記述式の配点・採点基準、出典の行、不整合を確認する。
 2. `node tools/authoring/quiz.mjs check --path apps/quiz/questions/spec/rfc-7523.json` で形式を検査する。
-3. レビュー後に `status` を `published` にする。定番問題は main、PR 固有の問題は専用ブランチへコミット・push する。
+3. 内容を確認して `status` を `published` にする。定番問題・PR 問題とも main、または固定版を公開する専用ブランチへコミット・push する。
 4. mainの公開済みファイルはデプロイ時に自動で出題される。別ブランチや過去の固定版を追加登録する場合は、その **40文字のコミット SHA** とパスを指定する。
 
 ```sh
@@ -159,7 +164,7 @@ node tools/authoring/quiz.mjs publish --commit <40文字のSHA> --path apps/quiz
 
 取り込みは同じリポジトリ・コミット・パスなら同じ出題セットになり、後からブランチやファイルを変更しても既存回答の版は変わらない。更新版は新しいセットとして公開する。ファイル移動前の `questions/spec/`・`questions/pr/` のパスも、固定SHAによる取り込みに対応する。RFC 7523の従来形式、従来6カテゴリの [RFC 7591サンプル](../questions/spec/rfc-7591.json)、ケースに基づく [RFC 7591実装問題](../questions/spec/rfc-7591-implementation.json)を収録している。
 
-GitHub Actions の **Author or publish a quiz (manual)** でも実行できる。`quiz-authoring` Environment を作成し、承認する担当者・main のブランチ制限と上記 Access の2つの Secrets、`QUIZ_API_URL` の Variable を設定する。ワークフロー自身も main 上での `workflow_dispatch` だけを許可する。生成候補は `quiz/generated-<run>-<attempt>` ブランチへ保存する。公開は別の手動実行で SHA を指定する。
+GitHub Actions の **Prepare quiz materials or publish a quiz** は、`prepare` で資料保存、`publish` で作成済み固定版の公開を行う。旧 `operation=generate` は資料保存の互換入力。資料保存のジョブは AI・Access の Secrets を参照しない。任意の AI 作問は、独立した **Generate a draft quiz with AI (optional)** から手動で実行する。手動公開と任意の AI 作問に使う `quiz-authoring` Environment には main のブランチ制限と上記 Access の2つの Secrets、`QUIZ_API_URL` の Variable を設定する。
 
 通常の `pull_request` 検証ワークフローは `contents: read` のみで、AI 実行用 Environment・Secrets・Service Token を参照しない。`pull_request_target` や PR 更新による有料処理の自動開始は使用しない。
 
@@ -215,7 +220,7 @@ npx wrangler secret put GITHUB_APP_PRIVATE_KEY
 | `GET /api/quiz/config` | 匿名でも取得できるログイン状態・作問権限 |
 | `GET /api/question-sets[?spec=ID]` | 公開セット一覧 |
 | `GET /api/question-sets/:id` | 正解・採点基準を含まない出題データ |
-| `POST /api/question-sets/import` | 作問権限でレビュー済み固定版を公開 |
+| `POST /api/question-sets/import` | 作問権限で作成済みの公開用固定版を登録。AI 作問の履歴は不要 |
 | `POST /api/authoring/requests` | 作問権限で生成を依頼、`202` |
 | `GET /api/authoring/requests/:id` | 作問権限で候補・状態を取得 |
 | `GET/POST /api/question-sets/:id/attempts` | 自分の回答履歴／回答開始。POSTは任意の`{"implementationMode":"code"}` / `{"implementationMode":"reading"}`で実装問題の形式を指定 |

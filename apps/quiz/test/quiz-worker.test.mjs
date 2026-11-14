@@ -80,6 +80,30 @@ test('published sets are pinned, exclude grading secrets, and support spec-only 
   assert.equal((await worker.client('author')('/api/question-sets/import', { method: 'POST', body: { repository: 'maronnjapan/readRFCInMobile', commit: 'b'.repeat(40), path: 'questions/spec/draft.json' } })).status, 400);
 });
 
+test('manually authored PR files publish without an AI job, GitHub App or repository allowlist', async () => {
+  const artifact = pullRequestFixture();
+  artifact.pullRequest.repository = 'another/project';
+  for (const reference of artifact.references) reference.repository = 'another/project';
+  const choice = artifact.questions[0], solution = artifact.solutions[choice.id];
+  artifact.questions = Array.from({ length: 31 }, (_, i) => ({ ...choice, id: `manual-${i}` }));
+  artifact.solutions = Object.fromEntries(artifact.questions.map((q) => [q.id, solution]));
+  const executions = worker.executions.size;
+  const published = await worker.publish(artifact, '9'.repeat(40));
+  assert.equal(published.prIntegration, 'not_configured');
+  const anonymous = worker.anonymousClient();
+  const set = await (await anonymous(`/api/question-sets/${published.id}`)).json();
+  assert.equal(set.questions.length, 31);
+  assert.equal(set.pullRequest.repository, 'another/project');
+  assert.equal(set.solutions, undefined);
+  const started = await (await anonymous(`/api/question-sets/${published.id}/attempts`, { method: 'POST', body: {} })).json();
+  for (const question of set.questions) {
+    const response = await anonymous(`/api/attempts/${started.id}/instant-answers`, { method: 'POST', body: { questionId: question.id, answer: solution.answer } });
+    assert.equal(response.status, 200);
+  }
+  assert.equal((await (await anonymous(`/api/attempts/${started.id}`)).json()).status, 'graded');
+  assert.equal(worker.executions.size, executions);
+});
+
 test('choice scoring is immediate; written answers are saved before a separate grading request', async () => {
   const run = await attempt();
   const { call, set, attempt: state } = run;

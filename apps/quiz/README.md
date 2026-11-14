@@ -6,7 +6,7 @@ Cloudflare Workers Paid・Hono・D1・Queuesで動く問題アプリ。API、PC�
 
 AIが作問するときの共通skillはリポジトリ直下の [skills/quiz-authoring/SKILL.md](../../skills/quiz-authoring/SKILL.md)。`.agents/skills/quiz-authoring`・`.claude/skills/quiz-authoring`の両方から同じファイルを参照する。
 
-maronn-openid-connect の PR は、仕様を指定した作問・PR 単独の作問と、対象パス・分割番号による範囲指定に対応する。初期設定は [画面操作を順に記した PR 連携の手順](docs/pr-integration.md)を参照する。Cloudflare の鍵・許可ルール、GitHub App、各値の保存先、最初の作問・公開までを記載している。外部の AI 実行サーバーがない場合は [準備状況の確認と ChatGPT / Codex からの作問手順](docs/ai-executor-preparation.md)を使う。
+maronn-openid-connect から受け取った PR 情報は作問資料として保存する。資料から問題を作る方法は、ローカルの Claude Code・手作業・任意の AI API などから別途選ぶ。完成済みの問題 JSON があれば AI 作問なしで公開・回答でき、PR のコメントと Check に回答 URL を返せる。PR の変更ファイル数・問題数・対象リポジトリに独自の制限は設けない。[PR 連携](docs/pr-integration.md)と[問題ファイルだけで公開する手順](docs/question-files.md)を参照する。接続設定の画面操作は [PR 連携の設定詳細](docs/pr-integration.md#接続設定の画面操作)、任意の AI 接続の準備は [AI 実行サーバーの説明](docs/ai-executor-preparation.md)に記載している。
 
 ## 収録している DPoP 問題集
 

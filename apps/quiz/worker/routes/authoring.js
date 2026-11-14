@@ -12,8 +12,9 @@ authoringRoutes.post('/', async (c) => {
   const body = await readJson(c.req.raw);
   const { id: logicalId, title, spec, references, pullRequest } = validateContext(body.context);
   const context = { id: logicalId, title, spec, references, ...(pullRequest ? { pullRequest } : {}) };
-  if (!text(body.material, 100000) || !Number.isInteger(body.questionCount) || body.questionCount < 2 || body.questionCount > 10) {
-    fail('資料と問題数（2〜10問）が必要です。');
+  if (!text(body.material, 100000) || !Number.isSafeInteger(body.questionCount) || body.questionCount < 1
+      || (!pullRequest && (body.questionCount < 2 || body.questionCount > 10))) {
+    fail('資料と正の整数の問題数が必要です。仕様のみの AI 作問は2〜10問です。');
   }
   const questionCategories = validateCategories(body.questionCategories, body.questionCount);
   const user = c.get('user');

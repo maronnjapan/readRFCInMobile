@@ -1,23 +1,24 @@
-name: Author or publish a quiz (manual)
+name: Prepare quiz materials or publish a quiz
 
 on:
   workflow_dispatch:
     inputs:
       operation:
         type: choice
-        options: [generate, publish]
+        description: prepare は資料保存、publish は作成済み問題の公開。generate は旧送信側向けの prepare 互換
+        options: [prepare, publish, generate]
         required: true
       spec_id:
         description: apps/quiz/specs/index.json の ID (空なら PR のみ)
       code_source:
-        description: apps/quiz/code-sources.yaml の ID (空なら仕様のみ)
+        description: 参照先の ID または owner/repository (空なら仕様のみ)
       pr_number:
-        description: 対象 PR 番号 (任意。code_source が必要)
+        description: 資料を取得する PR 番号 (code_source が必要。AI は実行しない)
       question_count:
-        description: 問題数 (2〜10。選択したカテゴリ数以上)
+        description: 任意の作問メモとして保存する問題数
         default: '7'
       question_categories:
-        description: 出題カテゴリ (カンマ区切り)
+        description: 任意の作問メモとして保存するカテゴリ (カンマ区切り)
         default: vocabulary,knowledge,flow,design,debugging,comparison,implementation
       commit:
         description: 公開する問題ファイルの固定コミット (publish の場合)
@@ -26,34 +27,26 @@ on:
       focus_paths:
         description: 作問対象のファイル・ディレクトリ (カンマ区切り。ディレクトリは末尾 /)
       part:
-        description: PR の分割番号 (8変更ファイルずつ。1から開始)
+        description: 旧送信側との互換用。分割はせず、対象の変更ファイルをすべて取得する
         default: '1'
 
 permissions:
   contents: write
 
 jobs:
-  author:
-    if: github.ref == 'refs/heads/main'
+  prepare:
+    if: github.ref == 'refs/heads/main' && (inputs.operation == 'prepare' || inputs.operation == 'generate')
     runs-on: ubuntu-latest
     timeout-minutes: 40
-    environment: quiz-authoring
     env:
-      QUIZ_API_URL: ${{ vars.QUIZ_API_URL }}
       QUESTION_REPOSITORY: ${{ github.repository }}
-      CF_ACCESS_CLIENT_ID: ${{ secrets.CF_ACCESS_CLIENT_ID }}
-      CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
       GITHUB_TOKEN: ${{ github.token }}
-      OPERATION: ${{ inputs.operation }}
       SPEC_ID: ${{ inputs.spec_id }}
       CODE_SOURCE: ${{ inputs.code_source }}
       PR_NUMBER: ${{ inputs.pr_number }}
       QUESTION_COUNT: ${{ inputs.question_count }}
       QUESTION_CATEGORIES: ${{ inputs.question_categories }}
-      PUBLISH_COMMIT: ${{ inputs.commit }}
-      PUBLISH_PATH: ${{ inputs.path }}
       FOCUS_PATHS: ${{ inputs.focus_paths }}
-      PART: ${{ inputs.part || '1' }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -63,32 +56,53 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - id: generate
-        if: env.OPERATION == 'generate'
+      - id: prepare
         shell: bash
         run: |
-          args=(generate --spec "$SPEC_ID" --count "$QUESTION_COUNT" --categories "$QUESTION_CATEGORIES")
+          args=(prepare --spec "$SPEC_ID" --count "$QUESTION_COUNT" --categories "$QUESTION_CATEGORIES")
           if [[ -n "$CODE_SOURCE" ]]; then args+=(--source "$CODE_SOURCE"); fi
           if [[ -n "$PR_NUMBER" ]]; then args+=(--pr "$PR_NUMBER"); fi
           if [[ -n "$FOCUS_PATHS" ]]; then args+=(--paths "$FOCUS_PATHS"); fi
-          args+=(--part "$PART")
           node apps/quiz/tools/authoring/quiz.mjs "${args[@]}"
-      - if: env.OPERATION == 'generate'
+      - name: Save materials for separate authoring
         env:
-          GENERATED_PATH: ${{ steps.generate.outputs.path }}
+          MATERIAL_PATH: ${{ steps.prepare.outputs.path }}
         run: |
-          git switch -c "quiz/generated-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          git switch -c "quiz/materials-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -- "$GENERATED_PATH"
-          git commit -m 'Generate draft quiz for review'
+          git add -- "$MATERIAL_PATH"
+          git commit -m 'Save quiz materials for separate authoring'
           git push origin HEAD
           {
-            echo '### 作問候補のレビュー'
-            echo "[候補を見る](https://github.com/${GITHUB_REPOSITORY}/blob/$(git rev-parse HEAD)/${GENERATED_PATH})"
+            echo '### 作問資料を保存しました'
+            echo "[資料を見る](https://github.com/${GITHUB_REPOSITORY}/blob/$(git rev-parse HEAD)/${MATERIAL_PATH})"
             echo
-            echo 'レビュー後に status を published に変更してコミット・push し、同じ Workflow の publish を実行してください。'
-            echo "問題ファイル: ${GENERATED_PATH}"
+            echo '保存した資料から、ローカルの Claude Code・手作業・任意の AI API などで問題 JSON を別途作成してください。'
+            echo '公開用 JSON を main に反映してデプロイするか、固定コミットと問題パスを指定して publish を実行できます。'
+            echo "資料ファイル: ${MATERIAL_PATH}"
           } >> "$GITHUB_STEP_SUMMARY"
-      - if: env.OPERATION == 'publish'
+
+  publish:
+    if: github.ref == 'refs/heads/main' && inputs.operation == 'publish'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    environment: quiz-authoring
+    env:
+      QUIZ_API_URL: ${{ vars.QUIZ_API_URL }}
+      QUESTION_REPOSITORY: ${{ github.repository }}
+      CF_ACCESS_CLIENT_ID: ${{ secrets.CF_ACCESS_CLIENT_ID }}
+      CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
+      PUBLISH_COMMIT: ${{ inputs.commit }}
+      PUBLISH_PATH: ${{ inputs.path }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Publish an existing question file and return its URL
         run: node apps/quiz/tools/authoring/quiz.mjs publish --commit "$PUBLISH_COMMIT" --path "$PUBLISH_PATH"

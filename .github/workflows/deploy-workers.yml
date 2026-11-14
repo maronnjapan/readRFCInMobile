@@ -80,7 +80,6 @@ jobs:
           AI_EXECUTOR_URL: ${{ vars.AI_EXECUTOR_URL }}
           AI_EXECUTOR_TRANSPORT: ${{ vars.AI_EXECUTOR_TRANSPORT }}
           AI_EXECUTOR_AUTH: ${{ vars.AI_EXECUTOR_AUTH }}
-          CODE_REPOSITORIES: ${{ vars.CODE_REPOSITORIES }}
           QUESTION_REPOSITORY: ${{ github.repository }}
           QUESTION_DEFAULT_BRANCH: ${{ vars.QUESTION_DEFAULT_BRANCH }}
           AUTHORING_PROFILE: ${{ vars.AUTHORING_PROFILE }}
