@@ -21,6 +21,20 @@ maronn-openid-connect の PR は、仕様を指定した作問・PR 単独の作
 
 仕様 ID は共通の `rfc-9449` です。mainに保存してデプロイすると、4ファイルが取り込み操作なしで `/quiz?spec=rfc-9449` に並び、ログインなしで回答できます。公開方法は[問題集の手順](docs/rfc-9449-dpop.md#問題アプリで使う場合)を参照してください。
 
+[発展問題集（128 問）](docs/rfc-9449-dpop-advanced.md)は、要件の強さ・条件・主語の読み分けと、DPoP が土台にしている仕様を扱う 7 セットです。選択式 107 問・並べ替え 5 問・記述式 8 問・実装 8 問で、選択式の誤答は一か所だけ違うように作っています。RFC 9449 以外の出典は、`rfcs/` に保存した関連 RFC の本文（コミット `1ae11d196faad317d95d4d02e402621dcde76d49`）に固定しています。
+
+| セット | 問題データ |
+| --- | --- |
+| 5. 精読 — 要件の強さ・条件・主語 | [rfc-9449-05-close-reading.json](questions/spec/rfc-9449-05-close-reading.json) |
+| 6. JOSE の土台 — JWS・JWK・JWA・JWT | [rfc-9449-06-jose.json](questions/spec/rfc-9449-06-jose.json) |
+| 7. 鍵の結び付け — JWK Thumbprint・cnf・introspection | [rfc-9449-07-key-binding.json](questions/spec/rfc-9449-07-key-binding.json) |
+| 8. HTTP の細部 — メソッド・URI・認証ヘッダー | [rfc-9449-08-http.json](questions/spec/rfc-9449-08-http.json) |
+| 9. 相互運用 — メタデータ・登録・PAR・PKCE | [rfc-9449-09-metadata-par.json](questions/spec/rfc-9449-09-metadata-par.json) |
+| 10. 方式比較と脅威モデル — mTLS・Bearer・セキュリティ BCP | [rfc-9449-10-design-threats.json](questions/spec/rfc-9449-10-design-threats.json) |
+| 11. 実装 — DPoP の処理を自分で書く | [rfc-9449-11-implementation.json](questions/spec/rfc-9449-11-implementation.json) |
+
+7 ファイルは公開前の候補で、`status` は `draft` です。draft のファイルはデプロイ時の出題対象に入りません。レビュー後に `published` にして main に反映すると、基本の 4 セットと同じ `/quiz?spec=rfc-9449` に並びます。
+
 ## コードの入口
 
 まず `worker/app.js` を読むと、画面・APIと認証の適用範囲が分かる。`worker/index.js` はWorkersのfetch・queue・scheduledの接続だけを担当する。

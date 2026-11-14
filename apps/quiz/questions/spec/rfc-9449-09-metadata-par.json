@@ -1,0 +1,1040 @@
+{
+  "format": "spec-understanding-quiz",
+  "version": 1,
+  "id": "rfc-9449-09-metadata-par",
+  "title": "RFC 9449 DPoP 発展 5/7: 相互運用 — メタデータ・登録・PAR・PKCE",
+  "status": "draft",
+  "spec": {
+    "id": "rfc-9449",
+    "status": "adopted",
+    "repository": "maronnjapan/readRFCInMobile",
+    "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+    "path": "rfcs/rfc9449.txt"
+  },
+  "references": [
+    {
+      "id": "client-metadata",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 662,
+      "endLine": 682,
+      "reason": "§5.2: dpop_bound_access_tokens の既定値と要求",
+      "excerpt": "5.2.  Client Registration Metadata\n\n   The Dynamic Client Registration Protocol [RFC7591] defines an API for\n   dynamically registering OAuth 2.0 client metadata with authorization\n   servers.  The metadata defined by [RFC7591], and registered\n   extensions to it, also imply a general data model for clients that is\n   useful for authorization server implementations even when the Dynamic\n   Client Registration Protocol isn't in play.  Such implementations\n   will typically have some sort of user interface available for\n   managing client configuration.\n\n   This document introduces the following client registration metadata\n   [RFC7591] parameter to indicate that the client always uses DPoP when\n   requesting tokens from the authorization server.\n\n   dpop_bound_access_tokens:  A boolean value specifying whether the\n      client always uses DPoP for token requests.  If omitted, the\n      default value is false.\n\n   If the value is true, the authorization server MUST reject token\n   requests from the client that do not contain the DPoP header."
+    },
+    {
+      "id": "prm-params",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc9728.txt",
+      "startLine": 227,
+      "endLine": 288,
+      "reason": "§2: bearer_methods_supported から DPoP 関連メタデータまで",
+      "excerpt": "   bearer_methods_supported\n      OPTIONAL.  JSON array containing a list of the supported methods\n      of sending an OAuth 2.0 bearer token [RFC6750] to the protected\n      resource.  Defined values are [\"header\", \"body\", \"query\"],\n      corresponding to Sections 2.1, 2.2, and 2.3 of [RFC6750].  The\n      empty array [] can be used to indicate that no bearer methods are\n      supported.  If this entry is omitted, no default bearer methods\n      supported are implied, nor does its absence indicate that they are\n      not supported.\n\n   resource_signing_alg_values_supported\n      OPTIONAL.  JSON array containing a list of the JWS [JWS] signing\n      algorithms (alg values) [JWA] supported by the protected resource\n      for signing resource responses, for instance, as described in\n      [FAPI.MessageSigning].  No default algorithms are implied if this\n      entry is omitted.  The value none MUST NOT be used.\n\n   resource_name\n      Human-readable name of the protected resource intended for display\n      to the end user.  It is RECOMMENDED that protected resource\n      metadata include this field.  The value of this field MAY be\n      internationalized, as described in Section 2.1.\n\n   resource_documentation\n      OPTIONAL.  URL of a page containing human-readable information\n      that developers might want or need to know when using the\n      protected resource.  The value of this field MAY be\n      internationalized, as described in Section 2.1.\n\n   resource_policy_uri\n      OPTIONAL.  URL of a page containing human-readable information\n      about the protected resource's requirements on how the client can\n      use the data provided by the protected resource.  The value of\n      this field MAY be internationalized, as described in Section 2.1.\n\n   resource_tos_uri\n      OPTIONAL.  URL of a page containing human-readable information\n      about the protected resource's terms of service.  The value of\n      this field MAY be internationalized, as described in Section 2.1.\n\n   tls_client_certificate_bound_access_tokens\n      OPTIONAL.  Boolean value indicating protected resource support for\n      mutual-TLS client certificate-bound access tokens [RFC8705].  If\n      omitted, the default value is false.\n\n   authorization_details_types_supported\n      OPTIONAL.  JSON array containing a list of the authorization\n      details type values supported by the resource server when the\n      authorization_details request parameter [RFC9396] is used.\n\n   dpop_signing_alg_values_supported\n      OPTIONAL.  JSON array containing a list of the JWS alg values\n      (from the \"JSON Web Signature and Encryption Algorithms\" registry\n      [IANA.JOSE]) supported by the resource server for validating\n      Demonstrating Proof of Possession (DPoP) proof JWTs [RFC9449].\n\n   dpop_bound_access_tokens_required\n      OPTIONAL.  Boolean value specifying whether the protected resource\n      always requires the use of DPoP-bound access tokens [RFC9449].  If\n      omitted, the default value is false.\n\n   Additional protected resource metadata parameters MAY also be used."
+    },
+    {
+      "id": "as-metadata",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 651,
+      "endLine": 660,
+      "reason": "§5.1: dpop_signing_alg_values_supported",
+      "excerpt": "5.1.  Authorization Server Metadata\n\n   This document introduces the following authorization server metadata\n   [RFC8414] parameter to signal support for DPoP in general and the\n   specific JWS alg values the authorization server supports for DPoP\n   proof JWTs.\n\n   dpop_signing_alg_values_supported:  A JSON array containing a list of\n      the JWS alg values (from the [IANA.JOSE.ALGS] registry) supported\n      by the authorization server for DPoP proof JWTs."
+    },
+    {
+      "id": "asm-response",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc8414.txt",
+      "startLine": 511,
+      "endLine": 524,
+      "reason": "§3.2: 要素数 0 のメタデータは省略する",
+      "excerpt": "3.2.  Authorization Server Metadata Response\n\n   The response is a set of claims about the authorization server's\n   configuration, including all necessary endpoints and public key\n   location information.  A successful response MUST use the 200 OK HTTP\n   status code and return a JSON object using the \"application/json\"\n   content type that contains a set of claims as its members that are a\n   subset of the metadata values defined in Section 2.  Other claims MAY\n   also be returned.\n\n   Claims that return multiple values are represented as JSON arrays.\n   Claims with zero elements MUST be omitted from the response.\n\n   An error response uses the applicable HTTP status code value."
+    },
+    {
+      "id": "syntax",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 393,
+      "endLine": 448,
+      "reason": "§4.2: JOSE ヘッダー、必須クレーム、ath と nonce",
+      "excerpt": "4.2.  DPoP Proof JWT Syntax\n\n   A DPoP proof is a JWT [RFC7519] that is signed (using JSON Web\n   Signature (JWS) [RFC7515]) with a private key chosen by the client\n   (see below).  The JOSE Header of a DPoP JWT MUST contain at least the\n   following parameters:\n\n   typ:  A field with the value dpop+jwt, which explicitly types the\n      DPoP proof JWT as recommended in Section 3.11 of [RFC8725].\n\n   alg:  An identifier for a JWS asymmetric digital signature algorithm\n      from [IANA.JOSE.ALGS].  It MUST NOT be none or an identifier for a\n      symmetric algorithm (Message Authentication Code (MAC)).\n\n   jwk:  Represents the public key chosen by the client in JSON Web Key\n      (JWK) [RFC7517] format as defined in Section 4.1.3 of [RFC7515].\n      It MUST NOT contain a private key.\n\n   The payload of a DPoP proof MUST contain at least the following\n   claims:\n\n   jti:  Unique identifier for the DPoP proof JWT.  The value MUST be\n      assigned such that there is a negligible probability that the same\n      value will be assigned to any other DPoP proof used in the same\n      context during the time window of validity.  Such uniqueness can\n      be accomplished by encoding (base64url or any other suitable\n      encoding) at least 96 bits of pseudorandom data or by using a\n      version 4 Universally Unique Identifier (UUID) string according to\n      [RFC4122].  The jti can be used by the server for replay detection\n      and prevention; see Section 11.1.\n\n   htm:  The value of the HTTP method (Section 9.1 of [RFC9110]) of the\n      request to which the JWT is attached.\n\n   htu:  The HTTP target URI (Section 7.1 of [RFC9110]) of the request\n      to which the JWT is attached, without query and fragment parts.\n\n   iat:  Creation timestamp of the JWT (Section 4.1.6 of [RFC7519]).\n\n   When the DPoP proof is used in conjunction with the presentation of\n   an access token in protected resource access (see Section 7), the\n   DPoP proof MUST also contain the following claim:\n\n   ath:  Hash of the access token.  The value MUST be the result of a\n      base64url encoding (as defined in Section 2 of [RFC7515]) the\n      SHA-256 [SHS] hash of the ASCII encoding of the associated access\n      token's value.\n\n   When the authentication server or resource server provides a DPoP-\n   Nonce HTTP header in a response (see Sections 8 and 9), the DPoP\n   proof MUST also contain the following claim:\n\n   nonce:  A recent nonce provided via the DPoP-Nonce HTTP header.\n\n   A DPoP proof MAY contain other JOSE Header Parameters or claims as\n   defined by extension, profile, or deployment-specific requirements."
+    },
+    {
+      "id": "prm-response",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc9728.txt",
+      "startLine": 433,
+      "endLine": 444,
+      "reason": "§3.2: 値のないパラメーターは省略する",
+      "excerpt": "3.2.  Protected Resource Metadata Response\n\n   The response is a set of metadata parameters about the protected\n   resource's configuration.  A successful response MUST use the 200 OK\n   HTTP status code and return a JSON object using the application/json\n   content type that contains a set of metadata parameters as its\n   members that are a subset of the metadata parameters defined in\n   Section 2.  Additional metadata parameters MAY be defined and used;\n   any metadata parameters that are not understood MUST be ignored.\n\n   Parameters with multiple values are represented as JSON arrays.\n   Parameters with zero values MUST be omitted from the response."
+    },
+    {
+      "id": "token",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 525,
+      "endLine": 570,
+      "reason": "§5: 全 grant type への適用、エラー、token_type",
+      "excerpt": "5.  DPoP Access Token Request\n\n   To request an access token that is bound to a public key using DPoP,\n   the client MUST provide a valid DPoP proof JWT in a DPoP header when\n   making an access token request to the authorization server's token\n   endpoint.  This is applicable for all access token requests\n   regardless of grant type (e.g., the common authorization_code and\n   refresh_token grant types and extension grants such as the JWT\n   authorization grant [RFC7523]).  The HTTP request shown in Figure 5\n   illustrates such an access token request using an authorization code\n   grant with a DPoP proof JWT in the DPoP header.  Figure 5 uses \"\\\"\n   line wrapping per [RFC8792].\n\n   POST /token HTTP/1.1\n   Host: server.example.com\n   Content-Type: application/x-www-form-urlencoded\n   DPoP: eyJ0eXAiOiJkcG9wK2p3dCIsImFsZyI6IkVTMjU2IiwiandrIjp7Imt0eSI6Ik\\\n    VDIiwieCI6Imw4dEZyaHgtMzR0VjNoUklDUkRZOXpDa0RscEJoRjQyVVFVZldWQVdCR\\\n    nMiLCJ5IjoiOVZFNGpmX09rX282NHpiVFRsY3VOSmFqSG10NnY5VERWclUwQ2R2R1JE\\\n    QSIsImNydiI6IlAtMjU2In19.eyJqdGkiOiItQndDM0VTYzZhY2MybFRjIiwiaHRtIj\\\n    oiUE9TVCIsImh0dSI6Imh0dHBzOi8vc2VydmVyLmV4YW1wbGUuY29tL3Rva2VuIiwia\\\n    WF0IjoxNTYyMjYyNjE2fQ.2-GxA6T8lP4vfrg8v-FdWP0A0zdrj8igiMLvqRMUvwnQg\\\n    4PtFLbdLXiOSsX0x7NVY-FNyJK70nfbV37xRZT3Lg\n\n   grant_type=authorization_code\\\n   &client_id=s6BhdRkqt\\\n   &code=SplxlOBeZQQYbYS6WxSbIA\n   &redirect_uri=https%3A%2F%2Fclient%2Eexample%2Ecom%2Fcb\\\n   &code_verifier=bEaL42izcC-o-xBk0K2vuJ6U-y1p9r_wW2dFWIWgjz-\n\n    Figure 5: Token Request for a DPoP Sender-Constrained Token Using an\n                             Authorization Code\n\n   The DPoP HTTP header field MUST contain a valid DPoP proof JWT.  If\n   the DPoP proof is invalid, the authorization server issues an error\n   response per Section 5.2 of [RFC6749] with invalid_dpop_proof as the\n   value of the error parameter.\n\n   To sender-constrain the access token after checking the validity of\n   the DPoP proof, the authorization server associates the issued access\n   token with the public key from the DPoP proof, which can be\n   accomplished as described in Section 6.  A token_type of DPoP MUST be\n   included in the access token response to signal to the client that\n   the access token was bound to its DPoP key and can be used as\n   described in Section 7.1.  The example response shown in Figure 6\n   illustrates such a response."
+    },
+    {
+      "id": "checks",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 485,
+      "endLine": 523,
+      "reason": "§4.3: 受信時の必須検証、URI 正規化、検証順序",
+      "excerpt": "4.3.  Checking DPoP Proofs\n\n   To validate a DPoP proof, the receiving server MUST ensure the\n   following:\n\n   1.   There is not more than one DPoP HTTP request header field.\n   2.   The DPoP HTTP request header field value is a single and well-\n        formed JWT.\n   3.   All required claims per Section 4.2 are contained in the JWT.\n   4.   The typ JOSE Header Parameter has the value dpop+jwt.\n   5.   The alg JOSE Header Parameter indicates a registered asymmetric\n        digital signature algorithm [IANA.JOSE.ALGS], is not none, is\n        supported by the application, and is acceptable per local\n        policy.\n   6.   The JWT signature verifies with the public key contained in the\n        jwk JOSE Header Parameter.\n   7.   The jwk JOSE Header Parameter does not contain a private key.\n   8.   The htm claim matches the HTTP method of the current request.\n   9.   The htu claim matches the HTTP URI value for the HTTP request in\n        which the JWT was received, ignoring any query and fragment\n        parts.\n   10.  If the server provided a nonce value to the client, the nonce\n        claim matches the server-provided nonce value.\n   11.  The creation time of the JWT, as determined by either the iat\n        claim or a server managed timestamp via the nonce claim, is\n        within an acceptable window (see Section 11.1).\n   12.  If presented to a protected resource in conjunction with an\n        access token,\n        *  ensure that the value of the ath claim equals the hash of\n           that access token, and\n        *  confirm that the public key to which the access token is\n           bound matches the public key from the DPoP proof.\n\n   To reduce the likelihood of false negatives, servers SHOULD employ\n   syntax-based normalization (Section 6.2.2 of [RFC3986]) and scheme-\n   based normalization (Section 6.2.3 of [RFC3986]) before comparing the\n   htu claim.\n\n   These checks may be performed in any order."
+    },
+    {
+      "id": "challenge",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 899,
+      "endLine": 936,
+      "reason": "§7.1: WWW-Authenticate のエラー・algs・未知パラメーター",
+      "excerpt": "   Upon receipt of a request to a protected resource within the\n   protection space requiring DPoP authentication, the server can\n   respond with a challenge to the client to provide DPoP authentication\n   information if the request does not include valid credentials or does\n   not contain an access token sufficient for access.  Such a challenge\n   is made using the 401 (Unauthorized) response status code ([RFC9110],\n   Section 15.5.2) and the WWW-Authenticate header field ([RFC9110],\n   Section 11.6.1).  The server MAY include the WWW-Authenticate header\n   in response to other conditions as well.\n\n   In such challenges:\n\n   *  The scheme name is DPoP.\n   *  The authentication parameter realm MAY be included to indicate the\n      scope of protection in the manner described in [RFC9110],\n      Section 11.5.\n   *  A scope authentication parameter MAY be included as defined in\n      [RFC6750], Section 3.\n   *  An error parameter ([RFC6750], Section 3) SHOULD be included to\n      indicate the reason why the request was declined, if the request\n      included an access token but failed authentication.  The error\n      parameter values described in [RFC6750], Section 3.1 are suitable,\n      as are any appropriate values defined by extension.  The value\n      use_dpop_nonce can be used as described in Section 9 to signal\n      that a nonce is needed in the DPoP proof of a subsequent\n      request(s).  Additionally, invalid_dpop_proof is used to indicate\n      that the DPoP proof itself was deemed invalid based on the\n      criteria of Section 4.3.\n   *  An error_description parameter ([RFC6750], Section 3) MAY be\n      included along with the error parameter to provide developers a\n      human-readable explanation that is not meant to be displayed to\n      end-users.\n   *  An algs parameter SHOULD be included to signal to the client the\n      JWS algorithms that are acceptable for the DPoP proof JWT.  The\n      value of the parameter is a space-delimited list of JWS alg\n      (Algorithm) header values ([RFC7515], Section 4.1.1).\n   *  Additional authentication parameters MAY be used, and unknown\n      parameters MUST be ignored by recipients."
+    },
+    {
+      "id": "bcp-alg-verify",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc8725.txt",
+      "startLine": 285,
+      "endLine": 293,
+      "reason": "§3.1: ライブラリは許可する alg を呼び出し側が指定できるようにする",
+      "excerpt": "3.1.  Perform Algorithm Verification\n\n   Libraries MUST enable the caller to specify a supported set of\n   algorithms and MUST NOT use any other algorithms when performing\n   cryptographic operations.  The library MUST ensure that the \"alg\" or\n   \"enc\" header specifies the same algorithm that is used for the\n   cryptographic operation.  Moreover, each key MUST be used with\n   exactly one algorithm, and this MUST be checked when the\n   cryptographic operation is performed."
+    },
+    {
+      "id": "resource",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 796,
+      "endLine": 828,
+      "reason": "§7: ath によるトークン差し替え防止と残る検証",
+      "excerpt": "7.  Protected Resource Access\n\n   Requests to DPoP-protected resources MUST include both a DPoP proof\n   as per Section 4 and the access token as described in Section 7.1.\n   The DPoP proof MUST include the ath claim with a valid hash of the\n   associated access token.\n\n   Binding the token value to the proof in this way prevents a proof to\n   be used with multiple different access token values across different\n   requests.  For example, if a client holds tokens bound to two\n   different resource owners, AT1 and AT2, and uses the same key when\n   talking to the authorization server, it's possible that these tokens\n   could be swapped.  Without the ath field to bind it, a captured\n   signature applied to AT1 could be replayed with AT2 instead, changing\n   the rights and access of the intended request.  This same\n   substitution prevention remains for rotated access tokens within the\n   same combination of client and resource owner -- a rotated token\n   value would require the calculation of a new proof.  This binding\n   additionally ensures that a proof intended for use with the access\n   token is not usable without an access token, or vice-versa.\n\n   The resource server is required to calculate the hash of the token\n   value presented and verify that it is the same as the hash value in\n   the ath field as described in Section 4.3.  Since the ath field value\n   is covered by the DPoP proof's signature, its inclusion binds the\n   access token value to the holder of the key used to generate the\n   signature.\n\n   Note that the ath field alone does not prevent replay of the DPoP\n   proof or provide binding to the request in which the proof is\n   presented, and it is still important to check the time window of the\n   proof as well as the included message parameters, such as htm and\n   htu."
+    },
+    {
+      "id": "refresh",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 610,
+      "endLine": 649,
+      "reason": "§5: public/confidential の refresh token と Bearer 応答",
+      "excerpt": "   When an authorization server supporting DPoP issues a refresh token\n   to a public client that presents a valid DPoP proof at the token\n   endpoint, the refresh token MUST be bound to the respective public\n   key.  The binding MUST be validated when the refresh token is later\n   presented to get new access tokens.  As a result, such a client MUST\n   present a DPoP proof for the same key that was used to obtain the\n   refresh token each time that refresh token is used to obtain a new\n   access token.  The implementation details of the binding of the\n   refresh token are at the discretion of the authorization server.\n   Since the authorization server both produces and validates its\n   refresh tokens, there is no interoperability consideration in the\n   specific details of the binding.\n\n   An authorization server MAY elect to issue access tokens that are not\n   DPoP bound, which is signaled to the client with a value of Bearer in\n   the token_type parameter of the access token response per [RFC6750].\n   For a public client that is also issued a refresh token, this has the\n   effect of DPoP-binding the refresh token alone, which can improve the\n   security posture even when protected resources are not updated to\n   support DPoP.\n\n   If the access token response contains a different token_type value\n   than DPoP, the access token protection provided by DPoP is not given.\n   The client MUST discard the response in this case if this protection\n   is deemed important for the security of the application; otherwise,\n   the client may continue as in a regular OAuth interaction.\n\n   Refresh tokens issued to confidential clients (those having\n   established authentication credentials with the authorization server)\n   are not bound to the DPoP proof public key because they are already\n   sender-constrained with a different existing mechanism.  The OAuth\n   2.0 Authorization Framework [RFC6749] already requires that an\n   authorization server bind refresh tokens to the client to which they\n   were issued and that confidential clients authenticate to the\n   authorization server when presenting a refresh token.  As a result,\n   such refresh tokens are sender-constrained by way of the client\n   identifier and the associated authentication requirement.  This\n   existing sender-constraining mechanism is more flexible (e.g., it\n   allows credential rotation for the client without invalidating\n   refresh tokens) than binding directly to a particular public key."
+    },
+    {
+      "id": "code",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 1237,
+      "endLine": 1273,
+      "reason": "§10: dpop_jkt、トークン要求時の照合、PKCE との併用",
+      "excerpt": "10.  Authorization Code Binding to a DPoP Key\n\n   Binding the authorization code issued to the client's proof-of-\n   possession key can enable end-to-end binding of the entire\n   authorization flow.  This specification defines the dpop_jkt\n   authorization request parameter for this purpose.  The value of the\n   dpop_jkt authorization request parameter is the JWK Thumbprint\n   [RFC7638] of the proof-of-possession public key using the SHA-256\n   hash function, which is the same value as used for the jkt\n   confirmation method defined in Section 6.1.\n\n   When a token request is received, the authorization server computes\n   the JWK Thumbprint of the proof-of-possession public key in the DPoP\n   proof and verifies that it matches the dpop_jkt parameter value in\n   the authorization request.  If they do not match, it MUST reject the\n   request.\n\n   An example authorization request using the dpop_jkt authorization\n   request parameter is shown below and uses \"\\\" line wrapping per\n   [RFC8792].\n\n   GET /authorize?response_type=code&client_id=s6BhdRkqt3&state=xyz\\\n       &redirect_uri=https%3A%2F%2Fclient%2Eexample%2Ecom%2Fcb\\\n       &code_challenge=E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM\\\n       &code_challenge_method=S256\\\n       &dpop_jkt=NzbLsXh8uDCcd-6MNwXF4W_7noWXFZAfHkxZsRGC9Xs HTTP/1.1\n   Host: server.example.com\n\n       Figure 25: Authorization Request Using the dpop_jkt Parameter\n\n   Use of the dpop_jkt authorization request parameter is OPTIONAL.\n   Note that the dpop_jkt authorization request parameter MAY also be\n   used in combination with Proof Key for Code Exchange (PKCE)\n   [RFC7636], which is recommended by [SECURITY-TOPICS] as a\n   countermeasure to authorization code injection.  The dpop_jkt\n   authorization request parameter only provides similar protections\n   when a unique DPoP key is used for each authorization request."
+    },
+    {
+      "id": "par",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 1275,
+      "endLine": 1308,
+      "reason": "§10.1: PAR の 2 方式、必須サポート、不一致時の拒否",
+      "excerpt": "10.1.  DPoP with Pushed Authorization Requests\n\n   When Pushed Authorization Requests (PARs) [RFC9126] are used in\n   conjunction with DPoP, there are two ways in which the DPoP key can\n   be communicated in the PAR request:\n\n   *  The dpop_jkt parameter can be used as described in Section 10 to\n      bind the issued authorization code to a specific key.  In this\n      case, dpop_jkt MUST be included alongside other authorization\n      request parameters in the POST body of the PAR request.\n   *  Alternatively, the DPoP header can be added to the PAR request.\n      In this case, the authorization server MUST check the provided\n      DPoP proof JWT as defined in Section 4.3.  It MUST further behave\n      as if the contained public key's thumbprint was provided using\n      dpop_jkt, i.e., reject the subsequent token request unless a DPoP\n      proof for the same key is provided.  This can help to simplify the\n      implementation of the client, as it can \"blindly\" attach the DPoP\n      header to all requests to the authorization server regardless of\n      the type of request.  Additionally, it provides a stronger\n      binding, as the DPoP header contains a proof of possession of the\n      private key.\n\n   Both mechanisms MUST be supported by an authorization server that\n   supports PAR and DPoP.  If both mechanisms are used at the same time,\n   the authorization server MUST reject the request if the JWK\n   Thumbprint in dpop_jkt does not match the public key in the DPoP\n   header.\n\n   Allowing both mechanisms ensures that clients using dpop_jkt do not\n   need to distinguish between front-channel and pushed authorization\n   requests, and at the same time, clients that only have one code path\n   for protecting all calls to authorization server endpoints do not\n   need to distinguish between requests to the PAR endpoint and the\n   token endpoint."
+    },
+    {
+      "id": "code-security",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 1482,
+      "endLine": 1514,
+      "reason": "§11.9: 認可コードの盗難・再利用と dpop_jkt",
+      "excerpt": "11.9.  Authorization Code and Public Key Binding\n\n   Cryptographic binding of the authorization code to the DPoP public\n   key is specified in Section 10.  This binding prevents attacks in\n   which the attacker captures the authorization code and creates a DPoP\n   proof using a proof-of-possession key other than the one held by the\n   client and redeems the authorization code using that DPoP proof.  By\n   ensuring end to end that only the client's DPoP key can be used, this\n   prevents captured authorization codes from being exfiltrated and used\n   at locations other than the one to which the authorization code was\n   issued.\n\n   Authorization codes can, for instance, be harvested by attackers from\n   places where the HTTP messages containing them are logged.  Even when\n   efforts are made to make authorization codes one-time-use, in\n   practice, there is often a time window during which attackers can\n   replay them.  For instance, when authorization servers are\n   implemented as scalable replicated services, some replicas may\n   temporarily not yet have the information needed to prevent replay.\n   DPoP binding of the authorization code solves these problems.\n\n   If an authorization server does not (or cannot) strictly enforce the\n   single-use limitation for authorization codes and an attacker can\n   access the authorization code (and if PKCE is used, the\n   code_verifier), the attacker can create a forged token request,\n   binding the resulting token to an attacker-controlled key.  For\n   example, using XSS, attackers might obtain access to the\n   authorization code and PKCE parameters.  Use of the dpop_jkt\n   parameter prevents this attack.\n\n   The binding of the authorization code to the DPoP public key uses a\n   JWK Thumbprint of the public key, just as the access token binding\n   does.  The same JWK Thumbprint considerations apply."
+    },
+    {
+      "id": "par-request",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc9126.txt",
+      "startLine": 284,
+      "endLine": 315,
+      "reason": "§2.1: PAR 要求のパラメーターとクライアント認証",
+      "excerpt": "2.1.  Request\n\n   A client sends the parameters that comprise an authorization request\n   directly to the PAR endpoint.  A typical parameter set might include:\n   \"client_id\", \"response_type\", \"redirect_uri\", \"scope\", \"state\",\n   \"code_challenge\", and \"code_challenge_method\" as shown in the example\n   below.  However, the pushed authorization request can be composed of\n   any of the parameters applicable for use at the authorization\n   endpoint, including those defined in [RFC6749] as well as all\n   applicable extensions.  The \"request_uri\" authorization request\n   parameter is one exception, and it MUST NOT be provided.\n\n   The request also includes, as appropriate for the given client, any\n   additional parameters necessary for client authentication (e.g.,\n   \"client_secret\" or \"client_assertion\" and \"client_assertion_type\").\n   Such parameters are defined and registered for use at the token\n   endpoint but are applicable only for client authentication.  When\n   present in a pushed authorization request, they are relied upon only\n   for client authentication and are not germane to the authorization\n   request itself.  Any token endpoint parameters that are not related\n   to client authentication have no defined meaning for a pushed\n   authorization request.  The \"client_id\" parameter is defined with the\n   same semantics for both authorization requests and requests to the\n   token endpoint; as a required authorization request parameter, it is\n   similarly required in a pushed authorization request.\n\n   The client constructs the message body of an HTTP \"POST\" request with\n   parameters formatted with \"x-www-form-urlencoded\" using a character\n   encoding of UTF-8, as described in Appendix B of [RFC6749].  If\n   applicable, the client also adds its authentication credentials to\n   the request header or the request body using the same rules as for\n   token endpoint requests."
+    },
+    {
+      "id": "par-processing",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc9126.txt",
+      "startLine": 340,
+      "endLine": 366,
+      "reason": "§2.1: PAR エンドポイントの処理",
+      "excerpt": "   The authorization server MUST process the request as follows:\n\n   1.  Authenticate the client in the same way as at the token endpoint\n       (Section 2.3 of [RFC6749]).\n\n   2.  Reject the request if the \"request_uri\" authorization request\n       parameter is provided.\n\n   3.  Validate the pushed request as it would an authorization request\n       sent to the authorization endpoint.  For example, the\n       authorization server checks whether the redirect URI matches one\n       of the redirect URIs configured for the client and also checks\n       whether the client is authorized for the scope for which it is\n       requesting access.  This validation allows the authorization\n       server to refuse unauthorized or fraudulent requests early.  The\n       authorization server MAY omit validation steps that it is unable\n       to perform when processing the pushed request; however, such\n       checks MUST then be performed when processing the authorization\n       request at the authorization endpoint.\n\n   The authorization server MAY allow clients with authentication\n   credentials to establish per-authorization-request redirect URIs with\n   every pushed authorization request.  Described in more detail in\n   Section 2.4, this is possible since, in contrast to [RFC6749], this\n   specification gives the authorization server the ability to\n   authenticate clients and validate client requests before the actual\n   authorization request is performed."
+    },
+    {
+      "id": "intro",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 114,
+      "endLine": 148,
+      "reason": "§1: 送信者制約とクライアント認証の違い",
+      "excerpt": "1.  Introduction\n\n   Demonstrating Proof of Possession (DPoP) is an application-level\n   mechanism for sender-constraining OAuth [RFC6749] access and refresh\n   tokens.  It enables a client to prove the possession of a public/\n   private key pair by including a DPoP header in an HTTP request.  The\n   value of the header is a JSON Web Token (JWT) [RFC7519] that enables\n   the authorization server to bind issued tokens to the public part of\n   a client's key pair.  Recipients of such tokens are then able to\n   verify the binding of the token to the key pair that the client has\n   demonstrated that it holds via the DPoP header, thereby providing\n   some assurance that the client presenting the token also possesses\n   the private key.  In other words, the legitimate presenter of the\n   token is constrained to be the sender that holds and proves\n   possession of the private part of the key pair.\n\n   The mechanism specified herein can be used in cases where other\n   methods of sender-constraining tokens that utilize elements of the\n   underlying secure transport layer, such as [RFC8705] or\n   [TOKEN-BINDING], are not available or desirable.  For example, due to\n   a sub-par user experience of TLS client authentication in user agents\n   and a lack of support for HTTP token binding, neither mechanism can\n   be used if an OAuth client is an application that is dynamically\n   downloaded and executed in a web browser (sometimes referred to as a\n   \"single-page application\").  Additionally, applications that are\n   installed and run directly on a user's device are well positioned to\n   benefit from DPoP-bound tokens that guard against the misuse of\n   tokens by a compromised or malicious resource.  Such applications\n   often have dedicated protected storage for cryptographic keys.\n\n   DPoP can be used to sender-constrain access tokens regardless of the\n   client authentication method employed, but DPoP itself is not used\n   for client authentication.  DPoP can also be used to sender-constrain\n   refresh tokens issued to public clients (those without authentication\n   credentials associated with the client_id)."
+    },
+    {
+      "id": "client-identity",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 1536,
+      "endLine": 1548,
+      "reason": "§11.11: クライアント認証との暗号学的な結び付きの限界",
+      "excerpt": "11.11.  Binding to Client Identity\n\n   In cases where DPoP is used with client authentication, it is only\n   bound to authentication by being coincident in the same TLS tunnel.\n   Since the DPoP proof is not directly bound to the authentication\n   cryptographically, it's possible that the authentication or the DPoP\n   messages were copied into the tunnel.  While including the URI in the\n   DPoP can partially mitigate some of this risk, modifying the\n   authentication mechanism to provide cryptographic binding between\n   authentication and DPoP could provide better protection.  However,\n   providing additional binding with authentication through the\n   modification of authentication mechanisms or other means is beyond\n   the scope of this specification."
+    },
+    {
+      "id": "oauth-token-response",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc6749.txt",
+      "startLine": 2386,
+      "endLine": 2397,
+      "reason": "§5.1: token_type は大文字・小文字を区別しない",
+      "excerpt": "5.1.  Successful Response\n\n   The authorization server issues an access token and optional refresh\n   token, and constructs the response by adding the following parameters\n   to the entity-body of the HTTP response with a 200 (OK) status code:\n\n   access_token\n         REQUIRED.  The access token issued by the authorization server.\n\n   token_type\n         REQUIRED.  The type of the token issued as described in\n         Section 7.1.  Value is case insensitive."
+    },
+    {
+      "id": "oauth-token-types",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc6749.txt",
+      "startLine": 2695,
+      "endLine": 2728,
+      "reason": "§7.1: 理解できない token type は使わない",
+      "excerpt": "7.1.  Access Token Types\n\n   The access token type provides the client with the information\n   required to successfully utilize the access token to make a protected\n   resource request (along with type-specific attributes).  The client\n   MUST NOT use an access token if it does not understand the token\n   type.\n\n   For example, the \"bearer\" token type defined in [RFC6750] is utilized\n   by simply including the access token string in the request:\n\n     GET /resource/1 HTTP/1.1\n     Host: example.com\n     Authorization: Bearer mF_9.B5f-4.1JqM\n\n   while the \"mac\" token type defined in [OAuth-HTTP-MAC] is utilized by\n   issuing a Message Authentication Code (MAC) key together with the\n   access token that is used to sign certain components of the HTTP\n   requests:\n\n     GET /resource/1 HTTP/1.1\n     Host: example.com\n     Authorization: MAC id=\"h480djs93hd8\",\n                        nonce=\"274312:dj83hs9s\",\n                        mac=\"kDZvddkndxvhGRXZhvuDjEWhGeE=\"\n\n   The above examples are provided for illustration purposes only.\n   Developers are advised to consult the [RFC6750] and [OAuth-HTTP-MAC]\n   specifications before use.\n\n   Each access token type definition specifies the additional attributes\n   (if any) sent to the client together with the \"access_token\" response\n   parameter.  It also defines the HTTP authentication method used to\n   include the access token when making a protected resource request."
+    },
+    {
+      "id": "sbcp-code-injection",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc9700.txt",
+      "startLine": 1157,
+      "endLine": 1203,
+      "reason": "§4.5・§4.5.1: 認可コードの注入攻撃の流れ",
+      "excerpt": "   In an authorization code injection attack, the attacker attempts to\n   inject a stolen authorization code into the attacker's own session\n   with the client.  The aim is to associate the attacker's session at\n   the client with the victim's resources or identity, thereby giving\n   the attacker at least limited access to the victim's resources.\n\n   Besides circumventing the client authentication of confidential\n   clients, other use cases for this attack include:\n\n   *  The attacker wants to access certain functions in this particular\n      client.  As an example, the attacker wants to impersonate their\n      victim in a certain app or on a certain website.\n   *  The authorization or resource servers are limited to certain\n      networks that the attacker is unable to access directly.\n\n   Except in these special cases, authorization code injection is\n   usually not interesting when the code is created for a public client,\n   as sending the code to the token endpoint is a simpler and more\n   powerful attack, as described above.\n\n4.5.1.  Attack Description\n\n   The authorization code injection attack works as follows:\n\n   1.  The attacker obtains an authorization code (see Attacker (A3) in\n       Section 3).  For the rest of the attack, only the capabilities of\n       a web attacker (A1) are required.\n   2.  From the attacker's device, the attacker starts a regular OAuth\n       authorization process with the legitimate client.\n   3.  In the response of the authorization server to the legitimate\n       client, the attacker replaces the newly created authorization\n       code with the stolen authorization code.  Since this response is\n       passing through the attacker's device, the attacker can use any\n       tool that can intercept and manipulate the authorization response\n       to this end.  The attacker does not need to control the network.\n   4.  The legitimate client sends the code to the authorization\n       server's token endpoint, along with the redirect_uri and the\n       client's client ID and client secret (or other means of client\n       authentication).\n   5.  The authorization server checks the client secret, whether the\n       code was issued to the particular client, and whether the actual\n       redirection URI matches the redirect_uri parameter (see\n       [RFC6749]).\n   6.  All checks succeed and the authorization server issues access and\n       other tokens to the client.  The attacker has now associated\n       their session with the legitimate client with the victim's\n       resources and/or identity."
+    },
+    {
+      "id": "sbcp-pkce-injection",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc9700.txt",
+      "startLine": 1270,
+      "endLine": 1288,
+      "reason": "§4.5.3.1: PKCE による注入攻撃への対策",
+      "excerpt": "4.5.3.  Countermeasures\n\n   There are two good technical solutions to binding authorization codes\n   to client instances, as follows.\n\n4.5.3.1.  PKCE\n\n   The PKCE mechanism specified in [RFC7636] can be used as a\n   countermeasure (even though it was originally designed to secure\n   native apps).  When the attacker attempts to inject an authorization\n   code, the check of the code_verifier fails: the client uses its\n   correct verifier, but the code is associated with a code_challenge\n   that does not match this verifier.\n\n   PKCE not only protects against the authorization code injection\n   attack but also protects authorization codes created for public\n   clients: PKCE ensures that an attacker cannot redeem a stolen\n   authorization code at the token endpoint of the authorization server\n   without knowledge of the code_verifier."
+    },
+    {
+      "id": "as-nonce",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 1073,
+      "endLine": 1118,
+      "reason": "§8: AS の nonce challenge、予測不能性、ヘッダー数",
+      "excerpt": "8.  Authorization Server-Provided Nonce\n\n   This section specifies a mechanism using opaque nonces provided by\n   the server that can be used to limit the lifetime of DPoP proofs.\n   Without employing such a mechanism, a malicious party controlling the\n   client (potentially including the end-user) can create DPoP proofs\n   for use arbitrarily far in the future.\n\n   Including a nonce value contributed by the authorization server in\n   the DPoP proof MAY be used by authorization servers to limit the\n   lifetime of DPoP proofs.  The server determines when to issue a new\n   DPoP nonce challenge and if it is needed, thereby requiring the use\n   of the nonce value in subsequent DPoP proofs.  The logic through\n   which the server makes that determination is out of scope of this\n   document.\n\n   An authorization server MAY supply a nonce value to be included by\n   the client in DPoP proofs sent.  In this case, the authorization\n   server responds to requests that do not include a nonce with an HTTP\n   400 (Bad Request) error response per Section 5.2 of [RFC6749] using\n   use_dpop_nonce as the error code value.  The authorization server\n   includes a DPoP-Nonce HTTP header in the response supplying a nonce\n   value to be used when sending the subsequent request.  Nonce values\n   MUST be unpredictable.  This same error code is used when supplying a\n   new nonce value when there was a nonce mismatch.  The client will\n   typically retry the request with the new nonce value supplied upon\n   receiving a use_dpop_nonce error with an accompanying nonce value.\n\n   For example, in response to a token request without a nonce when the\n   authorization server requires one, the authorization server can\n   respond with a DPoP-Nonce value such as the following to provide a\n   nonce value to include in the DPoP proof:\n\n    HTTP/1.1 400 Bad Request\n    DPoP-Nonce: eyJ7S_zG.eyJH0-Z.HX4w-7v\n\n    {\n     \"error\": \"use_dpop_nonce\",\n     \"error_description\":\n       \"Authorization server requires nonce in DPoP proof\"\n    }\n\n      Figure 20: HTTP 400 Response to a Token Request without a Nonce\n\n   Other HTTP headers and JSON fields MAY also be included in the error\n   response, but there MUST NOT be more than one DPoP-Nonce header."
+    },
+    {
+      "id": "nonce-state",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 1120,
+      "endLine": 1159,
+      "reason": "§8: opaque な nonce の完全一致・最近の値・CORS",
+      "excerpt": "   Upon receiving the nonce, the client is expected to retry its token\n   request using a DPoP proof including the supplied nonce value in the\n   nonce claim of the DPoP proof.  An example unencoded JWT payload of\n   such a DPoP proof including a nonce is shown below.\n\n    {\n     \"jti\": \"-BwC3ESc6acc2lTc\",\n     \"htm\": \"POST\",\n     \"htu\": \"https://server.example.com/token\",\n     \"iat\": 1562262616,\n     \"nonce\": \"eyJ7S_zG.eyJH0-Z.HX4w-7v\"\n    }\n\n           Figure 21: DPoP Proof Payload including a Nonce Value\n\n   The nonce is opaque to the client.\n\n   If the nonce claim in the DPoP proof does not exactly match a nonce\n   recently supplied by the authorization server to the client, the\n   authorization server MUST reject the request.  The rejection response\n   MAY include a DPoP-Nonce HTTP header providing a new nonce value to\n   use for subsequent requests.\n\n   The intent is that clients need to keep only one nonce value and\n   servers need to keep a window of recent nonces.  That said, transient\n   circumstances may arise in which the stored nonce values for the\n   server and the client differ.  However, this situation is self-\n   correcting.  With any rejection message, the server can send the\n   client the nonce value it wants to use to the client, and the client\n   can store that nonce value and retry the request with it.  Even if\n   the client and/or server discard their stored nonce values, that\n   situation is also self-correcting because new nonce values can be\n   communicated when responding to or retrying failed requests.\n\n   Note that browser-based client applications using CORS [WHATWG.Fetch]\n   only have access to CORS-safelisted response HTTP headers by default.\n   In order for the application to obtain and use the DPoP-Nonce HTTP\n   response header value, the server needs to make it available to the\n   application by including DPoP-Nonce in the Access-Control-Expose-\n   Headers response header list value."
+    },
+    {
+      "id": "rs-nonce",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 1205,
+      "endLine": 1235,
+      "reason": "§9: RS の 401 challenge、発行元別の nonce、OIDC との区別",
+      "excerpt": "9.  Resource Server-Provided Nonce\n\n   Resource servers can also choose to provide a nonce value to be\n   included in DPoP proofs sent to them.  They provide the nonce using\n   the DPoP-Nonce header in the same way that authorization servers do\n   as described in Sections 8 and 8.2.  The error signaling is performed\n   as described in Section 7.1.  Resource servers use an HTTP 401\n   (Unauthorized) error code with an accompanying WWW-Authenticate: DPoP\n   value and DPoP-Nonce value to accomplish this.\n\n   For example, in response to a resource request without a nonce when\n   the resource server requires one, the resource server can respond\n   with a DPoP-Nonce value such as the following to provide a nonce\n   value to include in the DPoP proof.  The example below uses \"\\\" line\n   wrapping per [RFC8792].\n\n    HTTP/1.1 401 Unauthorized\n    WWW-Authenticate: DPoP error=\"use_dpop_nonce\", \\\n      error_description=\"Resource server requires nonce in DPoP proof\"\n    DPoP-Nonce: eyJ7S_zG.eyJH0-Z.HX4w-7v\n\n     Figure 24: HTTP 401 Response to a Resource Request without a Nonce\n\n   Note that the nonces provided by an authorization server and a\n   resource server are different and should not be confused with one\n   another since nonces will be only accepted by the server that issued\n   them.  Likewise, should a client use multiple authorization servers\n   and/or resource servers, a nonce issued by any of them should be used\n   only at the issuing server.  Developers should also be careful to not\n   confuse DPoP nonces with the OpenID Connect [OpenID.Core] ID Token\n   nonce."
+    },
+    {
+      "id": "downgrade",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 1393,
+      "endLine": 1396,
+      "reason": "§11.3: nonce 提供後の nonce なし proof の受理禁止",
+      "excerpt": "11.3.  DPoP Nonce Downgrade\n\n   A server MUST NOT accept any DPoP proofs without the nonce claim when\n   a DPoP nonce has been provided to the client."
+    },
+    {
+      "id": "rotation",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 1170,
+      "endLine": 1203,
+      "reason": "§8.2: 成功応答による nonce 更新とキャッシュ",
+      "excerpt": "8.2.  Providing a New Nonce Value\n\n   It is up to the authorization server when to supply a new nonce value\n   for the client to use.  The client is expected to use the existing\n   supplied nonce in DPoP proofs until the server supplies a new nonce\n   value.\n\n   The authorization server MAY supply the new nonce in the same way\n   that the initial one was supplied: by using a DPoP-Nonce HTTP header\n   in the response.  The DPoP-Nonce HTTP header field uses the nonce\n   syntax defined in Section 8.1.  Each time this happens, it requires\n   an extra protocol round trip.\n\n   A more efficient manner of supplying a new nonce value is also\n   defined by including a DPoP-Nonce HTTP header in the HTTP 200 (OK)\n   response from the previous request.  The client MUST use the new\n   nonce value supplied for the next token request and for all\n   subsequent token requests until the authorization server supplies a\n   new nonce.\n\n   Responses that include the DPoP-Nonce HTTP header should be\n   uncacheable (e.g., using Cache-Control: no-store in response to a GET\n   request) to prevent the response from being used to serve a\n   subsequent request and a stale nonce value from being used as a\n   result.\n\n   An example 200 OK response providing a new nonce value is shown\n   below.\n\n    HTTP/1.1 200 OK\n    Cache-Control: no-store\n    DPoP-Nonce: eyJ7S_zG.eyJbYu3.xQmBj-1\n\n        Figure 23: HTTP 200 Response Providing the Next Nonce Value"
+    },
+    {
+      "id": "prm-www-authenticate",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc9728.txt",
+      "startLine": 618,
+      "endLine": 643,
+      "reason": "§5.1: WWW-Authenticate の resource_metadata",
+      "excerpt": "5.1.  WWW-Authenticate Response\n\n   This specification introduces a new parameter in the WWW-Authenticate\n   HTTP response header field to indicate the protected resource\n   metadata URL:\n\n   resource_metadata:\n      The URL of the protected resource metadata.\n\n   The response below is an example of a WWW-Authenticate header that\n   includes the resource identifier.\n\n   HTTP/1.1 401 Unauthorized\n   WWW-Authenticate: Bearer resource_metadata=\n     \"https://resource.example.com/.well-known/oauth-protected-resource\"\n\n   The HTTP status code in the example response above is defined by\n   [RFC6750].\n\n   This parameter MAY also be used in WWW-Authenticate responses using\n   authorization schemes other than \"Bearer\" [RFC6750], such as the DPoP\n   scheme defined by [RFC9449].\n\n   The resource_metadata parameter MAY be combined with other parameters\n   defined in other extensions, such as the max_age parameter defined by\n   [RFC9470]."
+    },
+    {
+      "id": "prm-flow",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc9728.txt",
+      "startLine": 517,
+      "endLine": 616,
+      "reason": "§5: WWW-Authenticate からメタデータを辿る流れ",
+      "excerpt": "5.  Use of WWW-Authenticate for Protected Resource Metadata\n\n   A protected resource MAY use the WWW-Authenticate HTTP response\n   header field, as discussed in [RFC9110], to return a URL to its\n   protected resource metadata to the client.  The client can then\n   retrieve protected resource metadata as described in Section 3.  The\n   client might then, for instance, determine what authorization server\n   to use for the resource based on protected resource metadata\n   retrieved.\n\n   A typical end-to-end flow doing so is as follows.  Note that while\n   this example uses the OAuth 2.0 authorization code flow, a similar\n   sequence could also be implemented with any other OAuth flow.\n\n        +----------+              +----------+    +---------------+\n        |  Client  |              | Resource |    | Authorization |\n        |          |              |  Server  |    |    Server     |\n        +----+-----+              +----+-----+    +-------+-------+\n             |                         |                  |\n             |  1. Resource Request    |                  |\n             | ----------------------> |                  |\n             |  Without Access Token   |                  |\n             |                         |                  |\n             |                         |                  |\n             |   2. WWW-Authenticate   |                  |\n             | <---------------------- |                  |\n             |                         |                  |\n             |                         |                  |\n             |   3. Fetch RS Metadata  |                  |\n             | ----------------------> |                  |\n             |                         |                  |\n             |                         |                  |\n             | 4. RS Metadata Response |                  |\n             | <---------------------- |                  |\n             |                         |                  |\n   +---------+---------------+         |                  |\n   | 5. Validate RS Metadata |         |                  |\n   | Build AS Metadata URL   |         |                  |\n   +---------+---------------+         |                  |\n             |                         |                  |\n             |   6. Fetch AS Metadata  |                  |\n             | ------------------------+----------------> |\n             |                         |                  |\n             |                         |                  |\n             | 7. AS Metadata Response |                  |\n             | <-----------------------+----------------- |\n             |                         |                  |\n           +-+-------------------------+------------------+-+\n           |       8-9. OAuth Authorization Code Flow       |\n           |            Client Obtains Access Token         |\n           +-+-------------------------+------------------+-+\n             |                         |                  |\n             |  10. Resource Request   |                  |\n             | ----------------------> |                  |\n             |  With Access Token      |                  |\n             |                         |                  |\n             |                         |                  |\n             |  11. Resource Response  |                  |\n             | <---------------------- |                  |\n             |                         |                  |\n        +----+-----+              +----+-----+    +-------+-------+\n        |  Client  |              | Resource |    | Authorization |\n        |          |              |  Server  |    |    Server     |\n        +----------+              +----------+    +---------------+\n\n                         Figure 1: Sequence Diagram\n\n   1.   The client makes a request to a protected resource without\n        presenting an access token.\n\n   2.   The resource server responds with a WWW-Authenticate header\n        including the URL of the protected resource metadata.\n\n   3.   The client fetches the protected resource metadata from this\n        URL.\n\n   4.   The resource server responds with the protected resource\n        metadata according to Section 3.2.\n\n   5.   The client validates the protected resource metadata, as\n        described in Section 3.3, and builds the authorization server\n        metadata URL from an issuer identifier in the resource metadata\n        according to [RFC8414].\n\n   6.   The client makes a request to fetch the authorization server\n        metadata.\n\n   7.   The authorization server responds with the authorization server\n        metadata document according to [RFC8414].\n\n   8.   The client directs the user agent to the authorization server to\n        begin the authorization flow.\n\n   9.   The authorization exchange is completed and the authorization\n        server returns an access token to the client.\n\n   10.  The client repeats the resource request from step 1, presenting\n        the newly obtained access token.\n\n   11.  The resource server returns the requested protected resource."
+    },
+    {
+      "id": "dcr-response",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc7591.txt",
+      "startLine": 1096,
+      "endLine": 1116,
+      "reason": "§3.2.1: 登録済みメタデータの返却と値の置き換え",
+      "excerpt": "   Additionally, the authorization server MUST return all registered\n   metadata about this client, including any fields provisioned by the\n   authorization server itself.  The authorization server MAY reject or\n   replace any of the client's requested metadata values submitted\n   during the registration and substitute them with suitable values.\n   The client or developer can check the values in the response to\n   determine if the registration is sufficient for use (e.g., the\n   registered \"token_endpoint_auth_method\" is supported by the client\n   software) and determine a course of action appropriate for the client\n   software.  The response to such a situation is out of scope for this\n   specification but could include filing a report with the application\n   developer or authorization server provider, attempted re-registration\n   with different metadata values, or various other methods.  For\n   instance, if the server also supports a registration management\n   mechanism such as that defined in [RFC7592], the client or developer\n   could attempt to update the registration with different metadata\n   values.  This process could also be aided by a service discovery\n   protocol, such as [OpenID.Discovery], which can list a server's\n   capabilities, allowing a client to make a more informed registration\n   request.  The use of any such management or discovery system is\n   optional and outside the scope of this specification."
+    },
+    {
+      "id": "dcr-metadata",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc7591.txt",
+      "startLine": 641,
+      "endLine": 650,
+      "reason": "§2: 理解できないメタデータの無視と値の置き換え",
+      "excerpt": "   Extensions and profiles of this specification can expand this list\n   with metadata names and descriptions registered in accordance with\n   the IANA Considerations in Section 4 of this document.  The\n   authorization server MUST ignore any client metadata sent by the\n   client that it does not understand (for instance, by silently\n   removing unknown metadata from the client's registration record\n   during processing).  The authorization server MAY reject any\n   requested client metadata values by replacing requested values with\n   suitable defaults as described in Section 3.2.1 or by returning an\n   error response as described in Section 3.2.2."
+    },
+    {
+      "id": "asm-token-auth-algs",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc8414.txt",
+      "startLine": 262,
+      "endLine": 271,
+      "reason": "§2: token_endpoint_auth_signing_alg_values_supported",
+      "excerpt": "   token_endpoint_auth_signing_alg_values_supported\n      OPTIONAL.  JSON array containing a list of the JWS signing\n      algorithms (\"alg\" values) supported by the token endpoint for the\n      signature on the JWT [JWT] used to authenticate the client at the\n      token endpoint for the \"private_key_jwt\" and \"client_secret_jwt\"\n      authentication methods.  This metadata entry MUST be present if\n      either of these authentication methods are specified in the\n      \"token_endpoint_auth_methods_supported\" entry.  No default\n      algorithms are implied if this entry is omitted.  Servers SHOULD\n      support \"RS256\".  The value \"none\" MUST NOT be used."
+    },
+    {
+      "id": "hash-binding",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 1466,
+      "endLine": 1480,
+      "reason": "§11.8: JWK の第二原像計算困難性と ath の衝突耐性",
+      "excerpt": "11.8.  Access Token and Public Key Binding\n\n   The binding of the access token to the DPoP public key, as specified\n   in Section 6, uses a cryptographic hash of the JWK representation of\n   the public key.  It relies on the hash function having sufficient\n   second-preimage resistance so as to make it computationally\n   infeasible to find or create another key that produces to the same\n   hash output value.  The SHA-256 hash function was used because it\n   meets the aforementioned requirement while being widely available.\n\n   Similarly, the binding of the DPoP proof to the access token uses a\n   hash of that access token as the value of the ath claim in the DPoP\n   proof (see Section 4.2).  This relies on the value of the hash being\n   sufficiently unique so as to reliably identify the access token.  The\n   collision resistance of SHA-256 meets that requirement."
+    },
+    {
+      "id": "http-field-names",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc9110.txt",
+      "startLine": 1480,
+      "endLine": 1490,
+      "reason": "§5.1: 認識できないヘッダーは無視する",
+      "excerpt": "   New fields can be introduced without changing the protocol version if\n   their defined semantics allow them to be safely ignored by recipients\n   that do not recognize them; see Section 16.3.\n\n   A proxy MUST forward unrecognized header fields unless the field name\n   is listed in the Connection header field (Section 7.6.1) or the proxy\n   is specifically configured to block, or otherwise transform, such\n   fields.  Other recipients SHOULD ignore unrecognized header and\n   trailer fields.  Adhering to these requirements allows HTTP's\n   functionality to be extended without updating or removing deployed\n   intermediaries."
+    },
+    {
+      "id": "pkce-challenge",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc7636.txt",
+      "startLine": 424,
+      "endLine": 460,
+      "reason": "§4.2: code_challenge の作り方（S256）",
+      "excerpt": "4.2.  Client Creates the Code Challenge\n\n   The client then creates a code challenge derived from the code\n   verifier by using one of the following transformations on the code\n   verifier:\n\n   plain\n      code_challenge = code_verifier\n\n   S256\n      code_challenge = BASE64URL-ENCODE(SHA256(ASCII(code_verifier)))\n\n   If the client is capable of using \"S256\", it MUST use \"S256\", as\n   \"S256\" is Mandatory To Implement (MTI) on the server.  Clients are\n   permitted to use \"plain\" only if they cannot support \"S256\" for some\n   technical reason and know via out-of-band configuration that the\n   server supports \"plain\".\n\n   The plain transformation is for compatibility with existing\n   deployments and for constrained environments that can't use the S256\n   transformation.\n\n\n\n\n\nSakimura, et al.             Standards Track                    [Page 8]\n\f\nRFC 7636                       OAUTH PKCE                 September 2015\n\n\n   ABNF for \"code_challenge\" is as follows.\n\n   code-challenge = 43*128unreserved\n   unreserved = ALPHA / DIGIT / \"-\" / \".\" / \"_\" / \"~\"\n   ALPHA = %x41-5A / %x61-7A\n   DIGIT = %x30-39"
+    },
+    {
+      "id": "pkce-verify",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "1ae11d196faad317d95d4d02e402621dcde76d49",
+      "path": "rfcs/rfc7636.txt",
+      "startLine": 533,
+      "endLine": 555,
+      "reason": "§4.6: トークンエンドポイントでの code_verifier の検証",
+      "excerpt": "4.6.  Server Verifies code_verifier before Returning the Tokens\n\n   Upon receipt of the request at the token endpoint, the server\n   verifies it by calculating the code challenge from the received\n   \"code_verifier\" and comparing it with the previously associated\n   \"code_challenge\", after first transforming it according to the\n   \"code_challenge_method\" method specified by the client.\n\n   If the \"code_challenge_method\" from Section 4.3 was \"S256\", the\n   received \"code_verifier\" is hashed by SHA-256, base64url-encoded, and\n   then compared to the \"code_challenge\", i.e.:\n\n   BASE64URL-ENCODE(SHA256(ASCII(code_verifier))) == code_challenge\n\n   If the \"code_challenge_method\" from Section 4.3 was \"plain\", they are\n   compared directly, i.e.:\n\n   code_verifier == code_challenge.\n\n   If the values are equal, the token endpoint MUST continue processing\n   as normal (as defined by OAuth 2.0 [RFC6749]).  If the values are not\n   equal, an error response indicating \"invalid_grant\" as described in\n   Section 5.2 of [RFC6749] MUST be returned."
+    },
+    {
+      "id": "proof",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 337,
+      "endLine": 357,
+      "reason": "§4: リクエストごとの proof と単独では認可できない理由",
+      "excerpt": "4.  DPoP Proof JWTs\n\n   DPoP introduces the concept of a DPoP proof, which is a JWT created\n   by the client and sent with an HTTP request using the DPoP header\n   field.  Each HTTP request requires a unique DPoP proof.\n\n   A valid DPoP proof demonstrates to the server that the client holds\n   the private key that was used to sign the DPoP proof JWT.  This\n   enables authorization servers to bind issued tokens to the\n   corresponding public key (as described in Section 5) and enables\n   resource servers to verify the key-binding of tokens that it receives\n   (see Section 7.1), which prevents said tokens from being used by any\n   entity that does not have access to the private key.\n\n   The DPoP proof demonstrates possession of a key and, by itself, is\n   not an authentication or access control mechanism.  When presented in\n   conjunction with a key-bound access token as described in\n   Section 7.1, the DPoP proof provides additional assurance about the\n   legitimacy of the client to present the access token.  However, a\n   valid DPoP proof JWT is not sufficient alone to make access control\n   decisions."
+    },
+    {
+      "id": "scheme",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 830,
+      "endLine": 854,
+      "reason": "§7.1: Authorization: DPoP とアクセス許可の条件",
+      "excerpt": "7.1.  The DPoP Authentication Scheme\n\n   A DPoP-bound access token is sent using the Authorization request\n   header field per Section 11.6.2 of [RFC9110] with an authentication\n   scheme of DPoP.  The syntax of the Authorization header field for the\n   DPoP scheme uses the token68 syntax defined in Section 11.2 of\n   [RFC9110] for credentials and is repeated below for ease of\n   reference.  The ABNF notation syntax for DPoP authentication scheme\n   credentials is as follows:\n\n   token68    = 1*( ALPHA / DIGIT /\n                    \"-\" / \".\" / \"_\" / \"~\" / \"+\" / \"/\" ) *\"=\"\n\n   credentials = \"DPoP\" 1*SP token68\n\n                 Figure 12: DPoP Authentication Scheme ABNF\n\n   For such an access token, a resource server MUST check that a DPoP\n   proof was also received in the DPoP header field of the HTTP request,\n   check the DPoP proof according to the rules in Section 4.3, and check\n   that the public key of the DPoP proof matches the public key to which\n   the access token is bound per Section 6.\n\n   The resource server MUST NOT grant access to the resource unless all\n   checks are successful."
+    },
+    {
+      "id": "cors-proxy",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "993c1cf7f6b5fd47c151a56d60bb801bdd921aac",
+      "path": "rfcs/rfc9449.txt",
+      "startLine": 958,
+      "endLine": 968,
+      "reason": "§7.1: CORS でのヘッダー公開とプロキシ認証への使用禁止",
+      "excerpt": "   Note that browser-based client applications using Cross-Origin\n   Resource Sharing (CORS) [WHATWG.Fetch] only have access to CORS-\n   safelisted response HTTP headers by default.  In order for the\n   application to obtain and use the WWW-Authenticate HTTP response\n   header value, the server needs to make it available to the\n   application by including WWW-Authenticate in the Access-Control-\n   Expose-Headers response header list value.\n\n   This authentication scheme is for origin-server authentication only.\n   Therefore, this authentication scheme MUST NOT be used with the\n   Proxy-Authenticate or Proxy-Authorization header fields."
+    }
+  ],
+  "questions": [
+    {
+      "id": "metadata-owners",
+      "type": "choice",
+      "category": "comparison",
+      "prompt": "DPoP に関するメタデータの名前・持ち主・意味の組み合わせとして正しいものはどれですか？",
+      "options": [
+        "クライアントの dpop_bound_access_tokens_required=true：AS は DPoP ヘッダーのないトークン要求を拒否する　RS の dpop_bound_access_tokens=true：RS は常に DPoP-bound トークンを求める",
+        "クライアントの dpop_bound_access_tokens=true：AS は DPoP ヘッダーのないトークン要求を拒否する　RS の dpop_bound_access_tokens_required=true：RS は常に DPoP-bound トークンを求める",
+        "クライアントの dpop_bound_access_tokens（省略時は true）：AS は DPoP ヘッダーのないトークン要求を拒否する　RS の dpop_bound_access_tokens_required（省略時は true）",
+        "AS の dpop_bound_access_tokens=true：AS はすべてのクライアントに DPoP を求める　RS の dpop_bound_access_tokens_required=true：RS は常に DPoP-bound トークンを求める",
+        "クライアントの dpop_bound_access_tokens=true：AS は DPoP ヘッダーのないトークン要求を拒否する　RS の dpop_signing_alg_values_supported：RS が応答の署名に使う alg"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "client-metadata",
+        "prm-params",
+        "as-metadata"
+      ]
+    },
+    {
+      "id": "empty-alg-array",
+      "type": "choice",
+      "category": "knowledge",
+      "scenario": "DPoP に対応していない AS が、メタデータに \"dpop_signing_alg_values_supported\": [] を載せています。",
+      "prompt": "RFC 8414 と RFC 9449 に照らした評価として正しいものはどれですか？",
+      "options": [
+        "空の配列は「DPoP に対応していない」ことを表す、標準の書き方である。この記載は正しい",
+        "RFC 9449 は、DPoP に対応しない AS にも、この項目を空の配列で載せることを求めている",
+        "空の配列は「alg を制限しない」ことを表す。クライアントは、自分の選んだ任意の alg を proof に使える",
+        "空の配列は、AS が alg=none の proof だけを受け付けることを、明示的に表している",
+        "要素が 0 個のメタデータは省略しなければならない。DPoP に対応しない AS は、この項目を載せない"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "asm-response",
+        "as-metadata",
+        "prm-params",
+        "syntax"
+      ]
+    },
+    {
+      "id": "dpop-only-rs-metadata",
+      "type": "choice",
+      "category": "design",
+      "scenario": "ある RS は DPoP-bound のトークンだけを受け付け、Bearer の送り方（ヘッダー・本文・クエリー）はどれも受け付けません。この方針を、保護されたリソースのメタデータ（RFC 9728）で示します。",
+      "prompt": "適切な記載はどれですか？",
+      "options": [
+        "\"dpop_bound_access_tokens\": true と \"dpop_signing_alg_values_supported\": [] を載せる",
+        "\"dpop_bound_access_tokens_required\": true を載せ、bearer_methods_supported を省略して「対応なし」を示す",
+        "\"bearer_methods_supported\": [\"dpop\"] を載せて、DPoP だけに対応することを示す",
+        "\"dpop_bound_access_tokens_required\": true と \"bearer_methods_supported\": [] を載せる",
+        "\"dpop_bound_access_tokens_required\": false を載せ、DPoP だけに対応することは challenge で示す"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "prm-params",
+        "prm-response"
+      ]
+    },
+    {
+      "id": "alg-mismatch-key-binding",
+      "type": "choice",
+      "category": "design",
+      "scenario": "AS の dpop_signing_alg_values_supported は [\"ES256\",\"PS256\"] です。クライアントは EC 鍵（ES256）の proof でアクセストークンを取得しました。ところが、使いたい RS の challenge は algs=\"PS256\" でした。",
+      "prompt": "クライアントの対応として正しいものはどれですか？",
+      "options": [
+        "新しい RSA 鍵で PS256 の proof を作る。今のトークンと一緒に、その proof を RS へ送る",
+        "AS が ES256 を受け付けている。同じ AS のトークンなので、RS も ES256 の proof を受理しなければならない",
+        "RSA 鍵を用意し、その鍵の PS256 の proof でトークンを取得し直す。トークンは取得時の鍵に結び付く",
+        "この RS には proof を付けない。Authorization: DPoP だけでトークンを送れば受理される",
+        "今の EC 鍵のまま、JOSE ヘッダーの alg だけを PS256 にする。署名の方式は鍵に合わせて自動で変わる"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "token",
+        "checks",
+        "challenge",
+        "as-metadata",
+        "bcp-alg-verify",
+        "resource"
+      ]
+    },
+    {
+      "id": "refresh-without-dpop-header",
+      "type": "choice",
+      "category": "knowledge",
+      "scenario": "confidential client のメタデータに dpop_bound_access_tokens: true が登録されています。このクライアントが、クライアント認証は正しく行ったうえで、DPoP ヘッダーのない refresh_token グラントの要求を送りました。",
+      "prompt": "AS の扱いとして正しいものはどれですか？",
+      "options": [
+        "拒否する。このクライアントの DPoP ヘッダーのないトークン要求は、grant type に関係なく拒否する",
+        "受理し、前回のアクセストークンと同じ鍵に結び付けたアクセストークンを発行する",
+        "受理して Bearer のアクセストークンを発行する。refresh 要求は dpop_bound_access_tokens の対象外である",
+        "クライアント認証が mTLS の場合に限り、DPoP ヘッダーがなくても受理する",
+        "受理する。confidential client の refresh token は DPoP 鍵に結び付いていないので、proof は要らない"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "client-metadata",
+        "token",
+        "refresh"
+      ]
+    },
+    {
+      "id": "dpop-jkt-no-proof",
+      "type": "choice",
+      "category": "knowledge",
+      "scenario": "認可要求に dpop_jkt を含めて得た認可コードを、クライアントが DPoP ヘッダーなしでトークンエンドポイントに送りました。PKCE の code_verifier は正しい値です。",
+      "prompt": "AS の扱いとして正しいものはどれですか？",
+      "options": [
+        "受理する。PKCE の検証に成功していれば、dpop_jkt の確認は省略できる",
+        "拒否する。proof がなければ、その鍵の Thumbprint が dpop_jkt と一致することを確かめられない",
+        "受理して Bearer のトークンを発行する。DPoP ヘッダーがないのは、DPoP を使わないという意味である",
+        "クライアントが public client の場合に限り拒否する",
+        "受理し、dpop_jkt の鍵に結び付けたトークンを発行する。proof がなくても Thumbprint は分かるため"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "code",
+        "par",
+        "code-security"
+      ]
+    },
+    {
+      "id": "par-htu",
+      "type": "choice",
+      "category": "knowledge",
+      "scenario": "クライアントは PAR エンドポイント https://as.example.com/as/par に DPoP ヘッダーを付けて PAR 要求を送ります。後で使うトークンエンドポイントは https://as.example.com/token です。",
+      "prompt": "PAR 要求に付ける proof の htm と htu として正しいものはどれですか？",
+      "options": [
+        "htm=POST、htu=https://as.example.com/as/par?client_id=…（送るパラメーターを query に含めた URI）",
+        "htm=POST、htu=https://as.example.com/token（コードを後で引き換える、DPoP の結び付けを使う先なので）",
+        "htm=POST、htu=https://as.example.com（AS の issuer 識別子で、どのエンドポイントにも共通の値）",
+        "htm=GET、htu=https://as.example.com/authorize（PAR 要求は、認可要求の代わりに送るものなので）",
+        "htm=POST、htu=https://as.example.com/as/par（PAR 要求そのもののメソッドと、query を除いた URI）"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "par",
+        "checks",
+        "par-request",
+        "syntax"
+      ]
+    },
+    {
+      "id": "par-client-auth",
+      "type": "choice",
+      "category": "knowledge",
+      "scenario": "confidential client が private_key_jwt でクライアント認証を行い、PAR 要求に DPoP ヘッダーも付けます。",
+      "prompt": "正しい理解はどれですか？",
+      "options": [
+        "DPoP ヘッダーを付けた PAR 要求では、鍵の所持が示されるので client_assertion を省略できる",
+        "PAR 要求の proof の iss に client_id を入れれば、その proof がクライアント認証として扱われる",
+        "PAR エンドポイントでもクライアント認証が必要で、DPoP の proof はその代わりにならない",
+        "DPoP の proof の鍵と、クライアント認証の JWT の鍵は、同じ鍵でなければならない",
+        "PAR 要求でクライアント認証を行う場合は、DPoP ヘッダーを付けてはならない"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "par-processing",
+        "par-request",
+        "intro",
+        "par",
+        "client-identity"
+      ]
+    },
+    {
+      "id": "stronger-binding",
+      "type": "choice",
+      "category": "comparison",
+      "prompt": "PAR で DPoP の鍵を伝える 2 つの方法のうち、RFC 9449 が DPoP ヘッダーの方法を「より強い結び付け」と呼ぶ理由はどれですか？",
+      "options": [
+        "dpop_jkt は認可コードに結び付くが、DPoP ヘッダーはアクセストークンだけに直接結び付くから",
+        "DPoP ヘッダーは暗号化されて届くが、PAR の本文に入れる dpop_jkt は暗号化されずに届くから",
+        "dpop_jkt は SHA-1 で計算する値だが、DPoP ヘッダーの方法では SHA-256 を使って結び付けるから",
+        "DPoP ヘッダーには秘密鍵を持つ証明が含まれるが、dpop_jkt は Thumbprint を示すだけだから",
+        "DPoP ヘッダーの方法を使うと、後のトークン要求で proof を付けなくてよくなるから"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "par",
+        "code"
+      ]
+    },
+    {
+      "id": "token-type-case",
+      "type": "choice",
+      "category": "knowledge",
+      "scenario": "AS のトークン応答が {\"access_token\":\"…\",\"token_type\":\"dpop\",\"expires_in\":300} でした。",
+      "prompt": "クライアントの解釈として正しいものはどれですか？",
+      "options": [
+        "token_type の値は大文字・小文字を区別しないので、DPoP の token type として扱う",
+        "RFC 9449 は \"DPoP\" と書いているので、\"dpop\" は別の token type として扱い、応答を破棄する",
+        "理解できない token type なので、Bearer として扱う",
+        "token_type の大文字・小文字の違いに合わせて、ath の計算方法を変える",
+        "\"dpop\" は DPoP-bound ではないことを示すので、Bearer 方式で送る"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "oauth-token-response",
+        "oauth-token-types",
+        "token"
+      ]
+    },
+    {
+      "id": "injection-same-key",
+      "type": "choice",
+      "category": "design",
+      "scenario": "confidential client（Web サーバー）が、すべての利用者のセッションで同じ DPoP 鍵を使い、認可要求に dpop_jkt を付けています。PKCE も OpenID Connect の nonce も使っていません。攻撃者は被害者の認可コードを盗み、自分のブラウザーでこのクライアントとの認可フローを始め、返ってきたコードを盗んだコードに差し替えました（認可コードの注入）。",
+      "prompt": "この攻撃に対する評価として正しいものはどれですか？",
+      "options": [
+        "攻撃者は DPoP の秘密鍵を持たない。そのため、dpop_jkt によってコードの引き換えは失敗する",
+        "攻撃者のセッションの state と一致しない。クライアントがリダイレクトの段階で拒否する",
+        "クライアントが同じ鍵で引き換えるので dpop_jkt は一致する。PKCE などフローに結び付く対策が要る",
+        "認可コードはこのクライアントに発行されたものである。差し替えても、攻撃者は被害者の権限を得られない",
+        "dpop_jkt は PKCE と同じ保護を常に提供する。この構成のままで十分である"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "code",
+        "sbcp-code-injection",
+        "sbcp-pkce-injection"
+      ]
+    },
+    {
+      "id": "par-nonce",
+      "type": "choice",
+      "category": "knowledge",
+      "scenario": "AS は、PAR エンドポイントへの DPoP ヘッダー付きの要求に、400 の use_dpop_nonce と DPoP-Nonce: N1 を返しました。クライアントは N1 を含む proof で PAR 要求を再送して成功し、続いてトークン要求を送ります。",
+      "prompt": "トークン要求の proof の nonce について、RFC 9449 の記述と矛盾しない扱いはどれですか？",
+      "options": [
+        "N1 を含む proof の htu は PAR エンドポイントなので、トークン要求でも htu を PAR エンドポイントにする",
+        "N1 は同じ AS が提供した nonce なので、新しい値を受け取るまではトークン要求にも N1 を含める",
+        "トークン要求の前に、トークンエンドポイントから別の nonce を必ず取得しなければならない",
+        "PAR の後は nonce が不要になるので、トークン要求の proof では nonce を省略する",
+        "N1 は PAR エンドポイント専用なので、トークン要求の proof には nonce を含めない"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "as-nonce",
+        "nonce-state",
+        "rs-nonce",
+        "downgrade",
+        "syntax",
+        "rotation"
+      ]
+    },
+    {
+      "id": "prm-resource-metadata",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "DPoP の challenge と、RFC 9728 の resource_metadata パラメーターについて正しいものはどれですか？",
+      "options": [
+        "resource_metadata を受け取ったクライアントは、メタデータを取得せずに AS へ認可要求を送る",
+        "DPoP の challenge では resource_metadata を使わず、algs のパラメーターにメタデータの URL を入れる",
+        "resource_metadata は Bearer の challenge 専用であり、DPoP の challenge には含めてはならない",
+        "resource_metadata を含む challenge には、algs など他のパラメーターを含めてはならない",
+        "resource_metadata は Bearer 以外のスキームでも使え、DPoP の challenge にも含められる"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "prm-www-authenticate",
+        "challenge",
+        "prm-flow"
+      ]
+    },
+    {
+      "id": "registration-response",
+      "type": "choice",
+      "category": "debugging",
+      "scenario": "クライアントが動的クライアント登録で \"dpop_bound_access_tokens\": true を要求しました。登録応答には、このメタデータが含まれていませんでした。",
+      "prompt": "正しい解釈はどれですか？",
+      "options": [
+        "登録したメタデータはすべて返されるので、含まれていなければ既定値の false と考え、必要なら対処する",
+        "含まれていなければ、AS はこのクライアントに Bearer のトークンを一切発行できなくなる",
+        "要求した値はすべてそのまま登録される。応答に含まれていなくても、要求どおり true として扱ってよい",
+        "dpop_bound_access_tokens は、登録応答には含めない決まりである。したがって問題はない",
+        "応答に含めないのは AS の仕様違反である。エラーとして扱い、登録をやり直さなければならない"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "dcr-response",
+        "client-metadata",
+        "dcr-metadata"
+      ]
+    },
+    {
+      "id": "separate-alg-lists",
+      "type": "choice",
+      "category": "knowledge",
+      "scenario": "AS のメタデータは \"token_endpoint_auth_signing_alg_values_supported\": [\"RS256\"]、\"dpop_signing_alg_values_supported\": [\"ES256\"] です。confidential client は private_key_jwt でクライアント認証を行い、DPoP も使います。",
+      "prompt": "クライアントの構成として正しいものはどれですか？",
+      "options": [
+        "dpop_signing_alg_values_supported はクライアント認証にも適用されるので、両方を ES256 にする",
+        "AS は RS256 を受け付けているので、DPoP の proof も同じ RSA 鍵の RS256 で署名する",
+        "DPoP の proof をクライアント認証にも使えば、RS256 の鍵は不要になる",
+        "クライアント認証の JWT は RS256（RSA 鍵）で、DPoP の proof は ES256（EC 鍵）で署名する",
+        "DPoP の鍵とクライアント認証の鍵は同じにしなければならないので、両方を ES256 にする"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "as-metadata",
+        "asm-token-auth-algs",
+        "intro",
+        "client-identity"
+      ]
+    },
+    {
+      "id": "dpop-jkt-public",
+      "type": "choice",
+      "category": "knowledge",
+      "scenario": "フロントチャネルの認可要求（ブラウザーの URL）に dpop_jkt を含めるので、その値がブラウザーの履歴やログに残ります。",
+      "prompt": "この点の評価として正しいものはどれですか？",
+      "options": [
+        "問題にならない。公開鍵の Thumbprint で、知られても秘密鍵がなければ一致する proof を作れない",
+        "問題になる。dpop_jkt は秘密の値なので、認可要求ではなくトークン要求のパラメーターとして送る",
+        "問題になる。攻撃者が Thumbprint を自分のトークン要求の dpop_jkt に入れれば、被害者のコードを引き換えられる",
+        "問題になる。Thumbprint から公開鍵と秘密鍵を計算できるので、PAR や JAR で値を隠す必要がある",
+        "問題になる。Thumbprint を知った攻撃者は、その値を jkt に入れた proof を作ってトークン要求に使える"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "code",
+        "hash-binding",
+        "checks",
+        "code-security"
+      ]
+    },
+    {
+      "id": "unaware-as",
+      "type": "choice",
+      "category": "debugging",
+      "scenario": "public client が、DPoP に対応しているか分からない AS に DPoP ヘッダー付きでトークン要求を送りました。応答は token_type=Bearer で、refresh token も含まれていました。AS のメタデータに dpop_signing_alg_values_supported はありません。",
+      "prompt": "正しい理解はどれですか？",
+      "options": [
+        "メタデータに記載がないのは、AS がすべての alg を受け付けるという意味である。DPoP は有効に働いている",
+        "AS が DPoP ヘッダーを無視した可能性があり、鍵への結び付けは期待できない。保護が重要なら破棄する",
+        "有効な proof を示したので、§5 により refresh token は必ず鍵に結び付いている。refresh には同じ鍵を使う",
+        "token_type=Bearer でも、DPoP ヘッダーを送った。アクセストークンも DPoP で保護されている",
+        "token_type を DPoP と読み替える。Authorization: DPoP で使えば、保護が得られる"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "refresh",
+        "as-metadata",
+        "token",
+        "http-field-names"
+      ]
+    },
+    {
+      "id": "pkce-and-jkt-both",
+      "type": "choice",
+      "category": "knowledge",
+      "scenario": "認可要求に code_challenge（S256）と dpop_jkt の両方を含めました。",
+      "prompt": "トークン要求での AS の検証として正しいものはどれですか？",
+      "options": [
+        "code_verifier の検証に成功すれば十分である。dpop_jkt の不一致は、警告として記録するだけでよい",
+        "dpop_jkt を使う場合は、code_challenge_method を S256 ではなく plain にしなければならない",
+        "両方を独立に検証する。code_verifier と dpop_jkt のどちらかの照合に失敗すれば、要求を拒否する",
+        "proof の鍵の Thumbprint が dpop_jkt と一致すれば十分である。code_verifier の検証は省略できる",
+        "code_challenge と dpop_jkt を同じ認可要求に含めることは、RFC 9449 で禁止されている"
+      ],
+      "points": 1,
+      "referenceIds": [
+        "code",
+        "pkce-challenge",
+        "pkce-verify"
+      ]
+    },
+    {
+      "id": "prm-discovery-flow",
+      "type": "ordering",
+      "category": "flow",
+      "prompt": "クライアントが RS を事前に知らない状態から、DPoP-bound のトークンでリソースにアクセスするまでの流れを並べてください。",
+      "items": [
+        {
+          "id": "asm",
+          "text": "クライアントが AS のメタデータを取得し、dpop_signing_alg_values_supported を確かめる"
+        },
+        {
+          "id": "first",
+          "text": "クライアントがトークンを付けずに RS に要求する"
+        },
+        {
+          "id": "challenge",
+          "text": "RS が 401 と WWW-Authenticate: DPoP algs=\"ES256\", resource_metadata=\"…\" を返す"
+        },
+        {
+          "id": "prm",
+          "text": "クライアントが保護されたリソースのメタデータを取得・検証し、authorization_servers と dpop_bound_access_tokens_required を確かめる"
+        },
+        {
+          "id": "access",
+          "text": "Authorization: DPoP と、ath を含む新しい proof を付けて RS に再び要求する"
+        },
+        {
+          "id": "token",
+          "text": "認可コードを ES256 の proof 付きのトークン要求で引き換え、token_type=DPoP を確かめる"
+        }
+      ],
+      "points": 2,
+      "referenceIds": [
+        "prm-flow",
+        "prm-www-authenticate",
+        "prm-params",
+        "as-metadata",
+        "token",
+        "resource"
+      ]
+    },
+    {
+      "id": "spa-end-to-end",
+      "type": "written",
+      "category": "design",
+      "scenario": "SPA（public client）が PAR・PKCE・DPoP を使います。AS の PAR エンドポイントは https://as.example.com/par、トークンエンドポイントは https://as.example.com/token、RS は https://api.example.com/v1/items です。AS も RS も nonce を要求します。",
+      "prompt": "PAR 要求、コードの引き換え、refresh、RS への要求のそれぞれで、DPoP の proof に入れる値（htm・htu・ath・nonce と、jti・iat の扱い）と、要求ごとに確かめる点（PKCE のパラメーターや、SPA としてブラウザーで必要になる設定を含む）を説明してください。",
+      "points": 8,
+      "referenceIds": [
+        "par",
+        "par-request",
+        "token",
+        "refresh",
+        "syntax",
+        "rs-nonce"
+      ],
+      "answerHint": "要求ごとに箇条書きで構いません。"
+    }
+  ],
+  "solutions": {
+    "metadata-owners": {
+      "explanation": "RFC 9449 §5.2 のクライアントのメタデータ dpop_bound_access_tokens は、省略時 false の真偽値で、true なら AS はそのクライアントの DPoP ヘッダーのないトークン要求を拒否しなければなりません（MUST）。RFC 9728 §2 は RS のメタデータとして、dpop_bound_access_tokens_required（省略時 false）と、proof の検証に使える alg の dpop_signing_alg_values_supported を定めています。応答の署名の alg は resource_signing_alg_values_supported で、E はこれと混同しています。RFC 9449 が AS のメタデータとして定めるのは dpop_signing_alg_values_supported だけです（§5.1）。A：クライアントと RS の名前が逆です。C：どちらも省略時は false です。",
+      "answer": 1
+    },
+    "empty-alg-array": {
+      "explanation": "RFC 8414 §3.2 は「Claims that return multiple values are represented as JSON arrays. Claims with zero elements MUST be omitted from the response」と定めます。RFC 9449 §5.1 の dpop_signing_alg_values_supported は、DPoP への対応と、proof に使える alg を示す配列です。C・D：そのような意味はなく、none は proof に使えません（§4.2）。なお RFC 9728 の bearer_methods_supported は、空の配列で「Bearer の送り方に対応しない」ことを示せると個別に定めています。項目ごとの定義を確かめる必要があります。",
+      "answer": 4
+    },
+    "dpop-only-rs-metadata": {
+      "explanation": "RFC 9728 §2 の bearer_methods_supported は RFC 6750 の送り方（header・body・query）の配列で、「The empty array [] can be used to indicate that no bearer methods are supported. If this entry is omitted, no default bearer methods supported are implied, nor does its absence indicate that they are not supported」と定めます（B は誤り）。§3.2 には「Parameters with zero values MUST be omitted from the response」という一般の規則がありますが、bearer_methods_supported については §2 が空の配列 [] に「Bearer の送り方に対応しない」という意味を個別に与えているので、D の [] はこの定めに基づく記載です。dpop_bound_access_tokens_required は、常に DPoP-bound のトークンを求めるかを表す真偽値です。C：値は Bearer の送り方です。A：dpop_bound_access_tokens はクライアントのメタデータです。dpop_signing_alg_values_supported の空の配列には §2 で意味が与えられていないので、§3.2 のとおり省略します。E：方針と逆の値です。",
+      "answer": 3
+    },
+    "alg-mismatch-key-binding": {
+      "explanation": "§5 のとおり、アクセストークンはトークン要求の proof の公開鍵に結び付き、RS は proof の鍵がその鍵と一致することを確かめます（§4.3 の 12 番目）。A：新しい鍵の proof は結び付けの照合を通りません。E：PS256 は RSA の鍵で使うアルゴリズムで、EC 鍵とは組み合わせられません。RFC 8725 §3.1 も alg と実際の処理の一致を求めています。B：RS が受け付ける alg は RS のローカルポリシーで決まり（§4.3 の 5 番目）、challenge の algs で示されます（§7.1）。D：proof は必須です（§7）。",
+      "answer": 2
+    },
+    "refresh-without-dpop-header": {
+      "explanation": "§5.2 は、dpop_bound_access_tokens が true なら「the authorization server MUST reject token requests from the client that do not contain the DPoP header」と定めます。§5 のとおり、トークン要求には refresh_token グラントを含むすべての grant type が含まれます。E：confidential client の refresh token が鍵に結び付かないこと（§5）は、トークン要求に DPoP ヘッダーを求めるこのメタデータとは別の話です。B：AS は proof の鍵に結び付けますが、この要求には proof がありません。",
+      "answer": 0
+    },
+    "dpop-jkt-no-proof": {
+      "explanation": "§10 は、トークン要求を受けた AS が proof の公開鍵の JWK Thumbprint を計算して dpop_jkt と比べ、一致しなければ拒否しなければならない（MUST）としています。proof がなければ一致を確かめられません。§10.1 は、PAR 要求の DPoP ヘッダーを「as if the contained public key's thumbprint was provided using dpop_jkt」として扱い、その意味を「reject the subsequent token request unless a DPoP proof for the same key is provided」と説明しています。dpop_jkt を示した場合も、同じ鍵の proof がなければ拒否します。C：コードを鍵に結び付けた意味がなくなります（§11.9）。A：dpop_jkt と PKCE はそれぞれ別に検証します。E：鍵を持つ証明なしに結び付けても、正規の鍵の持ち主であることは確かめられません。",
+      "answer": 1
+    },
+    "par-htu": {
+      "explanation": "§10.1 で、PAR 要求に付けた proof は AS が §4.3 に従って検証します（MUST）。htm は要求のメソッド、htu は要求の URI です。RFC 9126 §2.1 の PAR 要求は、PAR エンドポイントへのフォーム本文の POST です。B：トークン要求の proof は、トークン要求のときに別に作ります。A：htu には query を含めず（§4.2）、PAR のパラメーターは本文で送ります。",
+      "answer": 4
+    },
+    "par-client-auth": {
+      "explanation": "RFC 9126 §2.1 は、PAR エンドポイントが「Authenticate the client in the same way as at the token endpoint」と定めます。RFC 9449 §1 のとおり DPoP はクライアント認証の方式ではなく、private_key_jwt などと併用できます。D：同じ鍵にする要件はなく、§11.11 は DPoP とクライアント認証が暗号的には結び付かないと述べています。E：§10.1 は PAR 要求への DPoP ヘッダーを認めています。B：proof は所持の証明で、クライアント認証ではありません。",
+      "answer": 2
+    },
+    "stronger-binding": {
+      "explanation": "§10.1 は「it provides a stronger binding, as the DPoP header contains a proof of possession of the private key」と述べています。DPoP ヘッダーの方法でも、AS は dpop_jkt が示されたものとして扱い、同じ鍵の proof のないトークン要求を拒否します（A・E は誤り）。B：どちらも TLS で守られ、DPoP は暗号化の仕組みではありません。C：dpop_jkt も、SHA-256 で計算する JWK Thumbprint です（§10）。",
+      "answer": 3
+    },
+    "token-type-case": {
+      "explanation": "RFC 6749 §5.1 は token_type について「Value is case insensitive」と定めています。\"dpop\" は RFC 9449 §5 の token type「DPoP」です。RFC 6749 §7.1 は、クライアントが理解できない token type のトークンを使ってはならないとしていますが、この値は理解できる token type です。C：理解できない場合も Bearer として使ってよいわけではありません。D：ath の計算は token_type に関係しません。",
+      "answer": 0
+    },
+    "injection-same-key": {
+      "explanation": "RFC 9700 §4.5.1 の注入攻撃では、攻撃者自身はコードを引き換えず、正規のクライアントが自分の認証情報でコードを引き換えます。この構成ではクライアントの鍵は 1 つなので、dpop_jkt の照合は成功します。RFC 9449 §10 は「The dpop_jkt authorization request parameter only provides similar protections when a unique DPoP key is used for each authorization request」と述べています。PKCE なら、コードは被害者のフローの code_challenge に結び付いているので、攻撃者のセッションの code_verifier では引き換えに失敗します（RFC 9700 §4.5.3.1）。B：攻撃者は自分で始めたフローの state を使うので一致します。D：攻撃者のセッションが被害者のリソースに結び付くことが、この攻撃の目的です。",
+      "answer": 2
+    },
+    "par-nonce": {
+      "explanation": "§8.2 は「The client is expected to use the existing supplied nonce in DPoP proofs until the server supplies a new nonce value」と述べています。PAR エンドポイントもトークンエンドポイントも同じ AS なので、新しい値を受け取るまでは N1 を使います。§9 のとおり、nonce は発行したサーバーでだけ受理されます。N1 は AS が提供した nonce で、§4.2 は、サーバーが DPoP-Nonce を提供したら proof に nonce を含めることを MUST とし、§11.3 は nonce を提供した後に nonce のない proof を受理することを禁じています（E・D は誤り）。新しい nonce が必要なら、AS は use_dpop_nonce で提供でき、この仕組みは自己修復的です（§8）。A：トークン要求の proof の htu はトークンエンドポイントです。C：トークンエンドポイント用の nonce を事前に取得する手順はなく、既存の nonce を使い続けるという §8.2 の想定と食い違います。",
+      "answer": 1
+    },
+    "prm-resource-metadata": {
+      "explanation": "RFC 9728 §5.1 は「This parameter MAY also be used in WWW-Authenticate responses using authorization schemes other than \"Bearer\" [RFC6750], such as the DPoP scheme defined by [RFC9449]」と述べています。RFC 9449 §7.1 も、challenge に追加のパラメーターを使ってよく（MAY）、未知のパラメーターは受信側が無視しなければならない（MUST）としているので、RFC 9728 を知らないクライアントとも共存できます。A：RFC 9728 §5 の流れでは、クライアントはメタデータを取得して検証します。D：RFC 9728 §5.1 は、resource_metadata を他の拡張のパラメーターと組み合わせてよい（MAY）としています。",
+      "answer": 4
+    },
+    "registration-response": {
+      "explanation": "RFC 7591 §3.2.1 は、AS は登録したメタデータをすべて返さなければならず（MUST）、要求された値を拒否したり別の値に置き換えたりできる（MAY）としています。クライアントは応答を見て、登録が使える状態か判断します。RFC 9449 §5.2 の dpop_bound_access_tokens は省略時 false です。したがって AS は、このクライアントからの DPoP ヘッダーのないトークン要求を、このメタデータを理由には拒否しません。E：AS は理解できないメタデータを無視しなければならず（RFC 7591 §2）、要求された値を拒否することもできるので（§3.2.1）、含まれていないこと自体は仕様違反ではありません。その後の対応は範囲外とされ、再登録は選択肢の 1 つにすぎません。",
+      "answer": 0
+    },
+    "separate-alg-lists": {
+      "explanation": "RFC 8414 §2 の token_endpoint_auth_signing_alg_values_supported は、private_key_jwt などでクライアント認証に使う JWT の alg です。RFC 9449 §5.1 の dpop_signing_alg_values_supported は proof の alg で、両者は別の一覧です（B・A は誤り）。E：同じ鍵にする要件はなく、§11.11 は DPoP とクライアント認証が暗号的には結び付かないと述べています。C：DPoP はクライアント認証に使うものではありません（§1）。",
+      "answer": 3
+    },
+    "dpop-jkt-public": {
+      "explanation": "§10 の dpop_jkt は公開鍵の JWK Thumbprint です。AS は、トークン要求の proof の jwk から Thumbprint を計算して比べ、その proof の署名も検証するので、一致する proof を作るには対応する秘密鍵が必要です。§11.9 が「The same JWK Thumbprint considerations apply」とするとおり、別の鍵で同じ Thumbprint を作れないことは §11.8 の第二原像計算困難性に依存しています。D：dpop_jkt は公開鍵のハッシュで秘密の値ではなく、ハッシュから鍵は計算できません。C：dpop_jkt は認可要求で示す値で（§10）、AS はそれをトークン要求の proof の鍵と照合します。攻撃者がトークン要求に値を入れても、照合には使われません。E：proof には jkt というクレームはなく、AS は jwk から計算します。B：dpop_jkt は秘密の値ではなく、§10 のとおり認可要求で送ります。",
+      "answer": 0
+    },
+    "unaware-as": {
+      "explanation": "§5 の refresh token の結び付け（MUST）は「When an authorization server supporting DPoP issues a refresh token to a public client that presents a valid DPoP proof」の場合で、DPoP に対応しない AS は、知らない DPoP ヘッダーを通常は無視します（RFC 9110 §5.1、C は誤り）。AS の DPoP への対応は §5.1 のメタデータで示されます。§5 は、token_type が DPoP でなければ DPoP による保護はなく、保護を重要とするなら応答を破棄しなければならないとしています。E：結び付けは AS が行うもので、クライアントが読み替えても生じません。",
+      "answer": 1
+    },
+    "pkce-and-jkt-both": {
+      "explanation": "RFC 9449 §10 は、dpop_jkt を PKCE と組み合わせてよい（MAY）とし、AS は proof の鍵の Thumbprint が dpop_jkt と一致しなければ拒否しなければならない（MUST）としています。RFC 7636 §4.6 は、code_verifier から計算した値が code_challenge と一致しなければ invalid_grant を返さなければならない（MUST）としています。2 つの仕組みは独立に検証します。B：RFC 7636 §4.2 は、S256 を使えるクライアントは S256 を使わなければならないとしています。",
+      "answer": 2
+    },
+    "prm-discovery-flow": {
+      "explanation": "RFC 9728 §5 の流れは、トークンなしの要求、resource_metadata を含む WWW-Authenticate、保護されたリソースのメタデータの取得と検証、AS のメタデータの取得、OAuth のフロー、トークン付きの再要求の順です。resource_metadata は DPoP の challenge にも含められます（§5.1）。DPoP の部分は、AS のメタデータで alg を確かめ（RFC 9449 §5.1）、proof 付きのトークン要求で token_type を確かめ（§5）、RS には ath を含む新しい proof を付けて送ります（§7）。",
+      "answer": [
+        "first",
+        "challenge",
+        "prm",
+        "asm",
+        "token",
+        "access"
+      ]
+    },
+    "spa-end-to-end": {
+      "explanation": "PAR：htm=POST、htu=https://as.example.com/par、ath なし。PAR 要求に DPoP ヘッダーを付けると、dpop_jkt と同じくコードが鍵に結び付く（dpop_jkt も送るなら同じ鍵の Thumbprint）。code_challenge（S256）を送り、AS が要求したら nonce を含める。引き換え：htm=POST、htu=https://as.example.com/token、同じ鍵、AS の最新の nonce、code_verifier を送る。ath なし。応答の token_type=DPoP を確かめる。DPoP でなければ、保護を重要とするなら応答を破棄する。refresh：htm=POST、htu はトークンエンドポイント、同じ鍵（public client の refresh token は鍵に結び付く）、AS の nonce。ath なし。RS：htm は実際のメソッド、htu=https://api.example.com/v1/items（query なし）、ath はアクセストークンのハッシュ、nonce は RS が提供した値（AS の nonce とは別）。すべての要求で新しい jti と現在の iat を使う。トークンは Authorization: DPoP で送り、Bearer に切り替えない。CORS では DPoP-Nonce と WWW-Authenticate を公開してもらう。",
+      "rubric": [
+        {
+          "criterion": "PAR：htm=POST、htu=PAR エンドポイント、ath なし。DPoP ヘッダーでコードが鍵に結び付く（dpop_jkt を併記するなら同じ鍵）。",
+          "points": 1,
+          "referenceIds": [
+            "par",
+            "syntax"
+          ]
+        },
+        {
+          "criterion": "PAR：code_challenge（S256）を送り、AS が要求したら nonce を含める。",
+          "points": 1,
+          "referenceIds": [
+            "par-request",
+            "as-nonce"
+          ]
+        },
+        {
+          "criterion": "引き換え：htm=POST、htu=トークンエンドポイント、同じ鍵、AS の nonce、code_verifier。ath なし。",
+          "points": 1,
+          "referenceIds": [
+            "token",
+            "code",
+            "syntax"
+          ]
+        },
+        {
+          "criterion": "応答の token_type が DPoP かを確かめる。DPoP でなければアクセストークンは DPoP で保護されないので、保護を重要とするなら応答を破棄する（§5）。",
+          "points": 1,
+          "referenceIds": [
+            "refresh"
+          ]
+        },
+        {
+          "criterion": "refresh：htm=POST、htu=トークンエンドポイント、同じ鍵（refresh token が鍵に結び付く）、AS の nonce。ath なし。",
+          "points": 1,
+          "referenceIds": [
+            "refresh",
+            "rotation"
+          ]
+        },
+        {
+          "criterion": "RS：実際のメソッド、query なしの htu、ath、RS が提供した nonce（AS とは別）。",
+          "points": 1,
+          "referenceIds": [
+            "syntax",
+            "rs-nonce"
+          ]
+        },
+        {
+          "criterion": "すべての要求で新しい jti と現在の iat を使い、proof を使い回さない。",
+          "points": 1,
+          "referenceIds": [
+            "proof",
+            "syntax"
+          ]
+        },
+        {
+          "criterion": "Authorization: DPoP で送り Bearer に切り替えない。CORS で DPoP-Nonce と WWW-Authenticate を公開してもらう。",
+          "points": 1,
+          "referenceIds": [
+            "scheme",
+            "cors-proxy",
+            "nonce-state"
+          ]
+        }
+      ]
+    }
+  },
+  "inconsistencies": []
+}

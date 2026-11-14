@@ -1,6 +1,6 @@
 # RFC 9449 DPoP 問題集（80 問）
 
-保存済みの [RFC 9449](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt) を根拠に、基本概念から実装レビューまで 4 段階で学ぶ問題集です。出典はコミット `993c1cf7f6b5fd47c151a56d60bb801bdd921aac` に固定しています。各問の解説には該当する節と本文へのリンクがあり、記述式には配点付きの採点基準があります。
+保存済みの [RFC 9449](https://github.com/maronnjapan/readRFCInMobile/blob/993c1cf7f6b5fd47c151a56d60bb801bdd921aac/rfcs/rfc9449.txt) を根拠に、基本概念から実装レビューまで 4 段階で学ぶ問題集です。解き終えたら、関連する仕様と実装まで広げる[発展問題集（128 問）](rfc-9449-dpop-advanced.md)に進んでください。出典はコミット `993c1cf7f6b5fd47c151a56d60bb801bdd921aac` に固定しています。各問の解説には該当する節と本文へのリンクがあり、記述式には配点付きの採点基準があります。
 
 ## 学習の進め方
 
