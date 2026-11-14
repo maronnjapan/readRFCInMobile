@@ -15,8 +15,7 @@ on:
       pr_number:
         description: 資料を取得する PR 番号 (code_source が必要。AI は実行しない)
       question_count:
-        description: 任意の作問メモとして保存する問題数
-        default: '7'
+        description: 任意の作問メモとして保存する問題数 (空なら未指定)
       question_categories:
         description: 任意の作問メモとして保存するカテゴリ (カンマ区切り)
         default: vocabulary,knowledge,flow,design,debugging,comparison,implementation
