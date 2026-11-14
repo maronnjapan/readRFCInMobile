@@ -4,11 +4,13 @@ import { isImmediate, needsGrading } from '../../shared/quiz-types.js';
 
 export function attemptScreen(data, requested) {
   const immediate = data.set.questions.filter(isImmediate);
+  const written = data.set.questions.filter(needsGrading);
+  const sequence = [...immediate, ...written];
   const answered = (q) => Object.hasOwn(data.answers || {}, q.id);
-  const next = immediate.find((q) => !answered(q));
-  const selected = immediate.find((q) => q.id === requested && (answered(q) || q.id === next?.id));
+  const next = sequence.find((q) => !answered(q));
+  const selected = sequence.find((q) => q.id === requested && (answered(q) || q.id === next?.id));
   const question = selected || (!data.completed ? next : null);
-  return { data, immediate, question, written: data.set.questions.filter(needsGrading), view: question ? 'instant' : data.completed ? 'results' : 'written' };
+  return { data, immediate, sequence, question, written, view: question ? isImmediate(question) ? 'instant' : 'written' : 'results' };
 }
 
 export async function loadPage(env, user, params) {

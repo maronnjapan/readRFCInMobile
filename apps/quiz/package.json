@@ -29,9 +29,11 @@
     "@codemirror/view": "^6.43.15",
     "@lezer/highlight": "^1.2.5",
     "codemirror": "^6.0.2",
-    "hono": "^4.13.18"
+    "hono": "^4.13.18",
+    "typescript": "^5.9.3"
   },
   "devDependencies": {
+    "@types/node": "^24.19.2",
     "esbuild": "^0.28.2",
     "miniflare": "^5.20261110.1-beta",
     "wrangler": "^4.160.1",

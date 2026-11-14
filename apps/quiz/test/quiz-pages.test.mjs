@@ -121,3 +121,38 @@ test('screen actions enforce origin, ownership, ID and form size checks', async 
   assert.equal((await post(`/quiz/attempts/${run.id}/answers`, { answer: 'x'.repeat(300001) }, { json: true })).status, 413);
   assert.equal((await get('/quiz?attempt=bad')).status, 404);
 });
+
+test('written screens show one question, confirm each save and resume at the next unanswered question', async () => {
+  const artifact = structuredClone(patternsFixture);
+  const first = artifact.questions.find((q) => q.type === 'written');
+  const second = { ...first, id: 'written-next', prompt: '続きの記述式問題です。' };
+  artifact.questions = [first, second];
+  artifact.solutions = { [first.id]: artifact.solutions[first.id], [second.id]: structuredClone(artifact.solutions[first.id]) };
+  const published = await worker.publish(artifact, 'a'.repeat(40));
+  const run = await start(published.id);
+  const initial = await (await get(run.location)).text();
+  assert.match(initial, /記述式・実装 1 \/ 2/);
+  assert.equal((initial.match(/<fieldset/g) || []).length, 1);
+  assert.ok(!initial.includes(second.prompt));
+  assert.ok(!initial.includes('/instant-answers'));
+  const skipped = await (await get(`${run.location}&question=${second.id}`)).text();
+  assert.ok(!skipped.includes(second.prompt));
+  const response = await post(`/quiz/attempts/${run.id}/answers`, { [first.id]: '最初の回答です。' }, { json: true });
+  assert.equal(response.status, 200);
+  const feedback = await (await get((await response.json()).location)).text();
+  assert.match(feedback, /この問題の回答を保存しました/);
+  assert.match(feedback, /<fieldset disabled/);
+  assert.match(feedback, /次の問題へ/);
+  assert.ok(!feedback.includes('id="grading-form"'));
+  const resumed = await (await get(run.location)).text();
+  assert.match(resumed, /記述式・実装 2 \/ 2/);
+  assert.ok(resumed.includes(second.prompt));
+  assert.ok(!resumed.includes(first.prompt));
+  const last = await post(`/quiz/attempts/${run.id}/answers`, { [second.id]: '最後の回答です。' });
+  const lastFeedback = await (await get(last.headers.get('location'))).text();
+  assert.match(lastFeedback, /結果を見る/);
+  assert.match(lastFeedback, /id="grading-form"/);
+  const results = await (await get(run.location)).text();
+  assert.ok(results.includes('最初の回答です。'));
+  assert.ok(results.includes('最後の回答です。'));
+});

@@ -1,15 +1,15 @@
 import { basicSetup } from 'codemirror';
 import { EditorState } from '@codemirror/state';
-import { EditorView, keymap } from '@codemirror/view';
+import { EditorView, keymap, ViewPlugin } from '@codemirror/view';
+import { autocompletion } from '@codemirror/autocomplete';
 import { indentWithTab } from '@codemirror/commands';
 import { syntaxHighlighting } from '@codemirror/language';
-import { javascript, scopeCompletionSource } from '@codemirror/lang-javascript';
+import { javascript } from '@codemirror/lang-javascript';
 import { python } from '@codemirror/lang-python';
 import { classHighlighter, highlightCode } from '@lezer/highlight';
+import { typeScriptCompletion } from './typescript-completion.js';
 
 const languageSupport = (language) => language === 'python' ? python() : javascript({ typescript: language === 'typescript' });
-// 組み込みオブジェクトのプロパティも補完する。入力コードを評価しない。
-const javascriptScope = { Array, Object, String, Number, Boolean, JSON, Math, Map, Set, URL, URLSearchParams, Promise, Error, TypeError, RegExp };
 const theme = EditorView.theme({
   '&': { backgroundColor: 'var(--code-bg)', color: 'var(--code-fg)' },
   '.cm-content': { caretColor: 'var(--fg)', fontFamily: 'var(--mono)', minHeight: '18rem' },
@@ -43,6 +43,11 @@ export function initializeCode() {
     const initialize = () => {
       if (smallScreen.matches || view) return;
       const language = languageSupport(container.dataset.language);
+      const completion = container.dataset.language === 'python' ? null : typeScriptCompletion(container.dataset.language, () => {
+        const status = container.parentElement.querySelector('[data-completion-status]');
+        status.hidden = false;
+        status.textContent = '型に基づく補完を読み込めませんでした。再読み込みで再試行できます。';
+      });
       let source = textarea.value;
       try { source = sessionStorage.getItem(container.dataset.draftKey) ?? source; } catch {}
       if (source.length > textarea.maxLength) source = textarea.value;
@@ -54,7 +59,7 @@ export function initializeCode() {
         parent: mount,
         state: EditorState.create({ doc: source, extensions: [
           basicSetup, language, syntaxHighlighting(classHighlighter), theme,
-          ...(container.dataset.language === 'python' ? [] : [language.language.data.of({ autocomplete: scopeCompletionSource(javascriptScope) })]),
+          ...(completion ? [autocompletion({ override: [completion.source] }), ViewPlugin.define(() => ({ destroy: completion.destroy }))] : []),
           keymap.of([indentWithTab]), EditorState.tabSize.of(2),
           EditorView.contentAttributes.of({ 'aria-labelledby': `label-${textarea.name}`, 'aria-describedby': textarea.getAttribute('aria-describedby'), 'aria-required': 'true', spellcheck: 'false' }),
           EditorState.transactionFilter.of((transaction) => transaction.newDoc.length <= textarea.maxLength ? transaction : []),

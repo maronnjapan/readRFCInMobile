@@ -6,6 +6,7 @@ import { readForm } from '../http.js';
 import { getSet, getAttempt, parseSet } from '../store.js';
 import { startAttempt, saveInstantAnswers, saveWrittenAnswers, requestWrittenGrading } from '../services/attempts.js';
 import { loadPage } from '../services/page-data.js';
+import { needsGrading } from '../../shared/quiz-types.js';
 import { QuizPage } from '../../web/pages.jsx';
 
 export const pageRoutes = new Hono();
@@ -64,8 +65,9 @@ pageRoutes.post('/attempts/:id/instant-answers', validId(uuid), async (c) => {
 pageRoutes.post('/attempts/:id/answers', validId(uuid), async (c) => {
   const form = await readForm(c.req.raw);
   const id = c.req.param('id');
-  await saveWrittenAnswers(c.env, c.get('user'), id, Object.fromEntries(form));
-  return navigate(c, attemptUrl(id));
+  const data = await saveWrittenAnswers(c.env, c.get('user'), id, Object.fromEntries(form));
+  const question = data.set.questions.find((q) => form.has(q.id) && needsGrading(q));
+  return navigate(c, attemptUrl(id, question ? { question: question.id, focus: 'feedback' } : {}));
 });
 pageRoutes.post('/attempts/:id/grading-requests', validId(uuid), authenticate, async (c) => {
   await requestWrittenGrading(c.env, c.get('user'), c.req.param('id'));

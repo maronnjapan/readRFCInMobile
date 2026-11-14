@@ -103,3 +103,72 @@ test('previously submitted attempts remain readable without per-choice rows', as
   assert.equal((await choice('client-sub', 0)).status, 200);
   assert.equal((await choice('client-sub', 2)).status, 409);
 });
+
+function writtenFixture() {
+  const artifact = structuredClone(fixture);
+  const first = artifact.questions.find((q) => q.type === 'written');
+  artifact.questions = [first, { ...first, id: 'audience-validation-next' }];
+  artifact.solutions = { [first.id]: artifact.solutions[first.id], 'audience-validation-next': structuredClone(artifact.solutions[first.id]) };
+  return artifact;
+}
+
+test('written responses save one at a time and survive reload without completing or grading early', async () => {
+  const { call, state } = await start(writtenFixture(), '3'.repeat(40));
+  const save = (answers) => call(`/api/attempts/${state.id}/answers`, { method: 'POST', body: { answers } });
+  assert.equal((await save({ 'audience-validation-next': '先の問題への回答。' })).status, 409);
+  for (const answers of [{}, { missing: '回答' }, { 'audience-validation': '' }, { 'audience-validation': 'x'.repeat(8001) }]) assert.equal((await save(answers)).status, 400);
+  const answer = '意図された受信者であることを確認する。';
+  const first = await save({ 'audience-validation': answer });
+  assert.equal(first.status, 200);
+  const partial = await first.json();
+  assert.equal(partial.completed, false);
+  assert.equal(partial.status, 'answering');
+  assert.deepEqual(partial.answers, { 'audience-validation': answer });
+  assert.equal(partial.results.length, 1);
+  assert.equal(partial.results[0].status, 'pending');
+  assert.deepEqual((await (await call(`/api/attempts/${state.id}`)).json()).answers, partial.answers);
+  assert.equal((await save({ 'audience-validation': answer })).status, 200);
+  assert.equal((await save({ 'audience-validation': '変更した回答。' })).status, 409);
+  assert.equal((await call(`/api/attempts/${state.id}/grading-requests`, { method: 'POST', body: {} })).status, 409);
+  const last = await (await save({ 'audience-validation-next': '異なる受信者向けの JWT を拒否する。' })).json();
+  assert.equal(last.completed, true);
+  assert.equal(last.status, 'saved');
+  assert.equal(last.answers['audience-validation'], answer);
+  assert.equal(last.results.length, 2);
+  assert.equal(worker.executions.size, 0);
+  assert.equal((await save({ 'audience-validation': answer })).status, 200);
+  assert.equal((await save({ 'audience-validation-next': '変更。' })).status, 409);
+});
+
+test('concurrent written saves preserve one immutable answer and finish with all earlier answers', async () => {
+  const { call, state } = await start(writtenFixture(), '4'.repeat(40));
+  const save = (answers) => call(`/api/attempts/${state.id}/answers`, { method: 'POST', body: { answers } });
+  const responses = await Promise.all([save({ 'audience-validation': '回答 A' }), save({ 'audience-validation': '回答 B' })]);
+  assert.deepEqual(responses.map((r) => r.status).sort(), [200, 409]);
+  const partial = await (await call(`/api/attempts/${state.id}`)).json();
+  const finalResponses = await Promise.all([save({ 'audience-validation-next': '最後の回答 A' }), save({ 'audience-validation-next': '最後の回答 B' })]);
+  assert.deepEqual(finalResponses.map((r) => r.status).sort(), [200, 409]);
+  const last = await (await call(`/api/attempts/${state.id}`)).json();
+  assert.equal(last.completed, true);
+  assert.equal(last.status, 'saved');
+  assert.equal(last.answers['audience-validation'], partial.answers['audience-validation']);
+});
+
+test('existing bulk written submissions remain supported and total length is checked before saving', async () => {
+  const artifact = writtenFixture();
+  const first = artifact.questions[0];
+  for (let n = 0; n < 4; n++) {
+    const id = `extra-${n}`;
+    artifact.questions.push({ ...first, id });
+    artifact.solutions[id] = structuredClone(artifact.solutions[first.id]);
+  }
+  const { call, state } = await start(artifact, '5'.repeat(40));
+  const save = (answers) => call(`/api/attempts/${state.id}/answers`, { method: 'POST', body: { answers } });
+  const long = Object.fromEntries(artifact.questions.slice(0, 5).map((q) => [q.id, 'x'.repeat(7900)]));
+  assert.equal((await save(long)).status, 200);
+  const lastId = artifact.questions.at(-1).id;
+  assert.equal((await save({ [lastId]: 'x'.repeat(8000) })).status, 400);
+  const final = await (await save({ [lastId]: '短い回答。' })).json();
+  assert.equal(final.completed, true);
+  assert.equal(Object.keys(final.answers).length, artifact.questions.length);
+});
