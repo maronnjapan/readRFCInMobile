@@ -4,7 +4,7 @@ export function Implementation({ data, question: q, saved }) {
   const code = q.implementation;
   const reading = q.implementationMode === 'reading';
   return <div class="quiz-implementation">
-    <p class="help">{CODE_LANGUAGES[code.language]} · {reading ? 'コードを読んで、使う関数や処理を選んでください。コード欄は縦横にスクロールできます。' : 'ケースと制約を満たす関数を実装してください。コードとケースをAIが照合して採点します。'}</p>
+    <p class="help">{CODE_LANGUAGES[code.language]} · {reading ? 'コードを読んで、使う関数や処理を選んでください。コード欄は縦横にスクロールできます。' : 'ケースと制約を満たす関数を実装してください。保存後に回答例・採点基準を確認できます。AI採点も利用できます。'}</p>
     <details open={!reading}><summary>満たすケース・入出力例</summary><ol class="quiz-cases">{code.cases.map((c) => <li>
       <strong>{c.name}</strong><dl><dt>入力</dt><dd><pre>{c.input}</pre></dd><dt>期待する結果</dt><dd><pre>{c.expected}</pre></dd></dl>
     </li>)}</ol></details>
