@@ -4,11 +4,9 @@ import { pathToFileURL } from 'node:url';
 import { validateSet } from '../worker/contracts.js';
 import { questionSetId } from '../shared/question-revisions.js';
 
-const app = new URL('../', import.meta.url);
-const repositoryRoot = new URL('../../', app);
-
 // GitHub にコミットした問題を Worker の非公開バンドルに含める。dist には出力しない。
-export async function buildQuestionCatalog() {
+export async function buildQuestionCatalog({ app = new URL('../', import.meta.url) } = {}) {
+  const repositoryRoot = new URL('../../', app);
   const config = JSON.parse(await readFile(new URL('wrangler.jsonc', app), 'utf8'));
   const entries = [];
   for (const file of (await readdir(new URL('questions/', app), { recursive: true })).sort()) {

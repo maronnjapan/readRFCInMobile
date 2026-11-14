@@ -11,12 +11,12 @@ export const text = (v, max = 2000) => typeof v === 'string' && v.trim().length 
 export const filePath = (v) => text(v, 500) && !v.startsWith('/') && !v.split('/').some((p) => ['..', '.', ''].includes(p)) && !/[\\\x00-\x1f]/.test(v);
 export const uuid = (v) => typeof v === 'string' && /^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/.test(v);
 
-export function validateContext(c) {
+export function validateContext(c, { requirePrDiff = true } = {}) {
   if (!c || !slug(c.id) || !text(c.title, 500)) fail('問題の ID・題名を確認してください。');
   if (c.spec != null && (!slug(c.spec.id) || !['proposed', 'adopted', 'obsolete', 'draft'].includes(c.spec.status)
       || !repository(c.spec.repository) || !sha(c.spec.commit) || !filePath(c.spec.path))) fail('仕様の ID・状態・固定コミットを確認してください。');
   if (!c.spec && !c.pullRequest) fail('仕様、または PR の出典が必要です。');
-  if (!Array.isArray(c.references) || !c.references.length || c.references.length > 40) fail('出典が必要です。');
+  if (!Array.isArray(c.references) || !c.references.length || (!c.pullRequest && c.references.length > 40)) fail('出典が必要です。');
   const ids = new Set();
   for (const r of c.references) {
     if (!r || !slug(r.id) || ids.has(r.id) || !['spec', 'code', 'diff', 'pull_request'].includes(r.kind)
@@ -28,7 +28,7 @@ export function validateContext(c) {
   if (c.spec && !c.references.some((r) => r.kind === 'spec' && r.repository === c.spec.repository && r.commit === c.spec.commit && r.path === c.spec.path)) fail('対象仕様の出典が必要です。');
   if (c.pullRequest && (!repository(c.pullRequest.repository) || !Number.isInteger(c.pullRequest.number) || c.pullRequest.number < 1
       || !sha(c.pullRequest.baseSha) || !sha(c.pullRequest.headSha))) fail('PR の版を確認してください。');
-  if (c.pullRequest && !c.references.some((r) => r.kind === 'diff' && r.repository === c.pullRequest.repository && r.commit === c.pullRequest.headSha)) fail('PR の問題には差分の出典が必要です。');
+  if (requirePrDiff && c.pullRequest && !c.references.some((r) => r.kind === 'diff' && r.repository === c.pullRequest.repository && r.commit === c.pullRequest.headSha)) fail('PR の問題には差分の出典が必要です。');
   if (c.references.some((r) => r.kind === 'pull_request' && (!c.pullRequest || r.repository !== c.pullRequest.repository
       || r.commit !== c.pullRequest.headSha || r.path !== `pulls/${c.pullRequest.number}`))) fail('PR 本文の保存資料と対象 PR が一致しません。');
   return c;
@@ -67,7 +67,7 @@ export function validateSet(value, { published = false } = {}) {
   validateContext(value);
   if (value.format !== 'spec-understanding-quiz' || value.version !== 1 || !['draft', 'published'].includes(value.status)
       || (published && value.status !== 'published')) fail('公開前に問題をレビューし、status を published にしてください。');
-  if (!Array.isArray(value.questions) || !value.questions.length || value.questions.length > 20 || !value.solutions || Array.isArray(value.solutions)) fail('問題と採点情報が必要です。');
+  if (!Array.isArray(value.questions) || !value.questions.length || (!value.pullRequest && value.questions.length > 20) || !value.solutions || Array.isArray(value.solutions)) fail('問題と採点情報が必要です。');
   const refs = new Set(value.references.map((r) => r.id));
   const ids = new Set();
   for (const q of value.questions) {

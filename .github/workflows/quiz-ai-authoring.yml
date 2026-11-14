@@ -1,0 +1,62 @@
+name: Generate a draft quiz with AI (optional)
+
+on:
+  workflow_dispatch:
+    inputs:
+      materials_commit:
+        description: 作問資料を保存した40文字の固定コミット
+        required: true
+      materials_path:
+        description: apps/quiz/materials/ 内の JSON パス
+        required: true
+      question_count:
+        description: 問題数 (PR は正の整数、仕様のみは2〜10)
+        default: '7'
+      question_categories:
+        description: 出題カテゴリ (カンマ区切り。問題数以内)
+        default: vocabulary,knowledge,flow,design,debugging,comparison,implementation
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    environment: quiz-authoring
+    env:
+      QUIZ_API_URL: ${{ vars.QUIZ_API_URL }}
+      QUESTION_REPOSITORY: ${{ github.repository }}
+      CF_ACCESS_CLIENT_ID: ${{ secrets.CF_ACCESS_CLIENT_ID }}
+      CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
+      MATERIALS_COMMIT: ${{ inputs.materials_commit }}
+      MATERIALS_PATH: ${{ inputs.materials_path }}
+      QUESTION_COUNT: ${{ inputs.question_count }}
+      QUESTION_CATEGORIES: ${{ inputs.question_categories }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - id: generate
+        run: node apps/quiz/tools/authoring/quiz.mjs generate --materials-commit "$MATERIALS_COMMIT" --materials-path "$MATERIALS_PATH" --count "$QUESTION_COUNT" --categories "$QUESTION_CATEGORIES"
+      - name: Save the draft for review
+        env:
+          GENERATED_PATH: ${{ steps.generate.outputs.path }}
+        run: |
+          git switch -c "quiz/generated-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- "$GENERATED_PATH"
+          git commit -m 'Generate optional AI quiz draft for review'
+          git push origin HEAD
+          {
+            echo '### AI 作問候補'
+            echo "[候補を見る](https://github.com/${GITHUB_REPOSITORY}/blob/$(git rev-parse HEAD)/${GENERATED_PATH})"
+            echo '内容を確認し、公開用 JSON を main に反映するか、固定版の publish を実行してください。'
+          } >> "$GITHUB_STEP_SUMMARY"

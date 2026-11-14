@@ -36,7 +36,11 @@ export function multipleChoiceFixture({ written = true } = {}) {
   return value;
 }
 const root = fileURLToPath(new URL('../', import.meta.url));
-const workerBundle = build({ entryPoints: [`${root}worker/index.js`], bundle: true, format: 'esm', target: 'es2022', jsx: 'automatic', jsxImportSource: 'hono/jsx', write: false });
+const buildWorker = (questionCatalog) => build({ entryPoints: [`${root}worker/index.js`], bundle: true, format: 'esm', target: 'es2022', jsx: 'automatic', jsxImportSource: 'hono/jsx', write: false,
+  ...(questionCatalog ? { plugins: [{ name: 'test-question-catalog', setup(builder) {
+    builder.onLoad({ filter: /question-catalog\.json$/ }, () => ({ contents: JSON.stringify(questionCatalog), loader: 'json' }));
+  } }] } : {}) });
+const workerBundle = buildWorker();
 const { publicKey, privateKey } = generateKeyPairSync('rsa', { modulusLength: 2048 });
 const jwk = { ...publicKey.export({ format: 'jwk' }), kid: 'quiz-test-key' };
 const issuer = 'https://quiz-test.cloudflareaccess.com';
@@ -46,7 +50,7 @@ export function accessToken(subject = 'reader', overrides = {}) {
   return `${data}.${createSign('RSA-SHA256').update(data).sign(privateKey).toString('base64url')}`;
 }
 
-export async function startQuizWorker({ assets = false, port = 0, github = false, access = true, executorTransport = 'https', executorAuth = 'api-key' } = {}) {
+export async function startQuizWorker({ assets = false, port = 0, github = false, access = true, executorTransport = 'https', executorAuth = 'api-key', questionCatalog } = {}) {
   const executions = new Map();
   const executorRequests = [];
   const githubWrites = [];
@@ -64,7 +68,7 @@ export async function startQuizWorker({ assets = false, port = 0, github = false
   }
   const options = convertV4MiniflareOptions({
     name: 'quiz-test-worker',
-    modules: [{ type: 'ESModule', path: `${root}worker/index.js`, contents: (await workerBundle).outputFiles[0].text }],
+    modules: [{ type: 'ESModule', path: `${root}worker/index.js`, contents: (await (questionCatalog ? buildWorker(questionCatalog) : workerBundle)).outputFiles[0].text }],
     modulesRoot: root, compatibilityDate: '2026-11-01', cf: false, port,
     d1Databases: ['DB'],
     bindings: { APP_ORIGIN: 'https://reader.test', QUESTION_REPOSITORY: 'maronnjapan/readRFCInMobile', CODE_REPOSITORIES: 'example/product',

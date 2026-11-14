@@ -68,11 +68,13 @@ PCではコードを提出し、既存のAI採点がコードとケース・採�
 5. `node apps/quiz/tools/authoring/quiz.mjs check --path <ルートからのJSONパス>`を実行。コードやスキーマを変更した場合は`npm test`と`npm run check:workers`も実行し、PC・スマホ画面を検証する。
 6. 公開を求められたらレビュー済みのデータを`published`にしてコミットする。mainの公開済みファイルはデプロイ時に自動で出題され、別ブランチや過去の版は固定コミットで追加登録できる。公開方法は運用文書を参照。作問のみの依頼では候補作成まで行う。
 
+PR 情報を受け取る CI は `prepare` で作問資料を保存するところまでを担当し、AI を呼ばない。作問は保存資料を読むローカルの Claude Code、手作業、外部 AI API などで別途行う。完成済みの問題 JSON は作成方法や AI ジョブの有無に関係なく公開・回答できる。main のファイルは通常のデプロイで出題し、別ブランチは `publish` で固定版を登録する。GitHub App があれば元の PR へ URL を返す。任意の `generate --materials PATH` と専用の AI Workflow は draft の候補作成だけを行う。記述式・実装のログイン後の AI 採点は別機能。
+
 ## PR の変更内容から作問する
 
 `generate --source maronn-openid-connect --pr N` は仕様なしの PR 問題を作る。この場合は `spec:null` とし、head に固定した `diff` の出典を必須にする。仕様への適合や仕様上の要求を推測しない。仕様と照合する場合だけ `--spec rfc-6749` などを追加する。
 
-`--paths ファイル,ディレクトリ/` と `--part N` で範囲を選ぶ。変更ファイルはパス順で8件ずつ分割され、対象範囲は資料・保存する PR 本文のスナップショットに残る。指定範囲だけを出題し、題名にも範囲や分割番号を残す。`prepare` は同じ引数で資料だけを取得し、AI を使わない。
+`prepare --source IDまたはowner/repository --pr N` は既定で変更ファイル全体を取得する。任意の `--paths ファイル,ディレクトリ/` で絞り込める。8ファイル分割・登録リポジトリやディレクトリの許可リストは使わない。全文資料は `apps/quiz/materials/pr/<owner>/<repo>/<PR番号>/<資料ID>.json` の `files`、行番号付きの抜粋は `context.references` に保存する。PR 問題には20問・40出典の上限を適用しない。
 
 `references[].kind="pull_request"` は、取得時刻・対象 SHA・本文と議論の抜粋を保存した資料。PR 本文の主張は差分やテストと照合する。公開画面のリンクはそのスナップショットを含む問題ファイルの固定コミットを指す。可変の PR 本文を固定した原文として扱わない。
 

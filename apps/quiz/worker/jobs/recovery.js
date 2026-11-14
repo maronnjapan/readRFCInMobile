@@ -1,6 +1,7 @@
 import { now } from '../http.js';
 import { githubConfigured } from '../github.js';
 import { enqueueJob, failJob, requestPullRequestSync } from '../services/ai-jobs.js';
+import { bundledSets, registerSet } from '../question-files.js';
 
 export function recoverJobs(_event, env, ctx) {
   ctx.waitUntil((async () => {
@@ -10,6 +11,8 @@ export function recoverJobs(_event, env, ctx) {
     const queued = await env.DB.prepare("SELECT id FROM ai_jobs WHERE status = 'queued' AND updated_at < ? LIMIT 100").bind(now() - 60).all();
     for (const job of queued.results) await enqueueJob(env, job.id);
     if (githubConfigured(env)) {
+      // main に追加された手動作成の PR 問題も、AI 作問・import なしで URL を返す。
+      for (const row of bundledSets(env).filter((set) => set.pr_json)) await registerSet(env, row);
       const sets = await env.DB.prepare('SELECT id FROM question_sets WHERE pr_sync_needed = 1 LIMIT 100').all();
       for (const set of sets.results) await requestPullRequestSync(env, set.id);
     }

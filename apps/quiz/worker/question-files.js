@@ -31,7 +31,7 @@ export async function loadFileSet(env, registry) {
 export async function registerSet(env, row) {
   if (!env.DB) throw new HttpError(503, '回答保存サービスの設定が必要です。');
   // 既存スキーマとの互換性のため列は維持し、出題に必要な版と一覧用メタデータだけ保存する。
-  await env.DB.prepare('INSERT OR IGNORE INTO question_sets (id, logical_id, title, spec_id, revision_json, public_json, solutions_json, materials_json, pr_json, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
+  await env.DB.prepare('INSERT OR IGNORE INTO question_sets (id, logical_id, title, spec_id, revision_json, public_json, solutions_json, materials_json, pr_json, created_at, pr_sync_needed) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
     .bind(row.id, row.logical_id, row.title, row.spec_id, row.revision_json,
-      JSON.stringify({ spec: JSON.parse(row.public_json).spec }), '{}', '{}', row.pr_json, Math.floor(Date.now() / 1000)).run();
+      JSON.stringify({ spec: JSON.parse(row.public_json).spec }), '{}', '{}', row.pr_json, Math.floor(Date.now() / 1000), row.pr_json ? 1 : 0).run();
 }

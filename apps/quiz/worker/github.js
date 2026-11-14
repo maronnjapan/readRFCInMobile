@@ -42,8 +42,6 @@ export async function syncPullRequest(env, setId) {
   const row = await env.DB.prepare('SELECT * FROM question_sets WHERE id = ?').bind(setId).first();
   if (!row?.pr_json) return;
   const pr = JSON.parse(row.pr_json);
-  const allowed = (env.CODE_REPOSITORIES || '').split(',').map((s) => s.trim());
-  if (!allowed.includes(pr.repository)) throw new Error('PR repository is not allowed');
   const token = await installationToken(env, pr.repository);
   async function github(path, method = 'GET', body) {
     const response = await fetch(`${api}/repos/${pr.repository}${path}`, {

@@ -2,6 +2,8 @@
 
 初期設定の途中で出てくる「共通 AI API」「AI 実行サーバー」は、問題アプリの依頼を受けて Claude を呼び、結果を返すための別サービスです。
 
+利用するのはログイン後の AI 採点と、独立した手動 Workflow から任意に実行する AI 作問です。PR 情報の受け取り・作問資料の保存・作成済み問題 JSON の公開と通常の回答には不要です。[PR 連携](pr-integration.md)と[問題ファイルだけで公開する手順](question-files.md)を参照してください。
+
 **このサービスの実装は、readRFCInMobile と maronn-openid-connect のどちらにも含まれていません。** 以前の手順にあった `AI_EXECUTOR_URL` は、この別サービスの受付 URL を登録する欄です。Cloudflare や GitHub で設定項目を追加するだけでは、そのサービスは作成されません。
 
 ## 1. すでにサーバーがあるか確認する
@@ -11,8 +13,8 @@
 1. 作問依頼を受ける HTTPS の URL があるか。
 2. 問題アプリ用に接続の鍵を発行できるか。
 3. [このリポジトリの接続仕様](ai-executor-contract.md)の JSON を受け取れるか。
-4. `questions.generate` と `answers.grade` を受け付け、生成後に問題アプリへ結果を返せるか。
-5. `quiz-generate-v1` と `quiz-written-v1`、またはそれに代わる実行設定名があるか。
+4. AI 採点の `answers.grade`、任意の AI 作問を使う場合は `questions.generate` を受け付け、処理後に問題アプリへ結果を返せるか。
+5. 利用する機能に応じた `quiz-written-v1`、`quiz-generate-v1`、またはそれに代わる実行設定名があるか。
 
 Claude の API キーや Claude Code のルーチンがすでにあっても、3〜5を満たすサーバーがなければ現在の自動作問経路では利用できません。Anthropic の通常の API URL をそのまま `AI_EXECUTOR_URL` に入れる構成でもありません。
 
@@ -20,7 +22,7 @@ Claude の API キーや Claude Code のルーチンがすでにあっても、3
 
 ## 2. サーバーがない場合に、新しく作る必要があるもの
 
-自動作問を使うには、以下を行うサービスの開発と公開が必要です。これは鍵を発行する画面の操作とは別の開発作業です。
+AI 採点・任意の AI 作問を使うには、以下を行うサービスの開発と公開が必要です。これは鍵を発行する画面の操作とは別の開発作業です。
 
 | 作る機能 | 必要な動作 |
 | --- | --- |
@@ -31,7 +33,7 @@ Claude の API キーや Claude Code のルーチンがすでにあっても、3
 | 結果の配送 | `callback.url` に生成結果を POST し、依頼時に渡された `callback.token` を送信時の認証に使う |
 | 失敗・再送への対応 | 実行と結果配送を受付通信の終了後も継続し、通信失敗で結果を失わないようにする |
 
-入力・出力の正確な JSON、受付後の実行、認証、再送、結果配送の仕様は [AI 実行 API との契約](ai-executor-contract.md)にあります。既存実装の場所や実行コマンドがあるかのように案内できる段階ではなく、**この未実装部分を作らないと GitHub のボタンからの自動生成は完了しません。**
+入力・出力の正確な JSON、受付後の実行、認証、再送、結果配送の仕様は [AI 実行 API との契約](ai-executor-contract.md)にあります。このサービスは任意の AI 作問・AI 採点に必要で、資料を保存する Workflow はこのサービスを呼びません。
 
 一方、PR の問題を作って公開すること自体は、次の手順で進められます。
 
@@ -83,6 +85,8 @@ status は draft で、apps/quiz/questions/pr/ 内の専用ブランチへ保存
 5. その問題ページの URL をコピーします。
 
 ### 3-4. maronn-openid-connect の PR から開けるようにする
+
+GitHub App を設定している場合は、公開された PR 問題を Cron が登録し、Queue が元の PR にリンクを返します。App を使わない場合は、以下の手順で回答 URL を共有できます。
 
 1. [対象 PR #194](https://github.com/maronnjapan/maronn-openid-connect/pull/194)の Conversation を開きます。
 2. コメント欄に、たとえば `この PR の理解度確認問題: （3-3でコピーしたURL）` と入力して投稿します。
