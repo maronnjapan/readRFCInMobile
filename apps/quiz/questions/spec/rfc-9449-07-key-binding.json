@@ -3,7 +3,7 @@
   "version": 1,
   "id": "rfc-9449-07-key-binding",
   "title": "RFC 9449 DPoP 発展 3/7: 鍵の結び付け — JWK Thumbprint・cnf・introspection",
-  "status": "draft",
+  "status": "published",
   "spec": {
     "id": "rfc-9449",
     "status": "adopted",
