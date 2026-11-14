@@ -25,14 +25,16 @@ maronn-openid-connect → 作問情報を送信
 | `code_source` | `maronn-openid-connect`。登録済み ID のほか `owner/repository` も指定可能 |
 | `pr_number` | 対象 PR 番号 |
 | `spec_id` | 任意。仕様と照合するときだけ指定 |
-| `focus_paths` | 任意の対象パス。空欄なら PR の変更ファイル全体 |
-| `question_count` / `question_categories` | 作問する人・ツールへの任意のメモ。ここでは作問しない |
+| `focus_paths` | 任意の対象パス。受信した値が空欄なら PR の変更ファイル全体。送信側の初期値は `apps/hono/`、`apps/nextjs/`、`packages/core/`、`packages/experimental/`、`packages/google-login/`、`tests/`、`docs/` |
+| `question_count` / `question_categories` | 作問する人・ツールへの任意のメモ。問題数に既定値はなく、空欄なら未指定のまま保存。ここでは作問しない |
 
 旧送信側の `operation=generate` も、受信側では `prepare` として扱う。旧 `part` 入力は互換用で、ファイルを分割・制限しない。
 
 受信側の **Prepare quiz materials or publish a quiz** は、公開 PR の base/head と共通祖先を固定し、変更一覧、本文・議論、取得できる差分、変更前後の全文コード、対応テスト、指定された仕様を保存する。コードは実行しない。バイナリは変更情報と固定版を残し、本文の省略を明記する。GitHub API 自体の取得上限・省略も確認済みの資料として扱わない。
 
 保存先は `apps/quiz/materials/pr/<owner>/<repo>/<PR番号>/<資料ID>.json`、ブランチは `quiz/materials-<run>-<attempt>`。Summary の「資料を見る」から開く。資料の形式は `format:"quiz-authoring-materials",version:1` で、`context` に出典の抜粋、`files` に取得した全文資料を持つ。PR の本文・議論も全文を `files` に残す。
+
+`questionCount` は希望の問題数を指定した場合だけ保存する。`prepare` で `--count` を省略した場合も空文字を渡した場合も、7問などの値には補完しない。後で任意の AI 作問を実行するときの問題数は、その独立した操作で指定できる。
 
 この操作に Cloudflare Access の Service Token、作問 AI、PR コメント用の GitHub App は不要。送信側は readRFCInMobile の Actions: write を持つ `QUIZ_DISPATCH_TOKEN` を設定する。受信側は自分の `GITHUB_TOKEN` で資料を取得・保存する。
 

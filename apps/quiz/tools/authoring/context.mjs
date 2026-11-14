@@ -178,5 +178,5 @@ export async function buildContext({ root, configRoot = root, specId, codeSource
   }
   validateContext(context, { requirePrDiff: false });
   return { format: 'quiz-authoring-materials', version: 1, context, material, files,
-    questionCount: Object.keys(QUESTION_CATEGORIES).length, questionCategories: Object.keys(QUESTION_CATEGORIES) };
+    questionCategories: Object.keys(QUESTION_CATEGORIES) };
 }
