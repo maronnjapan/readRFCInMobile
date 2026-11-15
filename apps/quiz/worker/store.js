@@ -1,6 +1,6 @@
 import { HttpError } from './contracts.js';
 import { bundledSets, loadFileSet } from './question-files.js';
-import { setForAttempt } from '../shared/quiz-types.js';
+import { needsGrading, setForAttempt } from '../shared/quiz-types.js';
 
 export const parseSet = (row) => ({ id: row.id, revision: JSON.parse(row.revision_json), ...JSON.parse(row.public_json) });
 export const parseAttemptSet = (row, attempt) => setForAttempt(parseSet(row), attempt.implementation_mode);
@@ -46,7 +46,8 @@ export async function instantProgress(env, row, set) {
   };
 }
 export async function attemptView(env, row) {
-  const set = parseAttemptSet(await getSet(env, row.set_id), row);
+  const setRow = await getSet(env, row.set_id);
+  const set = parseAttemptSet(setRow, row);
   const progress = row.answers_json ? null : await instantProgress(env, row, set);
   if (progress) {
     Object.assign(progress.answers, JSON.parse(row.written_answers_json));
@@ -55,8 +56,18 @@ export async function attemptView(env, row) {
       return result ? [result] : Object.hasOwn(progress.answers, q.id) ? [{ questionId: q.id, status: 'pending', score: null, maxScore: q.points }] : [];
     });
   }
+  const answers = row.answers_json ? JSON.parse(row.answers_json) : progress.results.length ? progress.answers : null;
+  const solutions = JSON.parse(setRow.solutions_json);
+  // 保存済みの記述式・実装だけ、振り返りに必要な解説・基準・参考実装を返す。
+  const revealed = Object.fromEntries(set.questions.filter((q) => needsGrading(q) && Object.hasOwn(answers || {}, q.id)).map((q) => {
+    const solution = solutions[q.id];
+    return [q.id, { explanation: solution.explanation,
+      rubric: solution.rubric.map(({ criterion, points, referenceIds }) => ({ criterion, points, referenceIds })),
+      ...(q.type === 'implementation' ? { referenceCode: solution.referenceCode } : {}),
+    }];
+  }));
   return { id: row.id, status: row.status, implementationMode: row.implementation_mode, completed: Boolean(row.answers_json), set,
-    answers: row.answers_json ? JSON.parse(row.answers_json) : progress.results.length ? progress.answers : null,
+    answers, solutions: revealed,
     results: row.results_json ? JSON.parse(row.results_json) : progress.results.length ? progress.results : null,
     grading: row.grading_json ? JSON.parse(row.grading_json) : null };
 }

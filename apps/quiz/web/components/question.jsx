@@ -22,7 +22,7 @@ export function References({ set, ids }) {
 
 function Feedback({ data, question, result }) {
   if (!result) return null;
-  if (result.status !== 'graded') return <div class="quiz-feedback" tabindex="-1"><p>{data.status === 'grading_failed' ? '採点を完了できませんでした。回答は保存済みです。' : !data.completed ? 'この問題の回答を保存しました。次の問題へ進めます。' : '回答は保存済みです。記述式・実装は採点待ちです。'}</p></div>;
+  if (result.status !== 'graded') return <div class="quiz-feedback" tabindex="-1"><p>{data.status === 'grading_failed' ? '採点を完了できませんでした。回答は保存済みです。' : !data.completed ? 'この問題の回答を保存しました。回答例・採点基準を確認して、次の問題へ進めます。' : '回答は保存済みです。回答例・採点基準を確認できます。'}</p></div>;
   const outcome = isImmediate(question) ? correct(result) ? '正解 · ' : question.type === 'choice' ? `不正解（正解: ${String.fromCharCode(65 + result.answer)}）· ` : '不正解 · ' : '';
   return <div class="quiz-feedback" tabindex="-1">
     <strong>{outcome}{result.score} / {result.maxScore}点</strong><p>{result.reason}</p>
@@ -30,9 +30,24 @@ function Feedback({ data, question, result }) {
   </div>;
 }
 
+function Solution({ question, solution }) {
+  if (!solution) return null;
+  return <details class="quiz-solution"><summary>回答例・採点基準を確認</summary>
+    {question.type === 'implementation' && <>
+      <h3>回答例（参考実装）</h3>
+      <pre class="quiz-code-preview" data-code-preview data-language={question.implementation.language} tabindex="0" role="region" aria-label="回答例のコード"><code>{solution.referenceCode}</code></pre>
+    </>}
+    <h3>{question.type === 'written' ? '回答例・解説' : '解説'}</h3>
+    <p>{solution.explanation}</p>
+    <h3>採点基準</h3>
+    <ul>{solution.rubric.map((item) => <li><strong>{item.points}点</strong>：{item.criterion}</li>)}</ul>
+  </details>;
+}
+
 export function Question({ data, question: q }) {
   const saved = Object.hasOwn(data.answers || {}, q.id);
   const result = data.results?.find((item) => item.questionId === q.id);
+  const solution = saved ? data.solutions?.[q.id] : null;
   const number = data.set.questions.findIndex((item) => item.id === q.id) + 1;
   return <fieldset disabled={saved}>
     <legend>問題 {number} · {QUESTION_CATEGORIES[categoryOf(q)]} · {q.implementationMode === 'reading' ? 'コード読解・選択式' : ANSWER_TYPES[q.type]} · {q.points}点</legend>
@@ -53,6 +68,7 @@ export function Question({ data, question: q }) {
       <textarea id={`answer-${q.id}`} name={q.id} rows="5" maxlength="8000" required aria-describedby={q.answerHint ? `hint-${q.id}` : undefined}>{data.answers?.[q.id] || ''}</textarea>
     </>}
     <Feedback data={data} question={q} result={result} />
-    <References set={data.set} ids={[...new Set([...q.referenceIds, ...(result?.referenceIds || [])])]} />
+    <Solution question={q} solution={solution} />
+    <References set={data.set} ids={[...new Set([...q.referenceIds, ...(result?.referenceIds || []), ...(solution?.rubric.flatMap((item) => item.referenceIds) || [])])]} />
   </fieldset>;
 }

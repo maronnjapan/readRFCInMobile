@@ -128,12 +128,15 @@ test('written screens show one question, confirm each save and resume at the nex
   const second = { ...first, id: 'written-next', prompt: '続きの記述式問題です。' };
   artifact.questions = [first, second];
   artifact.solutions = { [first.id]: artifact.solutions[first.id], [second.id]: structuredClone(artifact.solutions[first.id]) };
+  artifact.solutions[second.id].explanation = '次の問題だけの回答例です。';
   const published = await worker.publish(artifact, 'a'.repeat(40));
   const run = await start(published.id);
   const initial = await (await get(run.location)).text();
   assert.match(initial, /記述式・実装 1 \/ 2/);
   assert.equal((initial.match(/<fieldset/g) || []).length, 1);
   assert.ok(!initial.includes(second.prompt));
+  assert.ok(!initial.includes('class="quiz-solution"'));
+  assert.ok(!initial.includes(artifact.solutions[first.id].explanation));
   assert.ok(!initial.includes('/instant-answers'));
   const skipped = await (await get(`${run.location}&question=${second.id}`)).text();
   assert.ok(!skipped.includes(second.prompt));
@@ -143,11 +146,18 @@ test('written screens show one question, confirm each save and resume at the nex
   assert.match(feedback, /この問題の回答を保存しました/);
   assert.match(feedback, /<fieldset disabled/);
   assert.match(feedback, /次の問題へ/);
+  assert.match(feedback, /<details class="quiz-solution"><summary>回答例・採点基準を確認<\/summary>/);
+  assert.ok(feedback.includes(artifact.solutions[first.id].explanation));
+  for (const item of artifact.solutions[first.id].rubric) {
+    assert.ok(feedback.includes(`<strong>${item.points}点</strong>：${item.criterion}`));
+  }
+  assert.ok(!feedback.includes(artifact.solutions[second.id].explanation));
   assert.ok(!feedback.includes('id="grading-form"'));
   const resumed = await (await get(run.location)).text();
   assert.match(resumed, /記述式・実装 2 \/ 2/);
   assert.ok(resumed.includes(second.prompt));
   assert.ok(!resumed.includes(first.prompt));
+  assert.ok(!resumed.includes('class="quiz-solution"'));
   const last = await post(`/quiz/attempts/${run.id}/answers`, { [second.id]: '最後の回答です。' });
   const lastFeedback = await (await get(last.headers.get('location'))).text();
   assert.match(lastFeedback, /結果を見る/);
@@ -155,4 +165,7 @@ test('written screens show one question, confirm each save and resume at the nex
   const results = await (await get(run.location)).text();
   assert.ok(results.includes('最初の回答です。'));
   assert.ok(results.includes('最後の回答です。'));
+  assert.equal((results.match(/class="quiz-solution"/g) || []).length, 2);
+  assert.ok(results.includes(artifact.solutions[second.id].explanation));
+  assert.equal((await worker.db.prepare('SELECT COUNT(*) AS count FROM ai_jobs WHERE target_id = ?').bind(run.id).first()).count, 0, 'reviewing solutions never queues AI');
 });

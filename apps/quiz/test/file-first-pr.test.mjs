@@ -51,17 +51,27 @@ test('prepare CLI saves reusable full materials without an AI API or Access cred
     };
   `);
   const output = join(root, 'outputs');
-  await exec(process.execPath, ['--import', preload, join(app, 'tools/authoring/quiz.mjs'), 'prepare', '--source', 'another/project', '--pr', '7', '--count', '100'], {
-    cwd: root, env: { ...process.env, GITHUB_OUTPUT: output, GITHUB_STEP_SUMMARY: '', QUIZ_API_URL: '', CF_ACCESS_CLIENT_ID: '', CF_ACCESS_CLIENT_SECRET: '', QUESTION_REPOSITORY: repository },
-  });
-  const path = (await readFile(output, 'utf8')).trim().slice('path='.length);
-  assert.match(path, /^apps\/quiz\/materials\/pr\/another\/project\/7\//);
-  const payload = JSON.parse(await readFile(join(root, path), 'utf8'));
+  const prepare = async (...countArgs) => {
+    await writeFile(output, '');
+    await exec(process.execPath, ['--import', preload, join(app, 'tools/authoring/quiz.mjs'), 'prepare', '--source', 'another/project', '--pr', '7', ...countArgs], {
+      cwd: root, env: { ...process.env, GITHUB_OUTPUT: output, GITHUB_STEP_SUMMARY: '', QUIZ_API_URL: '', CF_ACCESS_CLIENT_ID: '', CF_ACCESS_CLIENT_SECRET: '', QUESTION_REPOSITORY: repository },
+    });
+    const path = (await readFile(output, 'utf8')).trim().slice('path='.length);
+    assert.match(path, /^apps\/quiz\/materials\/pr\/another\/project\/7\//);
+    return JSON.parse(await readFile(join(root, path), 'utf8'));
+  };
+  const payload = await prepare('--count', '100');
   assert.equal(payload.format, 'quiz-authoring-materials');
   assert.equal(payload.questionCount, 100);
   assert.equal(payload.context.references.filter((r) => r.kind === 'diff').length, 11);
   assert.equal(payload.files.filter((f) => f.kind === 'code').length, 22);
   assert.equal(payload.files.find((f) => f.kind === 'code').content, 'full source\n'.repeat(4000));
+  for (const args of [[], ['--count', '']]) {
+    const uncounted = await prepare(...args);
+    assert.equal(Object.hasOwn(uncounted, 'questionCount'), false);
+    assert.deepEqual(uncounted.questionCategories, ['vocabulary', 'knowledge', 'flow', 'design', 'debugging', 'comparison', 'implementation']);
+  }
+  for (const count of ['0', '-1', '1.5', 'invalid']) await assert.rejects(prepare('--count', count), /問題数は正の整数/);
 });
 
 test('a committed manual PR file is answerable and returns its URL without AI generation or an import', async (t) => {

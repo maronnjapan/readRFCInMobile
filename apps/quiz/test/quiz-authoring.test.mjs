@@ -110,6 +110,7 @@ test('PR preparation includes every changed file without eight-file parts or a f
   assert.ok(payload.context.references.length > 40);
   assert.equal(payload.files.filter((f) => f.kind === 'code').length, 86);
   assert.equal(payload.format, 'quiz-authoring-materials');
+  assert.equal(Object.hasOwn(payload, 'questionCount'), false);
 });
 
 test('focus paths select a subject without restricting it to configured directories', async (t) => {

@@ -51,6 +51,10 @@ test('unconfigured Access permits anonymous discovery, immediate scoring and wri
     const page = await call(`/quiz?attempt=${attempt.id}&grade=1`);
     const html = await page.text();
     assert.match(html, /回答は保存済みです/);
+    assert.match(html, /回答例・採点基準を確認/);
+    assert.ok(html.includes(patternsFixture.solutions['public-client-design'].explanation));
+    const resumed = await (await call(`/api/attempts/${attempt.id}`)).json();
+    assert.deepEqual(resumed.solutions, { 'public-client-design': patternsFixture.solutions['public-client-design'] });
     assert.ok(!html.includes('data-auto-grade'));
     assert.ok(!html.includes('id="grading-form"'));
     assert.equal((await call(`/api/attempts/${attempt.id}/grading-requests`, { method: 'POST', body: {} })).status, 503);
