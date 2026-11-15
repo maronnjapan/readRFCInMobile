@@ -156,7 +156,7 @@
         "criteria-score",
         "ta-inputs"
       ],
-      "scenario": "あるエンタープライズが、人事データベースへのアクセス判断に基準ベースの信頼アルゴリズムを使います。リソースごと・操作（read / write）ごとに基準を設定し、リクエスト、サブジェクト、資産の状態、脅威インテリジェンスと照らし合わせます。基準の種類（MFA、国、パッチレベル、承認済みアプリケーション）、データの形、基準が未設定のときに拒否することは、この課題独自の設定です。",
+      "scenario": "あるエンタープライズが、人事データベースへのアクセス判断に基準ベースの信頼アルゴリズムを使います。リソースごと・操作（read / write）ごとに基準を設定し、リクエスト、サブジェクト、資産の状態、脅威インテリジェンスと照らし合わせます。基準の種類（MFA、国、パッチレベル、承認済みアプリケーション）、データの形、値が分からない属性の扱い、基準が未設定のときに拒否することは、この課題独自の設定です。",
       "answerHint": "基準の選び方（リソースと操作）、個々の基準の判定、すべて満たしたときだけ許可する最終判断を分けて考えると整理できます。",
       "implementation": {
         "language": "javascript",
@@ -225,7 +225,7 @@
         "criteria-score",
         "ta-weights"
       ],
-      "scenario": "あるエンタープライズが、ファイルサーバーへのアクセス判断にスコアベースの信頼アルゴリズムを使います。データソースごとの値と、エンタープライズが設定した重みから信頼度を計算し、リソースの操作（read / write）ごとに設定したしきい値と比べます。値の範囲（0〜100）、重み付き平均という計算方法、値がないデータソースを 0 とすることは、この課題独自の設定です。",
+      "scenario": "あるエンタープライズが、ファイルサーバーへのアクセス判断にスコアベースの信頼アルゴリズムを使います。データソースごとの値と、エンタープライズが設定した重みから信頼度を計算し、リソースの操作（read / write）ごとに設定したしきい値と比べます。値の範囲（0〜100）、重み付き平均という計算方法、しきい値を操作ごとに分けること、値がないデータソースを 0 とすることは、この課題独自の設定です。",
       "answerHint": "信頼度の計算（どのデータソースを数えるか）と、しきい値との比べ方（等しいときの扱い）を分けて考えると整理できます。",
       "implementation": {
         "language": "javascript",
@@ -271,10 +271,10 @@
           "prompt": "decideByScore が呼ぶ contribution と passes の組み合わせとして、すべてのケースを満たすものはどれですか？",
           "code": "function decideByScore(values, weights, thresholds) {\n  let total = 0;\n  let weightSum = 0;\n  for (const [source, weight] of Object.entries(weights)) {\n    total += contribution(values[source], weight);\n    weightSum += weight;\n  }\n  const score = total / weightSum;\n  const allowed = Object.keys(thresholds).filter((action) => passes(score, thresholds[action]));\n  return { score, allowed };\n}\n",
           "options": [
-            "const contribution = (value, weight) =>\n  (value ?? 0) * weight;\nconst passes = (score, threshold) =>\n  score > threshold;",
-            "const contribution = (value, weight) =>\n  (value ?? 0) * weight;\nconst passes = (score, threshold) =>\n  score >= threshold;",
             "const contribution = (value, weight) =>\n  value * weight;\nconst passes = (score, threshold) =>\n  score > threshold;",
-            "const contribution = (value, weight) =>\n  value ?? 0;\nconst passes = (score, threshold) =>\n  score > threshold;"
+            "const contribution = (value, weight) =>\n  (value ?? 0) * weight;\nconst passes = (score, threshold) =>\n  score > threshold;",
+            "const contribution = (value, weight) =>\n  value ?? 0;\nconst passes = (score, threshold) =>\n  score > threshold;",
+            "const contribution = (value, weight) =>\n  (value ?? 0) * weight;\nconst passes = (score, threshold) =>\n  score >= threshold;"
           ]
         }
       }
@@ -340,10 +340,10 @@
           "prompt": "evaluateContextual が呼ぶ todayCount と overLimit の組み合わせとして、すべてのケースを満たすものはどれですか？",
           "code": "function evaluateContextual(state, request, config) {\n  const count = todayCount(state[request.subjectId], request);\n  const [start, end] = config.businessHours;\n  const alerts = [];\n  if (overLimit(count, config.dailyLimit)) alerts.push(\"volume\");\n  if (request.hour < start || request.hour >= end) alerts.push(\"after-hours\");\n  return {\n    decision: alerts.length === 0 ? \"allow\" : \"step-up\",\n    alerts,\n    state: { ...state, [request.subjectId]: { day: request.day, count } },\n  };\n}\n",
           "options": [
-            "const todayCount = (prev, req) => {\n  const sameDay =\n    prev && prev.day === req.day;\n  const before =\n    sameDay ? prev.count : 0;\n  return before + req.records;\n};\nconst overLimit = (count, limit) =>\n  count > limit;",
             "const todayCount = (prev, req) => {\n  const sameDay =\n    prev && prev.day === req.day;\n  const before =\n    sameDay ? prev.count : 0;\n  return before + req.records;\n};\nconst overLimit = (count, limit) =>\n  count >= limit;",
-            "const todayCount = (prev, req) => {\n  return req.records;\n};\nconst overLimit = (count, limit) =>\n  count > limit;",
-            "const todayCount = (prev, req) => {\n  const before =\n    prev ? prev.count : 0;\n  return before + req.records;\n};\nconst overLimit = (count, limit) =>\n  count > limit;"
+            "const todayCount = (prev, req) => {\n  const before =\n    prev ? prev.count : 0;\n  return before + req.records;\n};\nconst overLimit = (count, limit) =>\n  count > limit;",
+            "const todayCount = (prev, req) => {\n  const sameDay =\n    prev && prev.day === req.day;\n  const before =\n    sameDay ? prev.count : 0;\n  return before + req.records;\n};\nconst overLimit = (count, limit) =>\n  count > limit;",
+            "const todayCount = (prev, req) => {\n  return req.records;\n};\nconst overLimit = (count, limit) =>\n  count > limit;"
           ]
         }
       }
@@ -355,15 +355,16 @@
       "prompt": "ケースを満たす nextSession(state, event) を実装してください。現在の状態とイベントから、次の状態と PEP への指示を返してください。",
       "points": 6,
       "referenceIds": [
+        "pe",
         "pa",
         "pa-execution",
         "agent-gateway-flow"
       ],
-      "scenario": "ポリシー管理者（PA）が、PE の決定とセキュリティイベントに応じて、PEP に送る指示を決める処理を書きます。セッションの状態は none（未確立）、active（通信中）、held（再認証待ち）、closed（終了）の 4 つです。状態、イベント、指示の名前と、closed を終端とすること、状態に当てはまらないイベントを無視することは、この課題独自の設定です。",
+      "scenario": "ポリシー管理者（PA）が、PE の決定とセキュリティイベントに応じて、PEP に送る指示を決める処理を書きます。セッションの状態は none（未確立）、active（通信中）、held（再認証待ち）、closed（終了）の 4 つです。状態、イベント、指示の名前と、closed を終端とすること、イベントが当てはまる状態の決め方は、この課題独自の設定です。",
       "answerHint": "セッションを開始してよい条件、拒否や承認の取り消しの扱い、再認証のための保留と再開、ポリシーに基づく終了を分けて考えると整理できます。",
       "implementation": {
         "language": "javascript",
-        "starterCode": "// state: \"none\" (未確立) | \"active\" (通信中) | \"held\" (再認証待ち) | \"closed\" (終了)\n// event:\n//   { type: \"decision\", approved, authenticated }  PE の決定と、リクエストの認証結果\n//   { type: \"reauth-required\" }                    ポリシーに従って再認証・再認可を求める\n//   { type: \"reauth-result\", success }             再認証の結果\n//   { type: \"timeout\" } | { type: \"workflow-complete\" } | { type: \"security-alert\" }\n// 戻り値: { state: 次の状態, command: PEP への指示 (\"open\" | \"hold\" | \"resume\" | \"close\" | null) }\n//   \"closed\" は終端。その状態で受けたイベントと、状態に当てはまらないイベントでは、状態を変えず command は null。\nfunction nextSession(state, event) {\n  // ケースと制約を満たす処理を書いてください。\n}\n",
+        "starterCode": "// state: \"none\" (未確立) | \"active\" (通信中) | \"held\" (再認証待ち) | \"closed\" (終了)\n// event:\n//   { type: \"decision\", approved, authenticated }  PE の決定と、リクエストの認証結果\n//   { type: \"reauth-required\" }                    ポリシーに従って再認証・再認可を求める\n//   { type: \"reauth-result\", success }             再認証の結果\n//   { type: \"timeout\" } | { type: \"workflow-complete\" } | { type: \"security-alert\" }  ポリシーに基づく終了\n// 戻り値: { state: 次の状態, command: PEP への指示 (\"open\" | \"hold\" | \"resume\" | \"close\" | null) }\n//   \"closed\" は終端。その状態で受けたイベントと、状態に当てはまらないイベントでは、状態を変えず command は null。\n//   イベントが当てはまる状態:\n//     承認かつ認証済みの decision で \"open\" するのは \"none\" だけ。それ以外の decision (拒否・承認の取り消し) は \"closed\" 以外で \"close\"\n//     reauth-required は \"active\" だけ、reauth-result は \"held\" だけ\n//     timeout・workflow-complete・security-alert は \"active\" と \"held\" で \"close\"\nfunction nextSession(state, event) {\n  // ケースと制約を満たす処理を書いてください。\n}\n",
         "cases": [
           {
             "name": "認可され、リクエストも認証されている",
@@ -479,10 +480,10 @@
           "prompt": "acceptConnection が呼ぶ matches として、すべてのケースを満たすものはどれですか？",
           "code": "function acceptConnection(conn, paths, openServices, now) {\n  if (openServices.includes(conn.resource)) return true;\n  return paths.some((p) => matches(p, conn, now));\n}\n",
           "options": [
-            "const matches = (p, conn, now) =>\n  p.client === conn.client &&\n  p.resource === conn.resource &&\n  p.port === conn.port &&\n  now <= p.expiresAt;",
             "const matches = (p, conn, now) =>\n  p.client === conn.client &&\n  p.port === conn.port &&\n  now < p.expiresAt;",
-            "const matches = (p, conn, now) =>\n  p.resource === conn.resource &&\n  p.port === conn.port &&\n  now < p.expiresAt;",
-            "const matches = (p, conn, now) =>\n  p.client === conn.client &&\n  p.resource === conn.resource &&\n  p.port === conn.port &&\n  now < p.expiresAt;"
+            "const matches = (p, conn, now) =>\n  p.client === conn.client &&\n  p.resource === conn.resource &&\n  p.port === conn.port &&\n  now < p.expiresAt;",
+            "const matches = (p, conn, now) =>\n  p.client === conn.client &&\n  p.resource === conn.resource &&\n  p.port === conn.port &&\n  now <= p.expiresAt;",
+            "const matches = (p, conn, now) =>\n  p.resource === conn.resource &&\n  p.port === conn.port &&\n  now < p.expiresAt;"
           ]
         }
       }
@@ -496,11 +497,11 @@
       "referenceIds": [
         "initial-deployment"
       ],
-      "scenario": "新しい ZT ワークフローを、初期展開の間はレポート専用モードで運用します。§7.3.6 に沿って、ほとんどのリクエストは許可し、策定したポリシーの判断と後で比較できるようにログへ記録します。ただし、MFA に失敗したリクエストや、攻撃者に制御されていると分かっている IP アドレスからのリクエストを拒否する基本的なポリシーは、このモードでも適用します。モードの名前、ログの項目、basis の値は、この課題独自の設定です。",
+      "scenario": "新しい ZT ワークフローを、初期展開の間はレポート専用モードで運用します。§7.3.6 に沿って、ほとんどのリクエストは許可し、策定したポリシーの判断と後で比較できるようにログへ記録します。ただし、MFA に失敗したリクエストや、攻撃者に制御されていると分かっている IP アドレスからのリクエストを拒否する基本的なポリシーは、このモードでも適用します。モードの名前、ログの項目、basis の値とその優先順位は、この課題独自の設定です。",
       "answerHint": "どのモードでも適用する基本的なポリシー、レポート専用モードでの扱い、適用モードでの扱いの順に考えると整理できます。",
       "implementation": {
         "language": "javascript",
-        "starterCode": "// request: { id, mfaPassed, ip }\n// policyDecision: 策定したポリシーによる判断。\"grant\" | \"deny\"\n// mode: \"reporting-only\" (レポート専用) | \"enforce\" (ポリシーを適用)\n// blockedIps: 攻撃者に制御されている、または乗っ取られていると分かっている IP アドレスの配列\n// 戻り値: { allow, log: { requestId, policyDecision, basis } }\n//   basis: 結果の根拠。\n//     \"basic-policy\"      基本的なポリシー (MFA の失敗、blockedIps) によって拒否した\n//     \"developed-policy\"  策定したポリシーの判断どおりの結果になった\n//     \"reporting-only\"    策定したポリシーは拒否と判断したが、レポート専用モードなので許可した\nfunction handleRequest(request, policyDecision, mode, blockedIps) {\n  // ケースと制約を満たす処理を書いてください。\n}\n",
+        "starterCode": "// request: { id, mfaPassed, ip }\n// policyDecision: 策定したポリシーによる判断。\"grant\" | \"deny\"\n// mode: \"reporting-only\" (レポート専用) | \"enforce\" (ポリシーを適用)\n// blockedIps: 攻撃者に制御されている、または乗っ取られていると分かっている IP アドレスの配列\n// 戻り値: { allow, log: { requestId, policyDecision, basis } }\n//   basis: 結果の根拠。\n//     \"basic-policy\"      基本的なポリシー (MFA の失敗、blockedIps) によって拒否した\n//     \"developed-policy\"  策定したポリシーの判断どおりの結果になった\n//     \"reporting-only\"    策定したポリシーは拒否と判断したが、レポート専用モードなので許可した\n//   複数に当てはまるときは上の行を優先する (基本的なポリシーに当たれば、策定したポリシーの判断にかかわらず \"basic-policy\")。\nfunction handleRequest(request, policyDecision, mode, blockedIps) {\n  // ケースと制約を満たす処理を書いてください。\n}\n",
         "cases": [
           {
             "name": "レポート専用: ポリシーの判断も許可",
@@ -536,16 +537,21 @@
             "name": "適用モード: MFA に失敗している",
             "input": "{\"id\":\"r1\",\"mfaPassed\":false,\"ip\":\"198.51.100.20\"}, \"grant\", \"enforce\", [\"203.0.113.7\"]",
             "expected": "{\"allow\":false,\"log\":{\"requestId\":\"r1\",\"policyDecision\":\"grant\",\"basis\":\"basic-policy\"}}"
+          },
+          {
+            "name": "適用モード: MFA に失敗し、ポリシーの判断も拒否",
+            "input": "{\"id\":\"r1\",\"mfaPassed\":false,\"ip\":\"198.51.100.20\"}, \"deny\", \"enforce\", [\"203.0.113.7\"]",
+            "expected": "{\"allow\":false,\"log\":{\"requestId\":\"r1\",\"policyDecision\":\"deny\",\"basis\":\"basic-policy\"}}"
           }
         ],
         "mobile": {
           "prompt": "handleRequest が呼ぶ decideBasis として、すべてのケースを満たすものはどれですか？",
           "code": "function handleRequest(request, policyDecision, mode, blockedIps) {\n  const basis = decideBasis(request, policyDecision, mode, blockedIps);\n  const allow = basis === \"reporting-only\" || (basis === \"developed-policy\" && policyDecision === \"grant\");\n  return { allow, log: { requestId: request.id, policyDecision, basis } };\n}\n",
           "options": [
-            "function decideBasis(req, decision, mode, blocked) {\n  const basic =\n    !req.mfaPassed ||\n    blocked.includes(req.ip);\n  if (basic) return \"basic-policy\";\n  return \"developed-policy\";\n}",
-            "function decideBasis(req, decision, mode, blocked) {\n  const lenient =\n    decision === \"deny\" &&\n    mode === \"reporting-only\";\n  if (lenient) return \"reporting-only\";\n  if (mode === \"reporting-only\") {\n    return \"developed-policy\";\n  }\n  const basic =\n    !req.mfaPassed ||\n    blocked.includes(req.ip);\n  if (basic) return \"basic-policy\";\n  return \"developed-policy\";\n}",
             "function decideBasis(req, decision, mode, blocked) {\n  const basic =\n    !req.mfaPassed;\n  if (basic) return \"basic-policy\";\n  const lenient =\n    decision === \"deny\" &&\n    mode === \"reporting-only\";\n  if (lenient) return \"reporting-only\";\n  return \"developed-policy\";\n}",
-            "function decideBasis(req, decision, mode, blocked) {\n  const basic =\n    !req.mfaPassed ||\n    blocked.includes(req.ip);\n  if (basic) return \"basic-policy\";\n  const lenient =\n    decision === \"deny\" &&\n    mode === \"reporting-only\";\n  if (lenient) return \"reporting-only\";\n  return \"developed-policy\";\n}"
+            "function decideBasis(req, decision, mode, blocked) {\n  const basic =\n    !req.mfaPassed ||\n    blocked.includes(req.ip);\n  if (basic) return \"basic-policy\";\n  return \"developed-policy\";\n}",
+            "function decideBasis(req, decision, mode, blocked) {\n  const basic =\n    !req.mfaPassed ||\n    blocked.includes(req.ip);\n  if (basic) return \"basic-policy\";\n  const lenient =\n    decision === \"deny\" &&\n    mode === \"reporting-only\";\n  if (lenient) return \"reporting-only\";\n  return \"developed-policy\";\n}",
+            "function decideBasis(req, decision, mode, blocked) {\n  const lenient =\n    decision === \"deny\" &&\n    mode === \"reporting-only\";\n  if (lenient) return \"reporting-only\";\n  if (mode === \"reporting-only\") {\n    return \"developed-policy\";\n  }\n  const basic =\n    !req.mfaPassed ||\n    blocked.includes(req.ip);\n  if (basic) return \"basic-policy\";\n  return \"developed-policy\";\n}"
           ]
         }
       }
@@ -553,7 +559,7 @@
   ],
   "solutions": {
     "criteria-based-decision": {
-      "explanation": "§3.3.1。基準ベースの信頼アルゴリズムは、アクセスや操作（読み取り/書き込みなど）を許可する前に満たすべき属性の集合を前提にし、すべての基準を満たした場合にだけ許可します。基準はエンタープライズが設定し、リソースごとに個別に設定すべきものです。§3.3 の入力（リクエストの内容、サブジェクトの認証結果、資産の観測可能な状態、リソース要件、脅威インテリジェンス）が、ここでの各基準に対応します。国やパッチレベルといった具体的な基準、未設定時の拒否、戻り値の形は、この課題の設定です。",
+      "explanation": "§3.3.1。基準ベースの信頼アルゴリズムは、アクセスや操作（読み取り/書き込みなど）を許可する前に満たすべき属性の集合を前提にし、すべての基準を満たした場合にだけ許可します。基準はエンタープライズが設定し、リソースごとに個別に設定すべきものです。§3.3 の入力（リクエストの内容、サブジェクトの認証結果、資産の観測可能な状態、リソース要件、脅威インテリジェンス）が、ここでの各基準に対応します。国やパッチレベルといった具体的な基準、値が分からない属性を満たしていないものとして扱うこと、未設定時の拒否、戻り値の形は、この課題の設定です。",
       "rubric": [
         {
           "criterion": "リクエストのリソースと操作に対応する基準を選んで評価している（read と write で別の基準を使い、基準が未設定なら no-policy で拒否する）。",
@@ -582,7 +588,7 @@
       "mobileExplanation": "§3.3.1。基準ベースの信頼アルゴリズムは、すべての基準を満たした場合にだけアクセスを許可するので、granted は unmet が空のときだけ true を返します。unmet.length < 5 とすると、基準を 1 つでも満たせば許可してしまい、MFA とパッチレベルを満たさない write のケースで grant になります。patchUnmet を level < min にすると、パッチレベルが undefined のときに比較が false になり、状態の分からない資産を通してしまいます。!(level > min) にすると、最低値ちょうどの資産まで拒否してしまい、最初のケースを満たしません。"
     },
     "score-based-decision": {
-      "explanation": "§3.3.1。スコアベースの信頼アルゴリズムは、すべてのデータソースの値と、エンタープライズが設定した重みに基づいて信頼度を算出します。スコアがリソースに設定されたしきい値より大きい場合に、アクセスが許可されるか操作が実行され、そうでなければリクエストは拒否されるか、アクセス権限が減らされます（例: ファイルの読み取りは許可するが書き込みは許可しない）。§3.3 のとおり、重みはデータソースの重要度を反映するために使えます。重み付き平均という計算方法、値の範囲、値がないときに 0 とする扱いは、この課題の設定です。",
+      "explanation": "§3.3.1。スコアベースの信頼アルゴリズムは、すべてのデータソースの値と、エンタープライズが設定した重みに基づいて信頼度を算出します。スコアがリソースに設定されたしきい値より大きい場合に、アクセスが許可されるか操作が実行され、そうでなければリクエストは拒否されるか、アクセス権限が減らされます（例: ファイルの読み取りは許可するが書き込みは許可しない）。§3.3 のとおり、重みはデータソースの重要度を反映するために使えます。重み付き平均という計算方法、値の範囲、操作ごとのしきい値（本書が述べるのは、リソースに設定されたしきい値と、権限を減らす例までです）、値がないときに 0 とする扱いは、この課題の設定です。",
       "rubric": [
         {
           "criterion": "重みを設定したすべてのデータソースについて、値と重みから信頼度（重み付き平均）を計算している。値がないデータソースは 0 として扱っている。",
@@ -600,15 +606,15 @@
           ]
         },
         {
-          "criterion": "操作ごとのしきい値で判定し、write に届かず read に届く場合は read だけを返す（権限を減らす）。どれにも届かなければ空の配列を返す。",
+          "criterion": "操作ごとのしきい値で判定し、信頼度が write のしきい値を上回らず、read のしきい値を上回る場合は read だけを返す（権限を減らす）。どのしきい値も上回らなければ空の配列を返す（操作ごとのしきい値は、この課題の設定）。",
           "points": 2,
           "referenceIds": [
             "criteria-score"
           ]
         }
       ],
-      "referenceCode": "function decideByScore(values, weights, thresholds) {\n  let total = 0;\n  let weightSum = 0;\n  // 重みを設定したすべてのデータソースを計算に入れる。値がなければ 0 (この課題の制約)。\n  for (const [source, weight] of Object.entries(weights)) {\n    total += (values[source] ?? 0) * weight;\n    weightSum += weight;\n  }\n  const score = total / weightSum;\n  // スコアがしきい値より大きい操作だけを許可する。等しい場合は許可しない。\n  // write に届かなくても read には届く場合は、権限を減らして read だけを許可することになる。\n  const allowed = Object.keys(thresholds).filter((action) => score > thresholds[action]);\n  return { score, allowed };\n}\n",
-      "mobileAnswer": 0,
+      "referenceCode": "function decideByScore(values, weights, thresholds) {\n  let total = 0;\n  let weightSum = 0;\n  // 重みを設定したすべてのデータソースを計算に入れる。値がなければ 0 (この課題の制約)。\n  for (const [source, weight] of Object.entries(weights)) {\n    total += (values[source] ?? 0) * weight;\n    weightSum += weight;\n  }\n  const score = total / weightSum;\n  // スコアがしきい値より大きい操作だけを許可する。等しい場合は許可しない。\n  // write のしきい値は上回らないが read のしきい値は上回る場合は、権限を減らして read だけを許可することになる。\n  const allowed = Object.keys(thresholds).filter((action) => score > thresholds[action]);\n  return { score, allowed };\n}\n",
+      "mobileAnswer": 1,
       "mobileExplanation": "§3.3.1。スコアベースの信頼アルゴリズムは、すべてのデータソースの値とエンタープライズが設定した重みから信頼度を計算し、スコアがしきい値より大きい場合に許可します。passes を score >= threshold にすると、信頼度がしきい値と等しい 2 つのケースで、許可されないはずの操作を許可してしまいます。contribution が重みを掛けないと、信頼度が重みの設定を反映せず、最初のケースの 90 になりません。value * weight だけにすると、値がないデータソースで NaN になり、最後のケースを満たしません。"
     },
     "contextual-evaluation": {
@@ -637,7 +643,7 @@
         }
       ],
       "referenceCode": "function evaluateContextual(state, request, config) {\n  // コンテキスト型: サブジェクトの直近の履歴 (当日の件数) を評価に使う。\n  const previous = state[request.subjectId];\n  const before = previous && previous.day === request.day ? previous.count : 0;\n  const count = before + request.records;\n  const [start, end] = config.businessHours;\n  const alerts = [];\n  // 上限を「超えた」場合にアラートを出す。等しい場合は出さない。\n  if (count > config.dailyLimit) alerts.push(\"volume\");\n  if (request.hour < start || request.hour >= end) alerts.push(\"after-hours\");\n  return {\n    decision: alerts.length === 0 ? \"allow\" : \"step-up\",\n    alerts,\n    // 判断にかかわらず履歴は更新する。元の state は書き換えない。\n    state: { ...state, [request.subjectId]: { day: request.day, count } },\n  };\n}\n",
-      "mobileAnswer": 0,
+      "mobileAnswer": 2,
       "mobileExplanation": "§3.3.1。コンテキスト型の信頼アルゴリズムは、サブジェクトの直近の履歴を考慮するので、当日の履歴に今回の件数を加えて評価します。todayCount が今回の件数（req.records）だけを返す実装は、各リクエストを個別に扱う単一型の評価になり、5 件のリクエストで合計が 103 件になるケースを検知できません。日付を確かめない実装は、前日の 150 件を引き継いでしまい、日付が変わったケースでアラートを出します。overLimit を count >= limit にすると、合計が上限と等しいケースでもアラートを出してしまいます。"
     },
     "pa-session-control": {
@@ -690,7 +696,7 @@
           ]
         },
         {
-          "criterion": "期限が切れた経路と、期限が現在時刻と等しい経路を無効として扱っている。",
+          "criterion": "期限が切れた経路と、期限が現在時刻と等しい経路を無効として扱っている（期限の扱いは、この課題の制約）。",
           "points": 2,
           "referenceIds": [
             "net-pep-only"
@@ -698,14 +704,14 @@
         }
       ],
       "referenceCode": "function acceptConnection(conn, paths, openServices, now) {\n  // DNS サーバーなど、到達できなければならないコンポーネントは隠さない。\n  if (openServices.includes(conn.resource)) return true;\n  // それ以外は、認証・認可の後に PEP が設定した経路に一致する接続だけを受け付ける。\n  // あるリソースへの経路があっても、別のリソースへの接続は受け付けない。\n  return paths.some((p) =>\n    p.client === conn.client && p.resource === conn.resource && p.port === conn.port && now < p.expiresAt);\n}\n",
-      "mobileAnswer": 3,
+      "mobileAnswer": 1,
       "mobileExplanation": "§3.4.1・§2.1。リソースは、クライアントが認証・認可された後に、PEP が設定した通信経路による接続だけを受け付けます。リソースを比べない実装は、別のリソース（payroll）への経路を持つクライアントからの接続を受け付けてしまいます。あるリソースへの認証と認可が、別のリソースへのアクセスを自動的に許可することはありません。クライアントを比べない実装は、別のクライアント向けの経路で接続を受け付けてしまいます。now <= p.expiresAt とすると、期限が現在時刻と等しい経路を有効として扱い、この課題の期限の決まりを満たしません。"
     },
     "reporting-only-mode": {
-      "explanation": "§7.3.6。新しい ZT のビジネスワークフローは、ポリシーが有効で実用的であることを確かめるために、しばらくの間レポート専用モードで運用できます。レポート専用とは、ほとんどのリクエストに対してアクセスを許可し、接続のログとトレースを、最初に策定したポリシーと比較することをいいます。一方で、MFA に失敗するリクエストや、既知の、攻撃者に制御されている、または乗っ取られた IP アドレスからのリクエストを拒否するといった基本的なポリシーは、適用してログに記録すべきです。こうして実際のやり取りからデータを集め、ベースラインを確立します。モードの名前やログの項目は、この課題の設定です。",
+      "explanation": "§7.3.6。新しい ZT のビジネスワークフローは、ポリシーが有効で実用的であることを確かめるために、しばらくの間レポート専用モードで運用できます。レポート専用とは、ほとんどのリクエストに対してアクセスを許可し、接続のログとトレースを、最初に策定したポリシーと比較することをいいます。一方で、MFA に失敗するリクエストや、既知の、攻撃者に制御されている、または乗っ取られた IP アドレスからのリクエストを拒否するといった基本的なポリシーは、適用してログに記録すべきです。こうして実際のやり取りからデータを集め、ベースラインを確立します。モードの名前、ログの項目、basis の優先順位は、この課題の設定です。",
       "rubric": [
         {
-          "criterion": "MFA に失敗したリクエストと blockedIps からのリクエストを、モードにかかわらず拒否し、basis を basic-policy として記録している。",
+          "criterion": "MFA に失敗したリクエストと blockedIps からのリクエストを、モードにも策定したポリシーの判断にもかかわらず拒否し、basis を basic-policy として記録している。",
           "points": 2,
           "referenceIds": [
             "initial-deployment"
@@ -727,7 +733,7 @@
         }
       ],
       "referenceCode": "function handleRequest(request, policyDecision, mode, blockedIps) {\n  const log = (basis) => ({ requestId: request.id, policyDecision, basis });\n  // 基本的なポリシーは、レポート専用モードでも適用してログに記録する。\n  if (!request.mfaPassed || blockedIps.includes(request.ip)) {\n    return { allow: false, log: log(\"basic-policy\") };\n  }\n  if (policyDecision === \"grant\") return { allow: true, log: log(\"developed-policy\") };\n  // 策定したポリシーは拒否と判断した。レポート専用モードでは許可し、後で比較できるよう記録する。\n  if (mode === \"reporting-only\") return { allow: true, log: log(\"reporting-only\") };\n  return { allow: false, log: log(\"developed-policy\") };\n}\n",
-      "mobileAnswer": 3,
+      "mobileAnswer": 2,
       "mobileExplanation": "§7.3.6。レポート専用モードでは、ほとんどのリクエストを許可し、接続のログを策定したポリシーと比較します。ただし、MFA に失敗するリクエストや、攻撃者に制御されていると分かっている IP アドレスからのリクエストを拒否する基本的なポリシーは、適用してログに記録すべきです。モードを先に確かめる実装は、レポート専用モードで MFA の失敗や既知の不正な IP アドレスまで許可してしまいます。MFA だけを確かめる実装は、既知の不正な IP アドレスからのリクエストを拒否できません。レポート専用モードを区別しない実装は、ポリシーが拒否と判断したリクエストを初期展開の間も拒否してしまい、実際のやり取りからデータを集められません。"
     }
   },
