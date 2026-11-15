@@ -35,6 +35,31 @@ maronn-openid-connect から受け取った PR 情報は作問資料として保
 
 7 ファイルの `status` は `published` です。main に反映してデプロイすると、基本の 4 セットと合わせて全 11 セット・208 問が取り込み操作なしで `/quiz?spec=rfc-9449` に並び、ログインなしで回答できます。実装問題は PC ではコード実装、スマホではコード読解で回答します。
 
+## 収録している NIST SP 800-207 問題集
+
+[NIST SP 800-207 ゼロトラストアーキテクチャの問題集（306 問）](docs/nist-sp-800-207.md)は、保存済みの `pdfs/NIST.SP.800-207.pdf` を前付けから付録 B まで問う 16 セットです。選択式 257 問・並べ替え 11 問・記述式 32 問・実装 6 問に、解説・採点基準・コミット固定の出典を付けています。節ごとの 14 セットで本文のすべての段落を扱い、残りの 2 セットで節をまたぐ総合演習と、信頼アルゴリズムなどのアクセス判断の実装（スマホではコード読解）を扱います。
+
+| セット | 本書の範囲 | 問題データ |
+| --- | --- | --- |
+| 1. 背景・歴史・文書の位置付け | 前付け・概要・§1 | [nist-sp-800-207-01-background.json](questions/spec/nist-sp-800-207-01-background.json) |
+| 2. 定義・PDP/PEP・ネットワークの前提 | §2・§2.2 | [nist-sp-800-207-02-definitions.json](questions/spec/nist-sp-800-207-02-definitions.json) |
+| 3. ゼロトラストの 7 つの基本原則 | §2.1 | [nist-sp-800-207-03-tenets.json](questions/spec/nist-sp-800-207-03-tenets.json) |
+| 4. 論理コンポーネントとデータソース | §3 | [nist-sp-800-207-04-components.json](questions/spec/nist-sp-800-207-04-components.json) |
+| 5. ZTA の 3 つの方式 | §3.1・§3.2 冒頭 | [nist-sp-800-207-05-approaches.json](questions/spec/nist-sp-800-207-05-approaches.json) |
+| 6. 4 つの展開モデル | §3.2.1〜§3.2.4 | [nist-sp-800-207-06-deployment-models.json](questions/spec/nist-sp-800-207-06-deployment-models.json) |
+| 7. 信頼アルゴリズム | §3.3 | [nist-sp-800-207-07-trust-algorithm.json](questions/spec/nist-sp-800-207-07-trust-algorithm.json) |
+| 8. コントロールプレーン・データプレーンとネットワーク要件 | §3.4 | [nist-sp-800-207-08-network.json](questions/spec/nist-sp-800-207-08-network.json) |
+| 9. 展開シナリオとユースケース | §4 | [nist-sp-800-207-09-use-cases.json](questions/spec/nist-sp-800-207-09-use-cases.json) |
+| 10. ZTA に関連する脅威 | §5 | [nist-sp-800-207-10-threats.json](questions/spec/nist-sp-800-207-10-threats.json) |
+| 11. 既存の連邦ガイダンスとの関係 | §6 | [nist-sp-800-207-11-federal-guidance.json](questions/spec/nist-sp-800-207-11-federal-guidance.json) |
+| 12. 移行の前提とアクター・資産の把握 | §7〜§7.3.2 | [nist-sp-800-207-12-migration-readiness.json](questions/spec/nist-sp-800-207-12-migration-readiness.json) |
+| 13. プロセスの選定から展開・拡大まで | §7.3.3〜§7.3.7 | [nist-sp-800-207-13-migration-steps.json](questions/spec/nist-sp-800-207-13-migration-steps.json) |
+| 14. 略語と現状のギャップ | 付録 A・付録 B | [nist-sp-800-207-14-gaps.json](questions/spec/nist-sp-800-207-14-gaps.json) |
+| 15. 総合演習 — 設計・誤り発見・比較 | 全体 | [nist-sp-800-207-15-integrated.json](questions/spec/nist-sp-800-207-15-integrated.json) |
+| 16. 実装 — アクセス判断を自分で書く | §3・§3.3 ほか | [nist-sp-800-207-16-implementation.json](questions/spec/nist-sp-800-207-16-implementation.json) |
+
+PDF は行で引用できないため、出典には `node scripts/pdf-extract.mjs --text pdfs/NIST.SP.800-207.pdf` で取り出したテキスト [specs/nist-sp-800-207.txt](specs/nist-sp-800-207.txt)（1 行が 1 つの段落・箇条書き・見出し）の行範囲を使います。仕様 ID は、リーダーがこの PDF の「問題を解く」で渡す `pdf-0290d6ece2487428`（PDF の SHA-256 の先頭 16 文字）です。16 ファイルの `status` は `published` で、main に反映してデプロイすると、取り込み操作なしで `/quiz?spec=pdf-0290d6ece2487428` に並び、ログインなしで回答できます。
+
 ## コードの入口
 
 まず `worker/app.js` を読むと、画面・APIと認証の適用範囲が分かる。`worker/index.js` はWorkersのfetch・queue・scheduledの接続だけを担当する。
