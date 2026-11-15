@@ -1,0 +1,652 @@
+{
+  "format": "spec-understanding-quiz",
+  "version": 1,
+  "id": "nist-sp-800-207-06-deployment-models",
+  "title": "NIST SP 800-207 ゼロトラスト 6/16: 4 つの展開モデル",
+  "status": "published",
+  "spec": {
+    "id": "pdf-0290d6ece2487428",
+    "status": "adopted",
+    "repository": "maronnjapan/readRFCInMobile",
+    "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+    "path": "apps/quiz/specs/nist-sp-800-207.txt"
+  },
+  "references": [
+    {
+      "id": "agent-gateway-pep",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 274,
+      "endLine": 274,
+      "reason": "§3.2.1: PEP を分けるデバイスエージェントとゲートウェイの役割",
+      "excerpt": "In this deployment model, the PEP is divided into two components that reside on the resource or as a component directly in front of a resource. For example, each enterprise-issued asset has an installed device agent that coordinates connections, and each resource has a component (i.e., gateway) that is placed directly in front so that the resource communicates only with the gateway, essentially serving as a proxy for the resource. The agent is a software component that directs some (or all) traffic to the appropriate PEP in order for requests to be evaluated. The gateway is responsible for communicating with the policy administrator and allowing only approved communication paths configured by the policy administrator (see Figure 3)."
+    },
+    {
+      "id": "agent-gateway-flow",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 278,
+      "endLine": 278,
+      "reason": "§3.2.1: 典型的なシナリオの流れ",
+      "excerpt": "In a typical scenario, a subject with an enterprise-issued laptop wishes to connect to an enterprise resource (e.g., human resources application/database). The access request is taken by the local agent, and the request is forwarded to the policy administrator. The policy administrator and policy engine could be an enterprise local asset or a cloud-hosted service. The policy administrator forwards the request to the policy engine for evaluation. If the request is authorized, the policy administrator configures a communication channel between the device agent and the relevant resource gateway via the control plane. This may include information such as an internet protocol (IP) address, port information, session key, or similar security artifacts. The device agent and gateway then connect, and encrypted application/service data flows begin. The connection between the device agent and resource gateway is terminated when the workflow is completed or when triggered by the policy administrator due to a security event (e.g., session time-out, failure to reauthenticate)."
+    },
+    {
+      "id": "agent-gateway-fit",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 280,
+      "endLine": 280,
+      "reason": "§3.2.1: 適しているエンタープライズと BYOD",
+      "excerpt": "This model is best utilized for enterprises that have a robust device management program in place as well as discrete resources that can communicate with the gateway. For enterprises that heavily utilize cloud services, this is a client-server implementation of the Cloud Security Alliance (CSA) Software Defined Perimeter (SDP) [CSA-SDP]. This model is also appropriate for enterprises that do not want a BYOD policy in place. Access is possible only via the device agent, which can be placed on enterprise-owned assets."
+    },
+    {
+      "id": "enclave-model",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 284,
+      "endLine": 284,
+      "reason": "§3.2.2: リソースエンクレーブの境界に置くゲートウェイ",
+      "excerpt": "This deployment model is a variation of the device agent/gateway model above. In this model, the gateway components may not reside on assets or in front of individual resources but instead reside at the boundary of a resource enclave (e.g., on-location data center) as shown in Figure 4. Usually, these resources serve a single business function or may not be able to communicate directly to a gateway (e.g., legacy database system that does not have an application programming interface [API] that can be used to communicate with a gateway). This deployment model may also be useful for enterprises that use cloud-based micro-services for a single business processes (e.g., user notification, database lookup, salary disbursement). In this model, the entire private cloud is located behind a gateway."
+    },
+    {
+      "id": "enclave-hybrid",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 288,
+      "endLine": 288,
+      "reason": "§3.2.2: デバイスエージェント/ゲートウェイモデルとのハイブリッド",
+      "excerpt": "It is possible for this model to be a hybrid with the device agent/gateway model. In this model, enterprise assets have a device agent that is used to connect to enclave gateways, but these connections are created using the same process as the basic device agent/gateway model."
+    },
+    {
+      "id": "enclave-fit",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 290,
+      "endLine": 290,
+      "reason": "§3.2.2: 有用なエンタープライズ、前提、欠点",
+      "excerpt": "This model is useful for enterprises that have legacy applications or on-premises data centers that cannot have individual gateways in place. The enterprise needs a robust asset and configuration management program in place to install/configure the device agents. The downside is that the gateway protects a collection of resources and may not be able to protect each resource individually. This may also allow for subjects to see resources which they do not have privileges to access."
+    },
+    {
+      "id": "portal-model",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 294,
+      "endLine": 294,
+      "reason": "§3.2.3: 単一の PEP として機能するゲートウェイポータル",
+      "excerpt": "In this deployment model, the PEP is a single component that acts as a gateway for subject requests. The gateway portal can be for an individual resource or a secure enclave for a collection of resources used for a single business function. One example would be a gateway portal into a private cloud or data center containing legacy applications as shown in Figure 5."
+    },
+    {
+      "id": "portal-benefit",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 298,
+      "endLine": 298,
+      "reason": "§3.2.3: クライアントにソフトウェアが要らない利点と、得られる情報の限界",
+      "excerpt": "The primary benefit of this model over the others is that a software component does not need to be installed on all client devices. This model is also more flexible for BYOD policies and inter-organizational collaboration projects. Enterprise administrators do not need to ensure that each device has the appropriate device agent before use. However, limited information can be inferred from devices requesting access. This model can only scan and analyze assets and devices once they connect to the PEP portal and may not be able to continuously monitor them for malware, unpatched vulnerabilities, and appropriate configuration."
+    },
+    {
+      "id": "portal-limits",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 300,
+      "endLine": 300,
+      "reason": "§3.2.3: 可視性の限界、ブラウザー分離、DoS 攻撃への備え",
+      "excerpt": "The main difference with this model is there is no local agent that handles requests, and so the enterprise may not have full visibility or arbitrary control over assets as it can only see/scan them when they connect to a portal. The enterprise may be able to employ measures such as browser isolation to mitigate or compensate. These assets may be invisible to the enterprise between these sessions. This model also allows attackers to discover and attempt to access the portal or attempt a denial-of-service (DoS) attack against the portal. The portal systems should be well-provisioned to provide availability against a DoS attack or network disruption."
+    },
+    {
+      "id": "sandbox-model",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 304,
+      "endLine": 304,
+      "reason": "§3.2.4: 審査を受けたアプリケーションの区画化",
+      "excerpt": "Another variation of the agent/gateway deployment model is having vetted applications or processes run compartmentalized on assets. These compartments could be virtual machines, containers, or some other implementation, but the goal is the same: to protect the application or instances of applications from a possibly compromised host or other applications running on the asset."
+    },
+    {
+      "id": "sandbox-pep",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 308,
+      "endLine": 308,
+      "reason": "§3.2.4: 図 6 のサンドボックスと PEP",
+      "excerpt": "In Figure 6, the subject device runs approved, vetted applications in a sandbox. The applications can communicate with the PEP to request access to resources, but the PEP will refuse requests from other applications on the asset. The PEP could be an enterprise local service or a cloud service in this model."
+    },
+    {
+      "id": "sandbox-tradeoffs",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 310,
+      "endLine": 310,
+      "reason": "§3.2.4: 利点と欠点",
+      "excerpt": "The main advantage of this model variant is that individual applications are segmented from the rest of the asset. If the asset cannot be scanned for vulnerabilities, these individual, sandboxed applications may be protected from a potential malware infection on the host asset. One of the disadvantages of this model is that enterprises must maintain these sandboxed applications for all assets and may not have full visibility into client assets. The enterprise also needs to make sure each sandboxed application is secure, which may require more effort than simply monitoring devices."
+    }
+  ],
+  "questions": [
+    {
+      "id": "device-agent-term",
+      "type": "choice",
+      "category": "vocabulary",
+      "prompt": "§3.2.1 の展開モデルで、このコンポーネントはどのような役割を担いますか？",
+      "points": 1,
+      "referenceIds": [
+        "agent-gateway-pep",
+        "agent-gateway-flow",
+        "sandbox-model"
+      ],
+      "term": "device agent（デバイスエージェント）",
+      "options": [
+        "リクエストが評価されるように、トラフィックの一部（またはすべて）を適切な PEP に振り向ける、資産上のソフトウェアコンポーネント",
+        "リソースの直前に置かれ、ポリシー管理者（PA）が構成した承認済みの通信経路だけを許可する、リソースのプロキシとなるコンポーネント",
+        "審査を受けたアプリケーションを区画化して実行し、資産上の他のアプリケーションから保護するためのソフトウェアコンポーネント",
+        "アクセスリクエストを評価のために受け取り、認可するかどうかを自ら判断して、結果をゲートウェイに通知する、資産上のコンポーネント"
+      ]
+    },
+    {
+      "id": "gateway-term",
+      "type": "choice",
+      "category": "vocabulary",
+      "prompt": "§3.2.1 のデバイスエージェント/ゲートウェイモデルで、このコンポーネントについて正しい説明はどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "agent-gateway-pep"
+      ],
+      "term": "gateway（ゲートウェイ）",
+      "options": [
+        "リソースの直前に置かれ、リソースはこれとだけ通信する。PA と通信し、PA が構成した承認済みの通信経路だけを許可する",
+        "リソースの直前に置かれるが、リソースは他の資産とも直接通信できる。PA が構成した経路に加え、エージェントが求めた経路も許可する",
+        "エンタープライズが支給する各資産に置かれ、接続を調整する。PA と通信し、PA が構成した承認済みの通信経路だけを許可する",
+        "リソースの直前に置かれ、リソースはこれとだけ通信する。アクセスリクエストを自ら評価し、認可した通信経路を PA に通知する"
+      ]
+    },
+    {
+      "id": "agent-gateway-flow",
+      "type": "ordering",
+      "category": "flow",
+      "prompt": "§3.2.1 の典型的なシナリオ（エンタープライズが支給したノート PC から人事アプリケーションに接続する）の流れを並べてください。",
+      "points": 2,
+      "referenceIds": [
+        "agent-gateway-flow"
+      ],
+      "items": [
+        {
+          "id": "configure",
+          "text": "リクエストが認可され、PA がデバイスエージェントとリソースゲートウェイの間の通信チャネルを構成する"
+        },
+        {
+          "id": "forward",
+          "text": "リクエストが PA に転送される"
+        },
+        {
+          "id": "take",
+          "text": "ローカルのデバイスエージェントが、サブジェクトのアクセスリクエストを受け取る"
+        },
+        {
+          "id": "connect",
+          "text": "デバイスエージェントとゲートウェイが接続し、暗号化されたアプリケーション/サービスのデータが流れ始める"
+        },
+        {
+          "id": "terminate",
+          "text": "ワークフローの完了、またはセキュリティイベントを契機とする PA の指示によって、接続が終了する"
+        },
+        {
+          "id": "evaluate",
+          "text": "PA が、評価のためにリクエストをポリシーエンジン（PE）に転送する"
+        }
+      ]
+    },
+    {
+      "id": "pa-role-in-scenario",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "§3.2.1 の典型的なシナリオで、PA が行うこととして本文の説明に合うものはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "agent-gateway-flow"
+      ],
+      "options": [
+        "認可されたリクエストについて、データプレーンを介して通信チャネルを構成する。セッションのタイムアウトなどのセキュリティイベントでは、接続の終了を指示する",
+        "認可されたリクエストについて、コントロールプレーンを介して通信チャネルを構成する。セッションのタイムアウトなどのセキュリティイベントでは、接続の終了を指示する",
+        "リクエストを PE に転送せずに自ら評価し、コントロールプレーンを介して通信チャネルを構成する。セキュリティイベントでは、ゲートウェイが PE に終了の判断を求める",
+        "認可されたリクエストについて、コントロールプレーンを介して通信チャネルを構成する。接続の終了はワークフローの完了時に限られ、PA が終了を指示することはない"
+      ]
+    },
+    {
+      "id": "csa-sdp-client-server",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "§3.2.1 によると、クラウドサービスを多用するエンタープライズにとって、デバイスエージェント/ゲートウェイモデルは何にあたりますか？",
+      "points": 1,
+      "referenceIds": [
+        "agent-gateway-fit"
+      ],
+      "options": [
+        "Cloud Security Alliance（CSA）のソフトウェア定義境界（SDP）の、エージェントを使わないポータル実装",
+        "Cloud Security Alliance（CSA）のソフトウェア定義境界（SDP）の、サーバー/サーバー実装",
+        "Cloud Security Alliance（CSA）のソフトウェア定義境界（SDP）の、クライアント/サーバー実装",
+        "Cloud Security Alliance（CSA）のソフトウェア定義ネットワーク（SDN）の、クライアント/サーバー実装"
+      ]
+    },
+    {
+      "id": "agent-model-fit",
+      "type": "choice",
+      "category": "design",
+      "prompt": "§3.2 の説明に照らして、このエンタープライズに最も適している展開モデルと、その説明の組み合わせはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "agent-gateway-fit",
+        "enclave-fit",
+        "portal-limits"
+      ],
+      "scenario": "あるエンタープライズは、堅牢なデバイス管理プログラムを運用しており、保護したいリソースはどれも、ゲートウェイと通信できる個別のリソースです。私物デバイスからのアクセスは認めない方針で、BYOD ポリシーを導入する予定はありません。",
+      "options": [
+        "デバイスエージェント/ゲートウェイベースの展開。アクセスは、エンタープライズ所有の資産に配置できるデバイスエージェントを介してのみ可能になる",
+        "リソースポータルベースの展開。ローカルのエージェントがリクエストを処理するので、資産に対する完全な可視性と自在な制御を得られるようになる",
+        "リソースポータルベースの展開。クライアントにソフトウェアをインストールしないので、エンタープライズ所有の資産だけがポータルに到達できるようになる",
+        "エンクレーブベースの展開。デバイスエージェントを使わないので、資産管理や構成管理のプログラムを整えなくても、私物デバイスからのアクセスを防げる"
+      ]
+    },
+    {
+      "id": "gateway-placement",
+      "type": "choice",
+      "category": "comparison",
+      "prompt": "デバイスエージェント/ゲートウェイモデルとエンクレーブベースの展開では、ゲートウェイを置く場所がどう違いますか？",
+      "points": 1,
+      "referenceIds": [
+        "agent-gateway-pep",
+        "enclave-model"
+      ],
+      "options": [
+        "前者は各リソースの直前に置き、後者はリソースエンクレーブ（オンサイトのデータセンターなど）の境界に置く",
+        "前者はエンタープライズが支給する各資産の上に置き、後者はリソースエンクレーブ内の各リソースの直前に置く",
+        "前者はリソースエンクレーブ（オンサイトのデータセンターなど）の境界に置き、後者は各リソースの直前に置く",
+        "前者は各リソースの直前に置き、後者はエンクレーブに接続する、エンタープライズが支給する各資産の上に置く"
+      ]
+    },
+    {
+      "id": "enclave-resources",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "§3.2.2 は、エンクレーブベースの展開の対象になるリソースと、クラウドベースのマイクロサービスでの使い方をどう説明していますか？",
+      "points": 1,
+      "referenceIds": [
+        "enclave-model"
+      ],
+      "options": [
+        "通常は単一のビジネス機能を担うか、ゲートウェイと直接通信できないリソース。マイクロサービスでは、サービスごとに個別のゲートウェイを直前に置く",
+        "通常は複数のビジネス機能で共有され、ゲートウェイと直接通信できるリソース。マイクロサービスでは、サービスごとに個別のゲートウェイを直前に置く",
+        "通常は単一のビジネス機能を担うか、ゲートウェイと直接通信できないリソース。マイクロサービスでは、プライベートクラウド全体をゲートウェイの背後に置く",
+        "通常は複数のビジネス機能で共有され、ゲートウェイと直接通信できるリソース。マイクロサービスでは、プライベートクラウド全体をゲートウェイの背後に置く"
+      ]
+    },
+    {
+      "id": "enclave-hybrid",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "§3.2.2 は、エンクレーブベースの展開とデバイスエージェント/ゲートウェイモデルのハイブリッドをどう説明していますか？",
+      "points": 1,
+      "referenceIds": [
+        "enclave-hybrid",
+        "agent-gateway-flow"
+      ],
+      "options": [
+        "エンタープライズの資産はデバイスエージェントを持たず、Web ポータルからエンクレーブゲートウェイに接続する。接続は、リソースポータルモデルと同じプロセスで作成される",
+        "エンタープライズの資産が、デバイスエージェントを使ってエンクレーブゲートウェイに接続する。接続は、PA を介さずに、エージェントとエンクレーブゲートウェイの間で直接取り決められる",
+        "エンタープライズの資産が、デバイスエージェントを使ってエンクレーブゲートウェイに接続する。接続は、基本のデバイスエージェント/ゲートウェイモデルと同じプロセスで作成される",
+        "エンクレーブ内の各リソースにデバイスエージェントを組み込み、エンクレーブゲートウェイを省く。接続は、基本のデバイスエージェント/ゲートウェイモデルと同じプロセスで作成される"
+      ]
+    },
+    {
+      "id": "enclave-downside",
+      "type": "choice",
+      "category": "debugging",
+      "prompt": "§3.2.2 に照らして、この報告の問題点はどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "enclave-fit",
+        "enclave-model"
+      ],
+      "scenario": "オンプレミスのデータセンターにエンクレーブベースの展開を採用した担当者が、「ゲートウェイの背後にあるデータベースは 1 つずつ個別に保護されており、アクセス権限のないサブジェクトからは存在も見えない」と報告しました。",
+      "options": [
+        "ゲートウェイは個々のリソースを個別に保護できるが、そのためには、エンクレーブ内の各リソースにもデバイスエージェントをインストールしておく必要がある",
+        "ゲートウェイはレガシーなデータベースを保護の対象にできないので、ゲートウェイと通信できる API を持つリソースだけをエンクレーブに置く必要がある",
+        "ゲートウェイはリソースの集合を保護するので、個々のリソースを個別に保護できない場合がある。サブジェクトに、アクセス権限のないリソースが見える可能性もある",
+        "ゲートウェイは個々のリソースを個別に保護できるが、アクセス権限のないサブジェクトにも、エンクレーブ内のすべてのリソースへのアクセスを許可してしまう"
+      ]
+    },
+    {
+      "id": "portal-pep",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "§3.2.3 のリソースポータルベースの展開で、PEP はどのような構成になりますか？",
+      "points": 1,
+      "referenceIds": [
+        "portal-model",
+        "agent-gateway-pep"
+      ],
+      "options": [
+        "サンドボックス内のアプリケーションと、クラウド上に置くポータルの、2 つのコンポーネントに分かれる。ポータルは、審査を受けたアプリケーションからのリクエストだけを受け付ける",
+        "サブジェクトのリクエストに対するゲートウェイとして機能する、単一のコンポーネントになる。ポータルは、リソースごとに 1 つずつ置く必要があり、リソースの集合をまとめて扱うことはできない",
+        "サブジェクトのリクエストに対するゲートウェイとして機能する、単一のコンポーネントになる。ポータルは、個々のリソース向けにも、リソースの集合を収めたエンクレーブ向けにもできる",
+        "資産上のエージェントと、リソースの直前に置くポータルの、2 つのコンポーネントに分かれる。ポータルは、エージェントが振り向けたトラフィックに含まれるリクエストだけを受け付ける"
+      ]
+    },
+    {
+      "id": "portal-benefit",
+      "type": "choice",
+      "category": "comparison",
+      "prompt": "§3.2.3 が、他のモデルと比べたリソースポータルモデルの主な利点として挙げるものはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "portal-benefit",
+        "portal-limits"
+      ],
+      "options": [
+        "すべてのクライアントデバイスにソフトウェアコンポーネントをインストールする必要がなく、BYOD ポリシーや組織間のコラボレーションにも柔軟に対応できる",
+        "すべてのクライアントデバイスにソフトウェアコンポーネントをインストールする必要がなく、アクセスをリクエストするデバイスについて多くの情報を推測できる",
+        "ポータルが攻撃者から発見されることがなく、サービス拒否（DoS）攻撃の対象にもならないので、可用性を確保するための備えを簡略にできる",
+        "すべてのクライアントデバイスを、マルウェアやパッチ未適用の脆弱性について継続的に監視でき、BYOD ポリシーや組織間のコラボレーションにも柔軟に対応できる"
+      ]
+    },
+    {
+      "id": "portal-monitoring",
+      "type": "choice",
+      "category": "debugging",
+      "prompt": "§3.2.3 に照らして、この報告の問題点はどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "portal-benefit",
+        "portal-limits"
+      ],
+      "scenario": "リソースポータルモデルを採用したエンタープライズの管理者が、「接続してくるデバイスはポータルでスキャンしているので、マルウェア、パッチ未適用の脆弱性、構成の状態を、接続していない間も含めて継続的に把握できている」と報告しました。",
+      "options": [
+        "ポータルは資産をスキャン・分析する機能を持たないので、接続したときの状態も把握できない。状態を把握するには、ポータルとは別の PEP を資産ごとに置く必要がある",
+        "資産をスキャン・分析できるのは、ローカルのエージェントがポータルに状態を報告したときだけである。報告の間隔を短く設定すれば、接続していない間も継続的に監視できる",
+        "資産の状態は、接続していない間も PA が継続的に収集している。問題は、ポータルのスキャン結果だけを見て、PA が収集した情報を参照していない点にある",
+        "資産をスキャン・分析できるのはポータルに接続したときだけで、継続的に監視できない場合がある。セッションとセッションの間は、資産が見えない可能性がある"
+      ]
+    },
+    {
+      "id": "portal-mitigations",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "§3.2.3 が、リソースポータルモデルの弱点への対処として述べていることの組み合わせはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "portal-limits"
+      ],
+      "options": [
+        "可視性と制御の不足は、ブラウザー分離などの対策で緩和または補完できる可能性がある。DoS 攻撃については、攻撃者がポータルを発見できないので、可用性のための特別な備えは求められていない",
+        "可視性と制御の不足は、接続を許可する前にすべてのデバイスへエージェントを導入させることで解消すべきである。DoS 攻撃については、攻撃者がポータルを発見できないので、可用性のための特別な備えは求められていない",
+        "可視性と制御の不足は、接続を許可する前にすべてのデバイスへエージェントを導入させることで解消すべきである。DoS 攻撃やネットワークの中断には、ポータルシステムに十分なリソースを備えて可用性を確保すべきである",
+        "可視性と制御の不足は、ブラウザー分離などの対策で緩和または補完できる可能性がある。DoS 攻撃やネットワークの中断には、ポータルシステムに十分なリソースを備えて可用性を確保すべきである"
+      ]
+    },
+    {
+      "id": "sandboxing-term",
+      "type": "choice",
+      "category": "vocabulary",
+      "prompt": "§3.2.4 によると、この展開のバリエーションは何をするものですか？",
+      "points": 1,
+      "referenceIds": [
+        "sandbox-model"
+      ],
+      "term": "device application sandboxing（デバイスのアプリケーションサンドボックス化）",
+      "options": [
+        "資産そのものを、エンタープライズのネットワークから切り離した区画に置き、脆弱性のスキャンが済むまでは、どのアプリケーションからのリクエストも PEP に届かないようにする",
+        "エンタープライズのリソースを、仮想マシンやコンテナーなどの区画に分けてエンクレーブ内で実行し、侵害されている可能性のあるサブジェクトや他のリソースから保護する",
+        "審査を受けていないアプリケーションやプロセスを、仮想マシンやコンテナーなどの区画に閉じ込めて資産上で実行し、エンタープライズのリソースには一切アクセスできないようにする",
+        "審査を受けたアプリケーションやプロセスを、仮想マシンやコンテナーなどの区画に分けて資産上で実行し、侵害されている可能性のあるホストや他のアプリケーションから保護する"
+      ]
+    },
+    {
+      "id": "sandbox-pep",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "図 6 についての本文の説明によると、このモデルの PEP は、資産上のアプリケーションからのリクエストをどう扱いますか？",
+      "points": 1,
+      "referenceIds": [
+        "sandbox-pep"
+      ],
+      "options": [
+        "サンドボックス内で実行されるアプリケーションからのリクエストは PEP が拒否し、資産上で直接実行される、承認され審査を受けたアプリケーションだけが PEP にアクセスをリクエストできる",
+        "資産が脆弱性のスキャンに合格していれば、サンドボックスの内側か外側かを問わず、その資産上のすべてのアプリケーションが PEP にアクセスをリクエストできる",
+        "サンドボックス内で実行される、承認され審査を受けたアプリケーションは PEP にアクセスをリクエストできるが、資産上の他のアプリケーションからのリクエストは PEP が拒否する",
+        "サンドボックス内のアプリケーションからのリクエストは、資産上のデバイスエージェントが評価するので、PEP はアクセスのリクエストを受けず、評価の結果だけを受け取って記録する"
+      ]
+    },
+    {
+      "id": "sandbox-effort",
+      "type": "choice",
+      "category": "debugging",
+      "prompt": "§3.2.4 に照らして、この説明の誤っている点はどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "sandbox-tradeoffs"
+      ],
+      "scenario": "アプリケーションサンドボックス化を採用した担当者が、次のように説明しました。「アプリケーションは資産の他の部分から分離されるので、資産の脆弱性をスキャンできなくても、ホストのマルウェア感染から保護できる可能性がある。この方式なら、クライアント資産への完全な可視性が得られ、運用の手間もデバイスを監視するより小さくなる」",
+      "options": [
+        "アプリケーションは資産の他の部分から分離されない。分離されるのは資産とエンタープライズのネットワークである。可視性と運用の手間についての説明は、本文と合っている",
+        "資産の脆弱性をスキャンできない場合、サンドボックス化したアプリケーションをホストのマルウェア感染から保護することは期待できない。可視性と運用の手間についての説明は、本文と合っている",
+        "クライアント資産を完全には可視化できない場合がある。すべての資産でサンドボックス化したアプリケーションを維持し、各アプリケーションの安全性も確かめる必要があり、デバイスの監視より労力を要する場合がある",
+        "クライアント資産への完全な可視性は得られるが、サンドボックス化したアプリケーションを維持して安全性を確かめるのは、アプリケーションの提供者であり、エンタープライズが労力をかける必要はない"
+      ]
+    },
+    {
+      "id": "model-relationships",
+      "type": "choice",
+      "category": "comparison",
+      "prompt": "§3.2.1〜§3.2.4 の 4 つの展開モデルの関係として、本文の説明に合うものはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "enclave-model",
+        "sandbox-model",
+        "portal-limits"
+      ],
+      "options": [
+        "4 つのモデルは互いに独立しており、どれも他のモデルのバリエーションとは説明されていない。いずれのモデルでも、PEP は、資産の側とリソースの側の 2 つのコンポーネントに分かれる",
+        "エンクレーブベースの展開とアプリケーションサンドボックス化は、デバイスエージェント/ゲートウェイモデルのバリエーションである。リソースポータルモデルには、リクエストを処理するローカルのエージェントがない",
+        "エンクレーブベースの展開とリソースポータルモデルは、デバイスエージェント/ゲートウェイモデルのバリエーションである。アプリケーションサンドボックス化には、アプリケーションがアクセスをリクエストする PEP がない",
+        "リソースポータルモデルとアプリケーションサンドボックス化は、エンクレーブベースの展開のバリエーションである。デバイスエージェント/ゲートウェイモデルには、リソースの側に置くコンポーネントがない"
+      ]
+    },
+    {
+      "id": "collaboration-portal-review",
+      "type": "written",
+      "category": "design",
+      "prompt": "§3.2 の展開モデルから適したものを 1 つ選び、選んだ理由、このモデルの限界、限界を補う対策、可用性のための備えを説明してください。",
+      "points": 4,
+      "referenceIds": [
+        "portal-benefit",
+        "portal-limits"
+      ],
+      "scenario": "あるエンタープライズが、他組織と共同で進めるプロジェクトの参加者（他組織のデバイスや私物のデバイスを使う）に、業務アプリケーションを使わせることになりました。参加者のデバイスにソフトウェアをインストールさせることは避けたいと考えています。",
+      "answerHint": "選ぶモデルと理由、可視性・監視の限界、限界を緩和する対策の例、可用性のための備えの 4 点を、それぞれ 1〜2 文で書いてください。"
+    },
+    {
+      "id": "legacy-and-unscannable",
+      "type": "written",
+      "category": "design",
+      "prompt": "（1）には §3.2.2、（2）には §3.2.4 の展開モデルを当てはめ、それぞれについて、採用の前提または利点と、欠点を 1 つずつ述べてください。",
+      "points": 4,
+      "referenceIds": [
+        "enclave-fit",
+        "sandbox-tradeoffs"
+      ],
+      "scenario": "あるエンタープライズに次の 2 つの課題があります。（1）オンプレミスのデータセンターにレガシーアプリケーションが多数あり、リソースごとに個別のゲートウェイを置けない。エンタープライズの資産には、デバイスエージェントを導入できる。（2）脆弱性をスキャンできない資産があるが、その資産の上でも、審査を受けた業務アプリケーションを使わせたい。",
+      "answerHint": "（1）と（2）のそれぞれについて、「前提または利点」と「欠点」を 1 文ずつ、計 4 文で書いてください。"
+    }
+  ],
+  "solutions": {
+    "device-agent-term": {
+      "answer": 0,
+      "explanation": "§3.2.1。デバイスエージェントは、エンタープライズが支給する各資産にインストールされて接続を調整するソフトウェアコンポーネントで、リクエストが評価されるように、トラフィックの一部（またはすべて）を適切な PEP に振り向けます。リソースの直前でプロキシとして働き、PA が構成した経路だけを許可するのはゲートウェイです。リクエストは PA を経て PE が評価するので、エージェントが自ら評価するわけではありません。アプリケーションの区画化は §3.2.4 のサンドボックス化の説明です。"
+    },
+    "gateway-term": {
+      "answer": 0,
+      "explanation": "§3.2.1。ゲートウェイは各リソースの直前に置かれ、リソースはゲートウェイとだけ通信するので、ゲートウェイは実質的にリソースのプロキシとして機能します。ゲートウェイは PA と通信し、PA が構成した承認済みの通信経路だけを許可します。資産に置かれて接続を調整するのはデバイスエージェントであり、リクエストの評価はゲートウェイの役割として挙げられていません。"
+    },
+    "agent-gateway-flow": {
+      "answer": [
+        "take",
+        "forward",
+        "evaluate",
+        "configure",
+        "connect",
+        "terminate"
+      ],
+      "explanation": "§3.2.1。アクセスリクエストはローカルのエージェントが受け取って PA に転送し、PA が評価のために PE に転送します。認可されると、PA がコントロールプレーンを介してデバイスエージェントとリソースゲートウェイの間の通信チャネルを構成し、両者が接続して、暗号化されたデータフローが始まります。接続は、ワークフローが完了したとき、またはセキュリティイベントを契機に PA が指示したときに終了します。なお、PA と PE は、エンタープライズのローカルの資産でも、クラウドでホストされるサービスでもかまいません。"
+    },
+    "pa-role-in-scenario": {
+      "answer": 1,
+      "explanation": "§3.2.1。PA はリクエストを評価のために PE に転送し、認可されると、コントロールプレーンを介してデバイスエージェントとリソースゲートウェイの間の通信チャネルを構成します。この構成には、IP アドレス、ポート情報、セッションキーなどのセキュリティアーティファクトが含まれることがあります。接続は、ワークフローが完了したときのほか、セッションのタイムアウトや再認証の失敗といったセキュリティイベントを契機に PA が指示したときにも終了します。"
+    },
+    "csa-sdp-client-server": {
+      "answer": 2,
+      "explanation": "§3.2.1。クラウドサービスを多用するエンタープライズにとって、このモデルは CSA の SDP [CSA-SDP] のクライアント/サーバー実装にあたります。資産上のエージェントとリソース側のゲートウェイに PEP を分ける構成であり、エージェントを使わない構成とは説明されていません。サーバー/サーバー実装は、本書では §4.2 のマルチクラウドのユースケースについて使われている表現です。"
+    },
+    "agent-model-fit": {
+      "answer": 0,
+      "explanation": "§3.2.1。デバイスエージェント/ゲートウェイモデルは、堅牢なデバイス管理プログラムと、ゲートウェイと通信できる個別のリソースを備えたエンタープライズでの利用に最も適しています。アクセスはデバイスエージェントを介してのみ可能で、エージェントはエンタープライズ所有の資産に配置できるので、BYOD ポリシーを導入したくないエンタープライズにも適しています。リソースポータルモデルにはローカルのエージェントがなく、エンクレーブベースの展開では、デバイスエージェントをインストール・構成するための堅牢な資産管理・構成管理のプログラムが必要です。"
+    },
+    "gateway-placement": {
+      "answer": 0,
+      "explanation": "§3.2.1・§3.2.2。デバイスエージェント/ゲートウェイモデルでは、PEP が資産上のエージェントと、リソースの直前に置くゲートウェイの 2 つに分かれます。エンクレーブベースの展開はそのバリエーションで、ゲートウェイは、資産上や個々のリソースの直前ではなく、リソースエンクレーブ（例: オンサイトのデータセンター）の境界に置かれます。"
+    },
+    "enclave-resources": {
+      "answer": 2,
+      "explanation": "§3.2.2。エンクレーブに置かれるリソースは、通常、単一のビジネス機能を担っているか、ゲートウェイと直接通信できないもの（例: ゲートウェイとの通信に使える API を持たないレガシーなデータベースシステム）です。このモデルは、ユーザー通知、データベース照会、給与の支払いといった単一のビジネスプロセスにクラウドベースのマイクロサービスを使うエンタープライズにも有用な場合があり、そのときはプライベートクラウド全体がゲートウェイの背後に置かれます。"
+    },
+    "enclave-hybrid": {
+      "answer": 2,
+      "explanation": "§3.2.2。エンクレーブベースの展開は、デバイスエージェント/ゲートウェイモデルとのハイブリッドにできます。その場合、エンタープライズの資産は、デバイスエージェントを使ってエンクレーブゲートウェイに接続します。これらの接続は、基本のデバイスエージェント/ゲートウェイモデルと同じプロセスで作成されるので、PA を介さない接続や、エージェントを持たない構成の説明ではありません。"
+    },
+    "enclave-downside": {
+      "answer": 2,
+      "explanation": "§3.2.2。エンクレーブベースの展開の欠点は、ゲートウェイがリソースの集合を保護するため、個々のリソースを個別に保護できない場合があることです。また、サブジェクトが、アクセス権限を持たないリソースを見られてしまう可能性もあります。本文が述べているのは「見える」可能性であり、権限のないリソースへのアクセスが許可されるとは述べていません。ゲートウェイと直接通信できないレガシーなデータベースは、むしろこのモデルが想定する対象です。"
+    },
+    "portal-pep": {
+      "answer": 2,
+      "explanation": "§3.2.3。リソースポータルベースの展開では、PEP は、サブジェクトのリクエストに対するゲートウェイとして機能する単一のコンポーネントです。ゲートウェイポータルは、個々のリソース向けにすることも、単一のビジネス機能に使われるリソースの集合を収めたセキュアなエンクレーブ向けにすることもできます。例として、レガシーアプリケーションを含むプライベートクラウドやデータセンターへのゲートウェイポータルが挙げられています。PEP を 2 つのコンポーネントに分けるのは、デバイスエージェント/ゲートウェイモデルです。"
+    },
+    "portal-benefit": {
+      "answer": 0,
+      "explanation": "§3.2.3。他のモデルと比べた主な利点は、すべてのクライアントデバイスにソフトウェアコンポーネントをインストールする必要がないことです。BYOD ポリシーや組織間のコラボレーションプロジェクトにもより柔軟で、管理者は、使用前に各デバイスに適切なデバイスエージェントが入っていることを確認する必要がありません。一方で、デバイスから推測できる情報は限られ、継続的な監視はできない場合があり、ポータルは攻撃者に発見されうるとされています。"
+    },
+    "portal-monitoring": {
+      "answer": 3,
+      "explanation": "§3.2.3。このモデルにはリクエストを処理するローカルのエージェントがないため、エンタープライズは、資産がポータルに接続したときにしかスキャン・分析できず、マルウェア、パッチ未適用の脆弱性、適切な構成について継続的に監視できない場合があります。デバイスから推測できる情報も限られ、セッションとセッションの間は、資産がエンタープライズから見えない可能性があります。資産に対する完全な可視性や自在な制御は得られない場合がある、というのが本文の説明です。"
+    },
+    "portal-mitigations": {
+      "answer": 3,
+      "explanation": "§3.2.3。ローカルのエージェントがないことによる可視性と制御の不足について、エンタープライズは、ブラウザー分離などの対策を採用して緩和または補完できるかもしれない、とされています。また、このモデルでは攻撃者がポータルを発見してアクセスや DoS 攻撃を試みることができるので、ポータルシステムは、DoS 攻撃やネットワークの中断に対して可用性を確保できるよう、十分なリソースを備えておくべきです。すべてのデバイスにエージェントを導入させることは、このモデルの対処として述べられていません。"
+    },
+    "sandboxing-term": {
+      "answer": 3,
+      "explanation": "§3.2.4。エージェント/ゲートウェイ展開モデルの別のバリエーションで、審査を受けたアプリケーションまたはプロセスを、資産上で区画化して実行します。区画は仮想マシン、コンテナー、その他の実装でかまいませんが、目的は同じで、アプリケーション（またはそのインスタンス）を、侵害されている可能性のあるホストや、資産上で動作している他のアプリケーションから保護することです。区画に入れるのは審査を受けたアプリケーションであり、資産全体やリソースではありません。"
+    },
+    "sandbox-pep": {
+      "answer": 2,
+      "explanation": "§3.2.4。図 6 では、サブジェクトのデバイスが、承認され審査を受けたアプリケーションをサンドボックス内で実行しています。これらのアプリケーションは PEP と通信してリソースへのアクセスをリクエストできますが、PEP は、資産上の他のアプリケーションからのリクエストを拒否します。このモデルの PEP は、エンタープライズのローカルのサービスでも、クラウドサービスでもかまいません。"
+    },
+    "sandbox-effort": {
+      "answer": 2,
+      "explanation": "§3.2.4。利点は、個々のアプリケーションが資産の他の部分から分離されることで、資産の脆弱性をスキャンできない場合でも、ホスト資産のマルウェア感染から保護される可能性があります。欠点は、エンタープライズがすべての資産についてサンドボックス化されたアプリケーションを維持しなければならず、クライアント資産を完全には可視化できない場合があることです。各アプリケーションが安全であることも確かめる必要があり、単にデバイスを監視するより多くの労力を要する場合があります。"
+    },
+    "model-relationships": {
+      "answer": 1,
+      "explanation": "§3.2.1〜§3.2.4。エンクレーブベースの展開は「デバイスエージェント/ゲートウェイモデルのバリエーション」、アプリケーションサンドボックス化は「エージェント/ゲートウェイ展開モデルの別のバリエーション」と説明されています。リソースポータルモデルは、PEP が単一のコンポーネントで、リクエストを処理するローカルのエージェントがないことが主な違いです。サンドボックス化でも、サンドボックス内のアプリケーションは PEP と通信してアクセスをリクエストします。"
+    },
+    "collaboration-portal-review": {
+      "explanation": "§3.2.3。リソースポータルモデルは、すべてのクライアントデバイスにソフトウェアコンポーネントをインストールする必要がなく、BYOD ポリシーや組織間のコラボレーションプロジェクトにより柔軟です。ただし、デバイスから推測できる情報は限られ、ポータルに接続したときにしかスキャン・分析できないので、継続的に監視できない場合があり、セッションとセッションの間は資産が見えない可能性があります。ブラウザー分離などの対策で緩和または補完できるかもしれません。また、攻撃者がポータルを発見してアクセスや DoS 攻撃を試みることができるので、ポータルシステムは、可用性を確保できるよう十分なリソースを備えておくべきです。",
+      "rubric": [
+        {
+          "criterion": "リソースポータルベースの展開を選び、すべてのクライアントデバイスにソフトウェアコンポーネントをインストールする必要がないこと、または BYOD ポリシーや組織間のコラボレーションに柔軟であることを理由に挙げている",
+          "points": 1,
+          "referenceIds": [
+            "portal-benefit"
+          ]
+        },
+        {
+          "criterion": "限界を述べている（デバイスから推測できる情報が限られる、ポータルに接続したときにしかスキャン・分析できず継続的に監視できない場合がある、セッションとセッションの間は資産が見えない可能性がある、のいずれか）",
+          "points": 1,
+          "referenceIds": [
+            "portal-benefit",
+            "portal-limits"
+          ]
+        },
+        {
+          "criterion": "限界を緩和または補完する対策として、ブラウザー分離などを挙げている",
+          "points": 1,
+          "referenceIds": [
+            "portal-limits"
+          ]
+        },
+        {
+          "criterion": "攻撃者がポータルを発見してアクセスや DoS 攻撃を試みることができるので、DoS 攻撃やネットワークの中断に対して可用性を確保できるよう、ポータルシステムに十分なリソースを備えるべきことを述べている",
+          "points": 1,
+          "referenceIds": [
+            "portal-limits"
+          ]
+        }
+      ]
+    },
+    "legacy-and-unscannable": {
+      "explanation": "§3.2.2・§3.2.4。（1）エンクレーブベースの展開は、個別のゲートウェイを置けないレガシーアプリケーションやオンプレミスのデータセンターを持つエンタープライズに有用で、デバイスエージェントをインストール・構成するための堅牢な資産管理・構成管理のプログラムが必要です。欠点は、ゲートウェイがリソースの集合を保護するため個々のリソースを個別に保護できない場合があることと、サブジェクトにアクセス権限のないリソースが見える可能性があることです。（2）アプリケーションサンドボックス化では、個々のアプリケーションが資産の他の部分から分離され、資産をスキャンできなくても、ホスト資産のマルウェア感染から保護される可能性があります。欠点は、すべての資産でサンドボックス化したアプリケーションを維持し、各アプリケーションの安全性を確かめる必要があり、クライアント資産を完全には可視化できない場合があることです。",
+      "rubric": [
+        {
+          "criterion": "（1）にエンクレーブベースの展開を当てはめ、個別のゲートウェイを置けないレガシーアプリケーションやオンプレミスのデータセンターに有用であること、またはデバイスエージェントをインストール・構成するための堅牢な資産管理・構成管理のプログラムが必要であることを述べている",
+          "points": 1,
+          "referenceIds": [
+            "enclave-fit"
+          ]
+        },
+        {
+          "criterion": "（1）の欠点を述べている（ゲートウェイがリソースの集合を保護するため、個々のリソースを個別に保護できない場合がある。または、サブジェクトに、アクセス権限のないリソースが見える可能性がある）",
+          "points": 1,
+          "referenceIds": [
+            "enclave-fit"
+          ]
+        },
+        {
+          "criterion": "（2）にアプリケーションサンドボックス化を当てはめ、個々のアプリケーションが資産の他の部分から分離され、資産をスキャンできなくても、ホスト資産のマルウェア感染から保護される可能性があることを述べている",
+          "points": 1,
+          "referenceIds": [
+            "sandbox-tradeoffs"
+          ]
+        },
+        {
+          "criterion": "（2）の欠点を述べている（すべての資産でサンドボックス化したアプリケーションを維持する必要がある、クライアント資産を完全には可視化できない場合がある、各アプリケーションの安全性を確かめる必要がありデバイスの監視より労力を要する場合がある、のいずれか）",
+          "points": 1,
+          "referenceIds": [
+            "sandbox-tradeoffs"
+          ]
+        }
+      ]
+    }
+  },
+  "inconsistencies": []
+}

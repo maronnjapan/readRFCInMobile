@@ -1,0 +1,668 @@
+{
+  "format": "spec-understanding-quiz",
+  "version": 1,
+  "id": "nist-sp-800-207-07-trust-algorithm",
+  "title": "NIST SP 800-207 ゼロトラスト 7/16: 信頼アルゴリズム",
+  "status": "published",
+  "spec": {
+    "id": "pdf-0290d6ece2487428",
+    "status": "adopted",
+    "repository": "maronnjapan/readRFCInMobile",
+    "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+    "path": "apps/quiz/specs/nist-sp-800-207.txt"
+  },
+  "references": [
+    {
+      "id": "ta-overview",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 314,
+      "endLine": 314,
+      "reason": "§3.3: PE の思考プロセスとしての信頼アルゴリズムと入力元",
+      "excerpt": "For an enterprise with a ZTA deployment, the policy engine can be thought of as the brain and the PE’s trust algorithm as its primary thought process. The trust algorithm (TA) is the process used by the policy engine to ultimately grant or deny access to a resource. The policy engine takes input from multiple sources (see Section 3): the policy database with observable information about subjects, subject attributes and roles, historical subject behavior patterns, threat intelligence sources, and other metadata sources. The process can be grouped into broad categories and visualized in Figure 7."
+    },
+    {
+      "id": "input-request",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 320,
+      "endLine": 320,
+      "reason": "§3.3: 入力（アクセスリクエスト）",
+      "excerpt": "- Access request: This is the actual request from the subject. The resource requested is the primary information used, but information about the requester is also used. This can include OS version, software used (e.g., does the requesting application appear on a list of approved applications?), and patch level. Depending on these factors and the asset security posture, access to assets might be restricted or denied."
+    },
+    {
+      "id": "input-subject",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 321,
+      "endLine": 321,
+      "reason": "§3.3: 入力（サブジェクトデータベース）",
+      "excerpt": "- Subject database: This is the “who” that is requesting access to a resource [SP800-63]. This is the set of subjects (human and processes) of the enterprise or collaborators and a collection of subject attributes/privileges assigned. These subjects and attributes form the basis of policies for resource access [SP800-162] [NISTIR 7987]. User identities can include a mix of logical identity (e.g., account ID) and results of authentication checks performed by PEPs. Attributes of identity that can be factored into deriving the confidence level include time and geolocation. A collection of privileges given to multiple subjects could be thought of as a role, but privileges should be assigned to a subject on an individual basis and not simply because they may fit into a particular role in the organization. This collection should be encoded and stored in an ID management system and policy database. This may also include data about past observed subject behavior in some (TA) variants (see Section 3.3.1)."
+    },
+    {
+      "id": "input-asset",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 322,
+      "endLine": 323,
+      "reason": "§3.3: 入力（資産データベースと観測可能な状態）",
+      "excerpt": "- Asset database (and observable status): This is the database that contains the known status of each enterprise-owned (and possibly known nonenterprise/BYOD) asset (physical and virtual, to some extent). This is compared to the observable status of the asset making the request and can include OS version, software present, and its integrity,\n- location (network location and geolocation), and patch level. Depending on the asset state compared with this database, access to assets might be restricted or denied."
+    },
+    {
+      "id": "input-resource",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 324,
+      "endLine": 324,
+      "reason": "§3.3: 入力（リソース要件）",
+      "excerpt": "- Resource requirements: This set of policies complements the user ID and attributes database [SP800-63] and defines the minimal requirements for access to the resource. Requirements may include authenticator assurance levels, such as MFA network location (e.g., deny access from overseas IP addresses), data sensitivity, and requests for asset configuration. These requirements should be developed by both the data custodian (i.e., those responsible for the data) and those responsible for the business processes that utilize the data (i.e., those responsible for the mission)."
+    },
+    {
+      "id": "input-threat",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 325,
+      "endLine": 325,
+      "reason": "§3.3: 入力（脅威インテリジェンス）",
+      "excerpt": "- Threat intelligence: This is an information feed or feeds about general threats and active malware operating on the internet. This could also include specific information about communication seen from the device that may be suspect (such as queries for possible malware command and control nodes). These feeds can be external services or internal scans and discoveries and can include attack signatures and mitigations. This is the only component that will most likely be under the control of a service rather than the enterprise."
+    },
+    {
+      "id": "weights",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 327,
+      "endLine": 327,
+      "reason": "§3.3: データソースの重要度の重み",
+      "excerpt": "The weight of importance for each data source may be a proprietary algorithm or may be configured by the enterprise. These weight values can be used to reflect the importance of the data source to an enterprise."
+    },
+    {
+      "id": "pa-execution",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 329,
+      "endLine": 329,
+      "reason": "§3.3: PA による最終的な決定の実行",
+      "excerpt": "The final determination is then passed to the PA for execution. The PA’s job is to configure the necessary PEPs to enable authorized communication. Depending on how the ZTA is deployed, this may involve sending authentication results and connection configuration information to gateways and agents or resource portals. PAs may also place a hold or pause on a communication session to reauthenticate and reauthorize the connection in accordance with policy requirements. The PA is also responsible for issuing the command to terminate the connection based on policy (e.g., after a time-out, when the workflow has been completed, due to a security alert)."
+    },
+    {
+      "id": "variations-axes",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 333,
+      "endLine": 333,
+      "reason": "§3.3.1: TA を区別する 2 つの特性",
+      "excerpt": "There are different ways to implement a TA. Different implementers may wish to weigh the above factors differently according to the factors’ perceived importance. There are two other major characteristics that can be used to differentiate TAs. The first is how the factors are evaluated, whether as binary decisions or weighted parts of a whole “score” or confidence level. The second is how requests are evaluated in relation to other requests by the same subject, application/service, or device."
+    },
+    {
+      "id": "criteria-score",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 335,
+      "endLine": 336,
+      "reason": "§3.3.1: 基準ベースとスコアベース",
+      "excerpt": "- Criteria- versus score-based: A criteria-based TA assumes a set of qualified attributes that must be met before access is granted to a resource or an action (e.g., read/write) is allowed. These criteria are configured by the enterprise and should be independently configured for every resource. Access is granted or an action applied to a resource only if all the criteria are met. A score-based TA computes a confidence level based on values for every data source and enterprise-configured weights. If the score is greater than the configured threshold value for the resource, access is granted, or the action is performed.\n- Otherwise, the request is denied, or access privileges are reduced (e.g., read access is granted but not write access for a file)."
+    },
+    {
+      "id": "singular-contextual",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 337,
+      "endLine": 337,
+      "reason": "§3.3.1: 単一型とコンテキスト型",
+      "excerpt": "- Singular versus contextual: A singular TA treats each request individually and does not take the subject history into consideration when making its evaluation. This can allow faster evaluations, but there is a risk that an attack can go undetected if it stays within a subject’s allowed role. A contextual TA takes the subject or network agent’s recent history into consideration when evaluating access requests. This means the PE must maintain some state information on all subjects and applications but may be more likely to detect an attacker using subverted credentials to access information in a pattern that is atypical of what the PE sees for the given subject. This also means that the PE must be informed of user behavior by the PA (and PEPs) that subjects interact with when communicating. Analysis of subject behavior can be used to provide a model of acceptable use, and deviations from this behavior could trigger additional authentication checks or resource request denials."
+    },
+    {
+      "id": "independence",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 339,
+      "endLine": 339,
+      "reason": "§3.3.1: 2 つの特性の独立性と、コンテキスト型でスコアベースの TA の利点",
+      "excerpt": "The two factors are not always dependent on each other. It is possible to have a TA that assigns a confidence level to every subject and/or device and still considers every access request independently (i.e., singular). However, contextual, score-based TAs would provide the ability to offer more dynamic and granular access control, since the score provides a current confidence level for the requesting account and adapts to changing factors more quickly than static policies modified by human administrators."
+    },
+    {
+      "id": "contextual-ideal",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 341,
+      "endLine": 341,
+      "reason": "§3.3.1: コンテキスト型が理想とされる理由と例、ユーザビリティとのバランス",
+      "excerpt": "Ideally, a ZTA trust algorithm should be contextual, but this may not always be possible with the infrastructure components available to the enterprise. A contextual TA can mitigate threats where an attacker stays close to a “normal” set of access requests for a compromised subject account or insider attack. It is important to balance security, usability, and cost-effectiveness when defining and implementing trust algorithms. Continually prompting a subject for reauthentication against behavior that is consistent with historical trends and norms for their mission function and role within the organization can lead to usability issues. For example, if an employee in the HR department of an agency normally accesses 20 to 30 employee records in a typical workday, a contextual TA may send an alert if the access requests suddenly exceed 100 records in a day. A contextual TA may also send an alert if someone is making access requests after normal business hours as this could be an attacker exfiltrating records by using a compromised HR account. These are examples where a contextual TA can detect an attack whereas a singular TA may fail to detect the new behavior. In another example, an accountant who typically accesses the financial system during normal business hours is now trying to access the system in the middle of the night from an unrecognizable location. A contextual TA may trigger an alert and require the subject to satisfy a more stringent confidence level or other criteria as outlined in NIST Special Publication 800-63A [SP800-63A]."
+    },
+    {
+      "id": "tuning",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 343,
+      "endLine": 343,
+      "reason": "§3.3.1: チューニングフェーズ",
+      "excerpt": "Developing a set of criteria or weights/threshold values for each resource requires planning and testing. Enterprise administrators may encounter issues during the initial implementation of ZTA where access requests that should be approved are denied due to misconfiguration. This will result in an initial “tuning” phase of deployment. Criteria or scoring weights may need to be adjusted to ensure that the policies are enforced while still allowing the enterprise’s business processes to function. How long this tuning phase lasts depends on the enterprise-defined metrics for progress and tolerance for incorrect access denials/approvals for the resources used in the workflow."
+    }
+  ],
+  "questions": [
+    {
+      "id": "trust-algorithm-term",
+      "type": "choice",
+      "category": "vocabulary",
+      "prompt": "この用語の説明として、§3.3 に合うものはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "ta-overview"
+      ],
+      "term": "trust algorithm（TA、信頼アルゴリズム）",
+      "options": [
+        "脅威インテリジェンスのサービスが、インターネット上のマルウェアを検出し、各資産の信頼度をエンタープライズへ配信するために使うプロセス",
+        "ポリシーエンジン（PE）が、複数の情報源からの入力をもとに、リソースへのアクセスを最終的に許可または拒否するために使うプロセス",
+        "ポリシー実施ポイント（PEP）が、通過するトラフィックを暗号化し、その完全性と送信元を確かめるために使うプロセス",
+        "ポリシー管理者（PA）が、PE の決定に従って PEP を構成し、サブジェクトとリソースの間の通信経路を確立または遮断するために使うプロセス"
+      ]
+    },
+    {
+      "id": "access-request-primary",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "§3.3 によると、信頼アルゴリズムの入力のうち「アクセスリクエスト」で主に用いられる情報と、あわせて用いられる情報の組み合わせはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "input-request"
+      ],
+      "options": [
+        "主に用いられるのは、リクエスト元の OS のバージョン。リクエストされたリソースの機密度や、データ管理者が定めた要件なども用いられる",
+        "主に用いられるのは、リクエスト元のネットワークロケーション。リクエストされたリソースや、インターネット上で活動中の脅威の情報なども用いられる",
+        "主に用いられるのは、リクエストされたリソース。リクエスト元の OS のバージョン、使用しているソフトウェア、パッチレベルなども用いられる",
+        "主に用いられるのは、サブジェクトの過去の行動パターン。リクエストされたリソースや、リクエストの時刻とジオロケーションなども用いられる"
+      ]
+    },
+    {
+      "id": "role-based-bulk-privileges",
+      "type": "choice",
+      "category": "debugging",
+      "prompt": "§3.3 に照らして、この決定の問題点はどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "input-subject"
+      ],
+      "scenario": "ある管理者が、サブジェクトデータベースの整備にあたり「人事部門の職員は全員が同じロールに当てはまるので、そのロールに人事データベースの全権限を付け、部門に所属するだけで自動的に全員へ割り当てる」と決めました。",
+      "options": [
+        "権限は、PEP が実施した認証チェックの結果からその都度導くべきものであり、管理者があらかじめサブジェクトに割り当てるべきではない",
+        "権限は、サブジェクトが特定のロールに当てはまりそうだというだけの理由で割り当てるのではなく、サブジェクトごとに個別に割り当てるべきである",
+        "権限は、サブジェクトではなく資産に割り当てるべきものであり、サブジェクトデータベースには、サブジェクトの論理 ID だけを保存すべきである",
+        "権限の集合をロールとみなすこと自体が適切ではなく、複数のサブジェクトに同じ権限を付与することは、避けるべきである"
+      ]
+    },
+    {
+      "id": "subject-vs-asset-database",
+      "type": "choice",
+      "category": "comparison",
+      "prompt": "サブジェクトデータベースと資産データベースについて、§3.3 の説明に合う組み合わせはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "input-subject",
+        "input-asset"
+      ],
+      "options": [
+        "サブジェクトデータベースは、人間とプロセスを含むサブジェクトと、その属性・権限の集合。資産データベースは、各資産の既知の状態を保持し、リクエストを行う資産の観測可能な状態と比較される",
+        "サブジェクトデータベースは、人間とプロセスを含むサブジェクトと、その属性・権限の集合。資産データベースは、エンタープライズ所有の物理資産だけを対象にし、BYOD や仮想資産の状態は保持しない",
+        "サブジェクトデータベースは、リソースへのアクセスに必要な最小限の要件の集合。資産データベースは、各資産の既知の状態を保持し、リクエストを行う資産の観測可能な状態と比較される",
+        "サブジェクトデータベースは、人間のユーザーだけを対象にしたアカウント ID の一覧。資産データベースは、各資産の既知の状態を保持し、リクエストされたリソースの機密度と比較される"
+      ]
+    },
+    {
+      "id": "resource-requirements",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "§3.3 によると、「リソース要件」が定義するものと、それを策定すべき者の組み合わせはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "input-resource"
+      ],
+      "options": [
+        "リソースへのアクセスに必要な最小限の要件を定義する。データ管理者と、そのデータを利用するビジネスプロセスに責任を持つ者の双方が策定すべきである",
+        "各資産について既知の状態を定義する。資産を管理する担当者と、脅威インテリジェンスを提供する外部のサービスの双方が策定すべきである",
+        "リソースへのアクセスに必要な最小限の要件を定義する。ポリシーエンジンを運用するセキュリティ管理者が、ほかの関係者とは独立に策定すべきである",
+        "サブジェクトに割り当てる属性と権限を定義する。データ管理者と、そのデータを利用するビジネスプロセスに責任を持つ者の双方が策定すべきである"
+      ]
+    },
+    {
+      "id": "threat-intel-control",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "§3.3 が、信頼アルゴリズムの入力の中で「エンタープライズではなくサービスの管理下に置かれる可能性が高い唯一のコンポーネント」としているものと、その説明の組み合わせはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "input-threat"
+      ],
+      "options": [
+        "脅威インテリジェンス。一般的な脅威や活動中のマルウェアに関する情報フィードで、外部のサービスに限られ、内部のスキャンや発見事項は含まれない",
+        "リソース要件。リソースへのアクセスに必要な最小限の要件の集合で、データを預かるクラウドサービスの事業者が、エンタープライズに代わって定める",
+        "脅威インテリジェンス。一般的な脅威や活動中のマルウェアに関する情報フィードで、外部のサービスの場合も、内部のスキャンや発見事項の場合もある",
+        "資産データベース。各資産の既知の状態を保持するデータベースで、資産を供給した製造元のサービスが、エンタープライズに代わって更新する"
+      ]
+    },
+    {
+      "id": "data-source-weights",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "§3.3 は、信頼アルゴリズムにおける各データソースの重要度の重みを、どのように説明していますか？",
+      "points": 1,
+      "referenceIds": [
+        "weights"
+      ],
+      "options": [
+        "リソースの種類ごとに本書が推奨値を示すものであり、エンタープライズは、チューニングフェーズでその推奨値からの差を調整することになる",
+        "脅威インテリジェンスを提供するサービスが配信するものであり、エンタープライズは、受け取った値を変更せずに信頼アルゴリズムへ与えることになる",
+        "独自のアルゴリズムによる場合も、エンタープライズが設定する場合もあり、そのデータソースがエンタープライズにとって持つ重要性を反映するために使える",
+        "すべてのデータソースで等しくするものであり、特定のデータソースを重視したい場合は、スコアベースの TA から基準ベースの TA へ切り替えることになる"
+      ]
+    },
+    {
+      "id": "decision-to-enforcement",
+      "type": "ordering",
+      "category": "flow",
+      "prompt": "§3.3 の説明に沿って、アクセスリクエストが評価され、接続が終了するまでの流れを並べてください。",
+      "points": 2,
+      "referenceIds": [
+        "ta-overview",
+        "pa-execution"
+      ],
+      "items": [
+        {
+          "id": "evaluate",
+          "text": "PE が、信頼アルゴリズムで入力を評価し、アクセスを許可するか拒否するかを最終的に決定する"
+        },
+        {
+          "id": "pass",
+          "text": "最終的な決定が、実行のためにポリシー管理者（PA）へ渡される"
+        },
+        {
+          "id": "hold",
+          "text": "PA が、ポリシー要件に従って通信セッションを保留し、接続を再認証・再認可する"
+        },
+        {
+          "id": "configure",
+          "text": "PA が、認可された通信を可能にするために、必要な PEP を構成する"
+        },
+        {
+          "id": "terminate",
+          "text": "PA が、ワークフローの完了などポリシーに基づいて、接続を終了させるコマンドを発行する"
+        },
+        {
+          "id": "collect",
+          "text": "ポリシーエンジン（PE）が、アクセスリクエストと、サブジェクト・資産・リソース要件・脅威インテリジェンスなどの入力を受け取る"
+        }
+      ]
+    },
+    {
+      "id": "pa-after-decision",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "§3.3 によると、信頼アルゴリズムの最終的な決定が出た後の処理について、正しいものはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "pa-execution"
+      ],
+      "options": [
+        "PA は、いったん構成した通信セッションについては、接続を終了させることはできるが、再認証・再認可のために保留することはできない",
+        "PEP は、セッションを開始した後は PA からのコマンドを受けず、タイムアウトやセキュリティアラートによる接続の終了を自ら判断する",
+        "PE は、決定を自ら実行するために、認証結果と接続の構成情報を、PA を介さずにゲートウェイやエージェントへ送ることがある",
+        "PA は、展開の形に応じて、認証結果と接続の構成情報を、ゲートウェイやエージェント、またはリソースポータルに送ることがある"
+      ]
+    },
+    {
+      "id": "criteria-based-term",
+      "type": "choice",
+      "category": "vocabulary",
+      "prompt": "この用語の説明として、§3.3.1 に合うものはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "criteria-score"
+      ],
+      "term": "criteria-based trust algorithm（基準ベースの TA）",
+      "options": [
+        "エンタープライズが設定した、満たすべき属性の集合を前提にし、すべての基準が満たされた場合にだけ、アクセスやアクションを許可する",
+        "エンタープライズが設定した重みと各データソースの値から信頼度を算出し、リソースのしきい値より大きい場合にだけ、アクセスやアクションを許可する",
+        "サブジェクトの直近の履歴から許容される利用のモデルを作り、リクエストがそのモデルから逸脱していない場合にだけ、アクセスやアクションを許可する",
+        "エンタープライズが設定した、満たすべき属性の集合を前提にし、基準のうち過半数が満たされた場合には、アクセスやアクションを許可する"
+      ]
+    },
+    {
+      "id": "criteria-vs-score-applied",
+      "type": "choice",
+      "category": "comparison",
+      "prompt": "§3.3.1 の説明に従うと、このリクエストの扱いはどうなりますか？",
+      "points": 1,
+      "referenceIds": [
+        "criteria-score",
+        "variations-axes"
+      ],
+      "scenario": "あるリソースに、基準ベースの TA 用として「MFA に成功している」「パッチが最新である」「承認済みのアプリケーションからの要求である」の 3 つの基準を設定しました。あるリクエストは、パッチが最新でないことを除いて基準を満たしています。同じリクエストをスコアベースの TA で評価すると、エンタープライズが設定した重みで算出したスコアは、このリソースに設定したしきい値より大きくなりました。",
+      "options": [
+        "基準ベースの TA でも、スコアベースの TA でも許可される",
+        "基準ベースの TA では許可されず、スコアベースの TA では許可される",
+        "基準ベースの TA でも、スコアベースの TA でも許可されない",
+        "基準ベースの TA では許可され、スコアベースの TA では許可されない"
+      ]
+    },
+    {
+      "id": "score-not-above-threshold",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "§3.3.1 によると、スコアベースの TA で、スコアがリソースに設定されたしきい値より大きくならなかった場合、リクエストはどう扱われますか？",
+      "points": 1,
+      "referenceIds": [
+        "criteria-score"
+      ],
+      "options": [
+        "拒否される。アクセス権限を縮小して一部のアクションを許可する扱いは、基準ベースの TA の場合に限られる",
+        "いったん許可されたうえで PA がセッションを監視し、次回のリクエストから、しきい値が引き上げられる",
+        "基準ベースの TA に切り替えて再評価され、すべての基準を満たしていれば、アクセスが許可される",
+        "拒否されるか、読み取りは許可するが書き込みは許可しないといった形で、アクセス権限が縮小される"
+      ]
+    },
+    {
+      "id": "contextual-term",
+      "type": "choice",
+      "category": "vocabulary",
+      "prompt": "この用語の説明として、§3.3.1 に合うものはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "singular-contextual"
+      ],
+      "term": "contextual trust algorithm（コンテキスト型の TA）",
+      "options": [
+        "アクセスリクエストを評価するときに、ネットワークロケーションとジオロケーションだけを考慮する。エンタープライズのネットワークの外からのリクエストには、追加の認証チェックを求める",
+        "アクセスリクエストを評価するときに、リソースの機密度とデータ管理者の要件だけを考慮する。要件を満たさないリクエストは、追加の認証チェックを経ずに拒否することを前提にしている",
+        "アクセスリクエストを評価するときに、各リクエストを個別に扱い、サブジェクトの履歴を考慮しない。評価を速くできる可能性があるが、ロールの範囲内にとどまる攻撃を見逃しうる",
+        "アクセスリクエストを評価するときに、サブジェクトやネットワークエージェントの直近の履歴を考慮する。行動のモデルからの逸脱が、追加の認証チェックやリクエストの拒否につながりうる"
+      ]
+    },
+    {
+      "id": "singular-vs-contextual-costs",
+      "type": "choice",
+      "category": "comparison",
+      "prompt": "単一型の TA とコンテキスト型の TA の得失について、§3.3.1 の説明に合うものはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "singular-contextual"
+      ],
+      "options": [
+        "単一型は評価を速くできる可能性があるが、ロールの範囲内にとどまる攻撃を見逃すおそれがある。コンテキスト型は、PE がすべてのサブジェクトとアプリケーションについて状態情報を保持しなければならない",
+        "単一型は評価を速くできる可能性があるが、ロールの範囲内にとどまる攻撃を見逃すおそれがある。コンテキスト型は、状態情報を保持する必要がなく、PA や PEP からユーザーの行動を知らされる必要もない",
+        "単一型はサブジェクトの履歴を考慮するので、ロールの範囲内にとどまる攻撃を検知できる可能性が高い。コンテキスト型は、PE がすべてのサブジェクトとアプリケーションについて状態情報を保持しなければならない",
+        "単一型は PE がすべてのサブジェクトについて状態情報を保持するので、評価に時間がかかるおそれがある。コンテキスト型は、各リクエストを個別に扱うので、評価を速くできる可能性がある"
+      ]
+    },
+    {
+      "id": "axes-independent",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "「基準ベースかスコアベースか」と「単一型かコンテキスト型か」という 2 つの特性の関係について、§3.3.1 の説明に合うものはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "variations-axes",
+        "independence"
+      ],
+      "options": [
+        "必ずしも互いに依存しない。すべてのサブジェクトやデバイスに信頼度を割り当てながら、各アクセスリクエストを独立して検討する TA も考えられる",
+        "互いに依存する。信頼度を割り当てるスコアベースの TA は、サブジェクトの履歴を保持するので、コンテキスト型としてしか実装できない",
+        "必ずしも互いに依存しない。ただし、コンテキスト型でスコアベースの TA は、人間の管理者が変更する静的なポリシーよりも、変化への適応が遅くなる",
+        "互いに依存する。基準ベースの TA は、過去に基準を満たした履歴を参照して判断するので、単一型として実装することはできない"
+      ]
+    },
+    {
+      "id": "hr-singular-miss",
+      "type": "choice",
+      "category": "debugging",
+      "prompt": "§3.3.1 に照らすと、この結果になった原因として最も適切なものはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "contextual-ideal",
+        "singular-contextual"
+      ],
+      "scenario": "ある政府機関の人事部門の職員は、典型的な勤務日には 20〜30 件の従業員記録にアクセスしています。ある日、この職員のアカウントから 1 日に 100 件を超える記録へのアクセスリクエストがあり、その多くは通常の業務時間外でした。どのリクエストも、アカウントに許可されたロールの範囲内です。この機関の TA は単一型で、すべてのリクエストを許可し、アラートも送信しませんでした。",
+      "options": [
+        "単一型の TA は、スコアを算出しないので、リソースのしきい値と比較することができず、ロールの範囲内のリクエストを拒否する手段を持たない",
+        "単一型の TA は、各リクエストを個別に扱い、サブジェクトの履歴を考慮しないので、ロールの範囲内にとどまる新たな行動を検知できないことがある",
+        "単一型の TA は、脅威インテリジェンスを入力として使わないので、侵害されたアカウントからのリクエストを、正当なものと見分けることができない",
+        "単一型の TA は、資産データベースを参照しないので、業務時間外のリクエストに使われたデバイスの状態を、既知の状態と比較することができない"
+      ]
+    },
+    {
+      "id": "reauth-usability",
+      "type": "choice",
+      "category": "debugging",
+      "prompt": "§3.3.1 に照らして、この提案の問題点はどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "contextual-ideal"
+      ],
+      "scenario": "セキュリティ担当者が「安全性を最優先にするため、過去の傾向や役割から見て通常どおりの行動であっても、アクセスのたびにサブジェクトへ再認証を求めるよう TA を設定する」と提案しました。",
+      "options": [
+        "通常の範囲と一致する行動に再認証を繰り返し求めると、ユーザビリティ上の問題につながるおそれがある。セキュリティ、ユーザビリティ、費用対効果のバランスをとることが重要である",
+        "通常の範囲と一致する行動に再認証を求める設定は、チューニングフェーズの間しか使えない。チューニングを終えた後は、再認証をすべて取りやめることが重要である",
+        "通常の範囲と一致する行動に再認証を繰り返し求めると、PE が保持する状態情報が失われるおそれがある。再認証は、リソースごとに 1 日 1 回までに抑えることが重要である",
+        "通常の範囲と一致する行動に再認証を求めることは、コンテキスト型の TA では実現できない。再認証を求めるには、単一型でスコアベースの TA に切り替えることが必要である"
+      ]
+    },
+    {
+      "id": "accountant-midnight",
+      "type": "choice",
+      "category": "design",
+      "prompt": "§3.3.1 が、このような場合のコンテキスト型の TA の対応として挙げているものはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "contextual-ideal"
+      ],
+      "scenario": "通常は業務時間内に財務システムへアクセスしている会計担当者のアカウントから、真夜中に、認識できない場所から財務システムへのアクセスリクエストがありました。この組織は、コンテキスト型の TA を使っています。",
+      "options": [
+        "アカウントを恒久的に無効にし、会計担当者に割り当てた権限を、サブジェクトデータベースからすべて削除する",
+        "アラートを発し、より厳格な信頼度の水準やその他の基準を満たすことを、サブジェクトに求める",
+        "ロールの範囲内のリクエストなので履歴は考慮せずに許可し、事後にログを確認して、必要なら権限を見直す",
+        "アラートは発さずにリクエストを保留し、次の業務時間内になってから、同じ基準で自動的に再評価する"
+      ]
+    },
+    {
+      "id": "design-ta-for-hr-data",
+      "type": "written",
+      "category": "design",
+      "prompt": "§3.3.1 の説明に基づいて、この懸念に対応するにはどの種類の TA が望ましいかを理由とともに述べ、採用するときに必要になることと注意点を挙げてください。",
+      "points": 4,
+      "referenceIds": [
+        "singular-contextual",
+        "independence",
+        "contextual-ideal"
+      ],
+      "scenario": "ある機関が、人事データベースを保護する信頼アルゴリズムを設計しています。懸念しているのは、侵害された人事部門のアカウントや内部者が、普段のアクセスに近い範囲で少しずつ記録を持ち出す攻撃です。現在の TA は、リクエストごとに、決められた条件を満たすかどうかだけを見ています。",
+      "answerHint": "望ましい TA の種類とその理由、スコアベースと組み合わせる利点、PE に必要になること、ユーザビリティやインフラストラクチャに関する注意点の 4 点を、短い箇条書きで書いてください。"
+    },
+    {
+      "id": "tuning-phase-plan",
+      "type": "written",
+      "category": "design",
+      "prompt": "§3.3.1 の説明に基づいて、この状況をどう位置付け、何をどのような狙いで調整し、それをいつまで続けるのかを説明してください。",
+      "points": 4,
+      "referenceIds": [
+        "tuning"
+      ],
+      "scenario": "ある機関が、候補のビジネスプロセスに ZTA を初めて展開したところ、承認されるべきアクセスリクエストが相次いで拒否されました。原因は、リソースごとに設定した基準やスコアリングの重みの設定の誤りでした。現場からは「ZTA は業務を止めるので、ポリシーの適用をやめるべきだ」という声が出ています。",
+      "answerHint": "状況の位置付け、調整するもの、調整の狙い、期間の決まり方の 4 点を、それぞれ 1 文程度で書いてください。"
+    }
+  ],
+  "solutions": {
+    "trust-algorithm-term": {
+      "answer": 1,
+      "explanation": "§3.3。ポリシーエンジンを頭脳にたとえると、信頼アルゴリズムはその主たる思考プロセスです。PE は、ポリシーデータベース、サブジェクトの属性とロール、過去のサブジェクトの行動パターン、脅威インテリジェンスなど複数の情報源から入力を受け取り、TA によってリソースへのアクセスを最終的に許可または拒否します。PEP の構成は、決定を受け取った PA の役割です。"
+    },
+    "access-request-primary": {
+      "answer": 2,
+      "explanation": "§3.3。アクセスリクエストはサブジェクトからの実際のリクエストで、主に用いられる情報はリクエストされたリソースです。リクエスト元に関する情報（OS のバージョン、使用しているソフトウェアが承認済みアプリケーションの一覧にあるか、パッチレベルなど）も用いられ、これらの要因と資産のセキュリティ態勢に応じて、アクセスが制限または拒否されることがあります。過去の行動や脅威の情報は、ほかの入力が提供するものです。"
+    },
+    "role-based-bulk-privileges": {
+      "answer": 1,
+      "explanation": "§3.3。複数のサブジェクトに付与された権限の集合はロールとみなせますが、権限は、組織内の特定のロールに当てはまりそうだというだけの理由ではなく、サブジェクトごとに個別に割り当てるべきだとしています。ロールという捉え方そのものや、複数のサブジェクトが同じ権限を持つことを否定しているわけではありません。サブジェクトと属性・権限の集合は、ID 管理システムとポリシーデータベースにエンコードして保存すべきものです。"
+    },
+    "subject-vs-asset-database": {
+      "answer": 0,
+      "explanation": "§3.3。サブジェクトデータベースは「誰が」にあたる入力で、エンタープライズまたは協力者のサブジェクト（人間とプロセス）と、割り当てられた属性・権限の集合です。ユーザーの ID には、論理 ID と、PEP が実施した認証チェックの結果が含まれることがあり、時刻とジオロケーションも信頼度の導出に加味できます。資産データベースは、エンタープライズ所有の各資産（把握できていれば BYOD なども。物理資産と、ある程度は仮想資産）の既知の状態を保持し、リクエストを行う資産の観測可能な状態と比較されます。アクセスに必要な最小限の要件を定めるのは、リソース要件です。"
+    },
+    "resource-requirements": {
+      "answer": 0,
+      "explanation": "§3.3。リソース要件は、ユーザー ID と属性のデータベースを補完し、リソースへのアクセスに必要な最小限の要件を定義するポリシーの集合です。MFA などの認証器保証レベル、ネットワークロケーション（例: 海外の IP アドレスからのアクセスを拒否する）、データの機密度、資産構成に関する要求が含まれることがあります。これらは、データ管理者（データに責任を持つ者）と、そのデータを利用するビジネスプロセスに責任を持つ者（ミッションに責任を持つ者）の双方が策定すべきだとしています。"
+    },
+    "threat-intel-control": {
+      "answer": 2,
+      "explanation": "§3.3。脅威インテリジェンスは、一般的な脅威やインターネット上で活動しているマルウェアに関する 1 つ以上の情報フィードで、デバイスから観測された疑わしい通信（マルウェアのコマンドアンドコントロールノードと思われるものへのクエリなど）の情報を含むこともあります。フィードは外部のサービスの場合も内部のスキャンや発見事項の場合もあり、攻撃シグネチャや緩和策を含むことがあります。本文は、これを、エンタープライズではなくサービスの管理下に置かれる可能性が高い唯一のコンポーネントとしています。"
+    },
+    "data-source-weights": {
+      "answer": 2,
+      "explanation": "§3.3。各データソースの重要度の重みは、独自の（プロプライエタリな）アルゴリズムによる場合もあれば、エンタープライズが設定する場合もあります。重みの値は、そのデータソースがエンタープライズにとって持つ重要性を反映するために使えます。本書は具体的な重みの値を示しておらず、すべてのデータソースで等しくすることも求めていません。"
+    },
+    "decision-to-enforcement": {
+      "answer": [
+        "collect",
+        "evaluate",
+        "pass",
+        "configure",
+        "hold",
+        "terminate"
+      ],
+      "explanation": "§3.3。PE は複数の情報源から入力を受け取り、信頼アルゴリズムでアクセスの許可・拒否を最終的に決定します。その決定は実行のために PA に渡され、PA は必要な PEP を構成して、認可された通信を可能にします。通信の途中で、PA はポリシー要件に従ってセッションを保留または一時停止し、接続を再認証・再認可することがあります。最後に PA は、タイムアウト後、ワークフローの完了時、セキュリティアラートを受けたときなど、ポリシーに基づいて接続を終了させるコマンドを発行します。"
+    },
+    "pa-after-decision": {
+      "answer": 3,
+      "explanation": "§3.3。最終的な決定は、実行のために PA に渡されます。PA の役割は必要な PEP を構成することで、ZTA の展開の形によっては、認証結果と接続の構成情報をゲートウェイやエージェント、またはリソースポータルに送ることが含まれます。PA は、ポリシー要件に従ってセッションを保留または一時停止して再認証・再認可することもあり、ポリシーに基づいて接続を終了させるコマンドを発行する責任も負います。"
+    },
+    "criteria-based-term": {
+      "answer": 0,
+      "explanation": "§3.3.1。基準ベースの TA は、アクセスの許可やアクション（例: 読み取り/書き込み）の前に満たされなければならない属性の集合を前提にします。基準はエンタープライズが設定し、リソースごとに個別に設定すべきもので、すべての基準が満たされた場合にだけアクセスが許可され、またはアクションが適用されます。重みとしきい値で信頼度を評価するのはスコアベース、直近の履歴を考慮するのはコンテキスト型の特徴です。"
+    },
+    "criteria-vs-score-applied": {
+      "answer": 1,
+      "explanation": "§3.3.1。基準ベースの TA は、すべての基準が満たされた場合にだけアクセスを許可するので、基準を 1 つ満たさないこのリクエストは許可されません。スコアベースの TA は、すべてのデータソースの値とエンタープライズが設定した重みから信頼度を算出し、スコアがリソースに設定されたしきい値より大きければ、アクセスを許可します。要因を二値の判断として評価するか、全体のスコアを構成する重み付けされた要素として評価するかの違いが、結果の違いになります。"
+    },
+    "score-not-above-threshold": {
+      "answer": 3,
+      "explanation": "§3.3.1。スコアベースの TA は、スコアがリソースに設定されたしきい値より大きい場合にアクセスを許可し、またはアクションを実行します。そうでない場合、リクエストは拒否されるか、アクセス権限が縮小されます（例: ファイルに対して、読み取りアクセスは許可されるが書き込みアクセスは許可されない）。いったん許可することや、別の種類の TA で再評価することは述べられていません。"
+    },
+    "contextual-term": {
+      "answer": 3,
+      "explanation": "§3.3.1。コンテキスト型の TA は、アクセスリクエストを評価する際に、サブジェクトまたはネットワークエージェントの直近の履歴を考慮します。サブジェクトの行動を分析することで許容される利用のモデルが得られ、そこからの逸脱は、追加の認証チェックやリソースリクエストの拒否の引き金になりえます。各リクエストを個別に扱い、履歴を考慮しないのは、単一型の TA です。"
+    },
+    "singular-vs-contextual-costs": {
+      "answer": 0,
+      "explanation": "§3.3.1。単一型の TA は各リクエストを個別に扱うため、評価を速くできる可能性がありますが、攻撃がサブジェクトに許可されたロールの範囲内にとどまっていると、検知されないおそれがあります。コンテキスト型の TA では、PE がすべてのサブジェクトとアプリケーションについて何らかの状態情報を保持しなければならず、サブジェクトがやり取りする PA（および PEP）から、ユーザーの行動について知らされる必要もあります。その代わり、PE が普段見ているパターンと異なるアクセスを検知できる可能性が高くなります。"
+    },
+    "axes-independent": {
+      "answer": 0,
+      "explanation": "§3.3.1。TA を区別する特性は、要因を二値の判断として評価するか、スコア（信頼度）を構成する重み付けされた要素として評価するかと、同じサブジェクトなどによる他のリクエストとの関係でリクエストをどう評価するかの 2 つで、必ずしも互いに依存しません。すべてのサブジェクトやデバイスに信頼度を割り当てながら、各リクエストを独立して検討する（単一型の）TA も考えられます。なお、コンテキスト型でスコアベースの TA は、スコアが現在の信頼度を示し、静的なポリシーよりも素早く変化に適応するので、より動的できめ細かいアクセス制御を提供できるとしています。"
+    },
+    "hr-singular-miss": {
+      "answer": 1,
+      "explanation": "§3.3.1。単一型の TA は、各リクエストを個別に扱い、サブジェクトの履歴を考慮しないため、攻撃がロールの範囲内にとどまっていると検知されないおそれがあります。本文は、通常 20〜30 件の記録にアクセスする人事部門の従業員のリクエストが 1 日に突然 100 件を超えた場合や、通常の業務時間外にリクエストがあった場合を、コンテキスト型の TA ならアラートを送信しうるが、単一型の TA では新たな行動を検知できない可能性がある例として挙げています。スコアを使うかどうかや、どの入力を使うかは、単一型かどうかとは別の事柄です。"
+    },
+    "reauth-usability": {
+      "answer": 0,
+      "explanation": "§3.3.1。信頼アルゴリズムを定義し実装する際には、セキュリティ、ユーザビリティ、費用対効果のバランスをとることが重要です。組織内での機能や役割に照らして、過去の傾向や通常の範囲と一致している行動に対してもサブジェクトに再認証を繰り返し求めると、ユーザビリティ上の問題につながるおそれがあります。本文は、再認証の回数の上限や、特定の種類の TA への切り替えを求めてはいません。"
+    },
+    "accountant-midnight": {
+      "answer": 1,
+      "explanation": "§3.3.1。本文は、通常は業務時間内に財務システムへアクセスしている会計担当者が、認識できない場所から真夜中にアクセスしようとする例を挙げ、コンテキスト型の TA はアラートを発し、NIST SP 800-63A に概説されているような、より厳格な信頼度の水準やその他の基準を満たすことをサブジェクトに求めることがあるとしています。履歴を考慮せずに許可するのは単一型の TA の動作で、アカウントの恒久的な無効化は本文が挙げる対応ではありません。"
+    },
+    "design-ta-for-hr-data": {
+      "explanation": "§3.3.1。理想的には TA はコンテキスト型であるべきで、コンテキスト型は、侵害されたアカウントや内部者が通常のアクセスリクエストに近い範囲にとどまる脅威を緩和できます。単一型は履歴を考慮しないので、ロールの範囲内の攻撃を見逃すおそれがあります。コンテキスト型でスコアベースの TA は、スコアが現在の信頼度を示し、静的なポリシーよりも素早く変化に適応するので、より動的できめ細かい制御ができます。一方で、PE は状態情報を保持し、PA や PEP から行動を知らされる必要があります。通常どおりの行動に再認証を繰り返し求めるとユーザビリティの問題になるので、セキュリティ、ユーザビリティ、費用対効果のバランスをとります。利用できるインフラストラクチャのコンポーネントによっては、コンテキスト型が常に可能とは限りません。",
+      "rubric": [
+        {
+          "criterion": "コンテキスト型の TA が望ましいことと、その理由（サブジェクトの直近の履歴を考慮するので、通常のアクセスリクエストに近い範囲にとどまる攻撃や、普段と異なるパターンのアクセスを検知・緩和できる。履歴を考慮しない単一型では見逃しうる）を述べている",
+          "points": 1,
+          "referenceIds": [
+            "singular-contextual",
+            "contextual-ideal"
+          ]
+        },
+        {
+          "criterion": "スコアベースと組み合わせる利点（スコアがリクエスト元のアカウントの現在の信頼度を示し、人間の管理者が変更する静的なポリシーよりも素早く変化に適応するので、より動的できめ細かいアクセス制御ができる）を述べている",
+          "points": 1,
+          "referenceIds": [
+            "independence"
+          ]
+        },
+        {
+          "criterion": "コンテキスト型では、PE がサブジェクトとアプリケーションについて状態情報を保持し、PA や PEP からユーザーの行動を知らされる必要があることを述べている",
+          "points": 1,
+          "referenceIds": [
+            "singular-contextual"
+          ]
+        },
+        {
+          "criterion": "注意点として、通常どおりの行動に再認証を繰り返し求めるとユーザビリティの問題になるのでセキュリティ・ユーザビリティ・費用対効果のバランスをとること、または、利用できるインフラストラクチャのコンポーネントによってはコンテキスト型が常に可能とは限らないことを述べている",
+          "points": 1,
+          "referenceIds": [
+            "contextual-ideal"
+          ]
+        }
+      ]
+    },
+    "tuning-phase-plan": {
+      "explanation": "§3.3.1。各リソースの基準や重み/しきい値の策定には計画とテストが必要で、初期実装では、承認されるべきリクエストが設定の誤りによって拒否されることがあります。これは展開初期の「チューニング」フェーズとして見込まれるもので、ポリシーを確実に適用しつつビジネスプロセスも引き続き機能するように、基準やスコアリングの重みを調整します。このフェーズがどれくらい続くかは、進捗についてエンタープライズが定めた指標と、ワークフローで使うリソースに対する、アクセスの誤った拒否/承認の許容度によって決まります。",
+      "rubric": [
+        {
+          "criterion": "リソースごとの基準や重み/しきい値の策定には計画とテストが必要で、初期実装では設定の誤りによって承認されるべきリクエストが拒否されることがあり、これは展開初期の「チューニング」フェーズにあたると位置付けている",
+          "points": 1,
+          "referenceIds": [
+            "tuning"
+          ]
+        },
+        {
+          "criterion": "基準またはスコアリングの重みを調整することを述べている",
+          "points": 1,
+          "referenceIds": [
+            "tuning"
+          ]
+        },
+        {
+          "criterion": "調整の狙いが、ポリシーを確実に適用しつつ、エンタープライズのビジネスプロセスが引き続き機能するようにすることだと述べている（ポリシーの適用をやめるのではない）",
+          "points": 1,
+          "referenceIds": [
+            "tuning"
+          ]
+        },
+        {
+          "criterion": "チューニングフェーズの長さは、進捗についてエンタープライズが定めた指標と、アクセスの誤った拒否/承認に対する許容度によって決まることを述べている",
+          "points": 1,
+          "referenceIds": [
+            "tuning"
+          ]
+        }
+      ]
+    }
+  },
+  "inconsistencies": []
+}

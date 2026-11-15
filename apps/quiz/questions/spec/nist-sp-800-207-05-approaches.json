@@ -1,0 +1,620 @@
+{
+  "format": "spec-understanding-quiz",
+  "version": 1,
+  "id": "nist-sp-800-207-05-approaches",
+  "title": "NIST SP 800-207 ゼロトラスト 5/16: ZTA の 3 つの方式",
+  "status": "published",
+  "spec": {
+    "id": "pdf-0290d6ece2487428",
+    "status": "adopted",
+    "repository": "maronnjapan/readRFCInMobile",
+    "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+    "path": "apps/quiz/specs/nist-sp-800-207.txt"
+  },
+  "references": [
+    {
+      "id": "approaches-intro",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 238,
+      "endLine": 238,
+      "reason": "§3.1: 3 つの方式と基本原則・ポリシーの主な推進力",
+      "excerpt": "There are several ways that an enterprise can enact a ZTA for workflows. These approaches vary in the components used and in the main source of policy rules for an organization. Each approach implements all the tenets of ZT (see Section 2.1) but may use one or two (or one component) as the main driver of policies. A full ZT solution will include elements of all three approaches. The approaches include enhanced identity governance–driven, logical microsegmentation, and network-based segmentation."
+    },
+    {
+      "id": "approaches-fit",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 240,
+      "endLine": 240,
+      "reason": "§3.1: ユースケースと方式の相性",
+      "excerpt": "Certain approaches lend themselves to some use cases more than others. An organization looking to develop a ZTA for its enterprise may find that its chosen use case and existing policies point to one approach over others. That does not mean the other approaches would not work but rather that other approaches may be more difficult to implement and may require more fundamental changes to how the enterprise currently conducts business flows."
+    },
+    {
+      "id": "eig-policy",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 244,
+      "endLine": 244,
+      "reason": "§3.1.1: ID を中核にしたポリシーとその他の要因",
+      "excerpt": "The enhanced identity governance approach to developing a ZTA uses the identity of actors as the key component of policy creation. If it were not for subjects requesting access to enterprise resources, there would be no need to create access polices. For this approach, enterprise resource access policies are based on identity and assigned attributes. The primary requirement for resource access is based on the access privileges granted to the given subject. Other factors such as device used, asset status, and environmental factors may alter the final confidence level calculation (and ultimate access authorization) or tailor the result in some way, such as granting only partial access to a given data source based on network location. Individual resources or PEP components protecting the resource must have a way to forward requests to a policy engine service or authenticate the subject and approve the request before granting access."
+    },
+    {
+      "id": "eig-open-network",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 248,
+      "endLine": 248,
+      "reason": "§3.1.1: オープンなネットワークモデルと欠点",
+      "excerpt": "Enhanced identity governance-based approaches for enterprises are often employed using an open network model or an enterprise network with visitor access or frequent nonenterprise devices on the network (such as with the use case in Section 4.3 below). Network access is initially granted to all assets but access to enterprise resources are restricted to identities with the appropriate access privileges. There is a downside in granting basic network connectivity as malicious actors could still attempt network reconnaissance and/or use the network to launch denial of service attacks either internally or against a third party. Enterprises still need to monitor and respond to such behavior before it impacts workflows."
+    },
+    {
+      "id": "eig-portal-saas",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 250,
+      "endLine": 250,
+      "reason": "§3.1.1: リソースポータルモデル・SaaS との相性",
+      "excerpt": "The identity-driven approach works well with the resource portal model (see Section 3.2.3) since device identity and status provide secondary support data to access decisions. Other models work as well, depending on policies in place. Identity-driven approaches also work well for enterprises that use cloud-based applications/services that may not allow for enterprise-owned or -operated ZT security components to be used (such as many SaaS offerings). The enterprise can use the identity of requestors to form and enforce policy on these platforms."
+    },
+    {
+      "id": "microseg-gateway",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 254,
+      "endLine": 254,
+      "reason": "§3.1.2: 専用セグメントとゲートウェイ、ホストベースの実装",
+      "excerpt": "An enterprise may choose to implement a ZTA based on placing individual or groups of resources on a unique network segment protected by a gateway security component. In this approach, the enterprise places infrastructure devices such as intelligent switches (or routers) or next generation firewalls (NGFWs) or special purpose gateway devices to act as PEPs protecting each resource or small group of related resources. Alternatively (or additionally), the enterprise may choose to implement host-based micro-segmentation using software agents (see Section 3.2.1) or firewalls on the endpoint asset(s), These gateway devices dynamically grant access to individual requests from a client, asset or service. Depending on the model, the gateway may be the sole PEP component or part of a multipart PEP consisting of the gateway and client-side agent (see Section 3.2.1)."
+    },
+    {
+      "id": "microseg-igp",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 256,
+      "endLine": 256,
+      "reason": "§3.1.2: PEP と PE/PA の対応、ID ガバナンスプログラム",
+      "excerpt": "This approach applies to a variety of use cases and deployment models as the protecting device acts as the PEP, with management of said devices acting as the PE/PA component. This approach requires an identity governance program (IGP) to fully function but relies on the gateway components to act as the PEP that shields resources from unauthorized access and/or discovery."
+    },
+    {
+      "id": "microseg-managed",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 258,
+      "endLine": 258,
+      "reason": "§3.1.2: 管理された PEP とステートレスファイアウォール",
+      "excerpt": "The key necessity to this approach is that the PEP components are managed and should be able to react and reconfigure as needed to respond to threats or change in the workflow. It is possible to implement some features of a micro-segmented enterprise by using less advanced gateway devices and even stateless firewalls, but the administration cost and difficulty to quickly adapt to changes make this a very poor choice."
+    },
+    {
+      "id": "sdp-overlay",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 262,
+      "endLine": 262,
+      "reason": "§3.1.3: オーバーレイネットワークとネットワークコントローラーとしての PA",
+      "excerpt": "The last approach uses the network infrastructure to implement a ZTA. The ZTA implementation could be achieved by using an overlay network (i.e., layer 7 but also could be set up lower of the OSI network stack). These approaches are sometimes referred to as software defined perimeter (SDP) approaches and frequently include concepts from Software Defined Networks (SDN) [SDNBOOK] and intent-based networking (IBN) [IBNVN]. In this approach, the PA acts as the network controller that sets up and reconfigures the network based on the decisions made by the PE. The clients continue to request access via PEPs, which are managed by the PA component."
+    },
+    {
+      "id": "sdp-layer7",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 264,
+      "endLine": 264,
+      "reason": "§3.1.3: レイヤー 7 での実装とエージェント/ゲートウェイ",
+      "excerpt": "When the approach is implemented at the application network layer (i.e., layer 7), the most common deployment model is the agent/gateway (see Section 3.2.1). In this implementation, the agent and resource gateway (acting as the single PEP and configured by the PA) establish a secure channel used for communication between the client and resource. There may be other variations of this model, as well for cloud virtual networks, non-IP based networks, etc."
+    },
+    {
+      "id": "logical-components",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 268,
+      "endLine": 268,
+      "reason": "§3.2: 論理コンポーネントと実際のシステムの関係",
+      "excerpt": "All of the above components are logical components. They do not necessarily need to be unique systems. A single asset may perform the duties of multiple logical components, and likewise, a logical component may consist of multiple hardware or software elements to perform the tasks. For example, an enterprise-managed PKI may consist of one component responsible for issuing certificates for devices and another used for issuing certificates to end users, but both use intermediate certificates issued from the same enterprise root certificate authority. In some ZT product offerings currently available on the market, the PE and PA components are combined in a single service."
+    },
+    {
+      "id": "multiple-models",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 270,
+      "endLine": 270,
+      "reason": "§3.2: 1 つのエンタープライズで使う複数の展開モデル",
+      "excerpt": "There are several variations on deployment of selected components of the architecture that are outlined in the sections below. Depending on how an enterprise network is set up, multiple ZTA deployment models may be in use for different business processes in one enterprise."
+    }
+  ],
+  "questions": [
+    {
+      "id": "approaches-and-tenets",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "§3.1 は、3 つの方式と ZT の基本原則の関係をどう説明していますか？",
+      "points": 1,
+      "referenceIds": [
+        "approaches-intro"
+      ],
+      "options": [
+        "どの方式も基本原則をすべて実装するが、ポリシーの主な推進力として、そのうちの 1 つか 2 つ（または 1 つのコンポーネント）を使うことがある",
+        "どの方式も基本原則をすべて実装し、ポリシーの主な推進力も共通なので、方式どうしの違いは、使うコンポーネントの提供者にしか表れない",
+        "方式ごとに実装する基本原則が決まっているので、エンタープライズは、重視する基本原則に対応する方式を 1 つ選んで展開することになる",
+        "どの方式も基本原則の一部しか実装しないので、エンタープライズがすべての基本原則を満たすには、3 つの方式を同時に展開しなければならない"
+      ]
+    },
+    {
+      "id": "full-solution",
+      "type": "choice",
+      "category": "debugging",
+      "prompt": "§3.1 に照らして、この説明の問題点はどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "approaches-intro"
+      ],
+      "scenario": "あるアーキテクトが「当社は強化された ID ガバナンス主導の方式を選んだ。マイクロセグメンテーションやネットワークベースのセグメンテーションの要素は設計に入れないが、これで完全な ZT ソリューションになる」と説明しました。",
+      "options": [
+        "ID ガバナンス主導の方式は基本原則の一部しか実装しないので、単独では ZTA として扱えない",
+        "完全な ZT ソリューションには、選んだ方式の要素に加えて、ほかの 2 つの方式の要素も含まれる",
+        "方式は 3 つのうち 2 つを組み合わせる決まりであり、1 つを選んで展開することは認められていない",
+        "完全な ZT ソリューションかどうかは方式では決まらず、PE と PA を別個のシステムにしたかどうかで決まる"
+      ]
+    },
+    {
+      "id": "approach-fit",
+      "type": "choice",
+      "category": "design",
+      "prompt": "§3.1 の説明に合う考え方はどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "approaches-fit"
+      ],
+      "scenario": "ある組織が ZTA の検討を始めたところ、選んだユースケースと既存のポリシーから、強化された ID ガバナンス主導の方式が自然だと分かりました。担当者は、ほかの 2 つの方式をどう位置付けるべきか迷っています。",
+      "options": [
+        "ほかの方式も同じ労力で実装でき、現在のビジネスフローの進め方への影響も変わらないので、どの方式を主軸にしても差は生じない",
+        "ほかの方式はこのユースケースでは機能しないので、それらを前提にしたソリューションは、候補から外して検討を進めるのがよい",
+        "ほかの方式は後から追加できないので、現在のビジネスフローを止めることになっても、最初の展開で 3 つとも実装する必要がある",
+        "ほかの方式も機能しないわけではないが、実装がより難しく、現在のビジネスフローの進め方に、より根本的な変更が必要になることがある"
+      ]
+    },
+    {
+      "id": "eig-term",
+      "type": "choice",
+      "category": "vocabulary",
+      "prompt": "この方式の説明として正しいものはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "eig-policy"
+      ],
+      "term": "enhanced identity governance（強化された ID ガバナンス）を用いた ZTA",
+      "options": [
+        "アクターの ID をポリシー作成の中核的な要素にし、ID と割り当てられた属性に基づいて、リソースへのアクセスポリシーを決める方式",
+        "デバイスの ID と状態をポリシー作成の中核的な要素にし、サブジェクトの ID は、アクセス決定の補助的な裏付けデータとして扱う方式",
+        "オーバーレイネットワークなどを使い、PA がネットワークコントローラーとして、PE の決定に基づいてネットワークを設定・再構成する方式",
+        "リソースやそのグループを専用のネットワークセグメントに置き、ゲートウェイのセキュリティコンポーネントを PEP にして、リソースを保護する方式"
+      ]
+    },
+    {
+      "id": "eig-primary-requirement",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "強化された ID ガバナンスの方式で、リソースへのアクセスの主たる要件と、使用するデバイス・資産の状態・環境要因といったその他の要因の扱いは、どう説明されていますか？",
+      "points": 1,
+      "referenceIds": [
+        "eig-policy"
+      ],
+      "options": [
+        "主たる要件は、サブジェクトに付与されたアクセス権限。その他の要因は、この方式では評価の対象にならないので、最終的な信頼度の算出にも結果にも影響しない",
+        "主たる要件は、リクエスト元のネットワークロケーション。サブジェクトのアクセス権限とその他の要因は、ロケーションが条件を満たした場合に限って評価の対象にする",
+        "主たる要件は、サブジェクトに付与されたアクセス権限。その他の要因は、最終的な信頼度の算出を変えたり、部分的なアクセスにとどめるなど結果を調整したりすることがある",
+        "主たる要件は、使用するデバイスの状態。サブジェクトに付与されたアクセス権限は、最終的な信頼度の算出を変えたり、結果を調整したりする補助的な要因として扱う"
+      ]
+    },
+    {
+      "id": "eig-pep-forwarding",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "§3.1.1 によると、強化された ID ガバナンスの方式で、個々のリソースや、リソースを保護する PEP コンポーネントが備えていなければならないものはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "eig-policy"
+      ],
+      "options": [
+        "リクエスト元のネットワークセグメントを判別する手段、または、セグメントごとにあらかじめ決めた規則でアクセスを許可する手段",
+        "リクエストを PE のサービスに転送する手段、または、アクセスを許可する前にサブジェクトを認証してリクエストを承認する手段",
+        "すべてのクライアント資産にエージェントを配布する手段、または、エージェントのない資産のネットワーク接続を遮断する手段",
+        "アクセスを許可した後でサブジェクトを認証する手段、または、許可した後でリクエストの記録を PE のサービスに転送する手段"
+      ]
+    },
+    {
+      "id": "eig-portal-fit",
+      "type": "choice",
+      "category": "comparison",
+      "prompt": "§3.1.1 が、ID 主導の方式と相性がよいとしている展開モデルと、その理由の組み合わせはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "eig-portal-saas"
+      ],
+      "options": [
+        "リソースポータルモデル。この方式では、デバイスの ID と状態を、アクセス決定の主たる要件として使うため",
+        "エンクレーブゲートウェイモデル。エンクレーブの外にあるデバイスでは、ID をアクセス決定に使えないため",
+        "デバイスエージェント/ゲートウェイモデル。エージェントがなければ、サブジェクトの ID を確認できないため",
+        "リソースポータルモデル。デバイスの ID と状態が、アクセス決定に対する補助的な裏付けデータになるため"
+      ]
+    },
+    {
+      "id": "microseg-term",
+      "type": "choice",
+      "category": "vocabulary",
+      "prompt": "この方式の説明として正しいものはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "microseg-gateway"
+      ],
+      "term": "micro-segmentation（マイクロセグメンテーション）を用いた ZTA",
+      "options": [
+        "リソースをセグメントに分けず、アクターの ID をポリシー作成の中核的な要素にして、割り当てられた属性に基づいてアクセスを決める方式",
+        "個々のリソースやリソースのグループを専用のネットワークセグメントに置き、ゲートウェイのセキュリティコンポーネントで保護する方式",
+        "ネットワークをサブジェクトの所属部門ごとのセグメントに分け、同じセグメントの中にあるリソースへのリクエストは評価せずに許可する方式",
+        "すべてのリソースを 1 つの大きなネットワークセグメントにまとめ、その境界に置いたゲートウェイのセキュリティコンポーネントで保護する方式"
+      ]
+    },
+    {
+      "id": "microseg-pep-forms",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "マイクロセグメンテーションの方式での PEP の実現について、§3.1.2 の説明に合うものはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "microseg-gateway"
+      ],
+      "options": [
+        "ソフトウェアエージェントやエンドポイント資産上のファイアウォールは PEP にならないので、ホストベースの実装はこの方式に含まれない",
+        "ゲートウェイは、セグメントに届くリクエストを静的な規則でまとめて許可するものであり、個々のリクエストごとに動的に判断することはない",
+        "ゲートウェイは、モデルにかかわらず唯一の PEP コンポーネントであり、クライアント側エージェントと組み合わせて PEP を構成することはない",
+        "ゲートウェイは、モデルによって、唯一の PEP コンポーネントにも、ゲートウェイとクライアント側エージェントからなる PEP の一部にもなる"
+      ]
+    },
+    {
+      "id": "microseg-roles-igp",
+      "type": "choice",
+      "category": "comparison",
+      "prompt": "マイクロセグメンテーションの方式での論理コンポーネントの対応と、ID ガバナンスプログラム（IGP）の位置付けについて、§3.1.2 の説明に合うものはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "microseg-igp"
+      ],
+      "options": [
+        "保護を担うデバイスが PEP、ID 管理システムが PE/PA として機能する。IGP があるのでゲートウェイの管理は必要ない",
+        "保護を担うデバイスが PEP、それらのデバイスの管理が PE/PA として機能する。ゲートウェイに依拠するので IGP は必要ない",
+        "保護を担うデバイスが PE/PA、それらのデバイスの管理が PEP として機能する。十分に機能するには IGP が必要である",
+        "保護を担うデバイスが PEP、それらのデバイスの管理が PE/PA として機能する。十分に機能するには IGP が必要である"
+      ]
+    },
+    {
+      "id": "reconnaissance-comparison",
+      "type": "choice",
+      "category": "comparison",
+      "prompt": "強化された ID ガバナンスの方式と、マイクロセグメンテーションの方式を、攻撃者による偵察やリソースの発見という観点で比べたとき、本文の説明に合うものはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "eig-open-network",
+        "microseg-igp"
+      ],
+      "options": [
+        "ID ガバナンスの方式では、基本的なネットワーク接続を与えるので、偵察を試みる余地が残る。マイクロセグメンテーションでは、PEP として機能するゲートウェイが、リソースを不正なアクセスや発見から遮蔽する",
+        "どちらの方式でも、ネットワークアクセスは当初すべての資産に与えられるので、偵察を試みる余地は同じように残る。違いが出るのは、ネットワークを使った DoS 攻撃の対象が、内部になるか第三者になるかという点である",
+        "ID ガバナンスの方式では、基本的なネットワーク接続を与えるが、リソースが ID で保護されるので、偵察への監視は不要になる。マイクロセグメンテーションでは、PEP として機能するゲートウェイが、リソースを発見から遮蔽する",
+        "ID ガバナンスの方式では、ネットワーク接続も適切な権限を持つ ID に限定するので、偵察を試みる余地がない。マイクロセグメンテーションでは、ゲートウェイがリソースへのアクセスは制御するが、発見までは妨げない"
+      ]
+    },
+    {
+      "id": "stateless-firewalls",
+      "type": "choice",
+      "category": "debugging",
+      "prompt": "§3.1.2 がこの方式で不可欠としていることに照らすと、この計画にはどのような問題がありますか？",
+      "points": 1,
+      "referenceIds": [
+        "microseg-managed"
+      ],
+      "scenario": "費用を抑えるため、あるエンタープライズが、それほど高度ではないゲートウェイデバイスとステートレスファイアウォールを使って、マイクロセグメンテーションを実現しようとしています。",
+      "options": [
+        "PEP は構成を固定し、脅威やワークフローが変化しても規則を変えずに運用できるべきだが、この構成では、規則の変更が頻繁に必要になってしまう",
+        "PEP はリソースと同じホスト上で動作すべきだが、この構成では、機器がネットワーク上に置かれるので、マイクロセグメンテーションの機能を実装できない",
+        "PEP は ID ガバナンスプログラムの代わりを務められるべきだが、この構成では、機器がサブジェクトの ID と属性を保持できず、代わりにならない",
+        "PEP は管理され、脅威やワークフローの変化に応じて再構成できるべきだが、この構成では、管理コストがかかり、変化に素早く適応することも難しい"
+      ]
+    },
+    {
+      "id": "sdp-term",
+      "type": "choice",
+      "category": "vocabulary",
+      "prompt": "§3.1.3 で、この名前で呼ばれることがある方式の説明として正しいものはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "sdp-overlay",
+        "sdp-layer7"
+      ],
+      "term": "software defined perimeter（SDP、ソフトウェア定義境界）",
+      "options": [
+        "エンタープライズの境界のファイアウォールを、ソフトウェアで実装して ZTA とする方式。境界の内側を暗黙的信頼ゾーンとして残すので、内部のネットワークは再構成しなくてよい",
+        "ネットワークインフラストラクチャを使って ZTA を実装する方式。オーバーレイネットワークで実現でき、レイヤー 7 のほか、OSI ネットワークスタックのより下位にも設定できる",
+        "ネットワークインフラストラクチャを使って ZTA を実装する方式。オーバーレイネットワークで実現できるが、設定できるのはレイヤー 7 に限られ、非 IP ベースのネットワークには使えない",
+        "アクターの ID を使って ZTA を実装する方式。ネットワークアクセスを当初すべての資産に与えるので、ソフトウェア定義ネットワーク（SDN）の概念とは組み合わせて使えない"
+      ]
+    },
+    {
+      "id": "sdp-pa-controller",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "ネットワークインフラストラクチャを使う方式（SDP 方式）で、PA とクライアントはどのように働きますか？",
+      "points": 1,
+      "referenceIds": [
+        "sdp-overlay"
+      ],
+      "options": [
+        "PEP がネットワークコントローラーとして、自らの決定に基づいてネットワークを設定・再構成する。クライアントは、PA を介して、PEP にアクセスをリクエストする",
+        "PA がネットワークコントローラーとして、PE の決定に基づいてネットワークを設定・再構成する。クライアントは、PA が管理する PEP を介してアクセスをリクエストする",
+        "PA がネットワークコントローラーとして、PE の決定に基づいてネットワークを設定・再構成する。クライアントは、PEP を介さずに、PA へ直接アクセスをリクエストする",
+        "PE がネットワークコントローラーとして、PA の決定に基づいてネットワークを設定・再構成する。クライアントは、PE が管理する PEP を介してアクセスをリクエストする"
+      ]
+    },
+    {
+      "id": "sdp-layer7",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "§3.1.3 によると、この方式をアプリケーションネットワーク層（レイヤー 7）で実装する場合の、最も一般的な展開モデルと、そこでの PEP の説明はどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "sdp-layer7"
+      ],
+      "options": [
+        "エージェント/ゲートウェイモデル。エージェントが PE、リソースゲートウェイが PA として機能し、PEP を使わずに、クライアントとリソースの間のセキュアなチャネルを確立する",
+        "エンクレーブゲートウェイモデル。エンクレーブの境界のゲートウェイが PA として機能し、エージェントと組まずに、クライアントとリソースの間のセキュアなチャネルを確立する",
+        "リソースポータルモデル。ポータルが単一の PEP として機能し、PE に構成されて、エージェントを持たないクライアントとリソースの間のセキュアなチャネルを確立する",
+        "エージェント/ゲートウェイモデル。エージェントとリソースゲートウェイが単一の PEP として機能し、PA に構成されて、クライアントとリソースの間のセキュアなチャネルを確立する"
+      ]
+    },
+    {
+      "id": "logical-not-unique",
+      "type": "choice",
+      "category": "debugging",
+      "prompt": "§3.2 に照らして、この主張の問題点はどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "logical-components"
+      ],
+      "scenario": "調達の担当者が「本書の論理コンポーネントは、1 つにつき 1 台の専用システムとして導入しなければならない。PE と PA を 1 つのサービスにまとめた製品は、ZTA のコンポーネントとして認められない」と主張しました。",
+      "options": [
+        "論理コンポーネントは別個のシステムである必要は必ずしもなく、単一の資産が複数の役割を担うこともある。PE と PA を単一のサービスに統合した製品も市場にある",
+        "論理コンポーネントは別個のシステムである必要があり、PE と PA を統合した製品を使う場合には、PEP を 2 つのコンポーネントに分けて補うことが求められる",
+        "論理コンポーネントは別個のシステムである必要があるが、PE と PA については、単一のサービスに統合することが本書で義務付けられており、分けて導入できない",
+        "論理コンポーネントは別個のシステムである必要は必ずしもないが、1 つの論理コンポーネントを、複数のハードウェアやソフトウェアの要素で構成することはできない"
+      ]
+    },
+    {
+      "id": "pki-example",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "§3.2 は、1 つの論理コンポーネントが複数の要素で構成される例として、エンタープライズが管理する PKI をどう説明していますか？",
+      "points": 1,
+      "referenceIds": [
+        "logical-components"
+      ],
+      "options": [
+        "デバイス用の証明書とエンドユーザー用の証明書は、1 つのコンポーネントがまとめて発行する必要があり、発行を複数の要素に分けたものは、エンタープライズが管理する 1 つの PKI としては扱われない",
+        "デバイス用の証明書を発行するコンポーネントと、エンドユーザー用の証明書を発行する別のコンポーネントで構成されることがあるが、どちらも同じエンタープライズのルート認証局が発行した中間証明書を使う",
+        "デバイス用の証明書を発行するコンポーネントは、エンタープライズのルート認証局が発行した中間証明書を使うが、エンドユーザー用の証明書は、エンタープライズの外にある認証局のコンポーネントが発行する",
+        "デバイス用の証明書を発行するコンポーネントと、エンドユーザー用の証明書を発行する別のコンポーネントで構成されることがあるが、それぞれ別のルート認証局が発行した中間証明書を使うので、2 つの論理コンポーネントになる"
+      ]
+    },
+    {
+      "id": "multiple-models",
+      "type": "choice",
+      "category": "design",
+      "prompt": "§3.2 の説明に合う考え方はどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "multiple-models"
+      ],
+      "scenario": "あるエンタープライズで、人事システムにはデバイスエージェント/ゲートウェイモデルを、協力会社と共同で使うシステムにはリソースポータルモデルを使う案が出ました。これに対して「展開モデルは全社で 1 つに統一しなければ、ZTA にはならない」という反対意見があります。",
+      "options": [
+        "エンタープライズネットワークの構成によっては、1 つのエンタープライズの中で、ビジネスプロセスごとに異なる展開モデルを使うことがある",
+        "展開モデルはビジネスプロセスごとに変えてよいが、3 つの方式のうち 1 つの要素しか使っていないエンタープライズに限られる",
+        "展開モデルが混在すると、PE がリクエストを評価できなくなるので、1 つのエンタープライズの中では、展開モデルを統一する必要がある",
+        "展開モデルを混在させてよいのは、PE と PA を単一のサービスに統合した製品を使う場合であり、それ以外では統一する必要がある"
+      ]
+    },
+    {
+      "id": "choose-approaches",
+      "type": "written",
+      "category": "design",
+      "prompt": "§3.1 の説明に基づいて、（a）〜（c）のそれぞれに向いている方式を理由とともに挙げ、（a）で選んだ方式に残る欠点と、必要な対応も述べてください。",
+      "points": 4,
+      "referenceIds": [
+        "eig-open-network",
+        "eig-portal-saas",
+        "microseg-gateway",
+        "microseg-igp"
+      ],
+      "scenario": "あるエンタープライズに、次の 3 つの状況があります。（a）本社のネットワークには、訪問者や委託先の、エンタープライズ所有ではないデバイスが頻繁に接続する。（b）データセンターには、関連するサーバーの小さなグループがいくつかあり、グループごとに不正なアクセスや発見から守りたい。（c）業務の多くを SaaS で行っており、エンタープライズが所有・運用する ZT のセキュリティコンポーネントを、その前段に置けない。",
+      "answerHint": "（a）（b）（c）のそれぞれについて 1〜2 文、（a）の欠点と対応について 1〜2 文で書いてください。"
+    },
+    {
+      "id": "explain-approaches",
+      "type": "written",
+      "category": "design",
+      "prompt": "3 つの方式のそれぞれについて、何を軸にしてポリシーの適用やリソースの保護を行うのかを 1 文ずつで述べ、最後に、3 つの方式と ZT の基本原則・完全な ZT ソリューションとの関係を説明してください。",
+      "points": 4,
+      "referenceIds": [
+        "approaches-intro",
+        "eig-policy",
+        "microseg-gateway",
+        "sdp-overlay"
+      ],
+      "scenario": "新任のアーキテクトに、§3.1 が挙げる 3 つの方式の違いを説明することになりました。",
+      "answerHint": "方式ごとに 1 文（計 3 文）と、方式どうしの関係について 1〜2 文で書いてください。"
+    }
+  ],
+  "solutions": {
+    "approaches-and-tenets": {
+      "answer": 0,
+      "explanation": "§3.1。3 つの方式（強化された ID ガバナンス主導、論理的なマイクロセグメンテーション、ネットワークベースのセグメンテーション）は、使用するコンポーネントと、ポリシールールの主な供給源が異なります。どの方式も ZT の基本原則をすべて実装しますが、ポリシーの主な推進力として 1 つか 2 つ（または 1 つのコンポーネント）を使うことがあります。基本原則の一部しか実装しない、方式ごとに対応する基本原則が決まっている、という説明ではありません。"
+    },
+    "full-solution": {
+      "answer": 1,
+      "explanation": "§3.1。各方式は ZT の基本原則をすべて実装しますが、完全な ZT ソリューションには 3 つの方式すべての要素が含まれます。1 つの方式をポリシーの主な推進力にすることと、ほかの方式の要素を設計から外すことは別の話です。方式を 2 つ組み合わせる決まりや、PE と PA を別個のシステムにすることを条件にする記述はありません。"
+    },
+    "approach-fit": {
+      "answer": 3,
+      "explanation": "§3.1。方式によって、ほかの方式より特定のユースケースに適したものがあり、選んだユースケースと既存のポリシーが特定の方式を指し示すことがあります。それは、ほかの方式が機能しないという意味ではなく、ほかの方式のほうが実装が難しく、エンタープライズが現在ビジネスフローを進めている方法に、より根本的な変更が必要になることがある、という意味です。"
+    },
+    "eig-term": {
+      "answer": 0,
+      "explanation": "§3.1.1。この方式は、アクターの ID をポリシー作成の中核的な要素とし、エンタープライズのリソースへのアクセスポリシーを、ID と割り当てられた属性に基づかせます。専用のセグメントとゲートウェイで保護するのは §3.1.2 のマイクロセグメンテーション、PA がネットワークコントローラーになるのは §3.1.3 の方式です。リソースへのアクセスをリクエストするサブジェクトがいなければ、アクセスポリシーを作る必要もない、という考え方に立っており、中核になるのはアクターの ID で、デバイスではありません。"
+    },
+    "eig-primary-requirement": {
+      "answer": 2,
+      "explanation": "§3.1.1。リソースへのアクセスの主たる要件は、サブジェクトに付与されたアクセス権限に基づきます。使用するデバイス、資産の状態、環境要因などは、最終的な信頼度の算出（ひいては最終的なアクセス認可）を変えたり、ネットワークロケーションに基づいてデータソースへの部分的なアクセスだけを許可するなど、結果を調整したりすることがあります。その他の要因を使わないわけでも、デバイスやロケーションが主たる要件になるわけでもありません。"
+    },
+    "eig-pep-forwarding": {
+      "answer": 1,
+      "explanation": "§3.1.1。個々のリソース、またはリソースを保護する PEP コンポーネントは、リクエストを PE のサービスに転送するか、アクセスを許可する前にサブジェクトを認証してリクエストを承認するための手段を備えていなければなりません。認証と承認はアクセスを許可する前に行うもので、ネットワークセグメントやエージェントの有無を基準にする説明ではありません。"
+    },
+    "eig-portal-fit": {
+      "answer": 3,
+      "explanation": "§3.1.1。ID 主導の方式は、デバイスの ID と状態がアクセス決定の補助的な裏付けデータになるため、リソースポータルモデルと相性がよいとされています。ほかのモデルも、導入されているポリシーに応じて機能します。また、エンタープライズが所有・運用する ZT セキュリティコンポーネントを使えないことがある、多くの SaaS などのクラウドベースのアプリケーション/サービスを利用するエンタープライズにも適しています。"
+    },
+    "microseg-term": {
+      "answer": 1,
+      "explanation": "§3.1.2。この方式は、個々のリソースまたはリソースのグループを、ゲートウェイセキュリティコンポーネントで保護された専用のネットワークセグメントに置くことを基本にします。PEP として機能するのは、インテリジェントスイッチ（またはルーター）、次世代ファイアウォール（NGFW）、専用ゲートウェイデバイスなどで、各リソースまたは関連する少数のリソースのグループを保護します。大きなセグメントを一括して守る考え方や、ID を中核にする §3.1.1 の方式とは異なります。"
+    },
+    "microseg-pep-forms": {
+      "answer": 3,
+      "explanation": "§3.1.2。ゲートウェイデバイスは、クライアント、資産、サービスからの個々のリクエストに対して、動的にアクセスを許可します。モデルによって、ゲートウェイが唯一の PEP コンポーネントになる場合も、ゲートウェイとクライアント側エージェントからなる複数部分構成の PEP の一部になる場合もあります。また、ゲートウェイデバイスの代わりに（または併せて）、ソフトウェアエージェントやエンドポイント資産上のファイアウォールを使う、ホストベースのマイクロセグメンテーションを選ぶこともできます。"
+    },
+    "microseg-roles-igp": {
+      "answer": 3,
+      "explanation": "§3.1.2。この方式では、保護を担うデバイスが PEP として機能し、それらのデバイスの管理が PE/PA コンポーネントとして機能するため、さまざまなユースケースや展開モデルに適用できます。十分に機能するには ID ガバナンスプログラム（IGP）が必要ですが、リソースを不正なアクセスや発見から遮蔽する PEP としては、ゲートウェイコンポーネントに依拠します。IGP とゲートウェイは、一方があればもう一方が不要になる関係ではありません。"
+    },
+    "reconnaissance-comparison": {
+      "answer": 0,
+      "explanation": "§3.1.1・§3.1.2。ID ガバナンスの方式では、ネットワークアクセスは当初すべての資産に許可され、リソースへのアクセスが適切な権限を持つ ID に限定されます。そのため、悪意のあるアクターがネットワーク偵察を試みたり、内部や第三者への DoS 攻撃にネットワークを使ったりするおそれが残り、エンタープライズは、ワークフローに影響が出る前に監視して対応する必要があります。マイクロセグメンテーションでは、PEP として機能するゲートウェイコンポーネントが、リソースを不正なアクセスや発見から遮蔽します。"
+    },
+    "stateless-firewalls": {
+      "answer": 3,
+      "explanation": "§3.1.2。この方式で不可欠なのは、PEP コンポーネントが管理されていて、脅威やワークフローの変化に対応するために、必要に応じて反応し再構成できるようになっていることです。それほど高度ではないゲートウェイデバイスやステートレスファイアウォールでも、機能の一部は実装できますが、管理コストと、変化に素早く適応することの難しさから、きわめて不適切な選択になるとされています。構成の固定や、ホスト上への配置を求めているわけではありません。"
+    },
+    "sdp-term": {
+      "answer": 1,
+      "explanation": "§3.1.3。最後の方式は、ネットワークインフラストラクチャを使って ZTA を実装するもので、オーバーレイネットワーク（レイヤー 7 だが、OSI ネットワークスタックのより下位にも設定できる）で実現できます。ソフトウェア定義境界（SDP）方式と呼ばれることがあり、ソフトウェア定義ネットワーク（SDN）やインテントベースネットワーキング（IBN）の概念をしばしば取り入れます。クラウド仮想ネットワークや非 IP ベースのネットワークなどに向けたバリエーションもありえます。"
+    },
+    "sdp-pa-controller": {
+      "answer": 1,
+      "explanation": "§3.1.3。この方式では、PA が、PE の決定に基づいてネットワークを設定・再構成するネットワークコントローラーとして機能します。クライアントは引き続き PEP を介してアクセスをリクエストし、その PEP は PA コンポーネントによって管理されます。決定を下すのは PE であり、クライアントが PEP を介さずに PA へ直接リクエストするわけではありません。"
+    },
+    "sdp-layer7": {
+      "answer": 3,
+      "explanation": "§3.1.3。この方式をレイヤー 7 で実装する場合、最も一般的な展開モデルはエージェント/ゲートウェイです。この実装では、エージェントとリソースゲートウェイが単一の PEP として機能し、PA によって構成されて、クライアントとリソースの間の通信に使うセキュアなチャネルを確立します。エージェントやゲートウェイが PE や PA の役割を担うわけではありません。"
+    },
+    "logical-not-unique": {
+      "answer": 0,
+      "explanation": "§3.2。§3 で挙げたコンポーネントはすべて論理コンポーネントであり、別個のシステムである必要は必ずしもありません。単一の資産が複数の論理コンポーネントの役割を担うことも、1 つの論理コンポーネントが複数のハードウェアやソフトウェアの要素で構成されることもあります。現在市場にある一部の ZT 製品では、PE と PA が単一のサービスに統合されています。統合を義務付ける記述も、禁じる記述もありません。"
+    },
+    "pki-example": {
+      "answer": 1,
+      "explanation": "§3.2。エンタープライズが管理する PKI は、デバイス用の証明書の発行を担うコンポーネントと、エンドユーザーへの証明書の発行に使う別のコンポーネントで構成されることがありますが、どちらも同じエンタープライズのルート認証局から発行された中間証明書を使います。1 つの論理コンポーネントが、タスクを実行する複数のハードウェアやソフトウェアの要素で構成されうることの例です。"
+    },
+    "multiple-models": {
+      "answer": 0,
+      "explanation": "§3.2。アーキテクチャのコンポーネントの展開にはいくつかのバリエーションがあり、エンタープライズネットワークの構成方法によっては、1 つのエンタープライズ内で、ビジネスプロセスごとに異なる複数の ZTA 展開モデルが使われることがあります。§3.2 に、展開モデルの統一を求める記述や、併用に条件を付ける記述はありません。"
+    },
+    "choose-approaches": {
+      "explanation": "§3.1.1・§3.1.2。（a）と（c）には強化された ID ガバナンスの方式が向いています。この方式は、オープンなネットワークモデルや、訪問者・エンタープライズ所有ではないデバイスが多いネットワークでよく採用され、エンタープライズの ZT コンポーネントを使えないことがある SaaS でも、リクエスト元の ID を使ってポリシーを策定・実施できます。ただし、基本的なネットワーク接続を与えるので、偵察や DoS 攻撃の余地が残り、監視と対応が引き続き必要です。（b）には、リソースのグループを専用のセグメントに置き、PEP として機能するゲートウェイで不正なアクセスや発見から遮蔽するマイクロセグメンテーションが向いています。なお、完全な ZT ソリューションには 3 つの方式すべての要素が含まれます。",
+      "rubric": [
+        {
+          "criterion": "（a）に強化された ID ガバナンスの方式を挙げ、オープンなネットワークモデルや、訪問者・エンタープライズ所有ではないデバイスが頻繁に接続するネットワークでよく採用されること（ネットワークアクセスはすべての資産に与え、リソースへのアクセスを適切な権限を持つ ID に限定すること）を理由にしている",
+          "points": 1,
+          "referenceIds": [
+            "eig-open-network"
+          ]
+        },
+        {
+          "criterion": "（a）の欠点として、基本的なネットワーク接続を与えるために、ネットワーク偵察や DoS 攻撃を試みる余地が残ることを挙げ、ワークフローに影響が出る前に監視して対応する必要があることを述べている",
+          "points": 1,
+          "referenceIds": [
+            "eig-open-network"
+          ]
+        },
+        {
+          "criterion": "（b）にマイクロセグメンテーションの方式を挙げ、リソースやそのグループを専用のネットワークセグメントに置き、PEP として機能するゲートウェイなどで不正なアクセスや発見から遮蔽することを理由にしている",
+          "points": 1,
+          "referenceIds": [
+            "microseg-gateway",
+            "microseg-igp"
+          ]
+        },
+        {
+          "criterion": "（c）に ID 主導（強化された ID ガバナンス）の方式を挙げ、リクエスト元の ID を使って、これらのプラットフォーム上でポリシーを策定・実施できることを理由にしている",
+          "points": 1,
+          "referenceIds": [
+            "eig-portal-saas"
+          ]
+        }
+      ]
+    },
+    "explain-approaches": {
+      "explanation": "§3.1〜§3.1.3。強化された ID ガバナンスの方式は、アクターの ID と割り当てられた属性を軸にアクセスポリシーを決めます。マイクロセグメンテーションの方式は、リソースを専用のネットワークセグメントに置き、ゲートウェイなどを PEP にして保護します。ネットワークインフラストラクチャを使う方式（SDP 方式）は、オーバーレイネットワークなどを使い、PA がネットワークコントローラーとして、PE の決定に基づいてネットワークを設定・再構成します。どの方式も ZT の基本原則をすべて実装し、違いは使用するコンポーネントとポリシールールの主な供給源にあります。完全な ZT ソリューションには、3 つすべての要素が含まれます。",
+      "rubric": [
+        {
+          "criterion": "強化された ID ガバナンスの方式は、アクターの ID と割り当てられた属性（サブジェクトに付与されたアクセス権限）を軸にして、リソースへのアクセスポリシーを決めることを述べている",
+          "points": 1,
+          "referenceIds": [
+            "eig-policy"
+          ]
+        },
+        {
+          "criterion": "マイクロセグメンテーションの方式は、リソースやそのグループを専用のネットワークセグメントに置き、ゲートウェイ（またはホスト上のエージェントやファイアウォール）を PEP にして保護することを述べている",
+          "points": 1,
+          "referenceIds": [
+            "microseg-gateway"
+          ]
+        },
+        {
+          "criterion": "ネットワークインフラストラクチャを使う方式（SDP 方式）は、オーバーレイネットワークなどを使い、PA がネットワークコントローラーとして、PE の決定に基づいてネットワークを設定・再構成することを述べている",
+          "points": 1,
+          "referenceIds": [
+            "sdp-overlay"
+          ]
+        },
+        {
+          "criterion": "どの方式も ZT の基本原則をすべて実装すること、または、完全な ZT ソリューションには 3 つの方式すべての要素が含まれることを述べている",
+          "points": 1,
+          "referenceIds": [
+            "approaches-intro"
+          ]
+        }
+      ]
+    }
+  },
+  "inconsistencies": []
+}

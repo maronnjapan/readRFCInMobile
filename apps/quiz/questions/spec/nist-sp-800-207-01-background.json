@@ -1,0 +1,633 @@
+{
+  "format": "spec-understanding-quiz",
+  "version": 1,
+  "id": "nist-sp-800-207-01-background",
+  "title": "NIST SP 800-207 ゼロトラスト 1/16: 背景・歴史・文書の位置付け",
+  "status": "published",
+  "spec": {
+    "id": "pdf-0290d6ece2487428",
+    "status": "adopted",
+    "repository": "maronnjapan/readRFCInMobile",
+    "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+    "path": "apps/quiz/specs/nist-sp-800-207.txt"
+  },
+  "references": [
+    {
+      "id": "authority",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 57,
+      "endLine": 59,
+      "reason": "前付け（Authority）: 適用範囲と利用条件",
+      "excerpt": "[note] This publication has been developed by NIST in accordance with its statutory responsibilities under the Federal Information Security Modernization Act (FISMA) of 2014, 44 U.S.C. § 3551 et seq., Public Law (P.L.) 113-283. NIST is responsible for developing information security standards and guidelines, including minimum requirements for federal information systems, but such standards and guidelines shall not apply to national security systems without the express approval of appropriate federal officials exercising policy authority over such systems. This guideline is consistent with the requirements of the Office of Management and Budget (OMB) Circular A-130.\n\n[note] Nothing in this publication should be taken to contradict the standards and guidelines made mandatory and binding on federal agencies by the Secretary of Commerce under statutory authority. Nor should these guidelines be interpreted as altering or superseding the existing authorities of the Secretary of Commerce, Director of the OMB, or any other federal official. This publication may be used by nongovernmental organizations on a voluntary basis and is not subject to copyright in the United States. Attribution would, however, be appreciated by NIST."
+    },
+    {
+      "id": "abstract",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 86,
+      "endLine": 86,
+      "reason": "概要: ゼロトラストと ZTA の要旨",
+      "excerpt": "Zero trust (ZT) is the term for an evolving set of cybersecurity paradigms that move defenses from static, network-based perimeters to focus on users, assets, and resources. A zero trust architecture (ZTA) uses zero trust principles to plan industrial and enterprise infrastructure and workflows. Zero trust assumes there is no implicit trust granted to assets or user accounts based solely on their physical or network location (i.e., local area networks versus the internet) or based on asset ownership (enterprise or personally owned). Authentication and authorization (both subject and device) are discrete functions performed before a session to an enterprise resource is established. Zero trust is a response to enterprise network trends that include remote users, bring your own device (BYOD), and cloud-based assets that are not located within an enterprise-owned network boundary. Zero trust focuses on protecting resources (assets, services, workflows, network accounts, etc.), not network segments, as the network location is no longer seen as the prime component to the security posture of the resource. This document contains an abstract definition of zero trust architecture (ZTA) and gives general deployment models and use cases where zero trust could improve an enterprise’s overall information technology security posture."
+    },
+    {
+      "id": "acknowledgments",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 94,
+      "endLine": 94,
+      "reason": "謝辞: 本書の成り立ち",
+      "excerpt": "This document is the product of a collaboration between multiple federal agencies and is overseen by the Federal CIO Council. The architecture subgroup is responsible for development of this document, but there are specific individuals who deserve recognition. These include Greg Holden, project manager of the Federal CIO Council ZTA project; Alper Kerman, project manager for the NIST/National Cybersecurity Center of Excellence ZTA effort; and Douglas Montgomery."
+    },
+    {
+      "id": "audience",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 98,
+      "endLine": 98,
+      "reason": "前付け: 想定読者と本書の位置付け",
+      "excerpt": "This document is intended to describe zero trust for enterprise security architects. It is meant to aid understanding of zero trust for civilian unclassified systems and provide a road map to migrate and deploy zero trust security concepts to an enterprise environment. Agency cybersecurity managers, network administrators, and managers may also gain insight into zero trust and ZTA from this document. It is not intended to be a single deployment plan for ZTA as an enterprise will have unique business use cases and data assets that require safeguards. Starting with a solid understanding of the organization’s business and data will result in a strong approach to zero trust."
+    },
+    {
+      "id": "intro-perimeter",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 118,
+      "endLine": 118,
+      "reason": "§1: 境界型ネットワークセキュリティの限界",
+      "excerpt": "A typical enterprise’s infrastructure has grown increasingly complex. A single enterprise may operate several internal networks, remote offices with their own local infrastructure, remote and/or mobile individuals, and cloud services. This complexity has outstripped legacy methods of perimeter-based network security as there is no single, easily identified perimeter for the enterprise. Perimeter-based network security has also been shown to be insufficient since once attackers breach the perimeter, further lateral movement is unhindered."
+    },
+    {
+      "id": "intro-zt",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 120,
+      "endLine": 120,
+      "reason": "§1: ゼロトラストのモデルと前提",
+      "excerpt": "This complex enterprise has led to the development of a new model for cybersecurity known as “zero trust” (ZT). A ZT approach is primarily focused on data and service protection but can and should be expanded to include all enterprise assets (devices, infrastructure components, applications, virtual and cloud components) and subjects (end users, applications and other non-human entities that request information from resources). Throughout this document, “subject” will be used unless the section relates directly to a human end user in which “user” will be specifically used instead of the more generic “subject.” Zero trust security models assume that an attacker is present in the environment and that an enterprise-owned environment is no different—or no more trustworthy—than any nonenterprise-owned environment. In this new paradigm, an enterprise must assume no implicit trust and continually analyze and evaluate the risks to its assets and business functions and then enact protections to mitigate these risks. In zero trust, these protections usually involve minimizing access to resources (such as data and compute resources and applications/services) to only those subjects and assets identified as needing access as well as continually authenticating and authorizing the identity and security posture of each access request."
+    },
+    {
+      "id": "intro-zta",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 122,
+      "endLine": 122,
+      "reason": "§1: ZTA の定義と本書が扱う内容",
+      "excerpt": "A zero trust architecture (ZTA) is an enterprise cybersecurity architecture that is based on zero trust principles and designed to prevent data breaches and limit internal lateral movement. This publication discusses ZTA, its logical components, possible deployment scenarios, and threats. It also presents a general road map for organizations wishing to migrate to a zero trust design approach and discusses relevant federal policies that may impact or influence a zero trust architecture."
+    },
+    {
+      "id": "intro-journey",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 124,
+      "endLine": 124,
+      "reason": "§1: 指針としての ZT と段階的な移行",
+      "excerpt": "ZT is not a single architecture but a set of guiding principles for workflow, system design and operations that can be used to improve the security posture of any classification or sensitivity level [FIPS199]. Transitioning to ZTA is a journey concerning how an organization evaluates risk in its mission and cannot simply be accomplished with a wholesale replacement of technology. That said, many organizations already have elements of a ZTA in their enterprise infrastructure today. Organizations should seek to incrementally implement zero trust principles, process changes, and technology solutions that protect their data assets and business functions by use case. Most enterprise infrastructures will operate in a hybrid zero trust/perimeter-based mode while continuing to invest in IT modernization initiatives and improve organization business processes."
+    },
+    {
+      "id": "intro-practices",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 126,
+      "endLine": 126,
+      "reason": "§1: 既存の施策との組み合わせ",
+      "excerpt": "Organizations need to implement comprehensive information security and resiliency practices for zero trust to be effective. When balanced with existing cybersecurity policies and guidance, identity and access management, continuous monitoring, and best practices, a ZTA can protect against common threats and improve an organization’s security posture by using a managed risk approach."
+    },
+    {
+      "id": "history-origin",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 130,
+      "endLine": 130,
+      "reason": "§1.1: ブラックコア・脱境界化・ゼロトラストの命名",
+      "excerpt": "The concept of zero trust has been present in cybersecurity since before the term “zero trust” was coined. The Defense Information Systems Agency (DISA) and the Department of Defense published their work on a more secure enterprise strategy dubbed “black core” [BCORE]. Black core involved moving from a perimeter-based security model to one that focused on the security of individual transactions. The work of the Jericho Forum in 2004 publicized the idea of de-perimeterization—limiting implicit trust based on network location and the limitations of relying on single, static defenses over a large network segment [JERICHO]. The concepts of de-perimeterization evolved and improved into the larger concept of zero trust, which was later coined by John Kindervag¹ while at Forrester.² Zero trust then became the term used to describe various cybersecurity solutions that moved security away from implied trust based on network location and instead focused on evaluating trust on a per-transaction basis. Both private industry and higher education have also undergone this evolution from perimeter-based security to a security strategy based on zero trust principles."
+    },
+    {
+      "id": "history-federal",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 132,
+      "endLine": 132,
+      "reason": "§1.1: 連邦政府のプログラムと「need to access」",
+      "excerpt": "Federal agencies have been urged to move to security based on zero trust principles for more than a decade, building capabilities and policies such as the Federal Information Security Modernization Act (FISMA) followed by the Risk Management Framework (RMF); Federal Identity, Credential, and Access Management (FICAM); Trusted Internet Connections (TIC); and Continuous Diagnostics and Mitigation (CDM) programs. All of these programs aim to restrict data and resource access to authorized parties. When these programs were started, they were limited by the technical capabilities of information systems. Security policies were largely static and were enforced at large “choke points” that an enterprise could control to get the largest effect for the effort. As technology matures, it is becoming possible to continually analyze and evaluate access requests in a dynamic and granular fashion to a “need to access” basis to mitigate data exposure due to compromised accounts, attackers monitoring a network, and other threats."
+    },
+    {
+      "id": "structure",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 136,
+      "endLine": 148,
+      "reason": "§1.2: 本書の構成",
+      "excerpt": "The rest of the document is organized as follows:\n\n- Section 2 defines ZT and ZTA and lists some assumptions when designing a ZTA for an enterprise. This section also includes a list of the tenets of ZT design.\n- Section 3 documents the logical components, or building blocks, of ZT. It is possible that unique implementations compose ZTA components differently yet serve the same logical functionality.\n\n[note] ¹ https://go.forrester.com/blogs/next-generation-access-and-zero-trust/\n\n[note] ²Any mention of commercial products or services within NIST documents is for information only; it does not imply a recommendation or endorsement by NIST.\n\n- Section 4 lists some possible use cases where a ZTA may make enterprise environments more secure and less prone to successful exploitation. These include enterprises with remote employees, cloud services, and guest networks.\n- Section 5 discusses threats to an enterprise using a ZTA. Many of these threats are similar to any architected networks but may require different mitigation techniques.\n- Section 6 discusses how ZTA tenets fit into and/or complement existing guidance for federal agencies.\n- Section 7 presents the starting point for transitioning an enterprise (such as a federal agency) to a ZTA. This includes a description of the general steps needed to plan and deploy applications and enterprise infrastructure that are guided by ZT tenets."
+    }
+  ],
+  "questions": [
+    {
+      "id": "zt-and-zta-terms",
+      "type": "choice",
+      "category": "vocabulary",
+      "prompt": "概要と §1 による、この 2 つの用語の説明の組み合わせとして正しいものはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "abstract",
+        "intro-zta"
+      ],
+      "term": "zero trust（ZT、ゼロトラスト）と zero trust architecture（ZTA、ゼロトラストアーキテクチャ）",
+      "options": [
+        "ZT: 防御の重点を、静的なネットワーク境界から、ユーザー・資産・リソースへ移す、発展を続ける考え方の集まり。ZTA: ZT の原則に基づき、データ侵害を防ぎ、内部での横方向の移動を抑えるよう設計された、エンタープライズのサイバーセキュリティアーキテクチャ",
+        "ZT: 防御の重点を、静的なネットワーク境界から、ユーザー・資産・リソースへ移す、発展を続ける考え方の集まり。ZTA: ZT の原則に基づき、私物デバイスを排除して、資産を境界の内側に集めるよう設計された、エンタープライズのネットワーク構成",
+        "ZT: 境界のファイアウォールを多層化して、内部ネットワークを信頼できる状態に保つための、標準化されたセキュリティ製品の集まり。ZTA: ZT の製品を組み合わせ、外部からの侵入を境界で止めるよう設計された、エンタープライズのネットワーク構成",
+        "ZT: すべての通信を暗号化することで、リソースごとの認証と認可を省略できるようにする、通信プロトコルの集まり。ZTA: ZT のプロトコルを使い、認証を済ませたサブジェクトが内部を自由に移動できるよう設計された、エンタープライズのサイバーセキュリティアーキテクチャ"
+      ]
+    },
+    {
+      "id": "no-implicit-trust-basis",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "概要によると、ゼロトラストでは、何だけを根拠に資産やユーザーアカウントを暗黙的に信頼することはないとしていますか？",
+      "points": 1,
+      "referenceIds": [
+        "abstract"
+      ],
+      "options": [
+        "資産の所有者（エンタープライズ所有か個人所有か）と、認証に使った要素の数や種類",
+        "物理的またはネットワーク上の場所と、ユーザーアカウントに割り当てられたロールやアクセス属性",
+        "デバイスの現在のセキュリティ態勢と、リソースへのセッションを確立しようとした時刻",
+        "物理的またはネットワーク上の場所と、資産の所有者（エンタープライズ所有か個人所有か）"
+      ]
+    },
+    {
+      "id": "authn-authz-before-session",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "概要は、エンタープライズリソースへのセッションと、認証・認可の関係をどう説明していますか？",
+      "points": 1,
+      "referenceIds": [
+        "abstract"
+      ],
+      "options": [
+        "サブジェクトの認証・認可だけをセッションの確立前に行い、デバイスの認証・認可は確立後に行う",
+        "サブジェクトとデバイスの両方の認証・認可を、セッションを確立する前に行う個別の機能とする",
+        "ネットワークへの接続時に一度だけ認証を行い、以後のセッションでは認可だけを個別に行う",
+        "デバイスの認証・認可をセッションの確立前に済ませれば、サブジェクトの認証・認可は省略できる"
+      ]
+    },
+    {
+      "id": "resources-not-segments",
+      "type": "choice",
+      "category": "comparison",
+      "prompt": "概要によると、ゼロトラストが保護の焦点とするものと、その理由の組み合わせはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "abstract"
+      ],
+      "options": [
+        "リソース（資産、サービス、ワークフロー、ネットワークアカウントなど）。ネットワーク上の場所が、リソースのセキュリティ態勢の主要な要素とは見なされなくなったため",
+        "リソース（資産、サービス、ワークフロー、ネットワークアカウントなど）。リモートユーザーや BYOD の利用が減り、作業がエンタープライズの境界の内側で完結するようになったため",
+        "ネットワークセグメント。クラウド上の資産が、エンタープライズの所有するネットワーク境界の内側に置かれるようになったため",
+        "ネットワークセグメント。リソースを個別に保護するよりも、セグメントの単位で保護するほうが、セキュリティ態勢を一貫して保てるため"
+      ]
+    },
+    {
+      "id": "not-a-deployment-plan",
+      "type": "choice",
+      "category": "debugging",
+      "prompt": "本書の位置付けに照らして、この説明の問題点はどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "audience",
+        "acknowledgments"
+      ],
+      "scenario": "ある組織の担当者が「NIST SP 800-207 は ZTA の標準的な展開計画なので、書かれている構成をそのまま自組織に適用すればよい」と説明しました。",
+      "options": [
+        "本書は展開計画として使えるが、構成を適用する前に、Federal CIO Council から個別に承認を得ることが条件になる",
+        "本書はネットワーク管理者向けの手順書であり、セキュリティアーキテクトが設計の参考にすることは想定されていない",
+        "本書は国家安全保障システム向けの展開計画であり、それ以外のシステムを持つ組織は、内容を参照することができない",
+        "本書は単一の展開計画を意図していない。保護すべきビジネスのユースケースとデータ資産は、エンタープライズごとに異なる"
+      ]
+    },
+    {
+      "id": "why-perimeter-insufficient",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "§1 は、境界型のネットワークセキュリティでは不十分になった理由をどう説明していますか？",
+      "points": 1,
+      "referenceIds": [
+        "intro-perimeter"
+      ],
+      "options": [
+        "エンタープライズに、容易に特定できる単一の境界がなくなった。また、攻撃者が境界を突破すると、その後の横方向の移動が妨げられない",
+        "境界のファイアウォールが、インターネットからの攻撃を検知できなくなった。また、内部ネットワークの通信量が境界の処理能力を超えた",
+        "エンタープライズが、拠点ごとに別々の境界を持つようになった。また、境界ごとに異なる製品を使うため、運用の費用が増えた",
+        "クラウドサービスが、エンタープライズの境界の内側で運用されるようになった。また、リモートの利用者が境界を経由しなくなった"
+      ]
+    },
+    {
+      "id": "subject-term",
+      "type": "choice",
+      "category": "vocabulary",
+      "prompt": "本書でのこの用語の使い方として正しいものはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "intro-zt"
+      ],
+      "term": "subject（サブジェクト）",
+      "options": [
+        "リソースに情報を要求するエンドユーザー、アプリケーション、その他の人間以外のエンティティの総称。人間のエンドユーザーに直接関わる箇所でだけ「ユーザー」を使う",
+        "リソースに情報を要求する人間のエンドユーザーだけを指す言葉。アプリケーションやサービスなど人間以外のエンティティは、種類にかかわらず、すべて「資産」と呼んで区別する",
+        "エンタープライズが所有するデバイスの総称。エンタープライズ所有ではないデバイスからアクセスする利用者だけを「ユーザー」と呼んで区別する",
+        "アクセスの対象になるデータやサービスの総称。アクセスを要求する側は、人間かどうかにかかわらず、すべて「ユーザー」と呼んで区別する"
+      ]
+    },
+    {
+      "id": "zt-assumptions",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "§1 によると、ゼロトラストのセキュリティモデルが置く前提はどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "intro-zt"
+      ],
+      "options": [
+        "攻撃者は環境内に存在するが、エンタープライズ所有の資産どうしの通信は、リスク評価の対象から外してよい",
+        "攻撃者はクラウド上に存在し、オンプレミスの環境は、エンタープライズ所有ではない環境より信頼できる",
+        "攻撃者は境界の外側に存在し、エンタープライズ所有の環境は、認証を済ませたサブジェクトと資産にとっては信頼できる",
+        "攻撃者は環境内に存在し、エンタープライズ所有の環境は、エンタープライズ所有ではない環境より信頼できるわけではない"
+      ]
+    },
+    {
+      "id": "typical-protections",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "§1 は、ゼロトラストでリスクを緩和する保護策として、通常どのようなものを挙げていますか？",
+      "points": 1,
+      "referenceIds": [
+        "intro-zt"
+      ],
+      "options": [
+        "リソースへのアクセスを、認証を済ませたすべてのサブジェクトと資産に許可し、ログを事後に分析して不正なアクセスリクエストを取り消す",
+        "リソースを機密度に応じたネットワークセグメントへ分け、セグメントの境界を越えるときにだけ ID とセキュリティ態勢を認証・認可する",
+        "リソースへのアクセスを、必要と特定されたサブジェクトと資産だけに絞り、各アクセスリクエストの ID とセキュリティ態勢を継続的に認証・認可する",
+        "リソースへのアクセスを、内部ネットワーク上のサブジェクトと資産だけに絞り、最初の接続のときに ID とセキュリティ態勢を認証・認可する"
+      ]
+    },
+    {
+      "id": "audience-vs-applicability",
+      "type": "choice",
+      "category": "comparison",
+      "prompt": "本書が理解を助ける対象として挙げるシステムと、ゼロトラストの原則を使える範囲について、本書の説明に合うものはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "audience",
+        "intro-journey",
+        "authority"
+      ],
+      "options": [
+        "本書は非軍事の非機密システムについて理解を助けるためのものであり、ゼロトラストの原則も、非機密のシステム以外のセキュリティ態勢の改善には使えない",
+        "本書は非軍事の非機密システムについて理解を助けるためのものだが、ゼロトラストの原則は、あらゆる機密区分・機微性のレベルでセキュリティ態勢の改善に使える",
+        "本書は機密システムについて理解を助けるためのものだが、ゼロトラストの原則は、非機密のシステムでなければセキュリティ態勢の改善に使えない",
+        "本書は国家安全保障システムを含むすべての連邦情報システムを対象にしており、ゼロトラストの原則も、機密区分の高いシステムの改善に限って使える"
+      ]
+    },
+    {
+      "id": "wholesale-replacement",
+      "type": "choice",
+      "category": "debugging",
+      "prompt": "§1 に照らして、この計画の問題点はどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "intro-journey"
+      ],
+      "scenario": "ある CIO が「来年度の予算でネットワーク機器とセキュリティ製品をすべて入れ替えれば、その時点で ZTA への移行は完了する」と計画しました。",
+      "options": [
+        "ZTA への移行は、組織がミッションのリスクをどう評価するかに関わる道のりであり、技術の全面的な入れ替えだけでは達成できない",
+        "ZTA への移行は、境界型の防御をすべて撤去した後に行うものであり、製品の入れ替えと並行して進めることはできない",
+        "ZTA は単一のアーキテクチャなので、製品を入れ替える前に、その構成が本書の定義と一致することの認定を受ける必要がある",
+        "ZTA への移行は、既存のインフラストラクチャにゼロトラストの要素が 1 つも残っていない状態にしてからでなければ始められない"
+      ]
+    },
+    {
+      "id": "existing-practices",
+      "type": "choice",
+      "category": "debugging",
+      "prompt": "§1 に照らして、この提案の問題点はどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "intro-practices"
+      ],
+      "scenario": "セキュリティ担当者が「ZTA を導入すれば、既存のサイバーセキュリティポリシー、ID・アクセス管理、継続的モニタリングは役割を終えるので、順次廃止する」と提案しました。",
+      "options": [
+        "既存の施策を廃止する前に、境界型の防御へいつでも戻せることを確認する手順が必要であり、その手順と判断の基準が提案に含まれていない",
+        "ゼロトラストを有効にするには、包括的な情報セキュリティとレジリエンスの実践が必要で、ZTA は既存の施策と組み合わせて使うものである",
+        "既存の施策は、ZTA の導入後はコンポーネントの提供者が運用するものなので、廃止ではなく移管として提案する必要がある",
+        "既存の施策のうち、継続的モニタリングだけは ZTA で置き換えられないので、それ以外を廃止する提案に改める必要がある"
+      ]
+    },
+    {
+      "id": "black-core",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "§1.1 で紹介されている、国防情報システム局（DISA）と国防総省の「ブラックコア」は、どのような取り組みですか？",
+      "points": 1,
+      "referenceIds": [
+        "history-origin"
+      ],
+      "options": [
+        "境界型のセキュリティモデルから、個々のトランザクションのセキュリティに重点を置くモデルへ移行するもの",
+        "境界に置く静的な防御を多重にして、大きなネットワークセグメントの全体を一括して保護するモデルへ移行するもの",
+        "ネットワーク上の場所に基づく信頼を、資産の所有者に基づく信頼に置き換えるモデルへ移行するもの",
+        "セキュリティポリシーを、エンタープライズが制御できる少数の「チョークポイント」で適用するモデルへ移行するもの"
+      ]
+    },
+    {
+      "id": "de-perimeterization",
+      "type": "choice",
+      "category": "vocabulary",
+      "prompt": "§1.1 によると、Jericho Forum が 2004 年に広めたこの考え方は何を指しますか？",
+      "points": 1,
+      "referenceIds": [
+        "history-origin"
+      ],
+      "term": "de-perimeterization（脱境界化）",
+      "options": [
+        "ネットワークの境界を細かく分けること。分けた各セグメントの内側で行われる通信は、暗黙的に信頼することを前提にしている",
+        "ネットワーク上の場所に基づく暗黙的な信頼を制限すること。大きなネットワークセグメントを単一の静的な防御に頼ることの限界も踏まえている",
+        "エンタープライズの境界をクラウドまで広げること。境界の内側に置く資産を増やして、防御とポリシーの適用を 1 か所に集約することを目指している",
+        "境界の防御を撤去すること。認証を済ませたサブジェクトには、すべてのリソースへのアクセスを許可することを前提にしている"
+      ]
+    },
+    {
+      "id": "term-evolution",
+      "type": "ordering",
+      "category": "flow",
+      "prompt": "§1.1 の説明に沿って、ゼロトラストという概念と用語が定着するまでの流れを並べてください。",
+      "points": 2,
+      "referenceIds": [
+        "history-origin"
+      ],
+      "items": [
+        {
+          "id": "jericho",
+          "text": "Jericho Forum の取り組みによって、脱境界化の考え方が広まる"
+        },
+        {
+          "id": "evolve",
+          "text": "脱境界化の概念が発展・改良され、より大きなゼロトラストの概念になる"
+        },
+        {
+          "id": "spread",
+          "text": "「ゼロトラスト」が、トランザクション単位で信頼を評価する各種のサイバーセキュリティソリューションを表す用語になる"
+        },
+        {
+          "id": "coin",
+          "text": "Forrester に在籍していた John Kindervag が「ゼロトラスト」と名付ける"
+        }
+      ]
+    },
+    {
+      "id": "federal-programs-aim",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "§1.1 は、FISMA、RMF、FICAM、TIC、CDM といった連邦政府の能力・政策に共通する狙いを何としていますか？",
+      "points": 1,
+      "referenceIds": [
+        "history-federal"
+      ],
+      "options": [
+        "連邦政府機関が調達するセキュリティ製品を、共通の仕様に統一すること",
+        "データとリソースへのアクセスを、認可された当事者に制限すること",
+        "連邦政府機関のネットワークを、単一の境界の内側に集約すること",
+        "クラウドサービスの利用を、認定を受けた事業者のものに限定すること"
+      ]
+    },
+    {
+      "id": "document-structure",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "§1.2 による本書の構成の説明として正しいものはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "structure"
+      ],
+      "options": [
+        "§3 は、ZT の論理コンポーネントを扱う。実装が違っていても、コンポーネントの構成は、本書が示すものと同一でなければならないとしている",
+        "§7 は、ZTA への移行を扱う。計画と展開の手順には触れず、移行を終えたエンタープライズが満たすべき認定の基準を示すとしている",
+        "§4 は、ZTA が有効なユースケースを扱う。リモートの従業員やゲストネットワークを持つエンタープライズは、対象に含まれないとしている",
+        "§5 は、ZTA を使うエンタープライズへの脅威を扱う。その多くは他のネットワークへの脅威と似ているが、異なる緩和手法が必要になることがある"
+      ]
+    },
+    {
+      "id": "authority-scope",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "前付け（Authority）によると、本書の適用と利用について正しいものはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "authority"
+      ],
+      "options": [
+        "国家安全保障システムを含むすべての連邦情報システムに、承認の手続きなしに適用される。非政府組織は、利用できない",
+        "国家安全保障システムに限って適用される。非政府組織は、米国での著作権の使用料を支払った場合に限り利用できる",
+        "連邦情報システムには適用されず、参考資料として扱われる。非政府組織は、NIST の許諾を得た場合に限り利用できる",
+        "国家安全保障システムには、適切な連邦政府職員の明示的な承認がない限り適用されない。非政府組織は、任意で利用できる"
+      ]
+    },
+    {
+      "id": "review-cio-plan",
+      "type": "written",
+      "category": "design",
+      "prompt": "§1 の説明に基づいて、この方針の問題点を指摘し、どう改めるべきかを述べてください。",
+      "points": 4,
+      "referenceIds": [
+        "intro-perimeter",
+        "intro-zt",
+        "intro-journey",
+        "intro-practices"
+      ],
+      "scenario": "ある連邦政府機関の CIO が次の方針を示しました。「インターネットとの境界には強力なファイアウォールがあるので、内部ネットワーク上の端末とユーザーは信頼してよい。ゼロトラストは、対応製品を一括で導入して来年度中に完了させる。導入後は、これまでのセキュリティ施策を縮小する」",
+      "answerHint": "境界型の防御の限界、ゼロトラストの前提、移行の進め方、既存の施策との関係の 4 点を、それぞれ 1〜2 文で書いてください。"
+    },
+    {
+      "id": "why-now",
+      "type": "written",
+      "category": "design",
+      "prompt": "§1.1 の説明に基づいて、これらのプログラムが始まった当時の制約と、技術の成熟によって可能になりつつあることを説明してください。",
+      "points": 4,
+      "referenceIds": [
+        "history-federal"
+      ],
+      "scenario": "連邦政府機関の研修で、「FISMA や TIC のようなプログラムは以前からあるのに、なぜ今になってゼロトラストが強調されるのか」という質問が出ました。",
+      "answerHint": "当時の制約、当時のポリシーの性質と適用場所、現在可能になりつつある評価の方法、それによって緩和できる脅威を、短い箇条書きで書いてください。"
+    }
+  ],
+  "solutions": {
+    "zt-and-zta-terms": {
+      "answer": 0,
+      "explanation": "概要・§1。ゼロトラストは、防御を静的なネットワーク境界からユーザー・資産・リソースへ移す、発展を続けるサイバーセキュリティのパラダイムの集まりです。ZTA は、ゼロトラストの原則に基づくエンタープライズのサイバーセキュリティアーキテクチャで、データ侵害を防ぎ、内部での横方向の移動を抑えるように設計されています。特定の製品やプロトコルを指す言葉ではなく、私物デバイス（BYOD）の排除や、境界の内側への資産の集約を目指すものでもありません。"
+    },
+    "no-implicit-trust-basis": {
+      "answer": 3,
+      "explanation": "概要。ゼロトラストは、物理的・ネットワーク上の場所（LAN かインターネットか）だけ、あるいは資産の所有者（エンタープライズ所有か個人所有か）だけに基づいて、暗黙的な信頼を与えることはないと想定します。ロール、認証要素の数、セキュリティ態勢、時刻は、ここで暗黙的な信頼の根拠として挙げられているものではありません。"
+    },
+    "authn-authz-before-session": {
+      "answer": 1,
+      "explanation": "概要。認証と認可は、サブジェクトとデバイスの両方について、エンタープライズリソースへのセッションが確立される前に実行される個別の機能です。サブジェクトとデバイスのどちらか一方だけを対象にする説明や、ネットワーク接続時の一度の認証で以後のセッションを済ませる説明は、本文と合いません。"
+    },
+    "resources-not-segments": {
+      "answer": 0,
+      "explanation": "概要。ゼロトラストは、ネットワークセグメントではなくリソースの保護に焦点を当てます。ネットワーク上の場所が、リソースのセキュリティ態勢の主要な要素とは見なされなくなったためです。背景にあるのは、リモートユーザー、BYOD、エンタープライズ所有のネットワーク境界の外にあるクラウド上の資産という傾向であり、これらが減ったわけではありません。"
+    },
+    "not-a-deployment-plan": {
+      "answer": 3,
+      "explanation": "前付け。本書は、エンタープライズのセキュリティアーキテクトにゼロトラストを説明し、移行と展開のロードマップを示すものですが、ZTA の単一の展開計画を意図していません。エンタープライズごとに、保護が必要な固有のビジネスのユースケースとデータ資産があるためで、自組織のビジネスとデータをよく理解することから始めるよう勧めています。対象は非軍事の非機密システムです。本書は複数の連邦政府機関の協力による成果物で、Federal CIO Council が監督していますが、利用にあたっての承認の手続きは定めていません。"
+    },
+    "why-perimeter-insufficient": {
+      "answer": 0,
+      "explanation": "§1。エンタープライズは複数の内部ネットワーク、リモートオフィス、モバイルの利用者、クラウドサービスを運用するようになり、容易に特定できる単一の境界がなくなりました。さらに、攻撃者がいったん境界を突破すると、その後の横方向の移動（ラテラルムーブメント）を妨げられないことからも、境界型のセキュリティは不十分だとしています。処理能力や費用は理由として挙げられていません。"
+    },
+    "subject-term": {
+      "answer": 0,
+      "explanation": "§1。サブジェクトは、リソースに情報を要求するエンドユーザー、アプリケーション、その他の人間以外のエンティティを指します。本書は全体を通して「サブジェクト」を使い、人間のエンドユーザーに直接関わる節でだけ「ユーザー」を使います。アクセスの対象になる側は「リソース」、デバイスなどは「資産」です。"
+    },
+    "zt-assumptions": {
+      "answer": 3,
+      "explanation": "§1。ゼロトラストのセキュリティモデルは、攻撃者が環境内に存在し、エンタープライズ所有の環境も、エンタープライズ所有ではない環境と変わらない（より信頼できるわけではない）と想定します。そのためエンタープライズは、暗黙的な信頼を置かず、資産とビジネス機能へのリスクを継続的に分析・評価する必要があります。"
+    },
+    "typical-protections": {
+      "answer": 2,
+      "explanation": "§1。ゼロトラストの保護策は通常、データ、計算資源、アプリケーション/サービスなどのリソースへのアクセスを、アクセスが必要と特定されたサブジェクトと資産だけに最小化することと、各アクセスリクエストの ID とセキュリティ態勢を継続的に認証・認可することを含みます。内部ネットワーク上にあることや、一度の認証を根拠にする考え方ではありません。"
+    },
+    "audience-vs-applicability": {
+      "answer": 1,
+      "explanation": "前付け・§1。本書は、非軍事の非機密システムにおけるゼロトラストの理解を助けることを目的にしています。一方で §1 は、ゼロトラストを、あらゆる機密区分や機微性のレベルのセキュリティ態勢の改善に使える指針の集まりだと説明しています。なお、NIST の標準と指針は、適切な連邦政府職員の明示的な承認がない限り、国家安全保障システムには適用されません。"
+    },
+    "wholesale-replacement": {
+      "answer": 0,
+      "explanation": "§1。ゼロトラストは単一のアーキテクチャではなく、ワークフロー、システム設計、運用のための指針の集まりです。ZTA への移行は、組織がミッションのリスクをどう評価するかに関わる道のりで、技術の全面的な入れ替えだけでは達成できません。多くの組織はすでに ZTA の要素を持っており、ユースケースごとに段階的に実装し、当面はゼロトラストと境界型のハイブリッドで運用することになります。"
+    },
+    "existing-practices": {
+      "answer": 1,
+      "explanation": "§1。組織は、ゼロトラストを有効にするために、包括的な情報セキュリティとレジリエンスの実践を実装する必要があります。ZTA は、既存のサイバーセキュリティポリシーとガイダンス、ID・アクセス管理、継続的モニタリング、ベストプラクティスと釣り合いをとって使うことで、リスクを管理するアプローチにより、一般的な脅威から防御し、セキュリティ態勢を改善できます。一部だけを残せばよいとも、提供者に移管するとも述べていません。"
+    },
+    "black-core": {
+      "answer": 0,
+      "explanation": "§1.1。「ブラックコア」は、DISA と国防総省が公表した、より安全なエンタープライズ戦略で、境界型のセキュリティモデルから、個々のトランザクションのセキュリティに重点を置くモデルへの移行を伴うものでした。大きなセグメントに対する単一の静的な防御や、チョークポイントでの適用は、こうした取り組みが離れようとした従来の考え方です。"
+    },
+    "de-perimeterization": {
+      "answer": 1,
+      "explanation": "§1.1。脱境界化は、ネットワーク上の場所に基づく暗黙的な信頼を制限し、大きなネットワークセグメントに対して単一の静的な防御に頼ることの限界を踏まえる考え方で、2004 年の Jericho Forum の取り組みによって広まりました。境界を広げることや、境界の内側を暗黙的に信頼することとは逆の方向です。"
+    },
+    "term-evolution": {
+      "answer": [
+        "jericho",
+        "evolve",
+        "coin",
+        "spread"
+      ],
+      "explanation": "§1.1。2004 年の Jericho Forum の取り組みが脱境界化の考え方を広め、その概念が発展・改良されて、より大きなゼロトラストの概念になりました。この概念に、後に Forrester 在籍時の John Kindervag が「ゼロトラスト」という名前を付けました。その後、ゼロトラストは、ネットワーク上の場所に基づく暗黙的な信頼から離れ、トランザクション単位で信頼を評価する各種のソリューションを表す用語になりました。"
+    },
+    "federal-programs-aim": {
+      "answer": 1,
+      "explanation": "§1.1。連邦政府機関は 10 年以上にわたり、ゼロトラストの原則に基づくセキュリティへの移行を促されてきました。FISMA とそれに続く RMF、FICAM、TIC、CDM といったプログラムはいずれも、データとリソースへのアクセスを認可された当事者に制限することを目指しています。境界への集約や製品の統一を共通の狙いとはしていません。"
+    },
+    "document-structure": {
+      "answer": 3,
+      "explanation": "§1.2。§5 が扱う脅威の多くは、どのようなアーキテクチャのネットワークにもあるものと似ていますが、異なる緩和手法が必要になる場合があります。§3 は、実装ごとにコンポーネントの構成が違っても同じ論理的な機能を果たしうるとしています。§4 のユースケースには、リモートの従業員、クラウドサービス、ゲストネットワークを持つエンタープライズが含まれ、§7 は移行の出発点と、計画・展開の一般的な手順を示します。"
+    },
+    "authority-scope": {
+      "answer": 3,
+      "explanation": "前付け（Authority）。NIST は連邦情報システムの情報セキュリティの標準とガイドラインを策定しますが、それらは、適切な連邦政府職員の明示的な承認がない限り、国家安全保障システムには適用されません。本書は非政府組織も任意で利用でき、米国では著作権の対象になりません（出典を示すことは歓迎されています）。"
+    },
+    "review-cio-plan": {
+      "explanation": "§1。境界型の防御は、単一の境界がなくなったことと、突破後の横方向の移動を妨げられないことから不十分です。ゼロトラストは、攻撃者が環境内にいて、エンタープライズ所有の環境も特別には信頼できないと想定し、暗黙的な信頼を置きません。移行は技術の全面的な入れ替えでは達成できない道のりで、ユースケースごとに段階的に進め、当面はハイブリッドで運用します。また、ZTA は既存のポリシー、ID・アクセス管理、継続的モニタリングなどと組み合わせて効果を発揮するので、施策の縮小は適切ではありません。",
+      "rubric": [
+        {
+          "criterion": "境界型の防御の限界を指摘している（容易に特定できる単一の境界がない、または境界を突破された後の横方向の移動を妨げられない）",
+          "points": 1,
+          "referenceIds": [
+            "intro-perimeter"
+          ]
+        },
+        {
+          "criterion": "ゼロトラストの前提を示している（攻撃者が環境内にいると想定し、エンタープライズ所有の環境を特別に信頼せず、暗黙的な信頼を置かない）",
+          "points": 1,
+          "referenceIds": [
+            "intro-zt"
+          ]
+        },
+        {
+          "criterion": "移行は技術の全面的な入れ替えだけでは達成できず、ユースケースごとに段階的に実装し、当面はゼロトラストと境界型のハイブリッドで運用することを述べている",
+          "points": 1,
+          "referenceIds": [
+            "intro-journey"
+          ]
+        },
+        {
+          "criterion": "ゼロトラストが効果を発揮するには、既存のサイバーセキュリティポリシー、ID・アクセス管理、継続的モニタリングなどと組み合わせる必要があることを述べている",
+          "points": 1,
+          "referenceIds": [
+            "intro-practices"
+          ]
+        }
+      ]
+    },
+    "why-now": {
+      "explanation": "§1.1。これらのプログラムは、始まった当時、情報システムの技術的な能力に制約されていました。セキュリティポリシーはほとんど静的で、労力に対して最大の効果が得られる大規模な「チョークポイント」で適用されていました。技術が成熟するにつれて、アクセスリクエストを動的かつ細かい粒度で継続的に分析・評価し、「アクセスする必要性」に基づいて判断することが可能になりつつあり、侵害されたアカウントやネットワークを監視する攻撃者などによるデータの露出を緩和できます。",
+      "rubric": [
+        {
+          "criterion": "プログラムが始まった当時は、情報システムの技術的な能力によって制約を受けていたことを述べている",
+          "points": 1,
+          "referenceIds": [
+            "history-federal"
+          ]
+        },
+        {
+          "criterion": "当時のセキュリティポリシーはほとんど静的で、エンタープライズが制御できる大規模な「チョークポイント」で適用されていたことを述べている",
+          "points": 1,
+          "referenceIds": [
+            "history-federal"
+          ]
+        },
+        {
+          "criterion": "技術の成熟により、アクセスリクエストを動的かつ細かい粒度で継続的に分析・評価し、「アクセスする必要性（need to access）」に基づいて判断できるようになりつつあることを述べている",
+          "points": 1,
+          "referenceIds": [
+            "history-federal"
+          ]
+        },
+        {
+          "criterion": "それによって、侵害されたアカウントや、ネットワークを監視する攻撃者などによるデータの露出を緩和できることを述べている",
+          "points": 1,
+          "referenceIds": [
+            "history-federal"
+          ]
+        }
+      ]
+    }
+  },
+  "inconsistencies": []
+}

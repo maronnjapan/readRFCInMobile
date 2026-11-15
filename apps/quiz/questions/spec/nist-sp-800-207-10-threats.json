@@ -1,0 +1,683 @@
+{
+  "format": "spec-understanding-quiz",
+  "version": 1,
+  "id": "nist-sp-800-207-10-threats",
+  "title": "NIST SP 800-207 ゼロトラスト 10/16: ZTA に関連する脅威",
+  "status": "published",
+  "spec": {
+    "id": "pdf-0290d6ece2487428",
+    "status": "adopted",
+    "repository": "maronnjapan/readRFCInMobile",
+    "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+    "path": "apps/quiz/specs/nist-sp-800-207.txt"
+  },
+  "references": [
+    {
+      "id": "threats-intro",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 417,
+      "endLine": 417,
+      "reason": "§5: ZTA とリスクの関係",
+      "excerpt": "No enterprise can eliminate cybersecurity risk. When complemented with existing cybersecurity policies and guidance, identity and access management, continuous monitoring, and general cyber hygiene, a properly implemented and maintained ZTA can reduce overall risk and protect against common threats. However, some threats have unique features when implementing a ZTA."
+    },
+    {
+      "id": "decision-subversion",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 421,
+      "endLine": 421,
+      "reason": "§5.1: PE・PA の構成と侵害",
+      "excerpt": "In ZTA, the policy engine and policy administrator are the key components of the entire enterprise. No communication between enterprise resources occurs unless it is approved and possibly configured by the PE and PA. This means that these components must be properly configured and maintained. Any enterprise administrator with configuration access to the PE’s rules may be able to perform unapproved changes or make mistakes that can disrupt enterprise operations. Likewise, a compromised PA could allow access to resources that would otherwise not be approved (e.g., to a subverted, personally-owned device). Mitigating associated risks means the PE and PA components must be properly configured and monitored, and any configuration changes must be logged and subject to audit."
+    },
+    {
+      "id": "dos-mitigation",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 425,
+      "endLine": 425,
+      "reason": "§5.2: PEP・PE/PA への DoS と緩和策",
+      "excerpt": "In ZTA, the PA is the key component for resource access. Enterprise resources cannot connect to each other without the PA’s permission and, possibly, configuration action. If an attacker disrupts or denies access to the PEP(s) or PE/PA (i.e., DoS attack or route hijack), it can adversely impact enterprise operations. Enterprises can mitigate this threat by having the policy enforcement reside in a properly secured cloud environment or be replicated in several locations following guidance on cyber resiliency [SP 800-160v2]."
+    },
+    {
+      "id": "dos-residual",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 427,
+      "endLine": 427,
+      "reason": "§5.2: 残るリスクと一部だけの遮断",
+      "excerpt": "This mitigates the risk but does not eliminate it. Botnets such as Mirai produce massive DoS attacks against key internet service providers and disrupt service to millions of internet users.⁵ It is also possible that an attacker could intercept and block traffic to a PEP or PA from a portion or all of the user accounts within an enterprise (e.g., a branch office or even a single remote employee). In such cases, only a portion of enterprise subjects is affected. This is also possible in legacy remote-access VPNs and is not unique to ZTA."
+    },
+    {
+      "id": "dos-hosting",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 429,
+      "endLine": 429,
+      "reason": "§5.2: ホスティングプロバイダーの運用上の誤り",
+      "excerpt": "A hosting provider may also accidentally take a cloud-based PE or PA offline. Cloud services have experienced disruptions in the past, both infrastructure as a service (IaaS)⁶ and SaaS.⁷ An operational error could prevent an entire enterprise from functioning if the policy engine or policy administrator component becomes inaccessible from the network."
+    },
+    {
+      "id": "dos-unreachable",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 437,
+      "endLine": 437,
+      "reason": "§5.2: PA からリソースに到達できない場合",
+      "excerpt": "There is also the risk that enterprise resources may not be reachable from the PA, so even if access is granted to a subject, the PA cannot configure the communication path from the network. This could happen due to a DDoS attack or simply due to unexpected heavy usage. This is similar to any other network disruption in that some or all enterprise subjects cannot access a particular resource due to that resource not being available for some reason."
+    },
+    {
+      "id": "cred-targets",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 441,
+      "endLine": 441,
+      "reason": "§5.3: 足掛かりと攻撃者の主な標的",
+      "excerpt": "Properly implemented ZT, information security and resiliency policies, and best practices reduce the risk of an attacker gaining broad access via stolen credentials or insider attack. The ZT principle of no implicit trust based on network location means attackers need to compromise an existing account or device to gain a foothold in an enterprise. A properly developed and implemented ZTA should prevent a compromised account or asset from accessing resources outside its normal purview or access patterns. This means that accounts with access policies around resources that an attacker is interested in would be the primary targets for attackers."
+    },
+    {
+      "id": "cred-mfa",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 443,
+      "endLine": 443,
+      "reason": "§5.3: 価値の高いアカウントと MFA の限界",
+      "excerpt": "Attackers may use phishing, social engineering, or a combination of attacks to obtain credentials of valuable accounts. “Valuable” may mean different things based on the attacker’s motivation. For instance, enterprise administrator accounts may be valuable, but attackers interested in financial gain may consider accounts that have access to financial or payment resources of equal value. Implementation of MFA for access requests may reduce the risk of information loss from a compromised account. However, an attacker with valid credentials (or a malicious insider) may still be able to access resources for which the account has been granted access. For example, an attacker or compromised employee who has the credentials and enterprise-owned asset of a valid human resources employee may still be able to access an employee database."
+    },
+    {
+      "id": "cred-lateral",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 445,
+      "endLine": 445,
+      "reason": "§5.3: 横方向の移動の防止とコンテキスト型の TA",
+      "excerpt": "ZTA reduces risk and prevents any compromised accounts or assets from moving laterally throughout the network. If the compromised credentials are not authorized to access a particular resource, they will continue to be denied access to that resource. In addition, a contextual trust algorithm (see Section 3.3.1) is more likely to detect and respond quickly to this attack than when occurring in a legacy, perimeter-based network. The contextual TA can detect access patterns that are out of normal behavior and deny the compromised account or insider threat access to sensitive resources."
+    },
+    {
+      "id": "visibility-opaque",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 449,
+      "endLine": 449,
+      "reason": "§5.4: 中身が見えないトラフィック",
+      "excerpt": "As mentioned in Section 3.4.1, all traffic is inspected and logged on the network and analyzed to identify and react to potential attacks against the enterprise. However, as also mentioned, some (possibly the majority) of the traffic on the enterprise network may be opaque to layer 3 network analysis tools. This traffic may originate from nonenterprise-owned assets (e.g., contracted services that use the enterprise infrastructure to access the internet) or applications/services that are resistant to passive monitoring. The enterprise that cannot perform deep packet inspection or examine the encrypted traffic and must use other methods to assess a possible attacker on the network."
+    },
+    {
+      "id": "visibility-metadata",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 451,
+      "endLine": 451,
+      "reason": "§5.4: メタデータと機械学習による分析",
+      "excerpt": "That does not mean that the enterprise is unable to analyze encrypted traffic that it sees on the network. The enterprise can collect metadata (e.g., source and destination addresses, etc.) about the encrypted traffic and use that to detect an active attacker or possible malware communicating on the network. Machine learning techniques [Anderson] can be used to analyze traffic that cannot be decrypted and examined. Employing this type of machine learning would allow the enterprise to categorize traffic as valid or possibly malicious and subject to remediation."
+    },
+    {
+      "id": "storage-data",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 455,
+      "endLine": 455,
+      "reason": "§5.5: 保管された監視データが標的になる",
+      "excerpt": "A related threat to enterprise monitoring and analysis of network traffic is the analysis component itself. If monitor scans, network traffic, and metadata are being stored for building contextual policies, forensics, or later analysis, that data becomes a target for attackers. Just like network diagrams, configuration files, and other assorted network architecture documents, these resources should be protected. If an attacker can successfully gain access to this information, they may be able to gain insight into the enterprise architecture and identify assets for further reconnaissance and attack."
+    },
+    {
+      "id": "storage-policy-tool",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 457,
+      "endLine": 457,
+      "reason": "§5.5: アクセスポリシーを記述する管理ツール",
+      "excerpt": "Another source of reconnaissance information for an attacker in a ZT enterprise is the management tool used to encode access policies. Like stored traffic, this component contains access policies to resources and can give an attacker information on which accounts are most valuable to compromise (e.g., the ones that have access to the desired data resources)."
+    },
+    {
+      "id": "storage-protection",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 459,
+      "endLine": 459,
+      "reason": "§5.5: 最も厳格なアクセスポリシーによる保護",
+      "excerpt": "As for all valuable enterprise data, adequate protections should be in place to prevent unauthorized access and access attempts. As these resources are vital to security, they should have the most restrictive access policies and be accessible only from designated or dedicated administrator accounts."
+    },
+    {
+      "id": "proprietary",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 463,
+      "endLine": 463,
+      "reason": "§5.6: 独自形式への依存とプロバイダーの評価",
+      "excerpt": "ZTA relies on several different data sources to make access decisions, including information about the requesting subject, asset used, enterprise and external intelligence, and threat analysis. Often, the assets used to store and process this information do not have a common, open standard on how to interact and exchange information. This can lead to instances where an enterprise is locked into a subset of providers due to interoperability issues. If one provider has a security issue or disruption, an enterprise may not be able to migrate to a new provider without extreme cost (e.g., replacing several assets) or going through a long transition program (e.g., translating policy rules from one proprietary format to another). Like DoS attacks, this risk is not unique to ZTA, but because ZTA is heavily dependent on the dynamic access of information (both enterprise and service providers), disruption can affect the core business functions of an enterprise. To mitigate associated risks, enterprises should evaluate service providers on a holistic basis by considering factors such as vendor security controls, enterprise switching costs, and supply chain risk management in addition to more typical factors such as performance, stability, etc."
+    },
+    {
+      "id": "npe-auth",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 467,
+      "endLine": 467,
+      "reason": "§5.7: NPE の認証という未解決の課題",
+      "excerpt": "Artificial intelligence and other software-based agents are being deployed to manage security issues on enterprise networks. These components need to interact with the management components of ZTA (e.g., policy engine, policy administrator), sometimes in lieu of a human administrator. How these components authenticate themselves in an enterprise implementing a ZTA is an open issue. It is assumed that most automated technology systems will use some means to authenticate when using an API to resource components."
+    },
+    {
+      "id": "npe-false",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 469,
+      "endLine": 469,
+      "reason": "§5.7: 偽陽性・偽陰性と再調整",
+      "excerpt": "The biggest risk when using automated technology for configuration and policy enforcement is the possibility of false positives (innocuous actions mistaken for attacks) and false negatives (attacks mistaken for normal activity) impacting the security posture of the enterprise. This can be reduced with regular retuning analysis to correct mistaken decisions and improve the decision process."
+    },
+    {
+      "id": "npe-coerce",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 471,
+      "endLine": 471,
+      "reason": "§5.7: NPE の悪用となりすまし",
+      "excerpt": "The associated risk is that an attacker will be able to induce or coerce an NPE to perform some task that the attacker is not privileged to perform. The software agent may have a lower bar for authentication (e.g., API key versus MFA) to perform administrative or security-related tasks compared with a human user. If an attacker can interact with the agent, they could theoretically trick the agent into allowing the attacker greater access or into performing some task on behalf of the attacker. There is also a risk that an attacker could gain access to a software agent’s credentials and impersonate the agent when performing tasks."
+    }
+  ],
+  "questions": [
+    {
+      "id": "risk-cannot-be-eliminated",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "§5 の導入は、ZTA とサイバーセキュリティリスクの関係をどう説明していますか？",
+      "points": 1,
+      "referenceIds": [
+        "threats-intro"
+      ],
+      "options": [
+        "適切に実装・維持された ZTA は、単独でリスクを排除できる。既存の施策は、ZTA への移行が終わるまでの一時的な補完として位置付けられる",
+        "適切に実装・維持された ZTA では、一般的な脅威によるリスクは残る。一方で、ZTA の実装に固有の特徴を持つ脅威は、生じなくなる",
+        "リスクを排除できるエンタープライズは存在しない。ZTA が低減できるのは、ZTA の実装に固有の特徴を持つ脅威によるリスクに限られる",
+        "リスクを排除できるエンタープライズは存在しない。適切に実装・維持された ZTA は、既存の施策に補完されることで、全体的なリスクを低減できる"
+      ]
+    },
+    {
+      "id": "pe-pa-key-components",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "§5.1 による、ポリシーエンジン（PE）とポリシー管理者（PA）の説明として正しいものはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "decision-subversion"
+      ],
+      "options": [
+        "リソース間の通信は、PEP が単独で承認する。そのため、PE や PA が侵害されても、本来は承認されないリソースへのアクセスが許されてしまうことはない",
+        "リソース間の通信は、PE と PA の承認がなくても行われる。PE と PA が関与するのは、エンタープライズの外部にあるリソースとの通信を始める場合に限られる",
+        "リソース間の通信は、PE と PA が承認しない限り行われない。ただし、PA が侵害されても、PE の決定がなければ、承認されないリソースへのアクセスが許されることはない",
+        "リソース間の通信は、PE と PA が承認しない限り行われない。そのため、侵害された PA は、本来は承認されないリソースへのアクセスを許してしまう可能性がある"
+      ]
+    },
+    {
+      "id": "unlogged-policy-changes",
+      "type": "choice",
+      "category": "debugging",
+      "prompt": "§5.1 に照らして、この運用に欠けている緩和策はどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "decision-subversion"
+      ],
+      "scenario": "あるエンタープライズでは、PE のルールを変更できる管理者が複数います。変更は各管理者の判断でそのまま反映され、誰がいつ何を変えたかは記録していません。",
+      "options": [
+        "PE のルールを変更できないように固定し、変更が必要なときは、PE を新しく構築して置き換える",
+        "PE のルールを変更できる管理者を 1 人に限定し、変更の内容は、障害が起きたときにだけ記録に残す",
+        "PE と PA を適切に構成して監視し、構成の変更をすべてログに記録して、監査の対象にする",
+        "PE と PA を別々のクラウド環境に分けて配置し、構成の変更は、PEP が承認したものを反映する"
+      ]
+    },
+    {
+      "id": "dos-mitigation",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "攻撃者が DoS 攻撃や経路ハイジャックで PEP や PE/PA へのアクセスを妨げる脅威について、§5.2 が挙げる緩和策はどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "dos-mitigation"
+      ],
+      "options": [
+        "PE や PA に到達できない間は、PEP がすべての通信を許可するように構成し、エンタープライズの業務が止まらないようにする",
+        "PEP に到達できないサブジェクトのために、従来型のリモートアクセス VPN を残し、エンタープライズのネットワークへ迂回させる",
+        "ポリシーの実施機能を、エンタープライズの境界の内側にある 1 つの拠点に集約し、インターネットから到達できないようにする",
+        "ポリシーの実施機能を、適切に保護されたクラウド環境に置くか、サイバーレジリエンスのガイダンスに従って複数の場所に複製する"
+      ]
+    },
+    {
+      "id": "dos-residual-risk",
+      "type": "choice",
+      "category": "debugging",
+      "prompt": "§5.2 に照らして、この報告の問題点はどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "dos-mitigation",
+        "dos-residual",
+        "dos-hosting"
+      ],
+      "scenario": "アーキテクトが「PE と PA を適切に保護されたクラウド環境に置き、複数の場所に複製した。これで、PE や PA に到達できなくなって業務が止まるリスクはなくなった」と報告しました。",
+      "options": [
+        "リスクは緩和されない。本文が緩和策として挙げるのは、オンプレミスの複数の拠点への複製であり、クラウド環境への配置は含まれていない",
+        "リスクは緩和されるが、なくなるわけではない。大規模な DoS 攻撃や、ホスティングプロバイダーの運用上の誤りで、到達できなくなることがある",
+        "リスクはなくなるが、それは攻撃による停止の場合である。ホスティングプロバイダーの誤りによる停止は、ZTA の脅威として扱われていない",
+        "リスクはなくなるが、複製した PE と PA の間で決定が食い違うという新しいリスクが生じるので、その対策を報告に含める必要がある"
+      ]
+    },
+    {
+      "id": "partial-block-not-unique",
+      "type": "choice",
+      "category": "comparison",
+      "prompt": "攻撃者が、ある支社から PEP や PA に向かうトラフィックを傍受してブロックした場合について、§5.2 の説明に合うものはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "dos-residual"
+      ],
+      "options": [
+        "影響はエンタープライズのすべてのサブジェクトに及ぶ。従来型のリモートアクセス VPN でも起こりうることで、ZTA に固有のものではない",
+        "影響を受けるのはサブジェクトの一部である。従来型のリモートアクセス VPN でも起こりうることで、ZTA に固有のものではない",
+        "影響はエンタープライズのすべてのサブジェクトに及ぶ。従来型のリモートアクセス VPN では起こらないことで、ZTA に固有のものである",
+        "影響を受けるのはサブジェクトの一部である。従来型のリモートアクセス VPN では起こらないことで、ZTA に固有のものである"
+      ]
+    },
+    {
+      "id": "resource-unreachable",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "§5.2 は、サブジェクトにアクセスが許可されても通信を始められない状況として、何を挙げていますか？",
+      "points": 1,
+      "referenceIds": [
+        "dos-unreachable"
+      ],
+      "options": [
+        "PA からリソースに到達できず、通信経路を構成できない状況。DDoS 攻撃のほか、想定外の高負荷な利用でも起こりうる",
+        "PA が発行したクレデンシャルを、リソースが検証できない状況。証明書の失効のほか、鍵の更新の遅れでも起こりうる",
+        "PE の決定を PA が記録できず、通信経路を構成しない状況。ログの保管先の障害のほか、保管容量の不足でも起こりうる",
+        "PEP が PA の指示を受け取る前に、セッションの期限が切れる状況。経路ハイジャックのほか、機器の時計のずれでも起こりうる"
+      ]
+    },
+    {
+      "id": "foothold-and-targets",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "§5.3 によると、攻撃者がエンタープライズに足掛かりを築くために必要なことと、主な標的になるアカウントの組み合わせはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "cred-targets"
+      ],
+      "options": [
+        "境界のファイアウォールを突破する必要がある。主な標的は、内部ネットワーク上で最も多くの資産に到達できる場所にあるアカウントである",
+        "PE と PA の両方を侵害する必要がある。主な標的は、攻撃者が関心を持つリソースへのアクセスポリシーを持つアカウントである",
+        "既存のアカウントかデバイスを侵害する必要がある。主な標的は、攻撃者が関心を持つリソースへのアクセスポリシーを持つアカウントである",
+        "既存のアカウントかデバイスを侵害する必要がある。主な標的は、エンタープライズの管理者アカウントであり、それ以外のアカウントは狙われない"
+      ]
+    },
+    {
+      "id": "valuable-accounts-meaning",
+      "type": "choice",
+      "category": "vocabulary",
+      "prompt": "§5.3 は、攻撃者がクレデンシャルを狙うアカウントについて使うこの表現を、どう説明していますか？",
+      "points": 1,
+      "referenceIds": [
+        "cred-mfa"
+      ],
+      "term": "valuable accounts（「価値の高い」アカウント）",
+      "options": [
+        "意味は攻撃者の動機によって変わる。金銭的利益を狙う攻撃者にとっては、エンタープライズの管理者アカウントは価値を持たず、財務や支払いのリソースにアクセスできるアカウントが唯一の標的になる",
+        "意味は攻撃者の動機によって変わる。金銭的利益を狙う攻撃者は、財務や支払いのリソースにアクセスできるアカウントも、管理者アカウントと同等に価値が高いと見なしうる",
+        "意味は攻撃者の動機によらず一定である。どの攻撃者にとっても、エンタープライズの管理者アカウントの価値が最も高く、それ以外のアカウントは足掛かりとして使われるにすぎない",
+        "意味はアカウントに付与された権限の数によって決まる。金銭的利益を狙う攻撃者も、財務や支払いのリソースより、権限の数が最も多いアカウントを、価値が高いと見なす"
+      ]
+    },
+    {
+      "id": "mfa-limit",
+      "type": "choice",
+      "category": "debugging",
+      "prompt": "§5.3 に照らして、この説明の問題点はどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "cred-mfa"
+      ],
+      "scenario": "セキュリティ担当者が「アクセスリクエストに MFA を導入したので、人事部門の従業員のクレデンシャルが盗まれても、従業員データベースの情報が漏れることはない」と説明しました。",
+      "options": [
+        "MFA は、フィッシングで盗まれたクレデンシャルには効果がないので、情報損失のリスクは、MFA を導入する前の状態とまったく変わらない",
+        "MFA が低減するのは悪意のある内部者によるリスクであり、外部の攻撃者が盗んだクレデンシャルによる情報損失のリスクには、効果が及ばない",
+        "MFA は情報損失のリスクを低減しうるが、有効なクレデンシャルを持つ攻撃者は、そのアカウントに許可されたリソースにアクセスできる可能性が残る",
+        "MFA を導入したアカウントは攻撃者の標的から外れるが、同じ部門で MFA を導入していないアカウントから、同じ情報が漏れる可能性が残る"
+      ]
+    },
+    {
+      "id": "lateral-and-contextual",
+      "type": "choice",
+      "category": "comparison",
+      "prompt": "侵害されたクレデンシャルを使う攻撃について、§5.3 は、ZTA と従来型の境界型ネットワークの違いをどう説明していますか？",
+      "points": 1,
+      "referenceIds": [
+        "cred-lateral"
+      ],
+      "options": [
+        "ZTA では、侵害されたクレデンシャルは、認可されているリソースにもアクセスできなくなる。コンテキスト型の TA が、クレデンシャルの窃取を未然に防ぐためである",
+        "ZTA では、認可されていないリソースへのアクセスは引き続き拒否される。コンテキスト型の TA は、境界型の場合よりも、攻撃を検知して迅速に対処できる可能性が高い",
+        "ZTA では、認証に成功すれば、同じセグメント上のリソースへ横方向に移動できる。コンテキスト型の TA は、境界型の場合と同じ程度に、攻撃を検知して対処できる可能性がある",
+        "ZTA では、認可されていないリソースへのアクセスは引き続き拒否される。ただし、攻撃の検知と対処は、境界で監視する境界型の場合のほうが、迅速にできる可能性が高い"
+      ]
+    },
+    {
+      "id": "opaque-traffic",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "§5.4 は、エンタープライズネットワーク上のトラフィックの一部（おそらく大部分）が、ネットワーク分析ツールから中身が見えない場合がある原因として、何を挙げていますか？",
+      "points": 1,
+      "referenceIds": [
+        "visibility-opaque"
+      ],
+      "options": [
+        "エンタープライズが所有していない資産や、パッシブ監視に耐性のあるアプリケーション/サービスから発生するトラフィックがあること",
+        "コントロールプレーンのトラフィックが、データプレーンのトラフィックと同じ経路を流れていて、分析ツールが両者を区別できないこと",
+        "エンタープライズが所有する資産のトラフィックが、PEP を経由せずに流れていて、分析ツールを置いた場所を通らないこと",
+        "PEP が、ログに記録する前にすべてのトラフィックを暗号化し直していて、分析ツールには復号のための鍵が渡されないこと"
+      ]
+    },
+    {
+      "id": "encrypted-traffic-analysis",
+      "type": "choice",
+      "category": "debugging",
+      "prompt": "§5.4 に照らして、この判断の問題点はどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "visibility-opaque",
+        "visibility-metadata"
+      ],
+      "scenario": "ネットワーク運用の担当者が「暗号化されたトラフィックは復号できず、ディープパケットインスペクションもできないので、分析の対象から外す。攻撃の検知には役に立たない」と判断しました。",
+      "options": [
+        "復号できなくても、送信元や宛先のアドレスなどのメタデータを収集し、機械学習も利用して、正当な通信か悪意の可能性がある通信かを分類できる",
+        "復号できないトラフィックは、送信元が委託サービスの資産であると確認できた場合に限って、分析の対象から外すことが認められている",
+        "復号できないトラフィックでも、レイヤー 3 のネットワーク分析ツールを追加すれば、暗号化された内容そのものを取り出して調べられる",
+        "復号できないトラフィックは、PEP で遮断したうえで、送信元の資産をエンタープライズのネットワークから隔離して調べることになっている"
+      ]
+    },
+    {
+      "id": "stored-data-and-policy-tool",
+      "type": "choice",
+      "category": "comparison",
+      "prompt": "§5.5 は、保管された監視データと、アクセスポリシーを記述する管理ツールが、それぞれ攻撃者に何を与えうるとしていますか？",
+      "points": 1,
+      "referenceIds": [
+        "storage-data",
+        "storage-policy-tool"
+      ],
+      "options": [
+        "保管された監視データは、アーキテクチャへの洞察と、偵察や攻撃の対象にする資産。管理ツールは、どのアカウントを侵害する価値が最も高いかという情報",
+        "保管された監視データは、サブジェクトが MFA で使う認証要素そのもの。管理ツールは、どのアカウントを侵害する価値が最も高いかという情報",
+        "保管された監視データは、暗号化されたトラフィックを復号するための鍵。管理ツールは、アーキテクチャへの洞察と、偵察や攻撃の対象にする資産",
+        "保管された監視データは、脅威インテリジェンスフィードの提供元の一覧。管理ツールは、PE と PA の間で使われるセッション固有のクレデンシャル"
+      ]
+    },
+    {
+      "id": "protect-stored-analysis",
+      "type": "choice",
+      "category": "design",
+      "prompt": "§5.5 の説明に合う設計はどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "storage-data",
+        "storage-protection"
+      ],
+      "scenario": "あるエンタープライズが、コンテキストに基づくポリシーの構築とフォレンジックのために、監視スキャンの結果とトラフィックのメタデータを保管しています。アクセスポリシーを記述する管理ツールも運用しています。これらへのアクセス制御を設計します。",
+      "options": [
+        "セキュリティ運用に欠かせない情報なので、エンタープライズのすべての管理者アカウントからアクセスできるようにする",
+        "最も厳格なアクセスポリシーを適用し、指定された、または専用の管理者アカウントからのみアクセスできるようにする",
+        "攻撃者の標的にならないよう、保管と管理ツールの運用をやめ、アクセスポリシーは PEP ごとに手作業で設定する",
+        "分析を妨げないよう、他のエンタープライズデータと同じ標準のアクセスポリシーを適用し、部門の単位で閲覧を認める"
+      ]
+    },
+    {
+      "id": "proprietary-not-unique",
+      "type": "choice",
+      "category": "comparison",
+      "prompt": "独自のデータ形式やソリューションに依存するリスクについて、§5.6 の位置付けに合うものはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "proprietary"
+      ],
+      "options": [
+        "DoS 攻撃と違って、ZTA に固有のリスクである。境界型のアーキテクチャは、アクセスの決定に外部のデータソースを使わないので、このリスクを負うことがない",
+        "DoS 攻撃と同様に、ZTA に固有のリスクではない。また、ZTA はアクセスの決定を静的なポリシーで行うので、障害の影響は周辺的なビジネス機能にとどまる",
+        "DoS 攻撃と違って、ZTA に固有のリスクである。ただし、オープンな標準に従う資産を 1 つでも採用すれば、障害が中核的なビジネス機能に影響することはない",
+        "DoS 攻撃と同様に、ZTA に固有のリスクではない。ただし、ZTA は情報への動的なアクセスに大きく依存するので、障害が中核的なビジネス機能に影響しうる"
+      ]
+    },
+    {
+      "id": "npe-in-administration",
+      "type": "choice",
+      "category": "vocabulary",
+      "prompt": "§5.7 が ZTA の管理に関して取り上げる NPE の説明として、正しいものはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "npe-auth"
+      ],
+      "term": "non-person entity（NPE、非人間エンティティ）",
+      "options": [
+        "セキュリティの問題を管理するために展開される、人工知能などのソフトウェアベースのエージェント。PE や PA とはやり取りせず、人間の管理者への通知を担うので、認証の方法は課題になっていない",
+        "エンタープライズのリソースにアクセスする、IoT 機器などの人間が操作しないデバイス。人間の管理者に代わって PEP を構成することがあり、その認証には MFA を使うことが定められている",
+        "セキュリティの問題を管理するために展開される、人工知能などのソフトウェアベースのエージェント。人間の管理者に代わって PE や PA とやり取りすることがあり、その認証方法は未解決の課題である",
+        "エンタープライズの外部から提供される、脅威インテリジェンスのフィード。人間の管理者に代わって PE のポリシーを書き換えることがあり、その認証には API キーを使うことが定められている"
+      ]
+    },
+    {
+      "id": "false-positive-negative",
+      "type": "choice",
+      "category": "vocabulary",
+      "prompt": "§5.7 は、構成やポリシーの実施に自動化技術を使う場合の最大のリスクに関して、この 2 つを挙げています。説明として正しいものはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "npe-false"
+      ],
+      "term": "false positive / false negative（偽陽性 / 偽陰性）",
+      "options": [
+        "偽陽性は、無害な動作が攻撃と誤認されること。偽陰性は、攻撃が正常な活動と誤認されること。どちらもセキュリティ態勢に影響しうる",
+        "偽陽性は、正規のエージェントが認証に失敗すること。偽陰性は、攻撃者がエージェントとして認証に成功すること。どちらも可用性に影響しうる",
+        "偽陽性は、攻撃が正常な活動と誤認されること。偽陰性は、無害な動作が攻撃と誤認されること。どちらもセキュリティ態勢に影響しうる",
+        "偽陽性は、無害な動作が攻撃と誤認されること。偽陰性は、攻撃が正常な活動と誤認されること。エージェントの認証を強化すれば、どちらも生じなくなる"
+      ]
+    },
+    {
+      "id": "review-provider-selection",
+      "type": "written",
+      "category": "design",
+      "prompt": "§5.6 に基づいて、この提案が見落としているリスクと、プロバイダーの評価で考慮すべき点を述べてください。",
+      "points": 4,
+      "referenceIds": [
+        "proprietary"
+      ],
+      "scenario": "あるエンタープライズが、ZTA のアクセス決定に使う情報（資産の状態、脅威インテリジェンスなど）を保管・処理するサービスのプロバイダーを選定しています。調達の担当者は「性能と安定性が最も高い 1 社を選び、ポリシールールもその会社の独自形式で記述すれば十分だ」と提案しました。",
+      "answerHint": "依存が生じる原因、プロバイダーに問題が起きたときに困ること、評価の進め方、考慮する要素を、短い箇条書きで書いてください。"
+    },
+    {
+      "id": "review-automation-agent",
+      "type": "written",
+      "category": "design",
+      "prompt": "§5.7 に基づいて、この運用のリスクと、本文が挙げる低減策を述べてください。",
+      "points": 4,
+      "referenceIds": [
+        "npe-false",
+        "npe-coerce"
+      ],
+      "scenario": "あるエンタープライズが、ネットワーク上のセキュリティの問題に自動で対処するソフトウェアエージェントを導入しました。エージェントは、API キーだけで認証して PE のポリシーを変更でき、利用者からメッセージで受け取った依頼にも応じます。導入後に、エージェントの判断を見直す予定はありません。",
+      "answerHint": "判断の誤りとその低減策、エージェントが悪用される経路、認証の強さ、クレデンシャルの 4 点を、短い箇条書きで書いてください。"
+    }
+  ],
+  "solutions": {
+    "risk-cannot-be-eliminated": {
+      "answer": 3,
+      "explanation": "§5。サイバーセキュリティリスクを排除できるエンタープライズは存在しません。適切に実装・維持された ZTA は、既存のサイバーセキュリティポリシーとガイダンス、ID・アクセス管理、継続的モニタリング、一般的なサイバーハイジーンに補完されることで、全体的なリスクを低減し、一般的な脅威から保護できます。一方で、ZTA を実装する際に固有の特徴を持つ脅威もあるとしており、§5 の各節がそれを扱います。"
+    },
+    "pe-pa-key-components": {
+      "answer": 3,
+      "explanation": "§5.1。ZTA では PE と PA がエンタープライズ全体の要となるコンポーネントで、エンタープライズのリソース間の通信は、PE と PA による承認（場合によっては構成も）がなければ行われません。そのため、侵害された PA は、本来であれば承認されないはずのリソースへのアクセスを許してしまう可能性があります（例として、乗っ取られた個人所有のデバイスが挙げられています）。PE の決定があるから安全だとも、PEP が単独で承認するとも述べていません。"
+    },
+    "unlogged-policy-changes": {
+      "answer": 2,
+      "explanation": "§5.1。PE のルールの構成権限を持つ管理者は誰でも、承認されていない変更を行ったり、業務を妨げかねない誤りを犯したりする可能性があります。このリスクを緩和するには、PE と PA を適切に構成して監視し、構成の変更をすべてログに記録して監査の対象にしなければなりません。管理者を 1 人にすることや、ルールを固定することは、本文が挙げる緩和策ではありません。"
+    },
+    "dos-mitigation": {
+      "answer": 3,
+      "explanation": "§5.2。リソースへのアクセスでは PA が要で、PA の許可（場合によっては構成操作）がなければ、リソースは相互に接続できません。そのため、PEP や PE/PA へのアクセスを DoS 攻撃や経路ハイジャックで妨げられると、業務に悪影響が及ぶおそれがあります。本文が挙げる緩和策は、ポリシーの実施機能を適切に保護されたクラウド環境に置くか、サイバーレジリエンスに関するガイダンスに従って複数の場所に複製することです。到達できない間にすべて許可する構成や、VPN での迂回には触れていません。"
+    },
+    "dos-residual-risk": {
+      "answer": 1,
+      "explanation": "§5.2。クラウド環境への配置や複製はリスクを緩和しますが、なくすわけではありません。Mirai などのボットネットは、主要なインターネットサービスプロバイダーに大規模な DoS 攻撃を引き起こし、数百万人の利用者へのサービスを妨害しています。また、ホスティングプロバイダーがクラウドベースの PE や PA を誤ってオフラインにする可能性もあり、IaaS と SaaS の両方で過去に障害が起きています。PE や PA にネットワークから到達できなくなると、運用上の誤りによってエンタープライズ全体が機能しなくなるおそれがあります。"
+    },
+    "partial-block-not-unique": {
+      "answer": 1,
+      "explanation": "§5.2。攻撃者は、支社やリモート勤務の従業員 1 人など、エンタープライズ内のユーザーアカウントから PEP や PA に向かうトラフィックを傍受してブロックできる可能性があります。支社のような場合に影響を受けるのは、エンタープライズのサブジェクトの一部です。本文は、これが従来型のリモートアクセス VPN でも起こりうることで、ZTA に固有のものではないとしています。"
+    },
+    "resource-unreachable": {
+      "answer": 0,
+      "explanation": "§5.2。エンタープライズのリソースに PA から到達できなくなるリスクもあります。その場合、サブジェクトにアクセスが許可されても、PA はネットワークから通信経路を構成できません。DDoS 攻撃のほか、単に想定外の高負荷な利用によっても起こりえます。本文は、何らかの理由でリソースが利用できず、サブジェクトの一部またはすべてが特定のリソースにアクセスできなくなるという点で、他のネットワーク障害と同様だとしています。"
+    },
+    "foothold-and-targets": {
+      "answer": 2,
+      "explanation": "§5.3。ネットワーク上の場所に基づく暗黙的な信頼を認めないという ZT の原則により、攻撃者が足掛かりを築くには、既存のアカウントかデバイスを侵害しなければなりません。適切に構築・実装された ZTA は、侵害されたアカウントや資産が、通常の権限の範囲やアクセスパターンを外れたリソースにアクセスすることを防げるはずです。そのため、攻撃者が関心を持つリソースへのアクセスポリシーを持つアカウントが、主な標的になります。管理者アカウントに限られるわけではありません。"
+    },
+    "valuable-accounts-meaning": {
+      "answer": 1,
+      "explanation": "§5.3。攻撃者は、価値の高いアカウントのクレデンシャルを得るために、フィッシングやソーシャルエンジニアリング、その組み合わせを使うことがあります。「価値が高い」の意味は攻撃者の動機によって異なりえます。エンタープライズの管理者アカウントは価値が高い場合がありますが、金銭的利益に関心のある攻撃者は、財務や支払いのリソースにアクセスできるアカウントも、同等に価値が高いと見なす可能性があります。管理者アカウントが価値を失うとも、権限の数で決まるとも述べていません。"
+    },
+    "mfa-limit": {
+      "answer": 2,
+      "explanation": "§5.3。アクセスリクエストへの MFA の導入は、侵害されたアカウントからの情報損失のリスクを低減できる場合があります。しかし、有効なクレデンシャルを持つ攻撃者（または悪意のある内部者）は、そのアカウントにアクセスが許可されているリソースには、依然としてアクセスできる可能性があります。本文は例として、人事部門の正規の従業員のクレデンシャルとエンタープライズ所有の資産を持つ攻撃者や、侵害された従業員が、従業員データベースにアクセスできる可能性を挙げています。"
+    },
+    "lateral-and-contextual": {
+      "answer": 1,
+      "explanation": "§5.3。ZTA はリスクを低減し、侵害されたアカウントや資産がネットワーク全体で横方向に移動することを防ぎます。侵害されたクレデンシャルが特定のリソースへのアクセスを認可されていなければ、そのリソースへのアクセスは引き続き拒否されます。さらに、コンテキスト型の信頼アルゴリズム（TA）は、通常の振る舞いから外れたアクセスパターンを検知し、機微なリソースへのアクセスを拒否できるので、従来型の境界型ネットワークで起きた場合に比べ、攻撃を検知して迅速に対処できる可能性が高いとしています。認可されているリソースへのアクセスや、クレデンシャルの窃取そのものを防ぐとは述べていません。"
+    },
+    "opaque-traffic": {
+      "answer": 0,
+      "explanation": "§5.4。§3.4.1 で述べたとおり、ネットワーク上のすべてのトラフィックは検査・記録され、攻撃を特定して対処するために分析されます。しかし、トラフィックの一部（おそらく大部分）は、レイヤー 3 のネットワーク分析ツールからは中身が見えない場合があります。エンタープライズが所有していない資産（例: エンタープライズのインフラストラクチャを使ってインターネットにアクセスする委託サービス）や、パッシブ監視に耐性のあるアプリケーション/サービスから発生している可能性があるためです。"
+    },
+    "encrypted-traffic-analysis": {
+      "answer": 0,
+      "explanation": "§5.4。ディープパケットインスペクションを実行できない、あるいは暗号化されたトラフィックを調べられないエンタープライズは、攻撃者の可能性を評価するために、他の方法を使わなければなりません。それは分析できないという意味ではなく、暗号化トラフィックのメタデータ（例: 送信元アドレスや宛先アドレス）を収集して、活動中の攻撃者やマルウェアの可能性があるものを検知できます。復号して調べられないトラフィックの分析には機械学習の技術を利用でき、トラフィックを、正当なものと、悪意の可能性があり是正措置の対象になるものとに分類できます。"
+    },
+    "stored-data-and-policy-tool": {
+      "answer": 0,
+      "explanation": "§5.5。コンテキストに基づくポリシーの構築、フォレンジック、後日の分析のために保管された、監視スキャンの結果、ネットワークトラフィック、メタデータは、攻撃者の標的になります。攻撃者がアクセスに成功すれば、エンタープライズアーキテクチャへの洞察を得て、さらなる偵察や攻撃の対象となる資産を特定できる可能性があります。もう 1 つの偵察の情報源が、アクセスポリシーを記述する管理ツールで、どのアカウントを侵害するのが最も価値が高いか（例: 目的のデータリソースにアクセスできるアカウント）という情報を与えかねません。"
+    },
+    "protect-stored-analysis": {
+      "answer": 1,
+      "explanation": "§5.5。保管された監視データや管理ツールは、ネットワーク図や設定ファイルなどのネットワークアーキテクチャ文書と同様に、保護すべきリソースです。価値あるエンタープライズのデータすべてと同じく、不正なアクセスやその試行を防ぐ適切な保護を講じるべきであり、セキュリティにとって不可欠なので、最も厳格なアクセスポリシーを適用し、指定された、または専用の管理者アカウントからのみアクセスできるようにすべきだとしています。保管や運用をやめることは求めていません。"
+    },
+    "proprietary-not-unique": {
+      "answer": 3,
+      "explanation": "§5.6。ZTA は、リクエスト元のサブジェクト、使用している資産、エンタープライズ内部と外部のインテリジェンス、脅威分析など、複数のデータソースに依存してアクセスを決定します。独自形式への依存によるリスクは、DoS 攻撃と同様に、ZTA に固有のものではありません。しかし、ZTA はエンタープライズとサービスプロバイダーの双方の情報への動的なアクセスに大きく依存しているため、障害はエンタープライズの中核的なビジネス機能に影響を及ぼしえます。"
+    },
+    "npe-in-administration": {
+      "answer": 2,
+      "explanation": "§5.7。エンタープライズネットワーク上のセキュリティ問題を管理するために、人工知能やその他のソフトウェアベースのエージェントが展開されつつあります。これらは ZTA の管理コンポーネント（例: PE、PA）とやり取りする必要があり、人間の管理者の代わりを務める場合もあります。ZTA を導入しているエンタープライズで、これらがどのように自らを認証するかは、未解決の課題です。本文は、自動化された技術システムの大半は、API を使う際に何らかの手段で認証を行うと想定されるとしており、特定の方式を定めてはいません。"
+    },
+    "false-positive-negative": {
+      "answer": 0,
+      "explanation": "§5.7。構成やポリシーの実施に自動化技術を使う場合の最大のリスクは、偽陽性（無害な動作が攻撃と誤認されること）と偽陰性（攻撃が正常な活動と誤認されること）が、エンタープライズのセキュリティ態勢に影響を及ぼす可能性です。本文は、誤った判断を是正して判断プロセスを改善するために、定期的に再調整のための分析を行うことで、これを減らせるとしています。認証の強化で生じなくなるとは述べていません。"
+    },
+    "review-provider-selection": {
+      "explanation": "§5.6。アクセス決定に使う情報を保管・処理する資産には、相互に連携して情報を交換する方法について、共通のオープンな標準がないことが多く、相互運用性の問題から、エンタープライズが一部のプロバイダーにロックインされる事態が生じかねません。あるプロバイダーにセキュリティ上の問題や障害が起きても、複数の資産の入れ替えのような極めて高いコストをかけるか、ポリシールールを別の独自形式へ変換するような長期の移行プログラムを経なければ、移行できない場合があります。本文は、性能や安定性といった典型的な要素に加えて、ベンダーのセキュリティ管理策、エンタープライズの乗り換えコスト、サプライチェーンリスクマネジメントなども考慮し、サービスプロバイダーを総合的に評価すべきだとしています。",
+      "rubric": [
+        {
+          "criterion": "アクセス決定に使う情報を保管・処理する資産には、相互に連携して情報を交換するための共通のオープンな標準がないことが多く、相互運用性の問題から、一部のプロバイダーにロックインされうることを述べている",
+          "points": 1,
+          "referenceIds": [
+            "proprietary"
+          ]
+        },
+        {
+          "criterion": "プロバイダーにセキュリティ上の問題や障害が起きても、極めて高いコスト（例: 複数の資産の入れ替え）か、長期にわたる移行プログラム（例: ポリシールールを別の独自形式へ変換する作業）なしには、新しいプロバイダーへ移行できない場合があることを述べている",
+          "points": 1,
+          "referenceIds": [
+            "proprietary"
+          ]
+        },
+        {
+          "criterion": "性能や安定性といった典型的な要素だけで選ぶのではなく、サービスプロバイダーを総合的に評価すべきであることを述べている",
+          "points": 1,
+          "referenceIds": [
+            "proprietary"
+          ]
+        },
+        {
+          "criterion": "考慮する要素として、ベンダーのセキュリティ管理策、エンタープライズの乗り換えコスト、サプライチェーンリスクマネジメントのうち 2 つ以上を挙げている",
+          "points": 1,
+          "referenceIds": [
+            "proprietary"
+          ]
+        }
+      ]
+    },
+    "review-automation-agent": {
+      "explanation": "§5.7。自動化技術を構成やポリシーの実施に使う場合の最大のリスクは、偽陽性と偽陰性がセキュリティ態勢に影響することで、定期的に再調整のための分析を行い、誤った判断を是正して判断プロセスを改善することで減らせます。関連するリスクとして、攻撃者が、自身には権限のないタスクを NPE に実行させるよう誘導・強要できてしまう可能性があります。ソフトウェアエージェントは、人間のユーザーに比べて認証のハードルが低い場合があり（例: MFA ではなく API キー）、攻撃者がやり取りできるなら、理論上は、だまして広いアクセスを許可させたり、タスクを代行させたりできます。攻撃者がエージェントのクレデンシャルを入手して、なりすますリスクもあります。",
+      "rubric": [
+        {
+          "criterion": "自動化された判断の誤り（偽陽性・偽陰性）がセキュリティ態勢に影響しうることを指摘し、定期的に再調整のための分析を行って、誤った判断を是正し判断プロセスを改善することで減らせると述べている",
+          "points": 1,
+          "referenceIds": [
+            "npe-false"
+          ]
+        },
+        {
+          "criterion": "攻撃者がエージェントとやり取りできる場合、エージェントを誘導・強要したりだましたりして、攻撃者自身には権限のないタスクを実行させたり、より広いアクセスを許可させたりするおそれがあることを述べている",
+          "points": 1,
+          "referenceIds": [
+            "npe-coerce"
+          ]
+        },
+        {
+          "criterion": "ソフトウェアエージェントは、管理やセキュリティ関連のタスクを実行する際の認証のハードルが、人間のユーザーより低い場合がある（例: MFA ではなく API キー）ことを述べている",
+          "points": 1,
+          "referenceIds": [
+            "npe-coerce"
+          ]
+        },
+        {
+          "criterion": "攻撃者がエージェントのクレデンシャルを入手し、エージェントになりすましてタスクを実行するおそれがあることを述べている",
+          "points": 1,
+          "referenceIds": [
+            "npe-coerce"
+          ]
+        }
+      ]
+    }
+  },
+  "inconsistencies": []
+}

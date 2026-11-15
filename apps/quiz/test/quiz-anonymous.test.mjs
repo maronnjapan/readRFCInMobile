@@ -150,3 +150,49 @@ test('all eleven RFC 9449 files are discoverable and answerable without Access o
     assert.equal(app.executions.size, 0);
   } finally { await app.mf.dispose(); }
 });
+
+test('all sixteen NIST SP 800-207 files are listed for the PDF and answerable without Access or importing', async () => {
+  const app = await startQuizWorker({ access: false });
+  try {
+    const call = app.anonymousClient();
+    // リーダーの「問題を解く」は、PDF の SHA-256 の先頭 16 文字を仕様 ID にして一覧を開く。
+    const pdf = JSON.parse(await readFile(new URL('../../../pdfs/index.json', import.meta.url), 'utf8')).find((entry) => entry.file === 'NIST.SP.800-207.pdf');
+    const spec = `pdf-${pdf.sha256.slice(0, 16)}`;
+    const list = await (await call(`/api/question-sets?spec=${spec}`)).json();
+    assert.equal(list.sets.length, 16);
+    const source = (await readFile(new URL('../specs/nist-sp-800-207.txt', import.meta.url), 'utf8')).split('\n');
+    let count = 0;
+    for (const set of list.sets) {
+      const file = set.revision.path.split('/').at(-1);
+      const artifact = JSON.parse(await readFile(new URL(`../questions/spec/${file}`, import.meta.url), 'utf8'));
+      assert.equal(artifact.spec.path, 'apps/quiz/specs/nist-sp-800-207.txt', file);
+      for (const ref of artifact.references) {
+        assert.equal(ref.excerpt, source.slice(ref.startLine - 1, ref.endLine).join('\n'), `${file}: ${ref.id} cites the stored text`);
+      }
+      // 実装問題はコード読解で開始し、すべての正解を保存済みの解答で即時採点する。
+      const start = await call(`/api/question-sets/${set.id}/attempts`, { method: 'POST', body: { implementationMode: 'reading' } });
+      assert.equal(start.status, 201);
+      const attempt = await start.json();
+      assert.deepEqual(attempt.set.questions.map((q) => q.id), artifact.questions.map((q) => q.id));
+      for (const question of attempt.set.questions.filter(isImmediate)) {
+        const solution = artifact.solutions[question.id];
+        const result = await call(`/api/attempts/${attempt.id}/instant-answers`, { method: 'POST', body: {
+          questionId: question.id, answer: question.implementationMode === 'reading' ? solution.mobileAnswer : solution.answer,
+        } });
+        assert.equal(result.status, 200, `${file}: ${question.id}`);
+        assert.equal((await result.json()).results.at(-1).score, question.points, `${file}: ${question.id}`);
+      }
+      const written = attempt.set.questions.filter((q) => !isImmediate(q));
+      if (written.length) {
+        const saved = await call(`/api/attempts/${attempt.id}/answers`, { method: 'POST', body: {
+          answers: Object.fromEntries(written.map((q) => [q.id, '本文の該当する節に沿って、方針と理由を箇条書きで述べる。'])),
+        } });
+        assert.equal(saved.status, 200, file);
+        assert.equal((await saved.json()).status, 'saved');
+      }
+      count += artifact.questions.length;
+    }
+    assert.equal(count, 306);
+    assert.equal(app.executions.size, 0);
+  } finally { await app.mf.dispose(); }
+});

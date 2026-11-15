@@ -1,0 +1,705 @@
+{
+  "format": "spec-understanding-quiz",
+  "version": 1,
+  "id": "nist-sp-800-207-02-definitions",
+  "title": "NIST SP 800-207 ゼロトラスト 2/16: 定義・PDP/PEP・ネットワークの前提",
+  "status": "published",
+  "spec": {
+    "id": "pdf-0290d6ece2487428",
+    "status": "adopted",
+    "repository": "maronnjapan/readRFCInMobile",
+    "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+    "path": "apps/quiz/specs/nist-sp-800-207.txt"
+  },
+  "references": [
+    {
+      "id": "basics-paradigm",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 152,
+      "endLine": 152,
+      "reason": "§2: ゼロトラストの前提、ZTA の範囲、最初の重点、従来の境界防御",
+      "excerpt": "Zero trust is a cybersecurity paradigm focused on resource protection and the premise that trust is never granted implicitly but must be continually evaluated. Zero trust architecture is an end-to-end approach to enterprise resource and data security that encompasses identity (person and non-person entities), credentials, access management, operations, endpoints, hosting environments, and the interconnecting infrastructure. The initial focus should be on restricting resources to those with a need to access and grant only the minimum privileges (e.g., read, write, delete) needed to perform the mission. Traditionally, agencies (and enterprise networks in general) have focused on perimeter defense and authenticated subjects are given authorized access to a broad collection of resources once on the internal network. As a result, unauthorized lateral movement within the environment has been one of the biggest challenges for federal agencies."
+    },
+    {
+      "id": "basics-tic",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 154,
+      "endLine": 154,
+      "reason": "§2: TIC と境界ファイアウォールの限界",
+      "excerpt": "The Trusted Internet Connections (TIC) and agency perimeter firewalls provide strong internet gateways. This helps block attackers from the internet, but the TICs and perimeter firewalls are less useful for detecting and blocking attacks from inside the network and cannot protect subjects outside of the enterprise perimeter (e.g., remote workers, cloud-based services, edge devices, etc.)."
+    },
+    {
+      "id": "definition",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 156,
+      "endLine": 158,
+      "reason": "§2: ZT・ZTA・ゼロトラストエンタープライズの実用上の定義",
+      "excerpt": "An operative definition of zero trust and zero trust architecture is as follows:\n\nZero trust (ZT) provides a collection of concepts and ideas designed to minimize uncertainty in enforcing accurate, least privilege per-request access decisions in information systems and services in the face of a network viewed as compromised. Zero trust architecture (ZTA) is an enterprise’s cybersecurity plan that utilizes zero trust concepts and encompasses component relationships, workflow planning, and access policies. Therefore, a zero trust enterprise is the network infrastructure (physical and virtual) and operational policies that are in place for an enterprise as a product of a zero trust architecture plan."
+    },
+    {
+      "id": "plan-deploy",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 160,
+      "endLine": 160,
+      "reason": "§2: 戦略の採用から計画・展開まで",
+      "excerpt": "An enterprise decides to adopt zero trust as its core strategy and generate a zero trust architecture as a plan developed with zero trust principles (see Section 2.1 below) in mind. This plan is then deployed to produce a zero trust environment for use in the enterprise."
+    },
+    {
+      "id": "crux",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 162,
+      "endLine": 162,
+      "reason": "§2: 定義の核心（不正アクセスの防止と粒度、データからリソースへ）",
+      "excerpt": "This definition focuses on the crux of the issue, which is the goal to prevent unauthorized access to data and services coupled with making the access control enforcement as granular as possible. That is, authorized and approved subjects (combination of user, application (or service), and device) can access the data to the exclusion of all other subjects (i.e., attackers). To take this one step further, the word “resource” can be substituted for “data” so that ZT and ZTA are about resource access (e.g., printers, compute resources, Internet of Things [IoT] actuators) and not just data access."
+    },
+    {
+      "id": "uncertainty",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 164,
+      "endLine": 164,
+      "reason": "§2: 不確実性を減らすための重点",
+      "excerpt": "To lessen uncertainties (as they cannot be eliminated), the focus is on authentication, authorization, and shrinking implicit trust zones while maintaining availability and minimizing temporal delays in authentication mechanisms. Access rules are made as granular as possible to enforce least privileges needed to perform the action in the request."
+    },
+    {
+      "id": "access-model",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 166,
+      "endLine": 168,
+      "reason": "§2: アクセスの抽象モデル（PDP と PEP、図 1）",
+      "excerpt": "In the abstract model of access shown in Figure 1, a subject needs access to an enterprise resource. Access is granted through a policy decision point (PDP) and corresponding policy enforcement point (PEP).³\n\n[figure p14 68,116,541,222] Figure 1: Zero Trust Access"
+    },
+    {
+      "id": "judgment",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 170,
+      "endLine": 170,
+      "reason": "§2: 認証・認可と、リスクに基づく動的なポリシー",
+      "excerpt": "The system must ensure that the subject is authentic and the request is valid. The PDP/PEP passes proper judgment to allow the subject to access the resource. This implies that zero trust applies to two basic areas: authentication and authorization. What is the level of confidence about the subject’s identity for this unique request? Is access to the resource allowable given the level of confidence in the subject’s identity? Does the device used for the request have the proper security posture? Are there other factors that should be considered and that change the confidence level (e.g., time, location of subject, subject’s security posture)? Overall, enterprises need to develop and maintain dynamic risk-based policies for resource access and set up a system to ensure that these policies are enforced correctly and consistently for individual resource access requests. This means that an enterprise should not rely on implied trustworthiness wherein if the subject has met a base authentication level (e.g., logging into an asset), all subsequent resource requests are assumed to be equally valid."
+    },
+    {
+      "id": "trust-zone",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 172,
+      "endLine": 172,
+      "reason": "§2: 暗黙的信頼ゾーンと空港の例",
+      "excerpt": "The “implicit trust zone” represents an area where all the entities are trusted to at least the level of the last PDP/PEP gateway. For example, consider the passenger screening model in an airport. All passengers pass through the airport security checkpoint (PDP/PEP) to access the boarding gates. The passengers, airport employees, aircraft crew, etc., mill about in the terminal area, and all the individuals are considered trusted. In this model, the implicit trust zone is the boarding area."
+    },
+    {
+      "id": "pdp-limits",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 174,
+      "endLine": 176,
+      "reason": "§2: PDP/PEP の限界と、リソースの近くへの移動",
+      "excerpt": "The PDP/PEP applies a set of controls so that all traffic beyond the PEP has a common level of trust. The PDP/PEP cannot apply additional policies beyond its location in the flow of traffic. To allow the PDP/PEP to be as specific as possible, the implicit trust zone must be as small as possible.\n\nZero trust provides a set of principles and concepts around moving the PDP/PEPs closer to the resource. The idea is to explicitly authenticate and authorize all subjects, assets and workflows that make up the enterprise."
+    },
+    {
+      "id": "xacml",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 178,
+      "endLine": 178,
+      "reason": "§2 脚注 3: PDP/PEP の概念の由来",
+      "excerpt": "[note] ³Part of the concepts defined in OASIS XACML 2.0 https://docs.oasis-open.org/xacml/2.0/access_control-xacml-2.0-core-spec-os.pdf"
+    },
+    {
+      "id": "net-intro",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 201,
+      "endLine": 201,
+      "reason": "§2.2: ネットワークの前提の位置付け",
+      "excerpt": "There are some basic assumptions for network connectivity for any organization that utilizes ZTA in network planning and deployment. Some of these assumptions apply to enterprise-owned network infrastructure, and some apply to enterprise-owned resources operating on nonenterprise-owned network infrastructure (e.g., public Wi-Fi or public cloud providers). These assumptions are used to direct the formation of a ZTA. The network in an enterprise implementing a ZTA should be developed with the ZTA tenets outlined above and with the following assumptions."
+    },
+    {
+      "id": "net-1",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 203,
+      "endLine": 203,
+      "reason": "§2.2: 前提 1（プライベートネットワーク全体は暗黙的信頼ゾーンではない）",
+      "excerpt": "1. The entire enterprise private network is not considered an implicit trust zone. Assets should always act as if an attacker is present on the enterprise network, and communication should be done in the most secure manner available (see tenet 2 above). This entails actions such as authenticating all connections and encrypting all traffic."
+    },
+    {
+      "id": "net-2",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 204,
+      "endLine": 204,
+      "reason": "§2.2: 前提 2（エンタープライズが所有・構成できないデバイス）",
+      "excerpt": "2. Devices on the network may not be owned or configurable by the enterprise. Visitors and/or contracted services may include nonenterprise-owned assets that need network access to perform their role. This includes bring-your-own-device (BYOD) policies that allow enterprise subjects to use nonenterprise-owned devices to access enterprise resources."
+    },
+    {
+      "id": "net-3",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 205,
+      "endLine": 205,
+      "reason": "§2.2: 前提 3（本質的に信頼されるリソースはない）",
+      "excerpt": "3. No resource is inherently trusted. Every asset must have its security posture evaluated via a PEP before a request is granted to an enterprise-owned resource (similar to tenet 6 above for assets as well as subjects). This evaluation should be continual for as long as the session lasts. Enterprise-owned devices may have artifacts that enable authentication and provide a confidence level higher than the same request coming from nonenterprise-owned devices. Subject credentials alone are insufficient for device authentication to an enterprise resource."
+    },
+    {
+      "id": "net-4",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 206,
+      "endLine": 206,
+      "reason": "§2.2: 前提 4（エンタープライズ所有のインフラストラクチャ上にないリソース）",
+      "excerpt": "4. Not all enterprise resources are on enterprise-owned infrastructure. Resources include remote enterprise subjects as well as cloud services. Enterprise-owned or - managed assets may need to utilize the local (i.e., nonenterprise) network for basic connectivity and network services (e.g., DNS resolution)."
+    },
+    {
+      "id": "net-5",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 207,
+      "endLine": 207,
+      "reason": "§2.2: 前提 5（リモートのローカルネットワークは信頼できない）",
+      "excerpt": "5. Remote enterprise subjects and assets cannot fully trust their local network connection. Remote subjects should assume that the local (i.e., nonenterprise-owned) network is hostile. Assets should assume that all traffic is being monitored and potentially modified. All connection requests should be authenticated and authorized, and all communications should be done in the most secure manner possible (i.e., provide confidentiality, integrity protection, and source authentication). See the tenets of ZTA above."
+    },
+    {
+      "id": "net-6",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 208,
+      "endLine": 208,
+      "reason": "§2.2: 前提 6（移動する資産とワークフローの一貫した態勢）",
+      "excerpt": "6. Assets and workflows moving between enterprise and nonenterprise infrastructure should have a consistent security policy and posture. Assets and workloads should retain their security posture when moving to or from enterprise-owned infrastructure. This includes devices that move from enterprise networks to nonenterprise networks (i.e. remote users). This also includes workloads migrating from on-premises data centers to nonenterprise cloud instances."
+    }
+  ],
+  "questions": [
+    {
+      "id": "paradigm-and-scope",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "§2 の冒頭は、ゼロトラストの前提と、ZTA が包含する範囲をどう説明していますか？",
+      "points": 1,
+      "referenceIds": [
+        "basics-paradigm"
+      ],
+      "options": [
+        "信頼は暗黙的に与えられず、継続的に評価されなければならない。ZTA は、ID、クレデンシャル、アクセス管理、運用、エンドポイント、ホスティング環境、相互接続のインフラストラクチャを包含する",
+        "信頼は暗黙的に与えられず、継続的に評価されなければならない。ZTA は、ネットワークの境界と相互接続のインフラストラクチャを包含するが、ID とクレデンシャルは、範囲の外に置いて別に扱う",
+        "信頼はネットワーク上の場所に応じて与えられ、場所が変わると再評価される。ZTA は、人間エンティティの ID とクレデンシャルを包含するが、非人間エンティティの ID は、範囲の外に置いて別に扱う",
+        "信頼は最初の認証で与えられ、以後は定期的に見直される。ZTA は、ID、クレデンシャル、アクセス管理、運用を包含するが、エンドポイントとホスティング環境は、範囲の外に置いて別に扱う"
+      ]
+    },
+    {
+      "id": "initial-focus",
+      "type": "choice",
+      "category": "design",
+      "prompt": "§2 によると、こうした従来のやり方から生じた課題と、最初に重点を置くべきことの組み合わせはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "basics-paradigm"
+      ],
+      "scenario": "ある連邦政府機関は、内部ネットワークに接続して認証を済ませたサブジェクトに、幅広いリソースへのアクセスをまとめて認可してきました。ゼロトラストへの取り組みを始めるにあたり、最初に何に重点を置くかを検討しています。",
+      "options": [
+        "認証の手間による業務の遅れが大きな課題になった。認証の回数を減らし、一度認証されたサブジェクトには、ミッションが続く間、幅広いリソースへの権限を付与する",
+        "環境内での不正な横方向の移動が大きな課題になった。リソースへのアクセスを、アクセスの必要がある者に限定し、ミッションの遂行に必要な最小限の権限だけを付与する",
+        "インターネットからの攻撃者を境界で阻止できないことが大きな課題になった。境界のファイアウォールを強化し、通過したサブジェクトには、従来どおりの幅広い権限を付与する",
+        "環境内での不正な横方向の移動が大きな課題になった。内部ネットワークを部門ごとに分け、同じ部門のサブジェクトには、部門のリソースへの幅広い権限をまとめて付与する"
+      ]
+    },
+    {
+      "id": "tic-firewall-limits",
+      "type": "choice",
+      "category": "comparison",
+      "prompt": "§2 は、Trusted Internet Connections（TIC）と政府機関の境界ファイアウォールについて、役立つ点と限界をどう説明していますか？",
+      "points": 1,
+      "referenceIds": [
+        "basics-tic"
+      ],
+      "options": [
+        "インターネットからの攻撃者の阻止にも、ネットワーク内部からの攻撃の検知と阻止にも役立つが、クラウドベースのサービスだけは保護の対象にできない",
+        "インターネットからの攻撃者を阻止するのには役立つが、ネットワーク内部からの攻撃の検知と阻止にはあまり役立たず、境界の外にあるサブジェクトを保護できない",
+        "インターネットからの攻撃者を阻止するのに役立ち、リモートワーカーやエッジデバイスも保護できるが、ネットワーク内部からの攻撃の検知と阻止には使えない",
+        "ネットワーク内部からの攻撃の検知と阻止には役立つが、インターネットからの攻撃者の阻止にはあまり役立たず、境界の内側にあるサブジェクトを保護できない"
+      ]
+    },
+    {
+      "id": "zt-operative-definition",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "§2 の実用上の定義では、ゼロトラストの概念と考え方は、何のために設計されたものとされていますか？",
+      "points": 1,
+      "referenceIds": [
+        "definition",
+        "uncertainty"
+      ],
+      "options": [
+        "侵害されていると見なすネットワークに直面する中で、正確で最小権限の、リクエストごとのアクセス決定を実施する際の不確実性を、最小化するため",
+        "侵害されていると見なすネットワークに直面する中で、サブジェクトが最初に接続したときのアクセス決定を、以後のすべてのリクエストに一貫して適用するため",
+        "侵害されていると見なすネットワークに直面する中で、境界の内側にあるリソースへのアクセス決定を省略し、認証による通信の遅延を、最小化するため",
+        "侵害されていないことを確認できたネットワークの中で、正確で最小権限の、リクエストごとのアクセス決定を実施する際の不確実性を、完全になくすため"
+      ]
+    },
+    {
+      "id": "three-definitions",
+      "type": "choice",
+      "category": "comparison",
+      "prompt": "§2 の実用上の定義による、ZT、ZTA、ゼロトラストエンタープライズの説明の組み合わせとして正しいものはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "definition"
+      ],
+      "options": [
+        "ZT はエンタープライズのサイバーセキュリティ計画。ZTA は計画の成果として整備されたネットワークインフラストラクチャと運用ポリシー。ゼロトラストエンタープライズは、それらの基になる概念と考え方の集まり",
+        "ZT は概念と考え方の集まり。ZTA はその概念の成果として整備されたネットワークインフラストラクチャと運用ポリシー。ゼロトラストエンタープライズは、それらを活用するためのエンタープライズのサイバーセキュリティ計画",
+        "ZT は概念と考え方の集まり。ZTA はその概念を活用したエンタープライズのサイバーセキュリティ計画。ゼロトラストエンタープライズは、計画の成果として整備されたネットワークインフラストラクチャと運用ポリシー",
+        "ZT はネットワークインフラストラクチャと運用ポリシー。ZTA はその上で使われる概念と考え方の集まり。ゼロトラストエンタープライズは、それらを導入しようとするエンタープライズのサイバーセキュリティ計画"
+      ]
+    },
+    {
+      "id": "strategy-to-environment",
+      "type": "ordering",
+      "category": "flow",
+      "prompt": "§2 の説明に沿って、エンタープライズがゼロトラスト環境を得るまでの流れを並べてください。",
+      "points": 2,
+      "referenceIds": [
+        "plan-deploy"
+      ],
+      "items": [
+        {
+          "id": "environment",
+          "text": "エンタープライズで使うゼロトラスト環境ができあがる"
+        },
+        {
+          "id": "deploy",
+          "text": "作成した計画を展開する"
+        },
+        {
+          "id": "plan",
+          "text": "ゼロトラストの原則を念頭に置いて、計画としての ZTA を作成する"
+        },
+        {
+          "id": "adopt",
+          "text": "ゼロトラストを中核の戦略として採用することを決める"
+        }
+      ]
+    },
+    {
+      "id": "data-to-resource",
+      "type": "choice",
+      "category": "debugging",
+      "prompt": "§2 の定義の説明に照らして、この説明の問題点はどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "crux"
+      ],
+      "scenario": "ある設計者が「ゼロトラストはデータへのアクセス制御の考え方なので、プリンターや IoT のアクチュエーターは ZTA の対象にならない。また、アクセスを認める相手は、ユーザーの単位で決めれば足りる」と説明しました。",
+      "options": [
+        "「データ」は「リソース」に置き換えられ、プリンターなどへのアクセスも対象になる。ただし、認可・承認されるサブジェクトは、デバイスの単位で決め、ユーザーとアプリケーション（またはサービス）は区別しない",
+        "対象がデータへのアクセスに限られる点も、ユーザーの単位で決める点も、定義の説明と合っている。ただし、アクセス制御の実施は、きめ細かくするのではなく、ネットワークセグメントの単位で行う必要がある",
+        "「データ」は「リソース」に置き換えられ、プリンターなどへのアクセスも対象になる。認可・承認されるサブジェクトは、ユーザー、アプリケーション（またはサービス）、デバイスの組み合わせである",
+        "対象がデータへのアクセスに限られる点は、定義の説明と合っている。ただし、認可・承認されるサブジェクトは、ユーザー、アプリケーション（またはサービス）、デバイスの組み合わせで決める必要がある"
+      ]
+    },
+    {
+      "id": "lessen-uncertainty",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "§2 は、不確実性への向き合い方と、その際の重点をどう説明していますか？",
+      "points": 1,
+      "referenceIds": [
+        "uncertainty"
+      ],
+      "options": [
+        "不確実性は排除できないので、軽減を目指す。可用性を維持し、認証の仕組みによる時間的な遅延を最小限に抑えるために、暗黙的信頼ゾーンを広げて、認証と認可の回数を減らす",
+        "不確実性は、完全に排除することを目指す。可用性の低下と、認証の仕組みによる時間的な遅延の増加を受け入れたうえで、認証、認可、暗黙的信頼ゾーンの縮小に重点を置く",
+        "不確実性は排除できないので、そのまま受け入れる。可用性の維持を最優先にして、認証と認可は、暗黙的信頼ゾーンの外から届くリクエストに限って実施することに重点を置く",
+        "不確実性は排除できないので、軽減を目指す。可用性を維持し、認証の仕組みによる時間的な遅延を最小限に抑えながら、認証、認可、暗黙的信頼ゾーンの縮小に重点を置く"
+      ]
+    },
+    {
+      "id": "pdp-and-pep",
+      "type": "choice",
+      "category": "vocabulary",
+      "prompt": "§2 のアクセスの抽象モデル（図 1）で、この 2 つはどのように位置付けられていますか？",
+      "points": 1,
+      "referenceIds": [
+        "access-model",
+        "xacml",
+        "judgment"
+      ],
+      "term": "policy decision point（PDP、ポリシー決定ポイント）と policy enforcement point（PEP、ポリシー実施ポイント）",
+      "options": [
+        "エンタープライズのリソースがサブジェクトに応答を返すとき、応答だけがこの 2 つを通過する。サブジェクトからのリクエストは、この 2 つを経由せずにリソースへ届く",
+        "サブジェクトがエンタープライズのリソースにアクセスするとき、アクセスはこの 2 つを通じて許可される。概念の一部は、OASIS XACML 2.0 で定義されている",
+        "サブジェクトがエンタープライズのネットワークに接続するとき、接続はこの 2 つを通じて許可される。個々のリソースへのアクセスは、この 2 つの判断の対象にならない",
+        "サブジェクトがエンタープライズのリソースにアクセスした後で、この 2 つがログを照合して可否を判断する。概念は、すべて本書が新たに定義したものである"
+      ]
+    },
+    {
+      "id": "two-areas-confidence",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "§2 は、PDP/PEP の判断の説明から、ゼロトラストが適用される 2 つの基本的な領域と、そこで問うべきことをどう示していますか？",
+      "points": 1,
+      "referenceIds": [
+        "judgment"
+      ],
+      "options": [
+        "認証と認可。サブジェクトが最初にログインしたときに、ID をどの程度確信できたか、その信頼度を以後のすべてのリクエストにも適用できるかを問う",
+        "認可と監査。サブジェクトのロールに、どの程度の権限が割り当てられているか、その権限に基づくリソースへのアクセスを事後に追認できるかを問う",
+        "認証と暗号化。この個別のリクエストについて、サブジェクトの ID をどの程度確信できるか、その信頼度であれば通信の暗号化を省略できるかを問う",
+        "認証と認可。この個別のリクエストについて、サブジェクトの ID をどの程度確信できるか、その信頼度でリソースへのアクセスを許可できるかを問う"
+      ]
+    },
+    {
+      "id": "implied-trustworthiness",
+      "type": "choice",
+      "category": "debugging",
+      "prompt": "§2 に照らして、この方針の問題点はどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "judgment"
+      ],
+      "scenario": "運用チームが「サブジェクトは、資産へのログインで基本的な認証レベルを満たしている。したがって、その後のリソースリクエストは、どれも同じように有効なものとして扱う」という方針を立てました。",
+      "options": [
+        "基本的な認証を、資産へのログインのときに行っている。認証は、ネットワークの境界で一度だけ行い、その結果を、境界の内側で行われるすべてのリソースリクエストに、一貫して適用する必要がある",
+        "その後のリクエストを有効と扱う点は適切だが、有効とする期間を決めていない。基本的な認証から一定の期間に限って、すべてのリソースリクエストを、同じように有効なものとして扱う必要がある",
+        "基本的な認証レベルを満たしたことを根拠にする、暗黙的な信頼に頼っている。リスクに基づく動的なポリシーを整え、個々のリソースアクセスリクエストに、正しく一貫して適用する必要がある",
+        "その後のリクエストを有効と扱う点は適切だが、基本的な認証レベルが低すぎる。より強い認証を最初に一度行えば、その後のリソースリクエストについては、個別の評価を省略することができる"
+      ]
+    },
+    {
+      "id": "implicit-trust-zone-term",
+      "type": "choice",
+      "category": "vocabulary",
+      "prompt": "この用語の説明と、§2 の空港の例での対応として正しいものはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "trust-zone"
+      ],
+      "term": "implicit trust zone（暗黙的信頼ゾーン）",
+      "options": [
+        "すべてのエンティティが、少なくとも最後の PDP/PEP ゲートウェイのレベルまで信頼されている領域。空港の例では、保安検査場を通った先の搭乗エリアにあたる",
+        "すべてのエンティティが、PDP/PEP ゲートウェイを通る前から信頼されている領域。空港の例では、保安検査場の手前にある、誰でも入れる出発ロビーにあたる",
+        "すべてのエンティティに対して、PDP/PEP が追加のポリシーを適用し続けている領域。空港の例では、乗客を 1 人ずつ検査する保安検査場そのものにあたる",
+        "エンタープライズ所有の資産だけが、PDP/PEP ゲートウェイを通らずに入れる領域。空港の例では、空港職員と乗務員だけが立ち入れる専用の区画にあたる"
+      ]
+    },
+    {
+      "id": "shrink-and-move",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "§2 は、PDP/PEP の働きの限界と、そこからゼロトラストが目指す方向をどう説明していますか？",
+      "points": 1,
+      "referenceIds": [
+        "pdp-limits"
+      ],
+      "options": [
+        "PDP/PEP は、トラフィックの流れの中で、自身の位置より先には追加のポリシーを適用できない。そのため、暗黙的信頼ゾーンを広げ、その中にあるリソースどうしの通信を共通の信頼レベルで扱う",
+        "PDP/PEP は、トラフィックの流れの中で、自身の位置より先にも追加のポリシーを適用できる。そのため、暗黙的信頼ゾーンを広く保ったまま、PDP/PEP をネットワークの境界に集約する",
+        "PDP/PEP は、トラフィックの流れの中で、自身の位置より手前のトラフィックには制御を適用できない。そのため、暗黙的信頼ゾーンをなくし、PDP/PEP をサブジェクトのデバイスの中だけに置く",
+        "PDP/PEP は、トラフィックの流れの中で、自身の位置より先には追加のポリシーを適用できない。そのため、暗黙的信頼ゾーンをできる限り小さくし、PDP/PEP をリソースの近くへ移す"
+      ]
+    },
+    {
+      "id": "review-single-checkpoint",
+      "type": "written",
+      "category": "design",
+      "prompt": "§2 の PDP/PEP と暗黙的信頼ゾーンの説明を使って、この構成の問題点と、ゼロトラストの考え方による改め方を述べてください。",
+      "points": 4,
+      "referenceIds": [
+        "trust-zone",
+        "pdp-limits",
+        "judgment"
+      ],
+      "scenario": "あるエンタープライズは、本社ネットワークの入口に検査点（PDP/PEP）を 1 つだけ置いています。そこで認証を通過したサブジェクトは、内部のすべてのサーバーとデータベースに、追加の確認なしでアクセスできます。",
+      "answerHint": "この構成での暗黙的信頼ゾーンの範囲、PDP/PEP の限界、ゾーンと PDP/PEP の配置をどう変えるか、個々のリクエストをどう扱うかの 4 点を、短い箇条書きで書いてください。"
+    },
+    {
+      "id": "local-network-assumptions",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "§2.2 の前提 4 と前提 5 は、エンタープライズ所有ではないネットワークにつながるリモートの資産について、何を想定していますか？",
+      "points": 1,
+      "referenceIds": [
+        "net-intro",
+        "net-4",
+        "net-5"
+      ],
+      "options": [
+        "エンタープライズが所有または管理する資産であれば、ローカルのネットワークは安全であると想定してよい。エンタープライズ所有ではない資産だけが、敵対的であると想定すべきである",
+        "基本的な接続性や DNS などのネットワークサービスのために、ローカルのネットワークを利用する必要がある場合がある。ただし、そのネットワークは敵対的であると想定すべきである",
+        "基本的な接続性や DNS などのネットワークサービスであっても、ローカルのネットワークを利用してはならない。すべての通信は、エンタープライズ所有のネットワークを経由させるべきである",
+        "基本的な接続性や DNS などのネットワークサービスのために、ローカルのネットワークを利用する必要がある場合がある。その範囲の通信に限れば、ローカルのネットワークを信頼してよい"
+      ]
+    },
+    {
+      "id": "private-network-not-trusted",
+      "type": "choice",
+      "category": "debugging",
+      "prompt": "§2.2 の前提に照らして、この決定の問題点はどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "net-1"
+      ],
+      "scenario": "ネットワーク管理者が「社内のプライベートネットワークはエンタープライズが所有・管理しているので、その中の通信では、接続の認証とトラフィックの暗号化を省略する」と決めました。",
+      "options": [
+        "プライベートネットワーク全体は、暗黙的信頼ゾーンと見なされない。ただし、エンタープライズ所有の資産どうしの通信に限れば、接続の認証とトラフィックの暗号化を省略することができる",
+        "プライベートネットワークのうち、訪問者が接続する区画だけは、暗黙的信頼ゾーンと見なされない。それ以外の区画の通信では、接続の認証とトラフィックの暗号化を省略することができる",
+        "プライベートネットワーク全体は、暗黙的信頼ゾーンと見なされる。ただし、省略できるのはトラフィックの暗号化だけで、接続の認証は、ネットワークに最初に接続するときに一度行う必要がある",
+        "プライベートネットワーク全体は、暗黙的信頼ゾーンと見なされない。資産は、攻撃者がネットワーク上にいるかのように振る舞い、すべての接続の認証と、すべてのトラフィックの暗号化を行う"
+      ]
+    },
+    {
+      "id": "nonenterprise-devices",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "§2.2 の前提 2 は、ネットワーク上のデバイスについて何を想定していますか？",
+      "points": 1,
+      "referenceIds": [
+        "net-2"
+      ],
+      "options": [
+        "エンタープライズが所有または構成できるものとは限らない。訪問者や委託サービスの資産、エンタープライズのサブジェクトが BYOD で使うデバイスが含まれることがある",
+        "エンタープライズが所有していないものも含まれるが、構成はエンタープライズが行える。訪問者や委託サービスの資産にも、接続の前にエンタープライズが設定を適用する",
+        "エンタープライズが所有し、構成できるものに限られる。訪問者や委託サービスの資産、エンタープライズのサブジェクトが BYOD で使うデバイスは、ネットワークに接続させない",
+        "エンタープライズが所有または構成できるものとは限らない。ただし、エンタープライズ所有ではないデバイスは、エンタープライズリソースへのアクセスには使わせない"
+      ]
+    },
+    {
+      "id": "device-authentication",
+      "type": "choice",
+      "category": "debugging",
+      "prompt": "§2.2 の前提 3 に照らして、この提案の問題点はどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "net-3"
+      ],
+      "scenario": "管理者が次の設定を提案しました。「エンタープライズ所有のノート PC は、エンタープライズの資産なので信頼でき、PEP でのセキュリティ態勢の評価を省略する。エンタープライズ所有ではないデバイスは、正しいユーザー ID とパスワードが入力されれば、デバイスも認証済みとして扱う」",
+      "options": [
+        "エンタープライズ所有の資産について評価を省略する点は、前提と合っている。サブジェクトのクレデンシャルに加えて、デバイスの所有者による申告があれば、デバイスの認証として十分である",
+        "本質的に信頼されるリソースはないが、評価はセッションを開始するときに一度行えば足りる。サブジェクトのクレデンシャルが正しければ、デバイスの認証も済んだものとして扱うことができる",
+        "エンタープライズ所有ではないデバイスは、評価の結果にかかわらず、アクセスを拒否しなければならない。エンタープライズ所有の資産は、サブジェクトのクレデンシャルだけで評価を省略できる",
+        "本質的に信頼されるリソースはなく、すべての資産が PEP を介してセキュリティ態勢を評価されなければならない。サブジェクトのクレデンシャルだけでは、デバイスの認証には不十分である"
+      ]
+    },
+    {
+      "id": "consistent-posture",
+      "type": "choice",
+      "category": "debugging",
+      "prompt": "§2.2 の前提に照らして、この計画の問題点はどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "net-6",
+        "net-4"
+      ],
+      "scenario": "クラウド移行の担当者が「オンプレミスのデータセンターからクラウドのインスタンスへ移すワークロードは、エンタープライズのインフラストラクチャを離れるので、移行後は、これまでのセキュリティポリシーの対象から外す」と計画しました。",
+      "options": [
+        "エンタープライズ所有ではないクラウドのインスタンスには、エンタープライズのリソースを置くことができないので、ワークロードは、セキュリティ態勢を維持できるオンプレミスのデータセンターに残しておくべきである",
+        "エンタープライズのインフラストラクチャを離れるワークロードは、移行先のクラウド事業者が定めるポリシーだけに従えばよいが、移行の前に、その内容をエンタープライズのポリシーと比べて、記録しておくべきである",
+        "エンタープライズのインフラストラクチャとエンタープライズ外のインフラストラクチャの間を移動する資産やワークロードは、一貫したセキュリティポリシーを備え、移動してもセキュリティ態勢を維持すべきである",
+        "エンタープライズのインフラストラクチャを離れるワークロードは、セキュリティポリシーの対象から外してよいが、エンタープライズのネットワークを離れるデバイスは、引き続き対象に残して、セキュリティ態勢を維持すべきである"
+      ]
+    },
+    {
+      "id": "remote-worker-design",
+      "type": "written",
+      "category": "design",
+      "prompt": "§2.2 の前提に基づいて、この状況でエンタープライズが想定すべきことと、接続・通信・デバイスの扱いを述べてください。",
+      "points": 4,
+      "referenceIds": [
+        "net-5",
+        "net-3",
+        "net-6"
+      ],
+      "scenario": "従業員が、ふだんは社内のネットワークで使っているエンタープライズ所有のノート PC を出張先に持ち出し、ホテルの Wi-Fi から、エンタープライズの業務サービスにアクセスします。",
+      "answerHint": "ホテルのネットワークをどう見なすか、接続と通信をどう保護するか、デバイスの評価をいつ行うか、社内から社外へ移動したデバイスの態勢をどう扱うかの 4 点を、短い箇条書きで書いてください。"
+    }
+  ],
+  "solutions": {
+    "paradigm-and-scope": {
+      "answer": 0,
+      "explanation": "§2。ゼロトラストは、リソースの保護と、信頼は決して暗黙的に与えられず継続的に評価されなければならないという前提に焦点を当てたパラダイムです。ZTA は、ID（人間エンティティと非人間エンティティ）、クレデンシャル、アクセス管理、運用、エンドポイント、ホスティング環境、それらを相互接続するインフラストラクチャを包含する、エンドツーエンドのアプローチです。ID やエンドポイントなどを範囲の外に置く説明は、本文と合いません。"
+    },
+    "initial-focus": {
+      "answer": 1,
+      "explanation": "§2。従来、政府機関は境界防御に重点を置き、認証されたサブジェクトは、いったん内部ネットワークに入ると、幅広いリソースへのアクセスを認可されていました。その結果、環境内での不正な横方向の移動が、連邦政府機関にとって最大の課題の 1 つになりました。最初の重点は、リソースへのアクセスを、アクセスの必要がある者に限定し、ミッションの遂行に必要な最小限の権限（読み取り、書き込み、削除など）だけを付与することに置くべきだとしています。部門の単位で幅広い権限を与える案は、この重点と合いません。"
+    },
+    "tic-firewall-limits": {
+      "answer": 1,
+      "explanation": "§2。TIC と境界ファイアウォールは強力なインターネットゲートウェイで、インターネットからの攻撃者を阻止するのに役立ちます。しかし、ネットワーク内部からの攻撃の検知と阻止にはあまり役立たず、エンタープライズの境界の外にあるサブジェクト（リモートワーカー、クラウドベースのサービス、エッジデバイスなど）を保護することもできません。"
+    },
+    "zt-operative-definition": {
+      "answer": 0,
+      "explanation": "§2。実用上の定義では、ゼロトラストは、ネットワークが侵害されていると見なされる状況で、情報システムとサービスにおける正確で最小権限の、リクエストごとのアクセス決定を実施する際の不確実性を最小化するために設計された、概念と考え方の集まりです。不確実性は排除できないものとして扱われ、決定は最初の接続のときではなくリクエストごとに行います。"
+    },
+    "three-definitions": {
+      "answer": 2,
+      "explanation": "§2。ZT は概念と考え方の集まりです。ZTA は、ゼロトラストの概念を活用し、コンポーネント間の関係、ワークフローの計画、アクセスポリシーを包含する、エンタープライズのサイバーセキュリティ計画です。ゼロトラストエンタープライズは、その計画の成果としてエンタープライズに整備されている、ネットワークインフラストラクチャ（物理および仮想）と運用ポリシーを指します。計画（ZTA）と、その成果（ゼロトラストエンタープライズ）を取り違えないことが要点です。"
+    },
+    "strategy-to-environment": {
+      "answer": [
+        "adopt",
+        "plan",
+        "deploy",
+        "environment"
+      ],
+      "explanation": "§2。エンタープライズは、ゼロトラストを中核の戦略として採用することを決め、ゼロトラストの原則を念頭に置いて策定した計画として ZTA を作成します。この計画が展開されて、エンタープライズで使うゼロトラスト環境が生まれます。戦略の決定、計画の作成、展開、環境の順です。"
+    },
+    "data-to-resource": {
+      "answer": 2,
+      "explanation": "§2。定義の核心は、データとサービスへの不正アクセスを防ぐという目標と、アクセス制御の実施をできる限りきめ細かくすることの組み合わせです。データにアクセスできるのは、認可され承認されたサブジェクト（ユーザー、アプリケーション（またはサービス）、デバイスの組み合わせ）だけで、他のすべてのサブジェクト（攻撃者）は除外されます。さらに「データ」は「リソース」に置き換えられるので、ZT と ZTA は、プリンター、コンピュートリソース、IoT のアクチュエーターなどのリソースへのアクセスに関するもので、データへのアクセスだけの話ではありません。"
+    },
+    "lessen-uncertainty": {
+      "answer": 3,
+      "explanation": "§2。不確実性は排除できないので、軽減を目指します。重点は、可用性を維持し、認証の仕組みにおける時間的な遅延を最小限に抑えながら、認証、認可、暗黙的信頼ゾーンの縮小に置かれます。アクセスルールは、リクエストされた動作の実行に必要な最小権限を適用できるよう、可能な限りきめ細かくされます。暗黙的信頼ゾーンは、広げるのではなく縮小します。"
+    },
+    "pdp-and-pep": {
+      "answer": 1,
+      "explanation": "§2。図 1 のアクセスの抽象モデルでは、サブジェクトがエンタープライズのリソースへのアクセスを必要としており、そのアクセスは PDP と、それに対応する PEP を通じて許可されます。脚注 3 によると、これらは OASIS XACML 2.0 で定義されている概念の一部です。PDP/PEP は、サブジェクトにリソースへのアクセスを許可するための判断を下す位置にあり、ネットワークへの接続だけを扱うものでも、事後にログを照合するものでもありません。"
+    },
+    "two-areas-confidence": {
+      "answer": 3,
+      "explanation": "§2。システムは、サブジェクトが真正であり、リクエストが有効であることを確実にしなければなりません。このことは、ゼロトラストが認証と認可という 2 つの基本的な領域に適用されることを意味します。問うのは、この個別のリクエストについてサブジェクトの ID をどの程度確信できるか、その信頼度でアクセスを許可できるか、リクエストに使われたデバイスが適切なセキュリティ態勢を備えているか、時刻やサブジェクトの場所など信頼度を変える他の要素があるか、です。最初のログインのときの確信を、以後のリクエストに持ち越す考え方ではありません。"
+    },
+    "implied-trustworthiness": {
+      "answer": 2,
+      "explanation": "§2。エンタープライズは、リソースアクセスのための、リスクに基づく動的なポリシーを策定・維持し、それが個々のリソースアクセスリクエストに対して正しく一貫して実施されるようにする仕組みを整える必要があります。つまり、サブジェクトが基本的な認証レベル（資産へのログインなど）を満たしていれば、その後のリソースリクエストがすべて同等に有効だと見なすような、暗黙的な信頼に頼るべきではありません。認証を強くしても、期間を区切っても、個々のリクエストを評価しない点は変わりません。"
+    },
+    "implicit-trust-zone-term": {
+      "answer": 0,
+      "explanation": "§2。暗黙的信頼ゾーンは、すべてのエンティティが、少なくとも最後の PDP/PEP ゲートウェイのレベルまで信頼されている領域です。空港の例では、すべての乗客が保安検査場（PDP/PEP）を通って搭乗ゲートへ進み、ターミナルエリアにいる乗客、空港職員、乗務員などは、すべて信頼されていると見なされます。このモデルでの暗黙的信頼ゾーンは搭乗エリアです。保安検査場は PDP/PEP にあたり、ゾーンそのものではありません。"
+    },
+    "shrink-and-move": {
+      "answer": 3,
+      "explanation": "§2。PDP/PEP は一連の制御を適用し、PEP の先にあるすべてのトラフィックが共通の信頼レベルを持つようにしますが、トラフィックの流れの中での自身の位置より先では、追加のポリシーを適用できません。PDP/PEP ができる限り個別具体的にポリシーを適用できるようにするには、暗黙的信頼ゾーンをできる限り小さくしなければなりません。ゼロトラストは、PDP/PEP をリソースのより近くへ移し、エンタープライズを構成するすべてのサブジェクト、資産、ワークフローを明示的に認証・認可するという原則と概念を提供します。"
+    },
+    "review-single-checkpoint": {
+      "explanation": "§2。この構成では、内部ネットワーク全体が暗黙的信頼ゾーンになり、中のエンティティはすべて、入口の PDP/PEP のレベルまで信頼されます。PDP/PEP は自身の位置より先には追加のポリシーを適用できないので、内部での個々のアクセスを制御できません。ゼロトラストの考え方では、暗黙的信頼ゾーンをできる限り小さくし、PDP/PEP をリソースの近くへ移します。そのうえで、基本的な認証を満たしたことを根拠に以後のリクエストを同等に有効と見なすのではなく、個々のリソースアクセスリクエストについて、サブジェクト、資産、ワークフローを明示的に認証・認可します。",
+      "rubric": [
+        {
+          "criterion": "この構成では内部ネットワーク全体が暗黙的信頼ゾーンになり、その中のすべてのエンティティが、入口の PDP/PEP のレベルまで信頼されていることを指摘している",
+          "points": 1,
+          "referenceIds": [
+            "trust-zone"
+          ]
+        },
+        {
+          "criterion": "PDP/PEP は、トラフィックの流れの中で、自身の位置より先には追加のポリシーを適用できないことを述べている",
+          "points": 1,
+          "referenceIds": [
+            "pdp-limits"
+          ]
+        },
+        {
+          "criterion": "暗黙的信頼ゾーンをできる限り小さくし、PDP/PEP をリソースの近くへ移すことを述べている",
+          "points": 1,
+          "referenceIds": [
+            "pdp-limits"
+          ]
+        },
+        {
+          "criterion": "入口での認証を根拠に以後のリクエストを一律に有効と見なさず、個々のリソースアクセスリクエストについて、サブジェクト（および資産）を明示的に認証・認可することを述べている",
+          "points": 1,
+          "referenceIds": [
+            "judgment",
+            "pdp-limits"
+          ]
+        }
+      ]
+    },
+    "local-network-assumptions": {
+      "answer": 1,
+      "explanation": "§2.2（前提 4・5）。§2.2 の前提の一部は、公衆 Wi-Fi やパブリッククラウドプロバイダーなど、エンタープライズ所有ではないネットワークインフラストラクチャ上で稼働するエンタープライズ所有のリソースに適用されます。すべてのエンタープライズリソースがエンタープライズ所有のインフラストラクチャ上にあるわけではなく、エンタープライズが所有または管理する資産は、基本的な接続性やネットワークサービス（DNS 名前解決など）のために、ローカルのネットワークを利用する必要がある場合があります。一方で、リモートのサブジェクトは、ローカルのネットワークが敵対的であると想定すべきで、資産は、すべてのトラフィックが監視され、改変される可能性があると想定すべきです。"
+    },
+    "private-network-not-trusted": {
+      "answer": 3,
+      "explanation": "§2.2（前提 1）。エンタープライズのプライベートネットワーク全体が、暗黙的信頼ゾーンと見なされることはありません。資産は、エンタープライズネットワーク上に攻撃者が存在するかのように常に振る舞うべきで、通信は、利用可能な最も安全な方法で行うべきです。これには、すべての接続を認証し、すべてのトラフィックを暗号化するといった行動が伴います。エンタープライズ所有の資産どうしの通信や、特定の区画だけを例外にする説明はありません。"
+    },
+    "nonenterprise-devices": {
+      "answer": 0,
+      "explanation": "§2.2（前提 2）。ネットワーク上のデバイスは、エンタープライズが所有または構成できるものとは限りません。訪問者や委託サービスには、役割を果たすためにネットワークアクセスを必要とする、エンタープライズ所有ではない資産が含まれることがあります。エンタープライズのサブジェクトが、エンタープライズ所有ではないデバイスでエンタープライズリソースにアクセスすることを認める BYOD ポリシーも、これに含まれます。"
+    },
+    "device-authentication": {
+      "answer": 3,
+      "explanation": "§2.2（前提 3）。本質的に信頼されるリソースは存在せず、エンタープライズ所有のリソースへのリクエストが許可される前に、すべての資産が、PEP を介してセキュリティ態勢を評価されなければなりません。この評価は、セッションが続く間、継続的に行うべきです。エンタープライズ所有のデバイスは、認証を可能にするアーティファクトを持っていることがあり、エンタープライズ所有ではないデバイスからの同じリクエストより高い信頼度が得られる場合がありますが、評価が不要になるわけではありません。また、サブジェクトのクレデンシャルだけでは、エンタープライズリソースに対するデバイスの認証には不十分です。"
+    },
+    "consistent-posture": {
+      "answer": 2,
+      "explanation": "§2.2（前提 6）。エンタープライズのインフラストラクチャとエンタープライズ外のインフラストラクチャの間を移動する資産やワークフローは、一貫したセキュリティポリシーとセキュリティ態勢を備えるべきです。資産やワークロードは、エンタープライズ所有のインフラストラクチャへ移動する場合も、そこから移動する場合も、セキュリティ態勢を維持すべきです。これには、エンタープライズのネットワークからエンタープライズ外のネットワークへ移動するデバイス（リモートユーザー）と、オンプレミスのデータセンターからエンタープライズ外のクラウドインスタンスへ移行するワークロードの両方が含まれます。前提 4 が述べるように、リソースがエンタープライズ所有のインフラストラクチャ上にないこと自体は、想定されている状況です。"
+    },
+    "remote-worker-design": {
+      "explanation": "§2.2（前提 3・5・6）。リモートのサブジェクトと資産は、ローカルのネットワーク接続を完全には信頼できません。ローカルのネットワークは敵対的で、すべてのトラフィックが監視され、改変される可能性があると想定すべきです。そのため、すべての接続リクエストを認証・認可し、通信は、機密性、完全性の保護、送信元認証を提供する、可能な限り最も安全な方法で行うべきです。デバイスは、リクエストが許可される前に PEP を介してセキュリティ態勢を評価され、評価はセッションが続く間、継続すべきです。また、エンタープライズのネットワークからエンタープライズ外のネットワークへ移動するデバイスも、一貫したセキュリティポリシーとセキュリティ態勢を維持すべきです。",
+      "rubric": [
+        {
+          "criterion": "リモートのサブジェクトと資産はローカルの（エンタープライズ所有ではない）ネットワークを完全には信頼できず、ネットワークは敵対的で、トラフィックは監視・改変されうると想定することを述べている",
+          "points": 1,
+          "referenceIds": [
+            "net-5"
+          ]
+        },
+        {
+          "criterion": "すべての接続リクエストを認証・認可し、通信を可能な限り最も安全な方法（機密性、完全性の保護、送信元認証）で行うことを述べている",
+          "points": 1,
+          "referenceIds": [
+            "net-5"
+          ]
+        },
+        {
+          "criterion": "リクエストが許可される前に、PEP を介してデバイスのセキュリティ態勢を評価し、セッションが続く間は評価を継続すること（サブジェクトのクレデンシャルだけではデバイスの認証に不十分であること）を述べている",
+          "points": 1,
+          "referenceIds": [
+            "net-3"
+          ]
+        },
+        {
+          "criterion": "エンタープライズのネットワークからエンタープライズ外のネットワークへ移動したデバイスにも、一貫したセキュリティポリシーを適用し、セキュリティ態勢を維持することを述べている",
+          "points": 1,
+          "referenceIds": [
+            "net-6"
+          ]
+        }
+      ]
+    }
+  },
+  "inconsistencies": []
+}

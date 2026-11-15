@@ -1,0 +1,735 @@
+{
+  "format": "spec-understanding-quiz",
+  "version": 1,
+  "id": "nist-sp-800-207-16-implementation",
+  "title": "NIST SP 800-207 ゼロトラスト 16/16: 実装 — アクセス判断を自分で書く",
+  "status": "published",
+  "spec": {
+    "id": "pdf-0290d6ece2487428",
+    "status": "adopted",
+    "repository": "maronnjapan/readRFCInMobile",
+    "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+    "path": "apps/quiz/specs/nist-sp-800-207.txt"
+  },
+  "references": [
+    {
+      "id": "tenet-session",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 188,
+      "endLine": 188,
+      "reason": "§2.1: 基本原則 3（セッション単位のアクセス、別のリソースへは自動的に及ばない）",
+      "excerpt": "3. Access to individual enterprise resources is granted on a per-session basis. Trust in the requester is evaluated before the access is granted. Access should also be granted with the least privileges needed to complete the task. This could mean only “sometime recently” for this particular transaction and may not occur directly before initiating a session or performing a transaction with a resource. However, authentication and authorization to one resource will not automatically grant access to a different resource."
+    },
+    {
+      "id": "pe",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 218,
+      "endLine": 218,
+      "reason": "§3: ポリシーエンジン（決定と記録）",
+      "excerpt": "- Policy engine (PE): This component is responsible for the ultimate decision to grant access to a resource for a given subject. The PE uses enterprise policy as well as input from external sources (e.g., CDM systems, threat intelligence services described below) as input to a trust algorithm (see Section 3.3 for more details) to grant, deny, or revoke access to the resource. The PE is paired with the policy administrator component. The policy engine makes and logs the decision (as approved, or denied), and the policy administrator executes the decision."
+    },
+    {
+      "id": "pa",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 219,
+      "endLine": 220,
+      "reason": "§3: ポリシー管理者（通信経路の確立と遮断）",
+      "excerpt": "- Policy administrator (PA): This component is responsible for establishing and/or shutting down the communication path between a subject and a resource (via commands to relevant PEPs). It would generate any session-specific authentication and authentication token or credential used by a client to access an enterprise resource. It is closely tied to the PE and relies on its decision to ultimately allow or deny a session. If the session is authorized and the request authenticated, the PA configures the PEP to allow the session to start. If the session is denied (or a previous approval is countermanded), the PA signals to the PEP to shut down the connection. Some implementations may treat the PE and PA as a single service; here, it is divided into its\n- two logical components. The PA communicates with the PEP when creating the communication path. This communication is done via the control plane."
+    },
+    {
+      "id": "agent-gateway-flow",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 278,
+      "endLine": 278,
+      "reason": "§3.2.1: 接続の確立から終了までの典型的な流れ",
+      "excerpt": "In a typical scenario, a subject with an enterprise-issued laptop wishes to connect to an enterprise resource (e.g., human resources application/database). The access request is taken by the local agent, and the request is forwarded to the policy administrator. The policy administrator and policy engine could be an enterprise local asset or a cloud-hosted service. The policy administrator forwards the request to the policy engine for evaluation. If the request is authorized, the policy administrator configures a communication channel between the device agent and the relevant resource gateway via the control plane. This may include information such as an internet protocol (IP) address, port information, session key, or similar security artifacts. The device agent and gateway then connect, and encrypted application/service data flows begin. The connection between the device agent and resource gateway is terminated when the workflow is completed or when triggered by the policy administrator due to a security event (e.g., session time-out, failure to reauthenticate)."
+    },
+    {
+      "id": "ta-inputs",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 320,
+      "endLine": 325,
+      "reason": "§3.3: 信頼アルゴリズムの入力（リクエスト、サブジェクト、資産、リソース要件、脅威インテリジェンス）",
+      "excerpt": "- Access request: This is the actual request from the subject. The resource requested is the primary information used, but information about the requester is also used. This can include OS version, software used (e.g., does the requesting application appear on a list of approved applications?), and patch level. Depending on these factors and the asset security posture, access to assets might be restricted or denied.\n- Subject database: This is the “who” that is requesting access to a resource [SP800-63]. This is the set of subjects (human and processes) of the enterprise or collaborators and a collection of subject attributes/privileges assigned. These subjects and attributes form the basis of policies for resource access [SP800-162] [NISTIR 7987]. User identities can include a mix of logical identity (e.g., account ID) and results of authentication checks performed by PEPs. Attributes of identity that can be factored into deriving the confidence level include time and geolocation. A collection of privileges given to multiple subjects could be thought of as a role, but privileges should be assigned to a subject on an individual basis and not simply because they may fit into a particular role in the organization. This collection should be encoded and stored in an ID management system and policy database. This may also include data about past observed subject behavior in some (TA) variants (see Section 3.3.1).\n- Asset database (and observable status): This is the database that contains the known status of each enterprise-owned (and possibly known nonenterprise/BYOD) asset (physical and virtual, to some extent). This is compared to the observable status of the asset making the request and can include OS version, software present, and its integrity,\n- location (network location and geolocation), and patch level. Depending on the asset state compared with this database, access to assets might be restricted or denied.\n- Resource requirements: This set of policies complements the user ID and attributes database [SP800-63] and defines the minimal requirements for access to the resource. Requirements may include authenticator assurance levels, such as MFA network location (e.g., deny access from overseas IP addresses), data sensitivity, and requests for asset configuration. These requirements should be developed by both the data custodian (i.e., those responsible for the data) and those responsible for the business processes that utilize the data (i.e., those responsible for the mission).\n- Threat intelligence: This is an information feed or feeds about general threats and active malware operating on the internet. This could also include specific information about communication seen from the device that may be suspect (such as queries for possible malware command and control nodes). These feeds can be external services or internal scans and discoveries and can include attack signatures and mitigations. This is the only component that will most likely be under the control of a service rather than the enterprise."
+    },
+    {
+      "id": "ta-weights",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 327,
+      "endLine": 327,
+      "reason": "§3.3: データソースの重み",
+      "excerpt": "The weight of importance for each data source may be a proprietary algorithm or may be configured by the enterprise. These weight values can be used to reflect the importance of the data source to an enterprise."
+    },
+    {
+      "id": "pa-execution",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 329,
+      "endLine": 329,
+      "reason": "§3.3: PA による実行、保留、終了",
+      "excerpt": "The final determination is then passed to the PA for execution. The PA’s job is to configure the necessary PEPs to enable authorized communication. Depending on how the ZTA is deployed, this may involve sending authentication results and connection configuration information to gateways and agents or resource portals. PAs may also place a hold or pause on a communication session to reauthenticate and reauthorize the connection in accordance with policy requirements. The PA is also responsible for issuing the command to terminate the connection based on policy (e.g., after a time-out, when the workflow has been completed, due to a security alert)."
+    },
+    {
+      "id": "criteria-score",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 335,
+      "endLine": 336,
+      "reason": "§3.3.1: 基準ベースとスコアベース",
+      "excerpt": "- Criteria- versus score-based: A criteria-based TA assumes a set of qualified attributes that must be met before access is granted to a resource or an action (e.g., read/write) is allowed. These criteria are configured by the enterprise and should be independently configured for every resource. Access is granted or an action applied to a resource only if all the criteria are met. A score-based TA computes a confidence level based on values for every data source and enterprise-configured weights. If the score is greater than the configured threshold value for the resource, access is granted, or the action is performed.\n- Otherwise, the request is denied, or access privileges are reduced (e.g., read access is granted but not write access for a file)."
+    },
+    {
+      "id": "singular-contextual",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 337,
+      "endLine": 337,
+      "reason": "§3.3.1: 単一型とコンテキスト型",
+      "excerpt": "- Singular versus contextual: A singular TA treats each request individually and does not take the subject history into consideration when making its evaluation. This can allow faster evaluations, but there is a risk that an attack can go undetected if it stays within a subject’s allowed role. A contextual TA takes the subject or network agent’s recent history into consideration when evaluating access requests. This means the PE must maintain some state information on all subjects and applications but may be more likely to detect an attacker using subverted credentials to access information in a pattern that is atypical of what the PE sees for the given subject. This also means that the PE must be informed of user behavior by the PA (and PEPs) that subjects interact with when communicating. Analysis of subject behavior can be used to provide a model of acceptable use, and deviations from this behavior could trigger additional authentication checks or resource request denials."
+    },
+    {
+      "id": "contextual-examples",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 341,
+      "endLine": 341,
+      "reason": "§3.3.1: コンテキスト型の例（件数の急増、業務時間外）とバランス",
+      "excerpt": "Ideally, a ZTA trust algorithm should be contextual, but this may not always be possible with the infrastructure components available to the enterprise. A contextual TA can mitigate threats where an attacker stays close to a “normal” set of access requests for a compromised subject account or insider attack. It is important to balance security, usability, and cost-effectiveness when defining and implementing trust algorithms. Continually prompting a subject for reauthentication against behavior that is consistent with historical trends and norms for their mission function and role within the organization can lead to usability issues. For example, if an employee in the HR department of an agency normally accesses 20 to 30 employee records in a typical workday, a contextual TA may send an alert if the access requests suddenly exceed 100 records in a day. A contextual TA may also send an alert if someone is making access requests after normal business hours as this could be an attacker exfiltrating records by using a compromised HR account. These are examples where a contextual TA can detect an attack whereas a singular TA may fail to detect the new behavior. In another example, an accountant who typically accesses the financial system during normal business hours is now trying to access the system in the middle of the night from an unrecognizable location. A contextual TA may trigger an alert and require the subject to satisfy a more stringent confidence level or other criteria as outlined in NIST Special Publication 800-63A [SP800-63A]."
+    },
+    {
+      "id": "net-pep-only",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 356,
+      "endLine": 356,
+      "reason": "§3.4.1: 要件 4（PEP を経由しなければリソースに到達できない）",
+      "excerpt": "4. Enterprise resources should not be reachable without accessing a PEP. Enterprise resources do not accept arbitrary incoming connections from the internet. Resources accept custom-configured connections only after a client has been authenticated and authorized. These communication paths are set up by the PEP. Resources may not even be discoverable without accessing a PEP. This prevents attackers from identifying targets via scanning and/or launching DoS attacks against resources located behind PEPs. Note that not all resources should be hidden this way; some network infrastructure components (e.g., DNS servers) must be accessible."
+    },
+    {
+      "id": "initial-deployment",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 606,
+      "endLine": 608,
+      "reason": "§7.3.6: 初期展開とレポート専用モード",
+      "excerpt": "Once the candidate workflow and ZTA components are chosen, the initial deployment can start. Enterprise administrators must implement the developed policies by using the selected components but may wish to operate in an observation and monitoring mode at first. Few enterprise policy sets are complete in their first iterations: important user accounts (e.g., administrator accounts) may be denied access to resources they need or may not need all the access privileges they have been assigned.\n\nThe new ZT business workflow could be operated in reporting-only mode for some time to make sure the policies are effective and workable. This also allows the enterprise to gain an understanding of baseline asset and resource access requests, behavior, and communication patterns. Reporting-only means that access should be granted for most requests, and logs and traces of connections should be compared with the initial developed policy. Basic policies such as denying requests that fail MFA or appear from known, attacker controlled or subverted IP addresses should be enforced and logged, but after initial deployment, access polices should be more lenient to collect data from actual interactions of the ZT workflow. Once the baseline activity patterns for the workflow has been established, anomalous behavior can be more easily identify. If it is not possible to operate in a more lenient nature, enterprise network operators should monitor logs closely and be prepared to modify access policies based on operational experience."
+    }
+  ],
+  "questions": [
+    {
+      "id": "criteria-based-decision",
+      "type": "implementation",
+      "category": "implementation",
+      "prompt": "ケースを満たす decideByCriteria(request, policies, suspectAssets) を実装してください。リクエストのリソースと操作に設定された基準をすべて満たす場合にだけ grant を返し、満たしていない基準の名前を unmet に決められた順で入れてください。値が分からない属性は、基準を満たしていないものとして扱います。",
+      "points": 6,
+      "referenceIds": [
+        "criteria-score",
+        "ta-inputs"
+      ],
+      "scenario": "あるエンタープライズが、人事データベースへのアクセス判断に基準ベースの信頼アルゴリズムを使います。リソースごと・操作（read / write）ごとに基準を設定し、リクエスト、サブジェクト、資産の状態、脅威インテリジェンスと照らし合わせます。基準の種類（MFA、国、パッチレベル、承認済みアプリケーション）、データの形、基準が未設定のときに拒否することは、この課題独自の設定です。",
+      "answerHint": "基準の選び方（リソースと操作）、個々の基準の判定、すべて満たしたときだけ許可する最終判断を分けて考えると整理できます。",
+      "implementation": {
+        "language": "javascript",
+        "starterCode": "// request: { subject: { id, mfa }, asset: { id, country, patchLevel }, app, action, resource }\n// policies: { [resource]: { [action]: { requireMfa, allowedCountries, minPatchLevel, approvedApps } } }\n// suspectAssets: 脅威インテリジェンスで不審とされた資産の id の配列\n// 戻り値: { decision: \"grant\" | \"deny\", unmet: 満たしていない基準の名前の配列 }\n//   unmet の名前と順序: \"mfa\", \"country\", \"patch\", \"app\", \"threat\"\n//   基準が設定されていないリソース・操作は { decision: \"deny\", unmet: [\"no-policy\"] }\nfunction decideByCriteria(request, policies, suspectAssets) {\n  // ケースと制約を満たす処理を書いてください。\n}\n",
+        "cases": [
+          {
+            "name": "read の基準をすべて満たす（パッチレベルは最低値ちょうど）",
+            "input": "{\"subject\":{\"id\":\"u1\",\"mfa\":false},\"asset\":{\"id\":\"laptop-17\",\"country\":\"JP\",\"patchLevel\":3},\"app\":\"hr-client\",\"action\":\"read\",\"resource\":\"hr-db\"}, {\"hr-db\":{\"read\":{\"requireMfa\":false,\"allowedCountries\":[\"JP\",\"US\"],\"minPatchLevel\":3,\"approvedApps\":[\"hr-client\",\"browser\"]},\"write\":{\"requireMfa\":true,\"allowedCountries\":[\"JP\"],\"minPatchLevel\":5,\"approvedApps\":[\"hr-client\"]}}}, []",
+            "expected": "{\"decision\":\"grant\",\"unmet\":[]}"
+          },
+          {
+            "name": "write に必要な MFA とパッチレベルを満たさない",
+            "input": "{\"subject\":{\"id\":\"u1\",\"mfa\":false},\"asset\":{\"id\":\"laptop-17\",\"country\":\"JP\",\"patchLevel\":3},\"app\":\"hr-client\",\"action\":\"write\",\"resource\":\"hr-db\"}, {\"hr-db\":{\"read\":{\"requireMfa\":false,\"allowedCountries\":[\"JP\",\"US\"],\"minPatchLevel\":3,\"approvedApps\":[\"hr-client\",\"browser\"]},\"write\":{\"requireMfa\":true,\"allowedCountries\":[\"JP\"],\"minPatchLevel\":5,\"approvedApps\":[\"hr-client\"]}}}, []",
+            "expected": "{\"decision\":\"deny\",\"unmet\":[\"mfa\",\"patch\"]}"
+          },
+          {
+            "name": "write の基準をすべて満たす",
+            "input": "{\"subject\":{\"id\":\"u1\",\"mfa\":true},\"asset\":{\"id\":\"laptop-17\",\"country\":\"JP\",\"patchLevel\":6},\"app\":\"hr-client\",\"action\":\"write\",\"resource\":\"hr-db\"}, {\"hr-db\":{\"read\":{\"requireMfa\":false,\"allowedCountries\":[\"JP\",\"US\"],\"minPatchLevel\":3,\"approvedApps\":[\"hr-client\",\"browser\"]},\"write\":{\"requireMfa\":true,\"allowedCountries\":[\"JP\"],\"minPatchLevel\":5,\"approvedApps\":[\"hr-client\"]}}}, []",
+            "expected": "{\"decision\":\"grant\",\"unmet\":[]}"
+          },
+          {
+            "name": "許可されていない国からの read",
+            "input": "{\"subject\":{\"id\":\"u1\",\"mfa\":false},\"asset\":{\"id\":\"laptop-17\",\"country\":\"FR\",\"patchLevel\":3},\"app\":\"hr-client\",\"action\":\"read\",\"resource\":\"hr-db\"}, {\"hr-db\":{\"read\":{\"requireMfa\":false,\"allowedCountries\":[\"JP\",\"US\"],\"minPatchLevel\":3,\"approvedApps\":[\"hr-client\",\"browser\"]},\"write\":{\"requireMfa\":true,\"allowedCountries\":[\"JP\"],\"minPatchLevel\":5,\"approvedApps\":[\"hr-client\"]}}}, []",
+            "expected": "{\"decision\":\"deny\",\"unmet\":[\"country\"]}"
+          },
+          {
+            "name": "承認されていないアプリケーション",
+            "input": "{\"subject\":{\"id\":\"u1\",\"mfa\":false},\"asset\":{\"id\":\"laptop-17\",\"country\":\"JP\",\"patchLevel\":3},\"app\":\"file-sync\",\"action\":\"read\",\"resource\":\"hr-db\"}, {\"hr-db\":{\"read\":{\"requireMfa\":false,\"allowedCountries\":[\"JP\",\"US\"],\"minPatchLevel\":3,\"approvedApps\":[\"hr-client\",\"browser\"]},\"write\":{\"requireMfa\":true,\"allowedCountries\":[\"JP\"],\"minPatchLevel\":5,\"approvedApps\":[\"hr-client\"]}}}, []",
+            "expected": "{\"decision\":\"deny\",\"unmet\":[\"app\"]}"
+          },
+          {
+            "name": "脅威インテリジェンスで不審とされた資産",
+            "input": "{\"subject\":{\"id\":\"u1\",\"mfa\":false},\"asset\":{\"id\":\"laptop-17\",\"country\":\"JP\",\"patchLevel\":3},\"app\":\"hr-client\",\"action\":\"read\",\"resource\":\"hr-db\"}, {\"hr-db\":{\"read\":{\"requireMfa\":false,\"allowedCountries\":[\"JP\",\"US\"],\"minPatchLevel\":3,\"approvedApps\":[\"hr-client\",\"browser\"]},\"write\":{\"requireMfa\":true,\"allowedCountries\":[\"JP\"],\"minPatchLevel\":5,\"approvedApps\":[\"hr-client\"]}}}, [\"laptop-17\"]",
+            "expected": "{\"decision\":\"deny\",\"unmet\":[\"threat\"]}"
+          },
+          {
+            "name": "パッチレベルが分からない資産",
+            "input": "{\"subject\":{\"id\":\"u1\",\"mfa\":false},\"asset\":{\"id\":\"laptop-17\",\"country\":\"JP\"},\"app\":\"hr-client\",\"action\":\"read\",\"resource\":\"hr-db\"}, {\"hr-db\":{\"read\":{\"requireMfa\":false,\"allowedCountries\":[\"JP\",\"US\"],\"minPatchLevel\":3,\"approvedApps\":[\"hr-client\",\"browser\"]},\"write\":{\"requireMfa\":true,\"allowedCountries\":[\"JP\"],\"minPatchLevel\":5,\"approvedApps\":[\"hr-client\"]}}}, []",
+            "expected": "{\"decision\":\"deny\",\"unmet\":[\"patch\"]}"
+          },
+          {
+            "name": "基準が設定されていないリソース",
+            "input": "{\"subject\":{\"id\":\"u1\",\"mfa\":false},\"asset\":{\"id\":\"laptop-17\",\"country\":\"JP\",\"patchLevel\":3},\"app\":\"hr-client\",\"action\":\"read\",\"resource\":\"payroll\"}, {\"hr-db\":{\"read\":{\"requireMfa\":false,\"allowedCountries\":[\"JP\",\"US\"],\"minPatchLevel\":3,\"approvedApps\":[\"hr-client\",\"browser\"]},\"write\":{\"requireMfa\":true,\"allowedCountries\":[\"JP\"],\"minPatchLevel\":5,\"approvedApps\":[\"hr-client\"]}}}, []",
+            "expected": "{\"decision\":\"deny\",\"unmet\":[\"no-policy\"]}"
+          }
+        ],
+        "mobile": {
+          "prompt": "decideByCriteria が呼ぶ patchUnmet と granted の組み合わせとして、すべてのケースを満たすものはどれですか？",
+          "code": "function decideByCriteria(request, policies, suspectAssets) {\n  const criteria = policies[request.resource]?.[request.action];\n  if (!criteria) return { decision: \"deny\", unmet: [\"no-policy\"] };\n  const unmet = [];\n  if (criteria.requireMfa && request.subject.mfa !== true) unmet.push(\"mfa\");\n  if (!criteria.allowedCountries.includes(request.asset.country)) unmet.push(\"country\");\n  if (patchUnmet(request.asset.patchLevel, criteria.minPatchLevel)) unmet.push(\"patch\");\n  if (!criteria.approvedApps.includes(request.app)) unmet.push(\"app\");\n  if (suspectAssets.includes(request.asset.id)) unmet.push(\"threat\");\n  return { decision: granted(unmet) ? \"grant\" : \"deny\", unmet };\n}\n",
+          "options": [
+            "const patchUnmet = (level, min) =>\n  !(level >= min);\nconst granted = (unmet) =>\n  unmet.length === 0;",
+            "const patchUnmet = (level, min) =>\n  !(level >= min);\nconst granted = (unmet) =>\n  unmet.length < 5;",
+            "const patchUnmet = (level, min) =>\n  !(level > min);\nconst granted = (unmet) =>\n  unmet.length === 0;",
+            "const patchUnmet = (level, min) =>\n  level < min;\nconst granted = (unmet) =>\n  unmet.length === 0;"
+          ]
+        }
+      }
+    },
+    {
+      "id": "score-based-decision",
+      "type": "implementation",
+      "category": "implementation",
+      "prompt": "ケースを満たす decideByScore(values, weights, thresholds) を実装してください。信頼度を計算し、信頼度がしきい値より大きい操作だけを allowed に入れて返してください。",
+      "points": 6,
+      "referenceIds": [
+        "criteria-score",
+        "ta-weights"
+      ],
+      "scenario": "あるエンタープライズが、ファイルサーバーへのアクセス判断にスコアベースの信頼アルゴリズムを使います。データソースごとの値と、エンタープライズが設定した重みから信頼度を計算し、リソースの操作（read / write）ごとに設定したしきい値と比べます。値の範囲（0〜100）、重み付き平均という計算方法、値がないデータソースを 0 とすることは、この課題独自の設定です。",
+      "answerHint": "信頼度の計算（どのデータソースを数えるか）と、しきい値との比べ方（等しいときの扱い）を分けて考えると整理できます。",
+      "implementation": {
+        "language": "javascript",
+        "starterCode": "// values: データソースごとの値 (0〜100)。例: { subject: 90, asset: 80, threat: 100 }\n// weights: エンタープライズが設定した重み。例: { subject: 2, asset: 1, threat: 1 }\n// thresholds: 操作ごとのしきい値。例: { read: 50, write: 70 }\n// 信頼度 score = Σ(値 × 重み) ÷ Σ(重み)。weights にあって values にないデータソースの値は 0 とする。\n// 戻り値: { score, allowed: 許可する操作の配列 (thresholds のキーの順) }\nfunction decideByScore(values, weights, thresholds) {\n  // ケースと制約を満たす処理を書いてください。\n}\n",
+        "cases": [
+          {
+            "name": "信頼度が両方のしきい値を上回る",
+            "input": "{\"subject\":90,\"asset\":80,\"threat\":100}, {\"subject\":2,\"asset\":1,\"threat\":1}, {\"read\":50,\"write\":70}",
+            "expected": "{\"score\":90,\"allowed\":[\"read\",\"write\"]}"
+          },
+          {
+            "name": "信頼度が write のしきい値と等しい",
+            "input": "{\"subject\":90,\"asset\":40,\"threat\":60}, {\"subject\":2,\"asset\":1,\"threat\":1}, {\"read\":50,\"write\":70}",
+            "expected": "{\"score\":70,\"allowed\":[\"read\"]}"
+          },
+          {
+            "name": "信頼度が read のしきい値と等しい",
+            "input": "{\"subject\":50,\"asset\":50,\"threat\":50}, {\"subject\":2,\"asset\":1,\"threat\":1}, {\"read\":50,\"write\":70}",
+            "expected": "{\"score\":50,\"allowed\":[]}"
+          },
+          {
+            "name": "信頼度がどのしきい値にも届かない",
+            "input": "{\"subject\":40,\"asset\":20,\"threat\":60}, {\"subject\":2,\"asset\":1,\"threat\":1}, {\"read\":50,\"write\":70}",
+            "expected": "{\"score\":40,\"allowed\":[]}"
+          },
+          {
+            "name": "サブジェクトの重みが大きい設定",
+            "input": "{\"subject\":100,\"asset\":100,\"threat\":20}, {\"subject\":2,\"asset\":1,\"threat\":1}, {\"read\":50,\"write\":70}",
+            "expected": "{\"score\":80,\"allowed\":[\"read\",\"write\"]}"
+          },
+          {
+            "name": "同じ値で、脅威インテリジェンスの重みが大きい設定",
+            "input": "{\"subject\":100,\"asset\":100,\"threat\":20}, {\"subject\":1,\"asset\":1,\"threat\":2}, {\"read\":50,\"write\":70}",
+            "expected": "{\"score\":60,\"allowed\":[\"read\"]}"
+          },
+          {
+            "name": "値がないデータソースは 0 として扱う",
+            "input": "{\"subject\":90,\"asset\":80}, {\"subject\":2,\"asset\":1,\"threat\":1}, {\"read\":50,\"write\":70}",
+            "expected": "{\"score\":65,\"allowed\":[\"read\"]}"
+          }
+        ],
+        "mobile": {
+          "prompt": "decideByScore が呼ぶ contribution と passes の組み合わせとして、すべてのケースを満たすものはどれですか？",
+          "code": "function decideByScore(values, weights, thresholds) {\n  let total = 0;\n  let weightSum = 0;\n  for (const [source, weight] of Object.entries(weights)) {\n    total += contribution(values[source], weight);\n    weightSum += weight;\n  }\n  const score = total / weightSum;\n  const allowed = Object.keys(thresholds).filter((action) => passes(score, thresholds[action]));\n  return { score, allowed };\n}\n",
+          "options": [
+            "const contribution = (value, weight) =>\n  (value ?? 0) * weight;\nconst passes = (score, threshold) =>\n  score > threshold;",
+            "const contribution = (value, weight) =>\n  (value ?? 0) * weight;\nconst passes = (score, threshold) =>\n  score >= threshold;",
+            "const contribution = (value, weight) =>\n  value * weight;\nconst passes = (score, threshold) =>\n  score > threshold;",
+            "const contribution = (value, weight) =>\n  value ?? 0;\nconst passes = (score, threshold) =>\n  score > threshold;"
+          ]
+        }
+      }
+    },
+    {
+      "id": "contextual-evaluation",
+      "type": "implementation",
+      "category": "implementation",
+      "prompt": "ケースを満たす evaluateContextual(state, request, config) を実装してください。サブジェクトの当日の履歴に今回の件数を加えて評価し、アラート、判断、更新後の履歴を返してください。引数の state は書き換えないでください。",
+      "points": 6,
+      "referenceIds": [
+        "singular-contextual",
+        "contextual-examples"
+      ],
+      "scenario": "人事部門の従業員レコードへのアクセスを、コンテキスト型の信頼アルゴリズムで評価します。PE は、サブジェクトごとに当日のアクセス件数を保持します。本書の例にならい、1 日のアクセス件数が設定した上限を超えた場合と、業務時間外のリクエストの場合にアラートを出します。上限の値、業務時間、アラートがあるときに追加の認証を求める（step-up）という対応、履歴の形は、この課題独自の設定です。",
+      "answerHint": "当日の合計の求め方（履歴がない場合、日付が変わった場合）、2 種類のアラートの条件、履歴の更新を分けて考えると整理できます。",
+      "implementation": {
+        "language": "javascript",
+        "starterCode": "// state: サブジェクトごとの当日の履歴。例: { hr1: { day: \"2026-11-16\", count: 20 } }\n// request: { subjectId, day: \"YYYY-MM-DD\", hour: 0〜23, records: 今回アクセスするレコード数 }\n// config: { dailyLimit: 1 日の上限, businessHours: [開始時, 終了時] (開始時以上・終了時未満が業務時間) }\n// 戻り値: { decision: \"allow\" | \"step-up\", alerts, state }\n//   alerts: 当日の合計が上限を超えたら \"volume\"、業務時間外なら \"after-hours\" (この順)\n//   decision: アラートがなければ \"allow\"、あれば \"step-up\" (追加の認証を求める)\n//   state: 今回の件数を加えた新しい履歴。引数の state は書き換えない。\nfunction evaluateContextual(state, request, config) {\n  // ケースと制約を満たす処理を書いてください。\n}\n",
+        "cases": [
+          {
+            "name": "ふだんの範囲のアクセス",
+            "input": "{\"hr1\":{\"day\":\"2026-11-16\",\"count\":20}}, {\"subjectId\":\"hr1\",\"day\":\"2026-11-16\",\"hour\":10,\"records\":5}, {\"dailyLimit\":100,\"businessHours\":[9,18]}",
+            "expected": "{\"decision\":\"allow\",\"alerts\":[],\"state\":{\"hr1\":{\"day\":\"2026-11-16\",\"count\":25}}}"
+          },
+          {
+            "name": "当日の合計が上限と等しい",
+            "input": "{\"hr1\":{\"day\":\"2026-11-16\",\"count\":95}}, {\"subjectId\":\"hr1\",\"day\":\"2026-11-16\",\"hour\":14,\"records\":5}, {\"dailyLimit\":100,\"businessHours\":[9,18]}",
+            "expected": "{\"decision\":\"allow\",\"alerts\":[],\"state\":{\"hr1\":{\"day\":\"2026-11-16\",\"count\":100}}}"
+          },
+          {
+            "name": "少数のリクエストでも当日の合計が上限を超える",
+            "input": "{\"hr1\":{\"day\":\"2026-11-16\",\"count\":98}}, {\"subjectId\":\"hr1\",\"day\":\"2026-11-16\",\"hour\":14,\"records\":5}, {\"dailyLimit\":100,\"businessHours\":[9,18]}",
+            "expected": "{\"decision\":\"step-up\",\"alerts\":[\"volume\"],\"state\":{\"hr1\":{\"day\":\"2026-11-16\",\"count\":103}}}"
+          },
+          {
+            "name": "業務時間外のリクエスト",
+            "input": "{\"hr1\":{\"day\":\"2026-11-16\",\"count\":10}}, {\"subjectId\":\"hr1\",\"day\":\"2026-11-16\",\"hour\":23,\"records\":1}, {\"dailyLimit\":100,\"businessHours\":[9,18]}",
+            "expected": "{\"decision\":\"step-up\",\"alerts\":[\"after-hours\"],\"state\":{\"hr1\":{\"day\":\"2026-11-16\",\"count\":11}}}"
+          },
+          {
+            "name": "業務時間の終了時刻ちょうど",
+            "input": "{}, {\"subjectId\":\"hr1\",\"day\":\"2026-11-16\",\"hour\":18,\"records\":2}, {\"dailyLimit\":100,\"businessHours\":[9,18]}",
+            "expected": "{\"decision\":\"step-up\",\"alerts\":[\"after-hours\"],\"state\":{\"hr1\":{\"day\":\"2026-11-16\",\"count\":2}}}"
+          },
+          {
+            "name": "上限超過と業務時間外が重なる",
+            "input": "{\"hr1\":{\"day\":\"2026-11-16\",\"count\":120}}, {\"subjectId\":\"hr1\",\"day\":\"2026-11-16\",\"hour\":2,\"records\":30}, {\"dailyLimit\":100,\"businessHours\":[9,18]}",
+            "expected": "{\"decision\":\"step-up\",\"alerts\":[\"volume\",\"after-hours\"],\"state\":{\"hr1\":{\"day\":\"2026-11-16\",\"count\":150}}}"
+          },
+          {
+            "name": "日付が変わると件数を数え直す",
+            "input": "{\"hr1\":{\"day\":\"2026-11-15\",\"count\":150}}, {\"subjectId\":\"hr1\",\"day\":\"2026-11-16\",\"hour\":9,\"records\":3}, {\"dailyLimit\":100,\"businessHours\":[9,18]}",
+            "expected": "{\"decision\":\"allow\",\"alerts\":[],\"state\":{\"hr1\":{\"day\":\"2026-11-16\",\"count\":3}}}"
+          },
+          {
+            "name": "他のサブジェクトの履歴は影響しない",
+            "input": "{\"hr2\":{\"day\":\"2026-11-16\",\"count\":500}}, {\"subjectId\":\"hr1\",\"day\":\"2026-11-16\",\"hour\":11,\"records\":4}, {\"dailyLimit\":100,\"businessHours\":[9,18]}",
+            "expected": "{\"decision\":\"allow\",\"alerts\":[],\"state\":{\"hr2\":{\"day\":\"2026-11-16\",\"count\":500},\"hr1\":{\"day\":\"2026-11-16\",\"count\":4}}}"
+          }
+        ],
+        "mobile": {
+          "prompt": "evaluateContextual が呼ぶ todayCount と overLimit の組み合わせとして、すべてのケースを満たすものはどれですか？",
+          "code": "function evaluateContextual(state, request, config) {\n  const count = todayCount(state[request.subjectId], request);\n  const [start, end] = config.businessHours;\n  const alerts = [];\n  if (overLimit(count, config.dailyLimit)) alerts.push(\"volume\");\n  if (request.hour < start || request.hour >= end) alerts.push(\"after-hours\");\n  return {\n    decision: alerts.length === 0 ? \"allow\" : \"step-up\",\n    alerts,\n    state: { ...state, [request.subjectId]: { day: request.day, count } },\n  };\n}\n",
+          "options": [
+            "const todayCount = (prev, req) => {\n  const sameDay =\n    prev && prev.day === req.day;\n  const before =\n    sameDay ? prev.count : 0;\n  return before + req.records;\n};\nconst overLimit = (count, limit) =>\n  count > limit;",
+            "const todayCount = (prev, req) => {\n  const sameDay =\n    prev && prev.day === req.day;\n  const before =\n    sameDay ? prev.count : 0;\n  return before + req.records;\n};\nconst overLimit = (count, limit) =>\n  count >= limit;",
+            "const todayCount = (prev, req) => {\n  return req.records;\n};\nconst overLimit = (count, limit) =>\n  count > limit;",
+            "const todayCount = (prev, req) => {\n  const before =\n    prev ? prev.count : 0;\n  return before + req.records;\n};\nconst overLimit = (count, limit) =>\n  count > limit;"
+          ]
+        }
+      }
+    },
+    {
+      "id": "pa-session-control",
+      "type": "implementation",
+      "category": "implementation",
+      "prompt": "ケースを満たす nextSession(state, event) を実装してください。現在の状態とイベントから、次の状態と PEP への指示を返してください。",
+      "points": 6,
+      "referenceIds": [
+        "pa",
+        "pa-execution",
+        "agent-gateway-flow"
+      ],
+      "scenario": "ポリシー管理者（PA）が、PE の決定とセキュリティイベントに応じて、PEP に送る指示を決める処理を書きます。セッションの状態は none（未確立）、active（通信中）、held（再認証待ち）、closed（終了）の 4 つです。状態、イベント、指示の名前と、closed を終端とすること、状態に当てはまらないイベントを無視することは、この課題独自の設定です。",
+      "answerHint": "セッションを開始してよい条件、拒否や承認の取り消しの扱い、再認証のための保留と再開、ポリシーに基づく終了を分けて考えると整理できます。",
+      "implementation": {
+        "language": "javascript",
+        "starterCode": "// state: \"none\" (未確立) | \"active\" (通信中) | \"held\" (再認証待ち) | \"closed\" (終了)\n// event:\n//   { type: \"decision\", approved, authenticated }  PE の決定と、リクエストの認証結果\n//   { type: \"reauth-required\" }                    ポリシーに従って再認証・再認可を求める\n//   { type: \"reauth-result\", success }             再認証の結果\n//   { type: \"timeout\" } | { type: \"workflow-complete\" } | { type: \"security-alert\" }\n// 戻り値: { state: 次の状態, command: PEP への指示 (\"open\" | \"hold\" | \"resume\" | \"close\" | null) }\n//   \"closed\" は終端。その状態で受けたイベントと、状態に当てはまらないイベントでは、状態を変えず command は null。\nfunction nextSession(state, event) {\n  // ケースと制約を満たす処理を書いてください。\n}\n",
+        "cases": [
+          {
+            "name": "認可され、リクエストも認証されている",
+            "input": "\"none\", {\"type\":\"decision\",\"approved\":true,\"authenticated\":true}",
+            "expected": "{\"state\":\"active\",\"command\":\"open\"}"
+          },
+          {
+            "name": "認可されたが、リクエストが認証されていない",
+            "input": "\"none\", {\"type\":\"decision\",\"approved\":true,\"authenticated\":false}",
+            "expected": "{\"state\":\"closed\",\"command\":\"close\"}"
+          },
+          {
+            "name": "通信中に、以前の承認が取り消される",
+            "input": "\"active\", {\"type\":\"decision\",\"approved\":false,\"authenticated\":true}",
+            "expected": "{\"state\":\"closed\",\"command\":\"close\"}"
+          },
+          {
+            "name": "ポリシーに従って再認証を求める",
+            "input": "\"active\", {\"type\":\"reauth-required\"}",
+            "expected": "{\"state\":\"held\",\"command\":\"hold\"}"
+          },
+          {
+            "name": "再認証に成功する",
+            "input": "\"held\", {\"type\":\"reauth-result\",\"success\":true}",
+            "expected": "{\"state\":\"active\",\"command\":\"resume\"}"
+          },
+          {
+            "name": "再認証に失敗する",
+            "input": "\"held\", {\"type\":\"reauth-result\",\"success\":false}",
+            "expected": "{\"state\":\"closed\",\"command\":\"close\"}"
+          },
+          {
+            "name": "ワークフローが完了する",
+            "input": "\"active\", {\"type\":\"workflow-complete\"}",
+            "expected": "{\"state\":\"closed\",\"command\":\"close\"}"
+          },
+          {
+            "name": "終了したセッションには新しい決定を適用しない",
+            "input": "\"closed\", {\"type\":\"decision\",\"approved\":true,\"authenticated\":true}",
+            "expected": "{\"state\":\"closed\",\"command\":null}"
+          }
+        ],
+        "mobile": {
+          "prompt": "nextSession が呼ぶ onDecision として、すべてのケースを満たすものはどれですか？",
+          "code": "const OPEN = { state: \"active\", command: \"open\" };\nconst CLOSE = { state: \"closed\", command: \"close\" };\n\nfunction nextSession(state, event) {\n  const stay = { state, command: null };\n  if (state === \"closed\") return stay;\n  switch (event.type) {\n    case \"decision\":\n      return onDecision(state, event, stay);\n    case \"reauth-required\":\n      return state === \"active\" ? { state: \"held\", command: \"hold\" } : stay;\n    case \"reauth-result\":\n      if (state !== \"held\") return stay;\n      return event.success ? { state: \"active\", command: \"resume\" } : CLOSE;\n    case \"timeout\":\n    case \"workflow-complete\":\n    case \"security-alert\":\n      return state === \"active\" || state === \"held\" ? CLOSE : stay;\n    default:\n      return stay;\n  }\n}\n",
+          "options": [
+            "function onDecision(state, e, stay) {\n  const ok =\n    e.approved && e.authenticated;\n  if (!ok) return stay;\n  if (state !== \"none\") return stay;\n  return OPEN;\n}",
+            "function onDecision(state, e, stay) {\n  const ok =\n    e.approved;\n  if (!ok) return CLOSE;\n  if (state !== \"none\") return stay;\n  return OPEN;\n}",
+            "function onDecision(state, e, stay) {\n  if (state !== \"none\") return stay;\n  const ok =\n    e.approved && e.authenticated;\n  if (!ok) return CLOSE;\n  return OPEN;\n}",
+            "function onDecision(state, e, stay) {\n  const ok =\n    e.approved && e.authenticated;\n  if (!ok) return CLOSE;\n  if (state !== \"none\") return stay;\n  return OPEN;\n}"
+          ]
+        }
+      }
+    },
+    {
+      "id": "accept-connection",
+      "type": "implementation",
+      "category": "implementation",
+      "prompt": "ケースを満たす acceptConnection(conn, paths, openServices, now) を実装してください。openServices に含まれるリソースへの接続は受け付け、それ以外は、有効な経路に一致する接続だけを受け付けてください。",
+      "points": 6,
+      "referenceIds": [
+        "net-pep-only",
+        "tenet-session"
+      ],
+      "scenario": "リソースの手前に置くゲートウェイで、着信接続を受け付けるかどうかを判定します。§3.4.1 の要件 4 に沿って、クライアントの認証・認可の後に PEP が設定した通信経路に一致する接続だけを受け付けます。ただし、DNS サーバーのように到達できなければならないネットワークインフラストラクチャのコンポーネントは隠しません。経路の表現（クライアント、リソース、ポート）と期限の扱いは、この課題独自の設定です。",
+      "answerHint": "例外にするコンポーネントの扱いと、経路の一致条件（誰が、どのリソースへ、どのポートで、いつまで）を分けて考えると整理できます。",
+      "implementation": {
+        "language": "javascript",
+        "starterCode": "// conn: 着信接続。{ client, resource, port }\n// paths: クライアントの認証・認可の後に PEP が設定した通信経路の配列。{ client, resource, port, expiresAt }\n// openServices: 経路がなくても到達できなければならないインフラストラクチャの名前の配列。例: [\"dns\"]\n// now: 現在時刻 (秒)。経路は now < expiresAt の間だけ有効 (この課題の制約)。\n// 戻り値: 接続を受け付けるなら true、受け付けないなら false\nfunction acceptConnection(conn, paths, openServices, now) {\n  // ケースと制約を満たす処理を書いてください。\n}\n",
+        "cases": [
+          {
+            "name": "PEP が設定した経路に一致する",
+            "input": "{\"client\":\"laptop-17\",\"resource\":\"hr-db\",\"port\":5432}, [{\"client\":\"laptop-17\",\"resource\":\"hr-db\",\"port\":5432,\"expiresAt\":1600}], [\"dns\"], 1000",
+            "expected": "true"
+          },
+          {
+            "name": "経路が 1 つも設定されていない",
+            "input": "{\"client\":\"laptop-17\",\"resource\":\"hr-db\",\"port\":5432}, [], [\"dns\"], 1000",
+            "expected": "false"
+          },
+          {
+            "name": "同じクライアントの、別のリソースへの経路しかない",
+            "input": "{\"client\":\"laptop-17\",\"resource\":\"hr-db\",\"port\":5432}, [{\"client\":\"laptop-17\",\"resource\":\"payroll\",\"port\":5432,\"expiresAt\":1600}], [\"dns\"], 1000",
+            "expected": "false"
+          },
+          {
+            "name": "同じリソースへの、別のクライアントの経路しかない",
+            "input": "{\"client\":\"laptop-17\",\"resource\":\"hr-db\",\"port\":5432}, [{\"client\":\"laptop-30\",\"resource\":\"hr-db\",\"port\":5432,\"expiresAt\":1600}], [\"dns\"], 1000",
+            "expected": "false"
+          },
+          {
+            "name": "ポートが設定された経路と違う",
+            "input": "{\"client\":\"laptop-17\",\"resource\":\"hr-db\",\"port\":5432}, [{\"client\":\"laptop-17\",\"resource\":\"hr-db\",\"port\":22,\"expiresAt\":1600}], [\"dns\"], 1000",
+            "expected": "false"
+          },
+          {
+            "name": "経路の期限が切れている",
+            "input": "{\"client\":\"laptop-17\",\"resource\":\"hr-db\",\"port\":5432}, [{\"client\":\"laptop-17\",\"resource\":\"hr-db\",\"port\":5432,\"expiresAt\":900}], [\"dns\"], 1000",
+            "expected": "false"
+          },
+          {
+            "name": "経路の期限が現在時刻と等しい",
+            "input": "{\"client\":\"laptop-17\",\"resource\":\"hr-db\",\"port\":5432}, [{\"client\":\"laptop-17\",\"resource\":\"hr-db\",\"port\":5432,\"expiresAt\":1000}], [\"dns\"], 1000",
+            "expected": "false"
+          },
+          {
+            "name": "到達できなければならないインフラストラクチャ（DNS）",
+            "input": "{\"client\":\"guest-9\",\"resource\":\"dns\",\"port\":53}, [], [\"dns\"], 1000",
+            "expected": "true"
+          }
+        ],
+        "mobile": {
+          "prompt": "acceptConnection が呼ぶ matches として、すべてのケースを満たすものはどれですか？",
+          "code": "function acceptConnection(conn, paths, openServices, now) {\n  if (openServices.includes(conn.resource)) return true;\n  return paths.some((p) => matches(p, conn, now));\n}\n",
+          "options": [
+            "const matches = (p, conn, now) =>\n  p.client === conn.client &&\n  p.resource === conn.resource &&\n  p.port === conn.port &&\n  now <= p.expiresAt;",
+            "const matches = (p, conn, now) =>\n  p.client === conn.client &&\n  p.port === conn.port &&\n  now < p.expiresAt;",
+            "const matches = (p, conn, now) =>\n  p.resource === conn.resource &&\n  p.port === conn.port &&\n  now < p.expiresAt;",
+            "const matches = (p, conn, now) =>\n  p.client === conn.client &&\n  p.resource === conn.resource &&\n  p.port === conn.port &&\n  now < p.expiresAt;"
+          ]
+        }
+      }
+    },
+    {
+      "id": "reporting-only-mode",
+      "type": "implementation",
+      "category": "implementation",
+      "prompt": "ケースを満たす handleRequest(request, policyDecision, mode, blockedIps) を実装してください。リクエストを許可するかどうかと、ポリシーの判断との比較に使うログを返してください。",
+      "points": 6,
+      "referenceIds": [
+        "initial-deployment"
+      ],
+      "scenario": "新しい ZT ワークフローを、初期展開の間はレポート専用モードで運用します。§7.3.6 に沿って、ほとんどのリクエストは許可し、策定したポリシーの判断と後で比較できるようにログへ記録します。ただし、MFA に失敗したリクエストや、攻撃者に制御されていると分かっている IP アドレスからのリクエストを拒否する基本的なポリシーは、このモードでも適用します。モードの名前、ログの項目、basis の値は、この課題独自の設定です。",
+      "answerHint": "どのモードでも適用する基本的なポリシー、レポート専用モードでの扱い、適用モードでの扱いの順に考えると整理できます。",
+      "implementation": {
+        "language": "javascript",
+        "starterCode": "// request: { id, mfaPassed, ip }\n// policyDecision: 策定したポリシーによる判断。\"grant\" | \"deny\"\n// mode: \"reporting-only\" (レポート専用) | \"enforce\" (ポリシーを適用)\n// blockedIps: 攻撃者に制御されている、または乗っ取られていると分かっている IP アドレスの配列\n// 戻り値: { allow, log: { requestId, policyDecision, basis } }\n//   basis: 結果の根拠。\n//     \"basic-policy\"      基本的なポリシー (MFA の失敗、blockedIps) によって拒否した\n//     \"developed-policy\"  策定したポリシーの判断どおりの結果になった\n//     \"reporting-only\"    策定したポリシーは拒否と判断したが、レポート専用モードなので許可した\nfunction handleRequest(request, policyDecision, mode, blockedIps) {\n  // ケースと制約を満たす処理を書いてください。\n}\n",
+        "cases": [
+          {
+            "name": "レポート専用: ポリシーの判断も許可",
+            "input": "{\"id\":\"r1\",\"mfaPassed\":true,\"ip\":\"198.51.100.20\"}, \"grant\", \"reporting-only\", [\"203.0.113.7\"]",
+            "expected": "{\"allow\":true,\"log\":{\"requestId\":\"r1\",\"policyDecision\":\"grant\",\"basis\":\"developed-policy\"}}"
+          },
+          {
+            "name": "レポート専用: ポリシーの判断は拒否",
+            "input": "{\"id\":\"r1\",\"mfaPassed\":true,\"ip\":\"198.51.100.20\"}, \"deny\", \"reporting-only\", [\"203.0.113.7\"]",
+            "expected": "{\"allow\":true,\"log\":{\"requestId\":\"r1\",\"policyDecision\":\"deny\",\"basis\":\"reporting-only\"}}"
+          },
+          {
+            "name": "レポート専用: MFA に失敗している",
+            "input": "{\"id\":\"r1\",\"mfaPassed\":false,\"ip\":\"198.51.100.20\"}, \"grant\", \"reporting-only\", [\"203.0.113.7\"]",
+            "expected": "{\"allow\":false,\"log\":{\"requestId\":\"r1\",\"policyDecision\":\"grant\",\"basis\":\"basic-policy\"}}"
+          },
+          {
+            "name": "レポート専用: 攻撃者に制御されていると分かっている IP アドレス",
+            "input": "{\"id\":\"r1\",\"mfaPassed\":true,\"ip\":\"203.0.113.7\"}, \"grant\", \"reporting-only\", [\"203.0.113.7\"]",
+            "expected": "{\"allow\":false,\"log\":{\"requestId\":\"r1\",\"policyDecision\":\"grant\",\"basis\":\"basic-policy\"}}"
+          },
+          {
+            "name": "適用モード: ポリシーの判断は拒否",
+            "input": "{\"id\":\"r1\",\"mfaPassed\":true,\"ip\":\"198.51.100.20\"}, \"deny\", \"enforce\", [\"203.0.113.7\"]",
+            "expected": "{\"allow\":false,\"log\":{\"requestId\":\"r1\",\"policyDecision\":\"deny\",\"basis\":\"developed-policy\"}}"
+          },
+          {
+            "name": "適用モード: ポリシーの判断は許可",
+            "input": "{\"id\":\"r1\",\"mfaPassed\":true,\"ip\":\"198.51.100.20\"}, \"grant\", \"enforce\", [\"203.0.113.7\"]",
+            "expected": "{\"allow\":true,\"log\":{\"requestId\":\"r1\",\"policyDecision\":\"grant\",\"basis\":\"developed-policy\"}}"
+          },
+          {
+            "name": "適用モード: MFA に失敗している",
+            "input": "{\"id\":\"r1\",\"mfaPassed\":false,\"ip\":\"198.51.100.20\"}, \"grant\", \"enforce\", [\"203.0.113.7\"]",
+            "expected": "{\"allow\":false,\"log\":{\"requestId\":\"r1\",\"policyDecision\":\"grant\",\"basis\":\"basic-policy\"}}"
+          }
+        ],
+        "mobile": {
+          "prompt": "handleRequest が呼ぶ decideBasis として、すべてのケースを満たすものはどれですか？",
+          "code": "function handleRequest(request, policyDecision, mode, blockedIps) {\n  const basis = decideBasis(request, policyDecision, mode, blockedIps);\n  const allow = basis === \"reporting-only\" || (basis === \"developed-policy\" && policyDecision === \"grant\");\n  return { allow, log: { requestId: request.id, policyDecision, basis } };\n}\n",
+          "options": [
+            "function decideBasis(req, decision, mode, blocked) {\n  const basic =\n    !req.mfaPassed ||\n    blocked.includes(req.ip);\n  if (basic) return \"basic-policy\";\n  return \"developed-policy\";\n}",
+            "function decideBasis(req, decision, mode, blocked) {\n  const lenient =\n    decision === \"deny\" &&\n    mode === \"reporting-only\";\n  if (lenient) return \"reporting-only\";\n  if (mode === \"reporting-only\") {\n    return \"developed-policy\";\n  }\n  const basic =\n    !req.mfaPassed ||\n    blocked.includes(req.ip);\n  if (basic) return \"basic-policy\";\n  return \"developed-policy\";\n}",
+            "function decideBasis(req, decision, mode, blocked) {\n  const basic =\n    !req.mfaPassed;\n  if (basic) return \"basic-policy\";\n  const lenient =\n    decision === \"deny\" &&\n    mode === \"reporting-only\";\n  if (lenient) return \"reporting-only\";\n  return \"developed-policy\";\n}",
+            "function decideBasis(req, decision, mode, blocked) {\n  const basic =\n    !req.mfaPassed ||\n    blocked.includes(req.ip);\n  if (basic) return \"basic-policy\";\n  const lenient =\n    decision === \"deny\" &&\n    mode === \"reporting-only\";\n  if (lenient) return \"reporting-only\";\n  return \"developed-policy\";\n}"
+          ]
+        }
+      }
+    }
+  ],
+  "solutions": {
+    "criteria-based-decision": {
+      "explanation": "§3.3.1。基準ベースの信頼アルゴリズムは、アクセスや操作（読み取り/書き込みなど）を許可する前に満たすべき属性の集合を前提にし、すべての基準を満たした場合にだけ許可します。基準はエンタープライズが設定し、リソースごとに個別に設定すべきものです。§3.3 の入力（リクエストの内容、サブジェクトの認証結果、資産の観測可能な状態、リソース要件、脅威インテリジェンス）が、ここでの各基準に対応します。国やパッチレベルといった具体的な基準、未設定時の拒否、戻り値の形は、この課題の設定です。",
+      "rubric": [
+        {
+          "criterion": "リクエストのリソースと操作に対応する基準を選んで評価している（read と write で別の基準を使い、基準が未設定なら no-policy で拒否する）。",
+          "points": 2,
+          "referenceIds": [
+            "criteria-score"
+          ]
+        },
+        {
+          "criterion": "MFA、国、パッチレベル、承認済みアプリケーション、脅威インテリジェンスの各基準を正しく判定し、値が分からない属性（パッチレベルが undefined）を満たしていないものとして扱っている。unmet の名前と順序がケースと一致する。",
+          "points": 2,
+          "referenceIds": [
+            "ta-inputs"
+          ]
+        },
+        {
+          "criterion": "すべての基準を満たした場合にだけ grant を返し、1 つでも満たしていなければ deny を返している。",
+          "points": 2,
+          "referenceIds": [
+            "criteria-score"
+          ]
+        }
+      ],
+      "referenceCode": "function decideByCriteria(request, policies, suspectAssets) {\n  // 基準はリソースごと・操作ごとに設定する。未設定なら拒否する（この課題の制約）。\n  const criteria = policies[request.resource]?.[request.action];\n  if (!criteria) return { decision: \"deny\", unmet: [\"no-policy\"] };\n  const unmet = [];\n  if (criteria.requireMfa && request.subject.mfa !== true) unmet.push(\"mfa\");\n  if (!criteria.allowedCountries.includes(request.asset.country)) unmet.push(\"country\");\n  // 値が分からない場合 (undefined) も満たしていないものとして扱う。\n  if (!(request.asset.patchLevel >= criteria.minPatchLevel)) unmet.push(\"patch\");\n  if (!criteria.approvedApps.includes(request.app)) unmet.push(\"app\");\n  if (suspectAssets.includes(request.asset.id)) unmet.push(\"threat\");\n  // 基準ベース: すべての基準を満たした場合にだけ許可する。\n  return { decision: unmet.length === 0 ? \"grant\" : \"deny\", unmet };\n}\n",
+      "mobileAnswer": 0,
+      "mobileExplanation": "§3.3.1。基準ベースの信頼アルゴリズムは、すべての基準を満たした場合にだけアクセスを許可するので、granted は unmet が空のときだけ true を返します。unmet.length < 5 とすると、基準を 1 つでも満たせば許可してしまい、MFA とパッチレベルを満たさない write のケースで grant になります。patchUnmet を level < min にすると、パッチレベルが undefined のときに比較が false になり、状態の分からない資産を通してしまいます。!(level > min) にすると、最低値ちょうどの資産まで拒否してしまい、最初のケースを満たしません。"
+    },
+    "score-based-decision": {
+      "explanation": "§3.3.1。スコアベースの信頼アルゴリズムは、すべてのデータソースの値と、エンタープライズが設定した重みに基づいて信頼度を算出します。スコアがリソースに設定されたしきい値より大きい場合に、アクセスが許可されるか操作が実行され、そうでなければリクエストは拒否されるか、アクセス権限が減らされます（例: ファイルの読み取りは許可するが書き込みは許可しない）。§3.3 のとおり、重みはデータソースの重要度を反映するために使えます。重み付き平均という計算方法、値の範囲、値がないときに 0 とする扱いは、この課題の設定です。",
+      "rubric": [
+        {
+          "criterion": "重みを設定したすべてのデータソースについて、値と重みから信頼度（重み付き平均）を計算している。値がないデータソースは 0 として扱っている。",
+          "points": 2,
+          "referenceIds": [
+            "criteria-score",
+            "ta-weights"
+          ]
+        },
+        {
+          "criterion": "信頼度がしきい値より大きい操作だけを許可し、しきい値と等しい場合は許可していない。",
+          "points": 2,
+          "referenceIds": [
+            "criteria-score"
+          ]
+        },
+        {
+          "criterion": "操作ごとのしきい値で判定し、write に届かず read に届く場合は read だけを返す（権限を減らす）。どれにも届かなければ空の配列を返す。",
+          "points": 2,
+          "referenceIds": [
+            "criteria-score"
+          ]
+        }
+      ],
+      "referenceCode": "function decideByScore(values, weights, thresholds) {\n  let total = 0;\n  let weightSum = 0;\n  // 重みを設定したすべてのデータソースを計算に入れる。値がなければ 0 (この課題の制約)。\n  for (const [source, weight] of Object.entries(weights)) {\n    total += (values[source] ?? 0) * weight;\n    weightSum += weight;\n  }\n  const score = total / weightSum;\n  // スコアがしきい値より大きい操作だけを許可する。等しい場合は許可しない。\n  // write に届かなくても read には届く場合は、権限を減らして read だけを許可することになる。\n  const allowed = Object.keys(thresholds).filter((action) => score > thresholds[action]);\n  return { score, allowed };\n}\n",
+      "mobileAnswer": 0,
+      "mobileExplanation": "§3.3.1。スコアベースの信頼アルゴリズムは、すべてのデータソースの値とエンタープライズが設定した重みから信頼度を計算し、スコアがしきい値より大きい場合に許可します。passes を score >= threshold にすると、信頼度がしきい値と等しい 2 つのケースで、許可されないはずの操作を許可してしまいます。contribution が重みを掛けないと、信頼度が重みの設定を反映せず、最初のケースの 90 になりません。value * weight だけにすると、値がないデータソースで NaN になり、最後のケースを満たしません。"
+    },
+    "contextual-evaluation": {
+      "explanation": "§3.3.1。コンテキスト型の信頼アルゴリズムは、アクセスリクエストを評価する際に、サブジェクトの直近の履歴を考慮します。そのため PE は、サブジェクトについての状態情報を保持しなければなりません。本書は、通常 1 日に 20〜30 件の従業員レコードにアクセスする人事部門の職員のアクセスが突然 100 件を超えた場合や、通常の業務時間外にアクセスリクエストがあった場合に、コンテキスト型の信頼アルゴリズムがアラートを送る例を挙げ、行動からの逸脱が追加の認証チェックやリクエストの拒否の引き金になりうるとしています。上限と業務時間の値、step-up という対応、履歴の形は、この課題の設定です。",
+      "rubric": [
+        {
+          "criterion": "サブジェクトごとの当日の履歴に今回の件数を加えて評価している（履歴がなければ 0 から、日付が変われば数え直す。他のサブジェクトの履歴は使わない）。",
+          "points": 2,
+          "referenceIds": [
+            "singular-contextual"
+          ]
+        },
+        {
+          "criterion": "当日の合計が上限を超えたとき（等しいときは除く）に volume、業務時間外（終了時刻ちょうどを含む）に after-hours のアラートを出し、アラートがあれば step-up、なければ allow を返している。",
+          "points": 2,
+          "referenceIds": [
+            "contextual-examples"
+          ]
+        },
+        {
+          "criterion": "判断にかかわらず履歴を更新して返し、引数の state を書き換えていない。他のサブジェクトの履歴を保っている。",
+          "points": 2,
+          "referenceIds": [
+            "singular-contextual"
+          ]
+        }
+      ],
+      "referenceCode": "function evaluateContextual(state, request, config) {\n  // コンテキスト型: サブジェクトの直近の履歴 (当日の件数) を評価に使う。\n  const previous = state[request.subjectId];\n  const before = previous && previous.day === request.day ? previous.count : 0;\n  const count = before + request.records;\n  const [start, end] = config.businessHours;\n  const alerts = [];\n  // 上限を「超えた」場合にアラートを出す。等しい場合は出さない。\n  if (count > config.dailyLimit) alerts.push(\"volume\");\n  if (request.hour < start || request.hour >= end) alerts.push(\"after-hours\");\n  return {\n    decision: alerts.length === 0 ? \"allow\" : \"step-up\",\n    alerts,\n    // 判断にかかわらず履歴は更新する。元の state は書き換えない。\n    state: { ...state, [request.subjectId]: { day: request.day, count } },\n  };\n}\n",
+      "mobileAnswer": 0,
+      "mobileExplanation": "§3.3.1。コンテキスト型の信頼アルゴリズムは、サブジェクトの直近の履歴を考慮するので、当日の履歴に今回の件数を加えて評価します。todayCount が今回の件数（req.records）だけを返す実装は、各リクエストを個別に扱う単一型の評価になり、5 件のリクエストで合計が 103 件になるケースを検知できません。日付を確かめない実装は、前日の 150 件を引き継いでしまい、日付が変わったケースでアラートを出します。overLimit を count >= limit にすると、合計が上限と等しいケースでもアラートを出してしまいます。"
+    },
+    "pa-session-control": {
+      "explanation": "§3・§3.3。PE が決定を行って記録し、PA がその決定を実行します。PA は、セッションが認可されリクエストが認証されていれば、PEP を構成してセッションの開始を許可し、セッションが拒否された場合（または以前の承認が取り消された場合）は、PEP に接続を遮断するよう通知します。また PA は、ポリシーの要件に従って再認証・再認可のために通信セッションを保留または一時停止でき、タイムアウト後、ワークフローの完了時、セキュリティアラートなど、ポリシーに基づいて接続を終了するコマンドを発行します。§3.2.1 は、セッションのタイムアウトや再認証の失敗をセキュリティイベントの例に挙げています。状態やイベントの名前、closed を終端とする扱いは、この課題の設定です。",
+      "rubric": [
+        {
+          "criterion": "認可され、かつリクエストが認証されている場合にだけ open を指示している。拒否された場合と、通信中に以前の承認が取り消された場合は close を指示して closed にしている。",
+          "points": 2,
+          "referenceIds": [
+            "pa",
+            "pe"
+          ]
+        },
+        {
+          "criterion": "再認証が必要になったら hold を指示して held にし、再認証の成功で resume、失敗で close を指示している。",
+          "points": 2,
+          "referenceIds": [
+            "pa-execution",
+            "agent-gateway-flow"
+          ]
+        },
+        {
+          "criterion": "タイムアウト、ワークフローの完了、セキュリティアラートで close を指示している。closed では状態を変えず、状態に当てはまらないイベントでは command を null にしている。",
+          "points": 2,
+          "referenceIds": [
+            "pa-execution"
+          ]
+        }
+      ],
+      "referenceCode": "function nextSession(state, event) {\n  const stay = { state, command: null };\n  if (state === \"closed\") return stay; // 終端 (この課題の制約)\n  switch (event.type) {\n    case \"decision\":\n      // 認可され、かつリクエストが認証されている場合にだけ、PEP にセッションの開始を許可させる。\n      if (event.approved && event.authenticated) {\n        return state === \"none\" ? { state: \"active\", command: \"open\" } : stay;\n      }\n      // 拒否、または以前の承認の取り消し: PEP に接続を遮断させる。\n      return { state: \"closed\", command: \"close\" };\n    case \"reauth-required\":\n      // 再認証・再認可のために通信を保留する。\n      return state === \"active\" ? { state: \"held\", command: \"hold\" } : stay;\n    case \"reauth-result\":\n      if (state !== \"held\") return stay;\n      return event.success ? { state: \"active\", command: \"resume\" } : { state: \"closed\", command: \"close\" };\n    case \"timeout\":\n    case \"workflow-complete\":\n    case \"security-alert\":\n      // ポリシーに基づく終了 (タイムアウト、ワークフローの完了、セキュリティアラート)。\n      return state === \"active\" || state === \"held\" ? { state: \"closed\", command: \"close\" } : stay;\n    default:\n      return stay;\n  }\n}\n",
+      "mobileAnswer": 3,
+      "mobileExplanation": "§3・§3.3。PA は、セッションが認可され、かつリクエストが認証されている場合に、PEP を構成してセッションの開始を許可します。approved だけを見る実装は、リクエストが認証されていないケースでもセッションを開いてしまいます。セッションが拒否された場合や、以前の承認が取り消された場合、PA は PEP に接続の遮断を通知します。未確立のとき以外の決定を無視する実装は、通信中に承認が取り消されても接続を閉じられません。認可と認証がそろわないときに状態を変えない実装は、PEP に遮断を指示しないので、認証されていないリクエストのケースと、承認が取り消されるケースを満たしません。"
+    },
+    "accept-connection": {
+      "explanation": "§3.4.1。要件 4 は、エンタープライズのリソースを、PEP を経由しなければ到達できないようにすべきだとしています。リソースはインターネットからの任意の着信接続を受け付けず、クライアントが認証・認可された後にだけ、個別に構成された接続を受け付けます。この通信経路を設定するのは PEP です。ただし、すべてのリソースをこのように隠すべきではなく、DNS サーバーなど一部のネットワークインフラストラクチャのコンポーネントは到達可能でなければなりません。また §2.1 の基本原則 3 のとおり、あるリソースへの認証と認可が、別のリソースへのアクセスを自動的に許可することはありません。経路の表現と期限の扱いは、この課題の設定です。",
+      "rubric": [
+        {
+          "criterion": "openServices に含まれるインフラストラクチャ（DNS など）への接続は、経路がなくても受け付けている。",
+          "points": 2,
+          "referenceIds": [
+            "net-pep-only"
+          ]
+        },
+        {
+          "criterion": "それ以外の接続は、クライアント・リソース・ポートがすべて一致する経路がある場合にだけ受け付けている（経路がない接続、別のリソースや別のクライアント向けの経路、ポートの違う経路では受け付けない）。",
+          "points": 2,
+          "referenceIds": [
+            "net-pep-only",
+            "tenet-session"
+          ]
+        },
+        {
+          "criterion": "期限が切れた経路と、期限が現在時刻と等しい経路を無効として扱っている。",
+          "points": 2,
+          "referenceIds": [
+            "net-pep-only"
+          ]
+        }
+      ],
+      "referenceCode": "function acceptConnection(conn, paths, openServices, now) {\n  // DNS サーバーなど、到達できなければならないコンポーネントは隠さない。\n  if (openServices.includes(conn.resource)) return true;\n  // それ以外は、認証・認可の後に PEP が設定した経路に一致する接続だけを受け付ける。\n  // あるリソースへの経路があっても、別のリソースへの接続は受け付けない。\n  return paths.some((p) =>\n    p.client === conn.client && p.resource === conn.resource && p.port === conn.port && now < p.expiresAt);\n}\n",
+      "mobileAnswer": 3,
+      "mobileExplanation": "§3.4.1・§2.1。リソースは、クライアントが認証・認可された後に、PEP が設定した通信経路による接続だけを受け付けます。リソースを比べない実装は、別のリソース（payroll）への経路を持つクライアントからの接続を受け付けてしまいます。あるリソースへの認証と認可が、別のリソースへのアクセスを自動的に許可することはありません。クライアントを比べない実装は、別のクライアント向けの経路で接続を受け付けてしまいます。now <= p.expiresAt とすると、期限が現在時刻と等しい経路を有効として扱い、この課題の期限の決まりを満たしません。"
+    },
+    "reporting-only-mode": {
+      "explanation": "§7.3.6。新しい ZT のビジネスワークフローは、ポリシーが有効で実用的であることを確かめるために、しばらくの間レポート専用モードで運用できます。レポート専用とは、ほとんどのリクエストに対してアクセスを許可し、接続のログとトレースを、最初に策定したポリシーと比較することをいいます。一方で、MFA に失敗するリクエストや、既知の、攻撃者に制御されている、または乗っ取られた IP アドレスからのリクエストを拒否するといった基本的なポリシーは、適用してログに記録すべきです。こうして実際のやり取りからデータを集め、ベースラインを確立します。モードの名前やログの項目は、この課題の設定です。",
+      "rubric": [
+        {
+          "criterion": "MFA に失敗したリクエストと blockedIps からのリクエストを、モードにかかわらず拒否し、basis を basic-policy として記録している。",
+          "points": 2,
+          "referenceIds": [
+            "initial-deployment"
+          ]
+        },
+        {
+          "criterion": "レポート専用モードでは、策定したポリシーが拒否と判断したリクエストも許可し、basis を reporting-only として記録している（ポリシーの判断 policyDecision もログに残す）。",
+          "points": 2,
+          "referenceIds": [
+            "initial-deployment"
+          ]
+        },
+        {
+          "criterion": "適用モードでは策定したポリシーの判断どおりに許可・拒否し、判断どおりの結果は basis を developed-policy として記録している。",
+          "points": 2,
+          "referenceIds": [
+            "initial-deployment"
+          ]
+        }
+      ],
+      "referenceCode": "function handleRequest(request, policyDecision, mode, blockedIps) {\n  const log = (basis) => ({ requestId: request.id, policyDecision, basis });\n  // 基本的なポリシーは、レポート専用モードでも適用してログに記録する。\n  if (!request.mfaPassed || blockedIps.includes(request.ip)) {\n    return { allow: false, log: log(\"basic-policy\") };\n  }\n  if (policyDecision === \"grant\") return { allow: true, log: log(\"developed-policy\") };\n  // 策定したポリシーは拒否と判断した。レポート専用モードでは許可し、後で比較できるよう記録する。\n  if (mode === \"reporting-only\") return { allow: true, log: log(\"reporting-only\") };\n  return { allow: false, log: log(\"developed-policy\") };\n}\n",
+      "mobileAnswer": 3,
+      "mobileExplanation": "§7.3.6。レポート専用モードでは、ほとんどのリクエストを許可し、接続のログを策定したポリシーと比較します。ただし、MFA に失敗するリクエストや、攻撃者に制御されていると分かっている IP アドレスからのリクエストを拒否する基本的なポリシーは、適用してログに記録すべきです。モードを先に確かめる実装は、レポート専用モードで MFA の失敗や既知の不正な IP アドレスまで許可してしまいます。MFA だけを確かめる実装は、既知の不正な IP アドレスからのリクエストを拒否できません。レポート専用モードを区別しない実装は、ポリシーが拒否と判断したリクエストを初期展開の間も拒否してしまい、実際のやり取りからデータを集められません。"
+    }
+  },
+  "inconsistencies": []
+}

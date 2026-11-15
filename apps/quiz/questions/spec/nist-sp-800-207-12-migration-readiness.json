@@ -1,0 +1,670 @@
+{
+  "format": "spec-understanding-quiz",
+  "version": 1,
+  "id": "nist-sp-800-207-12-migration-readiness",
+  "title": "NIST SP 800-207 ゼロトラスト 12/16: 移行の前提とアクター・資産の把握",
+  "status": "published",
+  "spec": {
+    "id": "pdf-0290d6ece2487428",
+    "status": "adopted",
+    "repository": "maronnjapan/readRFCInMobile",
+    "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+    "path": "apps/quiz/specs/nist-sp-800-207.txt"
+  },
+  "references": [
+    {
+      "id": "migration-journey",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 536,
+      "endLine": 536,
+      "reason": "§7: 道のりとしての移行と段階的な実装",
+      "excerpt": "Implementing a ZTA is a journey rather than a wholesale replacement of infrastructure or processes. An organization should seek to incrementally implement zero trust principles, process changes, and technology solutions that protect its highest value data assets. Most enterprises will continue to operate in a hybrid zero-trust/perimeter-based mode for an indefinite period while continuing to invest in ongoing IT modernization initiatives. Having an IT modernization plan that includes moving to an architecture based on ZT principles may help an enterprise form roadmaps for small scale workflow migrations."
+    },
+    {
+      "id": "migration-baseline",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 538,
+      "endLine": 538,
+      "reason": "§7: 基礎的な能力のベースライン",
+      "excerpt": "How an enterprise migrates to a strategy depends on its current cybersecurity posture and operations. An enterprise should reach a baseline of competence before it becomes possible to deploy a significant ZT-focused environment [ACT-IAC]. This baseline includes having assets, subjects, business processes, traffic flows and dependency mappings identified and cataloged for the enterprise. The enterprise needs this information before it can develop a list of candidate business processes and the subjects/assets involved in this process."
+    },
+    {
+      "id": "pure-greenfield",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 542,
+      "endLine": 542,
+      "reason": "§7.1: グリーンフィールドのアプローチ",
+      "excerpt": "In a greenfield approach, it would be possible to build a zero trust architecture from the ground up. Assuming the enterprise knows the applications/services and workflows that it wants to use for its operations, it can produce an architecture based on zero trust tenets for those workflows. Once the workflows are identified, the enterprise can narrow down the components needed and begin to map how the individual components interact. From that point, it is an engineering and organizational exercise in building the infrastructure and configuring the components. This may include additional organizational changes depending on how the enterprise is currently set up and operating."
+    },
+    {
+      "id": "pure-practice",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 544,
+      "endLine": 544,
+      "reason": "§7.1: 既存のネットワークを持つ組織と新たな責務",
+      "excerpt": "In practice, this is rarely a viable option for federal agencies or any organization with an existing network. However, there may be times when an organization is asked to fulfill a new responsibility that would require building its own infrastructure. In these cases, it might be possible to introduce ZT concepts to some degree. For example, an agency may be given a new responsibility that entails building a new application, service, or database. The agency could design the newly needed infrastructure around ZT principles and secure system engineering [SP8900-160v1], such as evaluating subjects’ trust before granting access and establishing micro-perimeters around new resources. The degree of success depends on how dependent this new infrastructure is on existing resources (e.g., ID management systems)."
+    },
+    {
+      "id": "hybrid-coexist",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 548,
+      "endLine": 548,
+      "reason": "§7.2: ZTA と ZTA ではないワークフローの共存",
+      "excerpt": "It is unlikely that any significant enterprise can migrate to zero trust in a single technology refresh cycle. There may be an indefinite period when ZTA workflows coexist with non-ZTA workflows in an enterprise. Migration to a ZTA approach to the enterprise may take place one business process at a time. The enterprise needs to make sure that the common elements (e.g., ID management, device management, event logging) are flexible enough to operate in a ZTA and perimeter-based hybrid security architecture. Enterprise architects may also want to restrict ZTA candidate solutions to those that can interface with existing components."
+    },
+    {
+      "id": "hybrid-redesign",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 550,
+      "endLine": 550,
+      "reason": "§7.2: 既存のワークフローの再設計",
+      "excerpt": "Migrating an existing workflow to a ZTA will likely require (at least) a partial redesign. Enterprises may take this opportunity to adopt secure system engineering [SP800-160v1] practices if they have not already done so for workflows."
+    },
+    {
+      "id": "steps-knowledge",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 554,
+      "endLine": 554,
+      "reason": "§7.3: 詳細な知識と、知識が不完全な場合の影響",
+      "excerpt": "Migrating to ZTA requires an organization to have detailed knowledge of its assets (physical and virtual), subjects (including user privileges), and business processes. This knowledge is accessed by the PE when evaluating resource requests. Incomplete knowledge will most often lead to a business process failure where the PE denies requests due to insufficient information. This is especially an issue if there are unknown “shadow IT” deployments operating within an organization."
+    },
+    {
+      "id": "steps-survey",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 556,
+      "endLine": 558,
+      "reason": "§7.3: 事前の調査、RMF との対応、図 12",
+      "excerpt": "Before undertaking an effort to bring ZTA to an enterprise, there should be a survey of assets, subjects, data flows, and workflows. This awareness forms the foundational state that must be reached before a ZTA deployment is possible. An enterprise cannot determine what new processes or systems need to be in place if there is no knowledge of the current state of operations. These surveys can be conducted in parallel, but both are tied to examination of the business processes of the organization. These steps can be mapped to the steps in the RMF [SP800-37] as any adoption of a ZTA is a process to reduce risk to an agency’s business functions. The pathway to implementing a ZTA can be visualized in Figure 12.\n\n[figure p46 68,358,541,694] Figure 12: ZTA Deployment Cycle"
+    },
+    {
+      "id": "steps-cycle",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 560,
+      "endLine": 560,
+      "reason": "§7.3: 保守と更新のサイクル",
+      "excerpt": "After the initial inventory is created, there is a regular cycle of maintenance and updating. This updating may either change business processes or not have any impact, but an evaluation of business processes should be conducted. For example, a change in digital certificate providers may not appear to have a significant impact but may involve certificate root store management, Certificate Transparency log monitoring, and other factors that are not apparent at first."
+    },
+    {
+      "id": "actors-subjects",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 564,
+      "endLine": 564,
+      "reason": "§7.3.1: PE が把握すべきサブジェクト",
+      "excerpt": "For a zero trust enterprise to operate, the PE must have knowledge of enterprise subjects. Subjects could encompass both human and possible NPEs, such as service accounts that interact with resources."
+    },
+    {
+      "id": "actors-privileged",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 566,
+      "endLine": 566,
+      "reason": "§7.3.1: 特別な権限を持つユーザー",
+      "excerpt": "Users with special privileges, such as developers or system administrators, require additional scrutiny when being assigned attributes or roles. In many legacy security architectures, these accounts may have blanket permission to access all enterprise resources. ZTA should allow developers and administrators to have sufficient flexibility to satisfy their business requirements while using logs and audit actions to identify access behavior patterns. ZTA deployments may require administrators to satisfy a more stringent confidence level or criteria as outlined in NIST SP 800-63A, Section 5 [SP800-63A]."
+    },
+    {
+      "id": "assets-identify",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 570,
+      "endLine": 570,
+      "reason": "§7.3.2: 資産の特定と管理",
+      "excerpt": "As mentioned in Section 2.1, one of the key requirements of ZTA is the ability to identify and manage devices. ZTA also requires the ability to identify and monitor nonenterprise-owned devices that may be on enterprise-owned network infrastructure or that access enterprise resources. The ability to manage enterprise assets is key to the successful deployment of ZTA. This includes hardware components (e.g., laptops, phones, IoT devices) and digital artifacts (e.g., user accounts, applications, digital certificates). It may not be possible to conduct a complete census on all enterprise-owned assets, so an enterprise should consider building the capability to quickly identify, categorize, and assess newly discovered assets that are on enterprise-owned infrastructure."
+    },
+    {
+      "id": "assets-state",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 572,
+      "endLine": 572,
+      "reason": "§7.3.2: 構成管理・監視と資産の状態",
+      "excerpt": "This goes beyond simply cataloging and maintaining a database of enterprise assets. This also includes configuration management and monitoring. The ability to observe the current state of an asset is part of the process of evaluating access requests (see Section 2.1). This means that the enterprise must be able to configure, survey, and update enterprise assets, such as virtual assets and containers. This also includes both its physical (as best estimated) and network location. This information should inform the PE when making resource access decisions."
+    },
+    {
+      "id": "assets-shadow",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 574,
+      "endLine": 574,
+      "reason": "§7.3.2: エンタープライズ所有ではない資産とシャドー IT",
+      "excerpt": "Nonenterprise-owned assets and enterprise-owned “shadow IT” should also be cataloged as well as possible. This may include whatever is visible by the enterprise (e.g., MAC address, network location) and augmented by administrator data entry. This information is not only used for access decisions (as collaborator and BYOD assets may need to contact PEPs) but also for monitoring and forensics logging by the enterprise. Shadow IT presents a special problem in that these resources are enterprise-owned but not managed like other resources. Certain ZTA approaches (mainly network-based) may even cause shadow IT components to become unusable as they may not be known and included in network access policies."
+    },
+    {
+      "id": "assets-federal",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 576,
+      "endLine": 576,
+      "reason": "§7.3.2: CDM の能力と高価値資産",
+      "excerpt": "Many federal agencies have already begun identifying enterprise assets. Agencies that have established CDM program capabilities, such as HWAM [HWAM] and Software Asset Management (SWAM) [SWAM], have a rich set of data to draw from when enacting a ZTA. Agencies may also have a list of ZTA candidate processes that involve High Value Assets (HVA) [M-19-03] that have been identified as key to the agency mission. This work would need to exist enterprise- or agency-wide before any business process could be (re)designed with a ZTA. These programs must be designed to be expandable and adaptable to changes in the enterprise, not only when migrating to ZTA but also when accounting for new assets, services, and business processes that become part of the enterprise."
+    }
+  ],
+  "questions": [
+    {
+      "id": "baseline-of-competence",
+      "type": "choice",
+      "category": "vocabulary",
+      "prompt": "§7 によると、この用語は何を指しますか？",
+      "points": 1,
+      "referenceIds": [
+        "migration-baseline"
+      ],
+      "term": "baseline of competence（基礎的な能力のベースライン）",
+      "options": [
+        "ZT に重点を置いた本格的な環境を展開する前に到達しておくべき水準。資産、サブジェクト、ビジネスプロセス、トラフィックフロー、依存関係のマッピングの特定とカタログ化を含む",
+        "境界型の防御を撤去する前に到達しておくべき水準。すべての資産へのデバイスエージェントの導入と、すべてのワークフローの ZTA への移行の完了を含む",
+        "ZTA の候補ソリューションを選ぶときに製品が満たしているべき水準。PE、PA、PEP が、想定されるアクセスリクエストを遅延なく処理できることの確認を含む",
+        "ZT に重点を置いた本格的な環境を展開した後に達成を確かめる水準。すべてのワークフローで、PE がリクエストを誤って拒否しなくなっていることの確認を含む"
+      ]
+    },
+    {
+      "id": "asset-scope",
+      "type": "choice",
+      "category": "vocabulary",
+      "prompt": "§7.3.2 が、管理する能力が ZTA の展開を成功させる鍵だとしている資産には、何が含まれますか？",
+      "points": 1,
+      "referenceIds": [
+        "assets-identify"
+      ],
+      "term": "enterprise assets（エンタープライズの資産）",
+      "options": [
+        "ノート PC や IoT デバイスなどのハードウェアコンポーネントと、ユーザーアカウントやデジタル証明書などのデジタルアーティファクト",
+        "ユーザーアカウントやデジタル証明書などのデジタルアーティファクトだけ。ノート PC や IoT デバイスは、ネットワークの構成要素として資産とは別に扱う",
+        "エンタープライズのネットワークインフラストラクチャ上にある、エンタープライズ所有ではないデバイスだけ。所有するデバイスは、資産とは別に扱う",
+        "ノート PC や IoT デバイスなどのハードウェアコンポーネントだけ。ユーザーアカウントやデジタル証明書は、サブジェクトの情報として資産とは別に扱う"
+      ]
+    },
+    {
+      "id": "shadow-it",
+      "type": "choice",
+      "category": "vocabulary",
+      "prompt": "§7.3.2 は、この用語が指すリソースと、それがもたらす問題をどう説明していますか？",
+      "points": 1,
+      "referenceIds": [
+        "assets-shadow"
+      ],
+      "term": "shadow IT（シャドー IT）",
+      "options": [
+        "エンタープライズが所有しているが、他のリソースのようには管理されていないリソース。主にネットワークベースの ZTA の方式では、使用できなくなることがある",
+        "攻撃者が設置し、エンタープライズのネットワークを監視しているリソース。主にネットワークベースの ZTA の方式では、検知できなくなることがある",
+        "エンタープライズが所有しておらず、訪問者や委託サービスの提供者が持ち込むリソース。主にネットワークベースの ZTA の方式では、カタログ化の対象から外れることがある",
+        "エンタープライズが所有し、他のリソースと同じように管理されているリソース。主に ID ガバナンス主導の ZTA の方式では、使用できなくなることがある"
+      ]
+    },
+    {
+      "id": "incremental-implementation",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "§7 は、ZTA の実装の進め方と IT 近代化計画の関係をどう説明していますか？",
+      "points": 1,
+      "referenceIds": [
+        "migration-journey"
+      ],
+      "options": [
+        "インフラストラクチャとプロセスを全面的に置き換えて、一度の切り替えで移行する。ZT への移行を含む IT 近代化計画は、すべてのワークフローを同時に移行する日程を確定するために使う",
+        "最も価値の高いデータ資産を保護する原則・プロセスの変更・技術ソリューションを、段階的に実装する。IT 近代化への投資は、ハイブリッドのモードでの運用が終わるまで止めることになる",
+        "技術ソリューションの導入を先に終わらせ、原則とプロセスの変更は定常運用に入ってから検討する。ZT への移行を含む IT 近代化計画は、小規模なワークフロー移行のロードマップ作りに役立つことがある",
+        "最も価値の高いデータ資産を保護する原則・プロセスの変更・技術ソリューションを、段階的に実装する。ZT への移行を含む IT 近代化計画は、小規模なワークフロー移行のロードマップ作りに役立つことがある"
+      ]
+    },
+    {
+      "id": "asset-census",
+      "type": "choice",
+      "category": "design",
+      "prompt": "§7.3.2 に沿った備え方はどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "assets-identify",
+        "assets-shadow"
+      ],
+      "scenario": "拠点と部署が多いエンタープライズで、所有する資産をすべて数え上げる全数調査は、当面は完了できそうにありません。",
+      "options": [
+        "調査で把握できた資産だけでインベントリを確定し、後から見つかった資産は、次の移行の段階まで評価しないことを検討する",
+        "調査で把握できなかった資産は、エンタープライズが所有していないものとして扱い、カタログ化と監視の対象から外すことを検討する",
+        "自らのインフラストラクチャ上で新たに見つかった資産を、迅速に特定・分類・評価できる能力を構築することを検討する",
+        "自らのインフラストラクチャ上で新たに見つかった資産を、見つかった時点でネットワークから恒久的に切り離す仕組みを構築することを検討する"
+      ]
+    },
+    {
+      "id": "greenfield-order",
+      "type": "ordering",
+      "category": "flow",
+      "prompt": "§7.1 は、ZTA を一から構築するグリーンフィールドのアプローチの進め方を説明しています。その流れを並べてください。",
+      "points": 2,
+      "referenceIds": [
+        "pure-greenfield"
+      ],
+      "items": [
+        {
+          "id": "map",
+          "text": "個々のコンポーネントがどのように相互作用するかをマッピングする"
+        },
+        {
+          "id": "narrow",
+          "text": "特定したワークフローに必要なコンポーネントを絞り込む"
+        },
+        {
+          "id": "build",
+          "text": "インフラストラクチャを構築し、コンポーネントを構成する"
+        },
+        {
+          "id": "workflows",
+          "text": "運用で使いたいアプリケーション/サービスとワークフローを特定する"
+        }
+      ]
+    },
+    {
+      "id": "pure-vs-hybrid",
+      "type": "choice",
+      "category": "comparison",
+      "prompt": "§7.1 のグリーンフィールドのアプローチと、§7.2 のハイブリッドについて、本書の見方に合うものはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "pure-practice",
+        "hybrid-coexist"
+      ],
+      "options": [
+        "グリーンフィールドは、既存のネットワークを持つ組織では、現実的な選択肢になることがまれである。相当規模のエンタープライズは、多くの場合、1 回の技術更新サイクルで ZT に移行できる",
+        "グリーンフィールドは、既存のネットワークを持つ組織では、現実的な選択肢になることがまれである。相当規模のエンタープライズが、1 回の技術更新サイクルで ZT に移行できる可能性は低い",
+        "グリーンフィールドは、連邦政府機関に限って選べる方法とされている。相当規模のエンタープライズは、ZTA と ZTA ではないワークフローを共存させずに、ZT に移行することになる",
+        "グリーンフィールドは、既存のネットワークを持つ組織でも、多くの場合は現実的な選択肢になる。相当規模のエンタープライズが、1 回の技術更新サイクルで ZT に移行できる可能性は低い"
+      ]
+    },
+    {
+      "id": "new-responsibility",
+      "type": "choice",
+      "category": "design",
+      "prompt": "§7.1 に沿った考え方はどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "pure-practice"
+      ],
+      "scenario": "既存のネットワークを運用している政府機関が、新たな責務を与えられ、新しいアプリケーションとデータベースを構築することになりました。新しいインフラストラクチャは、既存の ID 管理システムを利用します。",
+      "options": [
+        "新たに必要となるインフラストラクチャを、ZT の原則とセキュアなシステムエンジニアリングに基づいて設計できる。成功の度合いは、既存のリソースへの依存の程度によって決まる",
+        "新たに必要となるインフラストラクチャは、既存のリソースに依存している限り、ZT の概念を導入できない。既存の ID 管理システムを置き換えた後で、改めて設計することになる",
+        "新たに必要となるインフラストラクチャに ZT の概念を導入できるのは、既存のネットワーク全体を ZTA に移行し終えた後である。それまでは、境界型のアーキテクチャで設計する",
+        "新たに必要となるインフラストラクチャを、ZT の原則とセキュアなシステムエンジニアリングに基づいて設計できる。成功の度合いは、既存のリソースへの依存の程度には左右されない"
+      ]
+    },
+    {
+      "id": "migration-unit",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "§7.2 は、既存のエンタープライズでの ZTA への移行の進み方をどう説明していますか？",
+      "points": 1,
+      "referenceIds": [
+        "hybrid-coexist",
+        "hybrid-redesign"
+      ],
+      "options": [
+        "ネットワークセグメントを 1 つずつ移行していくことになる。既存のワークフローは、すべての移行が完了した後で、全面的に再設計することになる",
+        "すべてのビジネスプロセスを同時に移行することになる。既存のワークフローの移行には、少なくとも部分的な再設計が必要になる可能性が高い",
+        "ビジネスプロセスを 1 つずつ移行していく場合がある。既存のワークフローの移行には、少なくとも部分的な再設計が必要になる可能性が高い",
+        "ビジネスプロセスを 1 つずつ移行していく場合がある。既存のワークフローは、再設計をしなくても、そのままの形で ZTA に移行できる可能性が高い"
+      ]
+    },
+    {
+      "id": "common-elements",
+      "type": "choice",
+      "category": "debugging",
+      "prompt": "§7.2 に照らして、この計画が見落としている点はどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "hybrid-coexist"
+      ],
+      "scenario": "移行を担当するアーキテクトが次の計画を立てました。「ID 管理、デバイス管理、イベントのログ記録は、ZTA のワークフローでだけ動けばよい。候補ソリューションの選定でも、既存のコンポーネントと連携できるかどうかは考慮しない」",
+      "options": [
+        "共通の要素は、すべてのワークフローの移行が終わるまで変更してはならない。候補ソリューションも、すべての移行が終わってから選定を始める必要がある",
+        "共通の要素は、ZTA 用と境界型用に分けて二重に用意する必要がある。候補ソリューションも、既存のコンポーネントから独立して動作するものに限定する必要がある",
+        "共通の要素には、ZTA と境界型のハイブリッドで動作できる柔軟性が必要である。候補ソリューションも、既存のコンポーネントと連携できるものに限定したい場合がある",
+        "共通の要素は、境界型のワークフローでだけ動作すればよい。ZTA のワークフローでは、候補ソリューションに含まれる専用の要素を使う必要がある"
+      ]
+    },
+    {
+      "id": "incomplete-knowledge",
+      "type": "choice",
+      "category": "debugging",
+      "prompt": "§7.3 に照らして、この事象の説明として最も適切なものはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "steps-knowledge"
+      ],
+      "scenario": "あるエンタープライズが、ユーザー権限の情報の整理を終えないまま、業務アプリケーションを ZTA のワークフローに移行しました。移行後、正当な担当者のリクエストが拒否され、業務が止まりました。",
+      "options": [
+        "PE はリクエストの評価でユーザー権限の情報を参照しないので、原因は権限の情報ではなく、PA による通信経路の構成の誤りにある",
+        "PE は情報が不足しているリクエストを許可するので、過剰なアクセスが発生し、それを検知した PEP がビジネスプロセスを停止させた",
+        "PE がリクエストの評価で参照する知識は十分だったが、移行の直後は、PE がすべてのリクエストを一律に拒否する決まりになっている",
+        "PE がリクエストの評価で参照する知識が不完全で、情報が不足しているために PE がリクエストを拒否し、ビジネスプロセスが失敗した"
+      ]
+    },
+    {
+      "id": "pre-deployment-survey",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "§7.3 は、エンタープライズに ZTA を導入する取り組みの前に行うべき調査について、どう説明していますか？",
+      "points": 1,
+      "referenceIds": [
+        "steps-survey"
+      ],
+      "options": [
+        "資産、サブジェクト、データフロー、ワークフローを調査する。調査は資産から順に 1 つずつ実施し、組織のビジネスプロセスの検討とは切り離して進める",
+        "資産とサブジェクトを調査する。データフローとワークフローは、ZTA を展開した後に、PE が記録したログから把握するものとされている",
+        "候補ソリューションの製品を調査する。資産とサブジェクトの現状は、製品を選定した後に、その製品の機能を使って把握するものとされている",
+        "資産、サブジェクト、データフロー、ワークフローを調査する。調査は並行して実施できるが、組織のビジネスプロセスの検討と結び付いている"
+      ]
+    },
+    {
+      "id": "rmf-mapping",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "§7.3 は、ZTA 導入のステップを RMF のステップに対応付けられる理由を、どう説明していますか？",
+      "points": 1,
+      "referenceIds": [
+        "steps-survey"
+      ],
+      "options": [
+        "ZTA の採用はいずれも、政府機関のビジネスプロセスを変更せずに進めることが条件になっているため",
+        "ZTA の論理コンポーネントはいずれも、RMF のステップと 1 対 1 で対応するように定義されているため",
+        "ZTA の採用はいずれも、政府機関のビジネス機能に対するリスクを低減するプロセスであるため",
+        "ZTA の採用はいずれも、RMF による評価を終えた後でなければ着手できないと定められているため"
+      ]
+    },
+    {
+      "id": "update-cycle",
+      "type": "choice",
+      "category": "debugging",
+      "prompt": "§7.3 に照らして、この判断の問題点はどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "steps-cycle"
+      ],
+      "scenario": "最初のインベントリを作り終えたエンタープライズが、デジタル証明書のプロバイダーを変更することにしました。担当者は「大きな影響はなさそうなので、ビジネスプロセスの評価は省略する」と判断しました。",
+      "options": [
+        "更新の評価が必要になるのは、ハードウェアの資産を変更する場合である。証明書のプロバイダーの変更では、評価の代わりに PE の再構成を行うことになる",
+        "更新は、どのようなものでもビジネスプロセスを変更するものとして扱うべきである。証明書のプロバイダーを変更する場合は、ワークフローを設計し直すことになる",
+        "更新がビジネスプロセスに影響しない場合もあるが、評価は実施すべきである。証明書ルートストアの管理など、最初は表に現れない要因が関わることがある",
+        "最初のインベントリを作った後は、次の移行の段階に入るまで、更新を行うべきではない。証明書のプロバイダーの変更は、その時期まで延期することになる"
+      ]
+    },
+    {
+      "id": "subjects-known-to-pe",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "§7.3.1 によると、ゼロトラストのエンタープライズが機能するために、PE が把握している必要があるサブジェクトの範囲はどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "actors-subjects"
+      ],
+      "options": [
+        "特別な権限を持つ開発者やシステム管理者に限られる、エンタープライズのサブジェクト。一般のユーザーは、PEP だけが把握していればよい",
+        "人間に加えて、リソースとやり取りするサービスアカウントなどの非人間エンティティ（NPE）も含みうる、エンタープライズのサブジェクト",
+        "サービスアカウントなどの非人間エンティティ（NPE）に限られる、エンタープライズのサブジェクト。人間は、ID 管理システムだけが把握していればよい",
+        "人間のユーザーに限られる、エンタープライズのサブジェクト。サービスアカウントなどの非人間エンティティ（NPE）は、資産としてだけ把握すればよい"
+      ]
+    },
+    {
+      "id": "privileged-users",
+      "type": "choice",
+      "category": "comparison",
+      "prompt": "開発者やシステム管理者のアカウントについて、多くのレガシーなセキュリティアーキテクチャと ZTA の扱いの違いとして、§7.3.1 の説明に合うものはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "actors-privileged"
+      ],
+      "options": [
+        "レガシーでは、すべてのリソースへの包括的な許可を持つことがある。ZTA では、業務に十分な柔軟性を持たせつつ、ログと監査アクションでアクセスの行動パターンを特定すべきとされる",
+        "レガシーでは、リソースごとに厳格な信頼度を満たすことが求められる。ZTA では、すべてのリソースへの包括的な許可を与えたうえで、ログと監査アクションを省略できるとされる",
+        "レガシーでは、ログと監査アクションでアクセスの行動パターンを特定している。ZTA では、属性やロールを割り当てる際の精査を、一般のユーザーに対するものと同じ水準にとどめるべきとされる",
+        "レガシーでは、すべてのリソースへの包括的な許可を持つことがある。ZTA では、業務上の必要があっても、開発者や管理者にはリソースへのアクセスを許可すべきではないとされる"
+      ]
+    },
+    {
+      "id": "asset-state",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "§7.3.2 は、資産の管理について、カタログ化とデータベースの維持のほかに、何が含まれるとしていますか？",
+      "points": 1,
+      "referenceIds": [
+        "assets-state"
+      ],
+      "options": [
+        "資産の廃棄と再調達の計画。資産の現在の状態は PE のアクセス決定には使わず、購入時の構成と設置場所の記録を、監査に備えて保管する",
+        "構成管理と監視。資産の現在の状態と、物理的な場所（できる限りの推定）およびネットワーク上の場所を把握し、PE のアクセス決定の判断材料にする",
+        "構成管理と監視。ただし、仮想資産やコンテナーは対象から外し、物理的な場所が確定している資産の状態だけを、PE のアクセス決定の判断材料にする",
+        "資産の所有部署への定期的な聞き取り。資産の現在の状態は、アクセスリクエストの評価とは切り離し、インベントリの更新の資料としてだけ利用する"
+      ]
+    },
+    {
+      "id": "cdm-and-hva",
+      "type": "choice",
+      "category": "comparison",
+      "prompt": "§7.3.2 は、連邦政府機関がすでに持っている場合があるものとして、CDM プログラムの能力（HWAM、SWAM）と、高価値資産（HVA）に関わるプロセスの一覧を挙げています。それぞれの説明として正しい組み合わせはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "assets-federal"
+      ],
+      "options": [
+        "HWAM や SWAM は、ZTA への移行を終えた政府機関が確立する CDM プログラムの能力である。HVA に関わるプロセスの一覧は、ZTA の候補となるプロセスの一覧になりうる",
+        "HWAM や SWAM を確立した政府機関は、ZTA の導入で活用できる豊富なデータを持つ。HVA に関わるプロセスの一覧は、ZTA の候補となるプロセスの一覧になりうる",
+        "HWAM や SWAM を確立した政府機関は、ZTA の導入で活用できる豊富なデータを持つ。HVA に関わるプロセスは、ミッションにとって重要なので、ZTA の候補から外すことになる",
+        "HWAM や SWAM を確立した政府機関は、ZTA の候補となるプロセスの一覧を持つ。HVA に関わるプロセスは、ZTA でビジネスプロセスを再設計した後に特定することになる"
+      ]
+    },
+    {
+      "id": "readiness-review",
+      "type": "written",
+      "category": "design",
+      "prompt": "§7 と §7.3 の説明に基づいて、展開の前に何を把握しておく必要があるか、それを省くと何が起こるか、把握した後に何を続けるかを説明してください。",
+      "points": 4,
+      "referenceIds": [
+        "migration-baseline",
+        "steps-knowledge",
+        "steps-survey",
+        "steps-cycle"
+      ],
+      "scenario": "境界型のネットワークを運用している政府機関で、責任者が「来月から ZTA の展開を始める。事前の調査は省き、PE を導入してから足りない情報を補えばよい」と指示しました。",
+      "answerHint": "把握しておく情報、PE との関係、事前の調査の位置付け、インベントリを作った後の作業の 4 点を、短い箇条書きで書いてください。"
+    },
+    {
+      "id": "unmanaged-assets-design",
+      "type": "written",
+      "category": "design",
+      "prompt": "§7.3.2 の説明に基づいて、これらの資産をどのように把握し、その情報を何に使い、資産を特定する取り組みをどのように設計するかを述べてください。",
+      "points": 4,
+      "referenceIds": [
+        "assets-shadow",
+        "assets-federal",
+        "assets-identify"
+      ],
+      "scenario": "あるエンタープライズでは、共同作業者の端末や BYOD の端末がエンタープライズのリソースにアクセスしており、部署が独自に導入したシャドー IT も見つかっています。資産管理の担当者は、ZTA への移行に向けて、これらをどう扱うかを決める必要があります。",
+      "answerHint": "カタログ化の方針、使える情報源、情報の用途、取り組みの設計の 4 点を、それぞれ 1〜2 文で書いてください。"
+    }
+  ],
+  "solutions": {
+    "baseline-of-competence": {
+      "answer": 0,
+      "explanation": "§7。エンタープライズは、ZT に重点を置いた本格的な環境を展開できるようになる前に、基礎的な能力のベースラインに到達しておくべきだとされています。このベースラインには、資産、サブジェクト、ビジネスプロセス、トラフィックフロー、依存関係のマッピングが特定・カタログ化されていることが含まれ、候補となるビジネスプロセスと、それに関わるサブジェクト/資産の一覧を作る前に必要になります。展開後の確認事項や、製品の性能の基準ではありません。"
+    },
+    "asset-scope": {
+      "answer": 0,
+      "explanation": "§7.3.2。エンタープライズの資産を管理する能力は、ZTA の展開を成功させる鍵です。この資産には、ノート PC、電話、IoT デバイスなどのハードウェアコンポーネントと、ユーザーアカウント、アプリケーション、デジタル証明書などのデジタルアーティファクトの両方が含まれます。これに加えて ZTA は、エンタープライズ所有ではないデバイスを特定し監視する能力も必要とします。"
+    },
+    "shadow-it": {
+      "answer": 0,
+      "explanation": "§7.3.2。シャドー IT は、エンタープライズの所有でありながら、他のリソースのようには管理されていないという点で、特別な問題をもたらします。特定の ZTA の方式（主にネットワークベースのもの）では、シャドー IT のコンポーネントが把握されておらず、ネットワークアクセスポリシーに含まれていない可能性があるため、使用できなくなることさえあります。エンタープライズ所有ではない資産とは区別されており、どちらも可能な限りカタログ化すべきだとされています。"
+    },
+    "incremental-implementation": {
+      "answer": 3,
+      "explanation": "§7。ZTA の実装は道のりであり、インフラストラクチャやプロセスの全面的な置き換えではありません。組織は、最も価値の高いデータ資産を保護するゼロトラストの原則、プロセスの変更、技術ソリューションを、段階的に実装することを目指すべきだとされています。ほとんどのエンタープライズは、IT 近代化への投資を続けながら、期限を定めずにハイブリッドのモードで運用を続けます。ZT への移行を含む IT 近代化計画は、小規模なワークフロー移行のロードマップを描く助けになる場合があります。"
+    },
+    "asset-census": {
+      "answer": 2,
+      "explanation": "§7.3.2。エンタープライズが所有するすべての資産について全数調査を行うことは不可能な場合があるため、自らのインフラストラクチャ上で新たに発見された資産を、迅速に特定・分類・評価する能力の構築を検討すべきだとされています。把握できなかった資産を対象から外すこと、評価を先送りにすること、見つけ次第切り離すことは述べられていません。エンタープライズ所有ではない資産やシャドー IT も、可能な限りカタログ化すべきだとされています。"
+    },
+    "greenfield-order": {
+      "answer": [
+        "workflows",
+        "narrow",
+        "map",
+        "build"
+      ],
+      "explanation": "§7.1。エンタープライズが、運用で使いたいアプリケーション/サービスとワークフローを把握していれば、それらのワークフローについて、ゼロトラストの基本原則に基づくアーキテクチャを作成できます。ワークフローが特定されると、必要なコンポーネントを絞り込み、個々のコンポーネントの相互作用のマッピングを始められます。そこから先は、インフラストラクチャを構築してコンポーネントを構成する、エンジニアリング上・組織上の作業で、現在の体制によっては、さらなる組織変更を伴う場合があります。"
+    },
+    "pure-vs-hybrid": {
+      "answer": 1,
+      "explanation": "§7.1・§7.2。ZTA を一から構築するグリーンフィールドのアプローチは、連邦政府機関や、既存のネットワークを持つ組織にとって、現実的な選択肢になることはまれです。一方、相当規模のエンタープライズが 1 回の技術更新サイクルでゼロトラストに移行できる可能性は低く、ZTA のワークフローと ZTA ではないワークフローが共存する期間が、期限を定めずに続くことがあります。"
+    },
+    "new-responsibility": {
+      "answer": 0,
+      "explanation": "§7.1。組織が、独自のインフラストラクチャの構築を必要とする新たな責務を求められた場合には、ZT の概念をある程度導入できる可能性があります。たとえば、アクセスを許可する前にサブジェクトの信頼を評価する、新しいリソースの周囲にマイクロ境界を確立するといった形で、ZT の原則とセキュアなシステムエンジニアリングに基づいて、新たに必要となるインフラストラクチャを設計できます。成功の度合いは、その新しいインフラストラクチャが、ID 管理システムなどの既存のリソースにどの程度依存しているかによって決まります。"
+    },
+    "migration-unit": {
+      "answer": 2,
+      "explanation": "§7.2。ZTA への移行は、ビジネスプロセスを 1 つずつ進めていく形で行われる場合があり、その間は ZTA のワークフローと ZTA ではないワークフローが共存します。既存のワークフローを ZTA に移行するには、少なくとも部分的な再設計が必要になる可能性が高く、エンタープライズは、まだ行っていなければ、この機会にセキュアなシステムエンジニアリングのプラクティスを採用してもよいとされています。"
+    },
+    "common-elements": {
+      "answer": 2,
+      "explanation": "§7.2。ZTA のワークフローと ZTA ではないワークフローが共存する期間があるため、エンタープライズは、ID 管理、デバイス管理、イベントのログ記録などの共通の要素が、ZTA と境界型のハイブリッドなセキュリティアーキテクチャで動作できるだけの柔軟性を備えていることを確認する必要があります。エンタープライズアーキテクトは、ZTA の候補ソリューションを、既存のコンポーネントと連携できるものに限定したいと考えることもあります。要素を二重に用意することや、移行の完了まで選定を待つことは述べられていません。"
+    },
+    "incomplete-knowledge": {
+      "answer": 3,
+      "explanation": "§7.3。ZTA に移行するには、資産（物理・仮想）、サブジェクト（ユーザー権限を含む）、ビジネスプロセスについての詳細な知識が必要で、PE はリソースへのリクエストを評価する際にこの知識を参照します。知識が不完全だと、多くの場合、情報が不足しているために PE がリクエストを拒否し、ビジネスプロセスが失敗します。把握されていないシャドー IT が稼働している場合は、特に問題になります。情報が不足したリクエストを PE が許可するとは述べられていません。"
+    },
+    "pre-deployment-survey": {
+      "answer": 3,
+      "explanation": "§7.3。ZTA を導入する取り組みに着手する前に、資産、サブジェクト、データフロー、ワークフローの調査を行うべきだとされています。この認識が、ZTA を展開できるようになる前に到達していなければならない基盤となる状態を形づくり、運用の現状を知らなければ、どのような新しいプロセスやシステムが必要かを判断できません。調査は並行して実施できますが、組織のビジネスプロセスの検討と結び付いています。"
+    },
+    "rmf-mapping": {
+      "answer": 2,
+      "explanation": "§7.3。調査から始まるこれらのステップは、RMF のステップに対応付けることができます。ZTA の採用はいずれも、政府機関のビジネス機能に対するリスクを低減するプロセスだからです。ZTA の導入に至る道筋は、図 12（ZTA の展開サイクル）に可視化されています。RMF の完了を着手の条件にしているわけでも、コンポーネントと RMF のステップを 1 対 1 に対応させているわけでもありません。"
+    },
+    "update-cycle": {
+      "answer": 2,
+      "explanation": "§7.3。最初のインベントリが作成された後は、保守と更新が定期的なサイクルとして続きます。更新は、ビジネスプロセスを変更する場合もあれば、何の影響も与えない場合もありますが、ビジネスプロセスの評価は実施すべきだとされています。デジタル証明書プロバイダーの変更は、一見すると大きな影響がないように見えても、証明書ルートストアの管理や Certificate Transparency ログの監視など、最初は表に現れない要因が関わる場合があります。"
+    },
+    "subjects-known-to-pe": {
+      "answer": 1,
+      "explanation": "§7.3.1。ゼロトラストのエンタープライズが機能するには、PE がエンタープライズのサブジェクトを把握している必要があります。サブジェクトには、人間と、リソースとやり取りするサービスアカウントなどの NPE の両方が含まれえます。特別な権限を持つユーザーは追加の精査の対象になりますが、PE が把握すべき範囲がそれに限られるわけではありません。"
+    },
+    "privileged-users": {
+      "answer": 0,
+      "explanation": "§7.3.1。開発者やシステム管理者など特別な権限を持つユーザーには、属性やロールを割り当てる際に追加の精査が必要です。多くのレガシーなセキュリティアーキテクチャでは、これらのアカウントが、すべてのリソースにアクセスできる包括的な許可を持っていることがあります。ZTA では、ビジネス要件を満たすのに十分な柔軟性を持たせつつ、ログと監査アクションを使ってアクセスの行動パターンを特定すべきだとされ、NIST SP 800-63A のセクション 5 に示されるような、より厳格な信頼度や基準を管理者に求める場合があります。"
+    },
+    "asset-state": {
+      "answer": 1,
+      "explanation": "§7.3.2。資産の管理は、カタログ化してデータベースを維持するだけにとどまらず、構成管理と監視も含みます。資産の現在の状態を観察する能力は、アクセスリクエストを評価するプロセスの一部であり、エンタープライズは、仮想資産やコンテナーなどの資産を構成、調査、更新できなければなりません。物理的な場所（できる限りの推定による）とネットワーク上の場所も含まれ、この情報は、PE がリソースへのアクセスを決定する際の判断材料とすべきだとされています。"
+    },
+    "cdm-and-hva": {
+      "answer": 1,
+      "explanation": "§7.3.2。多くの連邦政府機関は、すでにエンタープライズの資産の特定に着手しています。HWAM や SWAM といった CDM プログラムの能力を確立している政府機関は、ZTA を導入する際に活用できる豊富なデータを持ち、ミッションにとって重要と特定された高価値資産（HVA）に関わる、ZTA 候補のプロセスの一覧を持っている場合もあります。この作業は、ZTA でビジネスプロセスを設計・再設計できるようになる前に、エンタープライズ全体または政府機関全体にわたって行われている必要があります。"
+    },
+    "readiness-review": {
+      "explanation": "§7・§7.3。エンタープライズは、本格的な ZT の環境を展開する前に、資産、サブジェクト、ビジネスプロセス、トラフィックフロー、依存関係のマッピングを特定・カタログ化したベースラインに到達しておくべきです。PE はリクエストの評価でこの知識を参照するので、知識が不完全だと、情報の不足を理由にリクエストが拒否され、ビジネスプロセスが失敗します。資産、サブジェクト、データフロー、ワークフローの調査は、展開の前に到達すべき基盤となる状態で、現状を知らなければ必要な新しいプロセスやシステムを判断できません。最初のインベントリを作った後も、保守と更新のサイクルが続き、ビジネスプロセスの評価を行うべきだとされています。",
+      "rubric": [
+        {
+          "criterion": "ZT に重点を置いた本格的な環境を展開する前に到達すべきベースラインとして、資産、サブジェクト、ビジネスプロセス、トラフィックフロー、依存関係のマッピングの特定・カタログ化を挙げている（3 つ以上を挙げていればよい）",
+          "points": 1,
+          "referenceIds": [
+            "migration-baseline"
+          ]
+        },
+        {
+          "criterion": "PE はリクエストの評価でこれらの知識を参照し、知識が不完全だと、情報の不足を理由に PE がリクエストを拒否して、ビジネスプロセスが失敗することを述べている",
+          "points": 1,
+          "referenceIds": [
+            "steps-knowledge"
+          ]
+        },
+        {
+          "criterion": "資産、サブジェクト、データフロー、ワークフローの調査が、ZTA を展開する前に到達すべき基盤となる状態であること、または、運用の現状を知らなければ必要な新しいプロセスやシステムを判断できないことを述べている",
+          "points": 1,
+          "referenceIds": [
+            "steps-survey"
+          ]
+        },
+        {
+          "criterion": "最初のインベントリを作った後も、保守と更新の定期的なサイクルが続き、更新の際にはビジネスプロセスの評価を行うべきことを述べている",
+          "points": 1,
+          "referenceIds": [
+            "steps-cycle"
+          ]
+        }
+      ]
+    },
+    "unmanaged-assets-design": {
+      "explanation": "§7.3.2。エンタープライズ所有ではない資産と、エンタープライズが所有するシャドー IT も、可能な限りカタログ化すべきだとされています。カタログには、MAC アドレスやネットワーク上の場所などエンタープライズから見える情報を使い、管理者によるデータ入力で補える場合があります。この情報は、共同作業者や BYOD の資産が PEP に接続する必要がある場合のアクセスの決定だけでなく、監視やフォレンジック用のログ記録にも使われます。資産を特定するプログラムは、ZTA への移行時だけでなく、新しい資産、サービス、ビジネスプロセスが加わるときにも、拡張可能で変化に適応できるように設計されていなければなりません。",
+      "rubric": [
+        {
+          "criterion": "エンタープライズ所有ではない資産と、エンタープライズが所有するシャドー IT も、可能な限りカタログ化すべきことを述べている",
+          "points": 1,
+          "referenceIds": [
+            "assets-shadow"
+          ]
+        },
+        {
+          "criterion": "エンタープライズから見える情報（MAC アドレス、ネットワーク上の場所など）を使い、管理者によるデータ入力で補うことを述べている",
+          "points": 1,
+          "referenceIds": [
+            "assets-shadow"
+          ]
+        },
+        {
+          "criterion": "情報の用途として、アクセスの決定（共同作業者や BYOD の資産が PEP に接続する必要がある場合がある）と、監視やフォレンジック用のログ記録の両方を挙げている",
+          "points": 1,
+          "referenceIds": [
+            "assets-shadow"
+          ]
+        },
+        {
+          "criterion": "資産を特定する取り組みを、新しい資産・サービス・ビジネスプロセスが加わるときにも対応できるよう、拡張可能で変化に適応できるように設計することを述べている（新たに見つかった資産を迅速に特定・分類・評価する能力を挙げてもよい）",
+          "points": 1,
+          "referenceIds": [
+            "assets-federal",
+            "assets-identify"
+          ]
+        }
+      ]
+    }
+  },
+  "inconsistencies": []
+}

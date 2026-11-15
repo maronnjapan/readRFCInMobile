@@ -1,0 +1,791 @@
+{
+  "format": "spec-understanding-quiz",
+  "version": 1,
+  "id": "nist-sp-800-207-14-gaps",
+  "title": "NIST SP 800-207 ゼロトラスト 14/16: 略語と現状のギャップ",
+  "status": "published",
+  "spec": {
+    "id": "pdf-0290d6ece2487428",
+    "status": "adopted",
+    "repository": "maronnjapan/readRFCInMobile",
+    "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+    "path": "apps/quiz/specs/nist-sp-800-207.txt"
+  },
+  "references": [
+    {
+      "id": "acronyms",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 650,
+      "endLine": 671,
+      "reason": "付録 A: 略語",
+      "excerpt": "|| API | Application Programming Interface\n|| BYOD | Bring Your Own Device\n|| CDM | Continuous Diagnostics and Mitigation\n|| DHS | Department of Homeland Security\n|| DoS | Denial of Service\n|| G2B | Government to Business (private industry)\n|| G2G | Government to Government\n|| NIST | National Institute of Standards and Technology\n|| NPE | Non-Person Entity\n|| PA | Policy Administrator\n|| PDP | Policy Decision Point\n|| PE | Policy Engine\n|| PEP | Policy Enforcement Point\n|| PKI | Public Key Infrastructure\n|| RMF | NIST Risk Management Framework\n|| SDN | Software Defined Network\n|| SDP | Software Defined Perimeter\n|| SIEM | Security Information and Event Monitoring\n|| TIC | Trusted Internet Connections\n|| VPN | Virtual Private Network\n|| ZT | Zero Trust\n|| ZTA | Zero Trust Architecture"
+    },
+    {
+      "id": "b-conclusion",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 675,
+      "endLine": 675,
+      "reason": "付録 B: 成熟度の調査の結論",
+      "excerpt": "The current maturity of zero trust components and solutions was surveyed during the research conducted in the development of this document. This survey concluded that the current state of the ZTA ecosystem is not mature enough for widespread adoption. While it is possible to use ZTA strategies to plan and deploy an enterprise environment, there is no single solution that provides all the necessary components. Also, few ZTA components available today can be used for all of the various workflows present in an enterprise."
+    },
+    {
+      "id": "b-areas",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 677,
+      "endLine": 677,
+      "reason": "付録 B: ギャップの概要と経験の不足",
+      "excerpt": "The following is a summary of identified gaps in the ZTA ecosystem and areas that need further investigation. Some of these areas have some foundation of work, but how ZTA tenets change these areas is not well-known as there is not enough experience with diverse ZTA-focused enterprise environments."
+    },
+    {
+      "id": "b1-survey",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 681,
+      "endLine": 681,
+      "reason": "B.1: 技術調査の目的とギャップの分類",
+      "excerpt": "Multiple vendors were invited to present their products and views on zero trust. The goal of this survey was to identify missing pieces that prevent agencies from moving to a zero trust based enterprise infrastructure now or maintaining an existing ZTA implementation. These gaps can be categorized into immediate deployment (immediate or short term), systemic gaps that affect maintenance or operations (short or midterm), and missing knowledge (areas for future research). They are summarized in Table B-1."
+    },
+    {
+      "id": "table-b1",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 683,
+      "endLine": 686,
+      "reason": "表 B-1: 分類・質問例・特定されたギャップ",
+      "excerpt": "|| Category | Example Questions | Identified Gaps\n|| Immediate deployment | • How should procurement requirements be written? • How does a ZTA plan work with TIC, FISMA, and other requirements? | • Lack of a common framework and vocabulary for ZTA • Perception that ZTA conflicts with existing policy\n|| Systemic | • How can vendor lock-in be prevented? • How do different ZTA environments interact? | • Too much reliance on vendor APIs\n|| Areas needing more research | • How will threats evolve in the face of ZTA? • How will business processes change in the face of ZTA? | • What a successful compromise looks like in an enterprise with a ZTA • Documented end user experience in an enterprise with a ZTA"
+    },
+    {
+      "id": "b2-scope",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 690,
+      "endLine": 690,
+      "reason": "B.2: 即時の移行を妨げるギャップの位置付け",
+      "excerpt": "These are the issues that are slowing adoption of a ZTA at present. These were classified as immediate issues, and no thought of future maintenance or migration was considered for this category. A forward-thinking enterprise may also consider the maintenance category to be of immediate concern in preventing the initial deployment of ZTA components, but these issues are considered a separate category for this analysis."
+    },
+    {
+      "id": "b21-terms",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 694,
+      "endLine": 694,
+      "reason": "B.2.1: 共通の用語の欠如とその影響",
+      "excerpt": "Zero trust as a strategy for the design and deployment of enterprise infrastructure is still a forming concept. Industry has not yet coalesced around a single set of terms or concepts to describe ZTA components and operations. This makes it difficult for organizations (e.g., federal agencies) to develop coherent requirements and policies for designing zero trust enterprise infrastructure and procuring components."
+    },
+    {
+      "id": "b21-base",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 696,
+      "endLine": 696,
+      "reason": "B.2.1: §2.1・§3.1 の位置付け",
+      "excerpt": "The driver for Sections 2.1 and 3.1 is an initial attempt to form a neutral base of terms and concepts to describe ZTA. The abstract ZTA components and deployment models were developed to serve as basic terms and ways to think about ZTA. The goal is to provide a common way to view, model, and discuss ZTA solutions when developing enterprise requirements and performing market surveys. The above sections may prove to be incomplete as more experience is gained with ZTA in federal agencies, but they currently serve as a base for a common conceptual framework."
+    },
+    {
+      "id": "b22-misconception",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 700,
+      "endLine": 700,
+      "reason": "B.2.2: 既存のポリシーと矛盾するという誤解",
+      "excerpt": "There is a misconception that ZTA is a single framework with a set of solutions that are incompatible with the existing view of cybersecurity. Zero trust should instead be viewed as an evolution of current cybersecurity strategies as many of the concepts and ideas have been circulating for a long time. Federal agencies have been encouraged to take a more zero trust approach to cybersecurity through existing guidance (see Section 6). If an agency has a mature ID management system and robust CDM capabilities in place, it is on the road to a ZTA (see Section 7.3). This gap is based on a misconception of ZTA and how it has evolved from previous cybersecurity paradigms."
+    },
+    {
+      "id": "b3-scope",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 704,
+      "endLine": 704,
+      "reason": "B.3: 構造的なギャップとオープンな標準",
+      "excerpt": "These are the gaps that affect initial implementation and deployment of ZTA and continued operation/maturity. These gaps could slow the adoption of ZTA in agencies or result in fragmentation of the ZTA component industry. Systemic gaps are areas where open standards (produced either by a standards development organization [SDO] or industry consortium) can help."
+    },
+    {
+      "id": "b33-vendor",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 708,
+      "endLine": 708,
+      "reason": "B.3.3: 単一ベンダーと相互運用性",
+      "excerpt": "During the technology survey, it became apparent that no one vendor offers a single solution that will provide zero trust. Furthermore, it might not be desirable to use a single-vendor solution to achieve zero trust and thereby risk vendor lock-in. This leads to interoperability within components not only at the time of purchase but also over time."
+    },
+    {
+      "id": "b33-api",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 710,
+      "endLine": 710,
+      "reason": "B.3.3: 独自 API への依存がもたらす負担",
+      "excerpt": "The spectrum of components within the wider enterprise is vast, with many products focusing on a single niche within zero trust and relying on other products to provide either data or some service to another component (e.g., integration of MFA for resource access). Vendors too often rely on proprietary APIs provided by partner companies rather than standardized, vendor-independent APIs to achieve this integration. The problem with this approach is that these APIs are proprietary and single-vendor controlled. The controlling vendor can change the API behavior, and integrators are required to update their products in response. This requires close partnerships between communities of vendors to ensure early notification of modifications within APIs, which may affect compatibility between products. This adds an additional burden on vendors and consumers: vendors need to expend resources to change their products, and consumers need to apply updates to multiple products when one vendor makes a change to its proprietary API. Additionally, vendors are required to implement and maintain wrappers for each partner component to allow maximum compatibility and interoperability. For example, many MFA product vendors are required to create a different wrapper for each cloud provider or identity management system to be usable in different kinds of client combinations."
+    },
+    {
+      "id": "b33-customer",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 712,
+      "endLine": 712,
+      "reason": "B.3.3: 購入者側の問題とロードマップ",
+      "excerpt": "On the customer side, this generates additional problems when developing requirements for purchasing products. There are no standards that purchasers can rely on to identify compatibility between products. Hence, it is very difficult to create a multiyear road map for moving into ZTA because it is impossible to identify a minimum set of compatibility requirements for components."
+    },
+    {
+      "id": "b34-no-single",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 716,
+      "endLine": 716,
+      "reason": "B.3.4: 単一のプロトコルやフレームワークはない",
+      "excerpt": "As there is no single solution to developing a ZTA, there is no single set of tools or services for a zero trust enterprise. Thus, it is impossible to have a single protocol or framework that enables an enterprise to move to a ZTA. Currently, there is a wide variety of models and solutions seeking to become the leading authority of ZTA."
+    },
+    {
+      "id": "b34-opportunity",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 718,
+      "endLine": 718,
+      "reason": "B.3.4: オープンな標準の機会と既存の取り組み",
+      "excerpt": "This indicates that there is an opportunity for a set of open, standardized protocols or frameworks to be developed to aid organizations in migrating to a ZTA. SDOs like the Internet Engineering Task Force (IETF) have specified protocols that may be useful in exchanging threat information (called XMPP-Grid [1]). The Cloud Security Alliance (CSA) has produced a framework for Software Defined Perimeter (SDP) [2] that may also be useful in ZTA. Efforts should be directed toward surveying the current state of ZTA-related frameworks or the protocols necessary for a useful ZTA and toward identifying places where work is needed to produce or improve these specifications."
+    },
+    {
+      "id": "b4-scope",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 722,
+      "endLine": 722,
+      "reason": "B.4: 知識のギャップの位置付け",
+      "excerpt": "The gaps listed here do not hinder an organization from adopting a ZTA for its enterprise. These are gray areas in knowledge about operational ZTA environments, and most arise from a lack of time and experience with mature zero trust deployments. These are areas of future work for researchers."
+    },
+    {
+      "id": "b45-aim",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 726,
+      "endLine": 726,
+      "reason": "B.4.5: ZTA の効果と基本原則の狙い",
+      "excerpt": "A properly implemented ZTA for an enterprise will improve the enterprise’s cybersecurity posture over traditional network perimeter-based security. The tenets of ZTA aim to reduce the exposure of resources to attackers and minimize or prevent lateral movement within an enterprise should a host asset be compromised."
+    },
+    {
+      "id": "b45-attackers",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 728,
+      "endLine": 728,
+      "reason": "B.4.5: 攻撃者の行動の変化",
+      "excerpt": "However, determined attackers will not sit idle but will instead change behavior in the face of ZTA. The open issue is how the attacks will change. One possibility is that attacks aimed at stealing credentials will be expanded to target MFA (e.g., phishing, social engineering). Another possibility is that in a hybrid ZTA/perimeter-based enterprise, attackers will focus on the business processes that have not had ZTA tenets applied (i.e., follow traditional network perimeter-based security)—in effect, targeting the low-hanging fruit in an attempt to gain some foothold in the ZTA business process."
+    },
+    {
+      "id": "b45-metrics",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 730,
+      "endLine": 730,
+      "reason": "B.4.5: 攻撃対象領域の縮小と成功の指標",
+      "excerpt": "As ZTA matures, more deployments are seen, and experience is gained, the effectiveness of ZTA in shrinking the attack surface of resources may become apparent. The metrics of success of ZTA over older cybersecurity strategies will also need to be developed."
+    },
+    {
+      "id": "b46-research",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 734,
+      "endLine": 734,
+      "reason": "B.4.6: エンドユーザーの行動に関する調査の現状",
+      "excerpt": "There has not been a rigorous examination of how end users act in an enterprise that is using a ZTA. This is mainly due to the lack of large ZTA use cases available for analysis. There have, however, been studies on how users react to MFA and other security operations that are part of a ZTA enterprise, and this work could form the basis of predicting end user experience and behavior when using ZTA workflows in an enterprise."
+    },
+    {
+      "id": "b46-fatigue",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 736,
+      "endLine": 736,
+      "reason": "B.4.6: セキュリティ疲労と MFA への反応",
+      "excerpt": "One set of studies that can predict how ZTA affects end user experience is the work done on the use of MFA in enterprises and security fatigue. Security fatigue [3] is the phenomenon wherein end users are confronted with so many security policies and challenges that it begins to impact their productivity in a negative way. Other studies show that MFA may alter user behavior, but the overall change is mixed [4] [5]. Some users readily accept MFA if the process is streamlined and involves devices they are used to using or having with them (e.g., applications on a smartphone). However, some users resent having to use personally-owned devices for business processes or feel that they are being constantly monitored for possible violations of IT policies."
+    },
+    {
+      "id": "b47-dependencies",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 740,
+      "endLine": 740,
+      "reason": "B.4.7: 依存関係の網と障害の連鎖",
+      "excerpt": "The survey of the ZTA vendor ecosystem displayed the wide range of infrastructure that an enterprise deploying a ZTA would need to consider. As previously noted, there is no single provider of a full zero trust solution at this time. As a result, enterprises will purchase several different services and products, which can lead to a web of dependencies for components. If one vital component is disrupted or unreachable, there could be a cascade of failures that impact one or multiple business processes."
+    },
+    {
+      "id": "b47-cloud",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 742,
+      "endLine": 742,
+      "reason": "B.4.7: クラウドへの依存と到達性",
+      "excerpt": "Most products and services surveyed relied on a cloud presence to provide robustness, but even cloud services have been known to become unreachable through either an attack or simple error. When this happens, key components used to make access decisions may be unreachable or may not be able to communicate with other components. For example, PE and PA components located in a cloud may be reachable during a distributed denial-of-service (DDoS) attack but may not be able to reach all PEPs located with resources. Research is needed on discovering the possible choke points of ZTA deployment models and the impact on network operations when a ZTA component is unreachable or has limited reachability."
+    },
+    {
+      "id": "b47-coop",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 744,
+      "endLine": 744,
+      "reason": "B.4.7: 業務継続（COOP）計画",
+      "excerpt": "The continuity of operations (COOP) plans for an enterprise will likely need revision when adopting a ZTA. A ZTA makes many COOP factors easier as remote workers may have the same access to resources that they had on-premises. However, policies like MFA may also have a negative impact if users are not properly trained or lack experience. Users may forget or not have access to tokens and enterprise devices during an emergency, and that will impact the speed and effectiveness of enterprise business processes."
+    },
+    {
+      "id": "b5-refs",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 748,
+      "endLine": 750,
+      "reason": "B.5: 付録 B の参考文献 [1]〜[3]",
+      "excerpt": "|| [1] | Cam-Winget N (ed.), Appala S, Pope S, Saint-Andre P (2019) Using Extensible Messaging and Presence Protocol (XMPP) for Security Information Exchange. (Internet Engineering Task Force (IETF)), IETF Request for Comments (RFC) 8600. https://doi.org/10.17487/RFC8600\n|| [2] | Software Defined Perimeter Working Group “SDP Specification 1.0” Cloud Security Alliance. April 2014.\n|| [3] | Stanton B, Theofanos MF, Spickard Prettyman S, Furman S (2016) Security Fatigue. IT Professional 18(5):26-32. https://doi.org/10.1109/MITP.2016.84"
+    }
+  ],
+  "questions": [
+    {
+      "id": "acronym-expansions",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "付録 A の略語の展開として正しいものはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "acronyms"
+      ],
+      "options": [
+        "PDP は Policy Deployment Point、PA は Policy Agent を表す",
+        "G2B は Government to Business（民間企業）、G2G は Government to Government を表す",
+        "NPE は Network Policy Engine、PE は Policy Enforcement を表す",
+        "SDN は Software Defined Perimeter、SDP は Secure Data Plane を表す"
+      ]
+    },
+    {
+      "id": "sdp-framework",
+      "type": "choice",
+      "category": "vocabulary",
+      "prompt": "付録 A にあるこの略語が指すものを、B.3.4 はどのように位置付けていますか？",
+      "points": 1,
+      "referenceIds": [
+        "acronyms",
+        "b34-no-single",
+        "b34-opportunity"
+      ],
+      "term": "SDP（Software Defined Perimeter、ソフトウェア定義境界）",
+      "options": [
+        "エンタープライズが ZTA へ移行できるようにする、標準化された単一のフレームワークとして、すでに確立しているもの",
+        "Internet Engineering Task Force（IETF）がプロトコルを規定しており、脅威情報の交換に役立つ可能性があるもの",
+        "Cloud Security Alliance（CSA）がフレームワークを作成しており、ZTA にも役立つ可能性があるもの",
+        "パートナー企業が提供する、単一のベンダーが管理する独自 API であり、ZTA では過度な依存が問題になっているもの"
+      ]
+    },
+    {
+      "id": "maturity-conclusion",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "付録 B の冒頭は、ゼロトラストのコンポーネントとソリューションの成熟度の調査から、どのような結論を示していますか？",
+      "points": 1,
+      "referenceIds": [
+        "b-conclusion"
+      ],
+      "options": [
+        "ZTA のエコシステムは、広範な採用に十分なほど成熟していない。ただし、現在入手できる ZTA のコンポーネントの大半は、エンタープライズのあらゆるワークフローに使える",
+        "ZTA のエコシステムは、広範な採用に十分なほど成熟している。必要なコンポーネントをすべて提供する単一のソリューションも、すでに複数のベンダーから提供されている",
+        "ZTA のエコシステムは、広範な採用に十分なほど成熟していない。ZTA の戦略で環境を計画・展開することはできるが、必要なコンポーネントをすべて提供する単一のソリューションはない",
+        "ZTA のエコシステムは、広範な採用に十分なほど成熟していない。そのため、ZTA の戦略を使ってエンタープライズ環境を計画・展開することは、現時点では不可能である"
+      ]
+    },
+    {
+      "id": "survey-purpose",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "B.1 の技術調査について正しいものはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "b1-survey"
+      ],
+      "options": [
+        "特定の 1 社のベンダーに製品の説明を求める形で行い、ゼロトラストについての他のベンダーの見解は、調査の対象に含めないことにした",
+        "保守や運用に影響する構造的なギャップを、短期または中期の問題としてではなく、将来の研究に委ねる長期の問題として位置付けることにした",
+        "政府機関による ZT ベースのインフラストラクチャへの即時の移行や、既存の ZTA 実装の維持を妨げている、欠けている要素を特定することを目的にした",
+        "特定されたギャップを、即時の展開に関わるものと構造的なものの 2 つに分類し、将来の研究が必要な分野は、ギャップの分類の対象から外すことにした"
+      ]
+    },
+    {
+      "id": "table-mapping",
+      "type": "choice",
+      "category": "comparison",
+      "prompt": "表 B-1 の、分類・質問例・特定されたギャップの組み合わせとして正しいものはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "table-b1"
+      ],
+      "options": [
+        "さらなる研究が必要な分野 —「異なる ZTA 環境どうしはどのようにやり取りするか」— 文書化されたエンドユーザーエクスペリエンス",
+        "構造的 —「ZTA を前にして脅威はどのように進化するか」— ZTA は既存のポリシーと矛盾するという認識",
+        "即時の展開 —「ベンダーロックインをどのように防ぐか」— ベンダー API への過度な依存",
+        "即時の展開 —「調達要件をどのように書くべきか」— ZTA に関する共通のフレームワークと用語の欠如"
+      ]
+    },
+    {
+      "id": "category-natures",
+      "type": "choice",
+      "category": "comparison",
+      "prompt": "B.2〜B.4 の冒頭は、ギャップの 3 つの分類をそれぞれどう性格付けていますか？",
+      "points": 1,
+      "referenceIds": [
+        "b2-scope",
+        "b3-scope",
+        "b4-scope"
+      ],
+      "options": [
+        "B.2 は採用の妨げにはならない知識のグレーゾーン、B.3 は現時点で採用を遅らせている問題、B.4 は初期の実装・展開と継続的な運用・成熟に影響する問題",
+        "B.2 は現時点で採用を遅らせている問題、B.3 は初期の実装・展開と継続的な運用・成熟に影響する問題、B.4 は採用の妨げにはならない知識のグレーゾーン",
+        "B.2 は現時点で採用を遅らせている問題、B.3 は採用の妨げにはならない知識のグレーゾーン、B.4 は初期の実装・展開と継続的な運用・成熟に影響する問題",
+        "B.2 は初期の実装・展開と継続的な運用・成熟に影響する問題、B.3 は採用の妨げにはならない知識のグレーゾーン、B.4 は現時点で採用を遅らせている問題"
+      ]
+    },
+    {
+      "id": "common-terms-and-base",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "B.2.1 は、ZTA の共通の用語がないことの影響と、本書の §2.1・§3.1 の位置付けをどう説明していますか？",
+      "points": 1,
+      "referenceIds": [
+        "b21-terms",
+        "b21-base"
+      ],
+      "options": [
+        "設計と調達のための一貫した要件やポリシーを策定しにくくなる。§2.1・§3.1 は、中立的な用語と概念の土台を築く最初の試みで、不完全だと分かる可能性もある",
+        "設計と調達のための一貫した要件やポリシーを策定しにくくなる。§2.1・§3.1 は、主要なベンダーの製品の用語に合わせることで、市場調査を省けるようにしたものである",
+        "設計と調達のための一貫した要件やポリシーを策定しにくくなる。§2.1・§3.1 は、業界が合意した完成済みの用語集で、今後の経験によって変わることはないとされている",
+        "設計と調達には影響しないが、運用中の環境の監査がしにくくなる。§2.1・§3.1 は、中立的な用語と概念の土台を築く最初の試みで、不完全だと分かる可能性もある"
+      ]
+    },
+    {
+      "id": "conflict-misconception",
+      "type": "choice",
+      "category": "debugging",
+      "prompt": "B.2.2 に照らして、この発言の問題点はどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "b22-misconception"
+      ],
+      "scenario": "ある連邦政府機関の幹部が「ZTA は、これまでのサイバーセキュリティの考え方とは両立しないソリューションを集めた、単一のフレームワークだ。既存のガイダンスに沿って整備してきた ID 管理システムや CDM の機能は、ZTA では生かせない」と発言しました。",
+      "options": [
+        "ゼロトラストは現在のサイバーセキュリティ戦略が進化したものであり、成熟した ID 管理システムと堅牢な CDM の機能を整備している機関は、すでに ZTA への道を歩んでいる",
+        "ゼロトラストは現在のサイバーセキュリティ戦略が進化したものだが、連邦政府機関にゼロトラスト的なアプローチを奨励するガイダンスは、これまでのところ出されていない",
+        "ゼロトラストは現在のサイバーセキュリティ戦略と両立しないが、ID 管理システムと CDM の機能に限っては、例外として ZTA のコンポーネントに作り替えて再利用することができる",
+        "ゼロトラストは単一のフレームワークであるが、既存のガイダンスを廃止する手続きを先に済ませておけば、連邦政府機関も、その後に ZTA を採用することができる"
+      ]
+    },
+    {
+      "id": "single-vendor",
+      "type": "choice",
+      "category": "design",
+      "prompt": "B.3.3 の説明を踏まえると、調達方針で考慮すべきことはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "b33-vendor"
+      ],
+      "scenario": "ある機関が、ZTA のコンポーネントの調達方針を検討しています。担当者は「1 社の製品だけでゼロトラストを実現すれば、製品どうしの相互運用性を考えなくて済む」と提案しました。",
+      "options": [
+        "ゼロトラストを単独で提供できるベンダーはなく、ロックインのリスクもあるので、コンポーネントの相互運用性を、購入時だけでなく時間の経過とともに考える",
+        "ゼロトラストを単独で提供できるベンダーはあるが、ロックインのリスクがあるので、購入時の相互運用性だけを確認したうえで、複数のベンダーの製品を組み合わせる",
+        "ゼロトラストを単独で提供できるベンダーはないので、コンポーネントの相互運用性は、最初の購入の時点で一度確認しておけば、その後は考慮の対象から外してよい",
+        "ゼロトラストを単独で提供できるベンダーを選べば、ロックインのリスクを下げられるので、そのようなベンダーが現れるまで、コンポーネントの調達を見送る"
+      ]
+    },
+    {
+      "id": "api-change-chain",
+      "type": "ordering",
+      "category": "flow",
+      "prompt": "B.3.3 の説明に沿って、独自 API への依存が、ベンダーと利用者の負担につながるまでの流れを並べてください。",
+      "points": 2,
+      "referenceIds": [
+        "b33-api"
+      ],
+      "items": [
+        {
+          "id": "proprietary",
+          "text": "ベンダーが、標準化されたベンダー非依存の API ではなく、パートナー企業が提供する独自 API を使って製品を統合する"
+        },
+        {
+          "id": "niche",
+          "text": "多くの製品が、ゼロトラストの中の単一の領域に特化し、データやサービスの提供を他の製品に頼る"
+        },
+        {
+          "id": "consumers",
+          "text": "利用者が、複数の製品に更新を適用する"
+        },
+        {
+          "id": "integrators",
+          "text": "統合する側のベンダーが、変更に対応するために自社の製品を更新する"
+        },
+        {
+          "id": "change",
+          "text": "API を管理しているベンダーが、その API の動作を変更する"
+        }
+      ]
+    },
+    {
+      "id": "vendor-vs-purchaser",
+      "type": "choice",
+      "category": "comparison",
+      "prompt": "B.3.3 が挙げる、独自 API への依存がもたらす問題について、ベンダー側と購入者側の組み合わせとして正しいものはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "b33-api",
+        "b33-customer"
+      ],
+      "options": [
+        "ベンダーは、パートナーのコンポーネントごとにラッパーを実装・保守しなければならない。購入者には、製品間の互換性を見極めるために頼れる標準がない",
+        "ベンダーは、パートナーのコンポーネントごとにラッパーを実装・保守しなければならない。購入者は、公開されている標準に照らして、製品間の互換性を確認できる",
+        "ベンダーは、API の変更を早期に知らされなくても、製品間の互換性を維持できる。購入者は、コンポーネントの互換性の最小限の要件を、あらかじめ特定できる",
+        "ベンダーは、標準化された API を 1 つ実装すれば、すべてのパートナーの製品と統合できる。購入者には、製品間の互換性を見極めるために頼れる標準がない"
+      ]
+    },
+    {
+      "id": "emerging-standards",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "B.3.4 は、独自 API への過度な依存に対して、標準化の面でどのような見通しを示していますか？",
+      "points": 1,
+      "referenceIds": [
+        "b34-no-single",
+        "b34-opportunity"
+      ],
+      "options": [
+        "ZTA における主導的な権威となるモデルやソリューションは、すでに 1 つに絞られている。そのモデルを、オープンな標準として各ベンダーに普及させる機会がある",
+        "ZTA へ移行できるようにする単一のプロトコルやフレームワークを用意することは不可能である。移行を助ける、オープンで標準化された一連のプロトコルやフレームワークを開発する機会がある",
+        "ZTA へ移行できるようにする単一のプロトコルを、IETF がすでに規定している。各ベンダーがその実装を終えれば、独自 API への過度な依存は解消されると見込まれている",
+        "ZTA へ移行できるようにする単一のプロトコルやフレームワークを用意することは不可能である。そのため、標準化に取り組むのではなく、ベンダー間の個別のパートナーシップを広げるべきである"
+      ]
+    },
+    {
+      "id": "hybrid-foothold",
+      "type": "choice",
+      "category": "debugging",
+      "prompt": "B.4.5 が挙げる可能性に照らして、この予想の問題点はどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "b45-attackers"
+      ],
+      "scenario": "あるエンタープライズは、主要なビジネスプロセスに ZTA を適用し、残りのビジネスプロセスは従来の境界型のまま運用しています。担当者は「攻撃者の関心は ZTA を適用したプロセスに移るので、境界型のまま残したプロセスが狙われることは減る」と予想しました。",
+      "options": [
+        "攻撃者は、MFA が使われているビジネスプロセスを避けるようになるので、クレデンシャルの窃取を狙う攻撃そのものが、行われなくなっていく可能性がある",
+        "攻撃者は、ZTA を前にしても行動を変えないので、ZTA を適用したかどうかにかかわらず、どのビジネスプロセスへの攻撃も、これまでと同じように続く可能性がある",
+        "攻撃者は、ZTA の基本原則を適用していないビジネスプロセスに狙いを絞り、そこから ZTA のビジネスプロセスへの足がかりを得ようとする可能性がある",
+        "攻撃者は、ZTA を適用したビジネスプロセスへの攻撃をやめるので、境界型のまま残したプロセスでは、横方向の移動だけを警戒すれば足りる可能性がある"
+      ]
+    },
+    {
+      "id": "zta-effect-metrics",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "B.4.5 は、ZTA の効果とその確かめ方について、どう述べていますか？",
+      "points": 1,
+      "referenceIds": [
+        "b45-aim",
+        "b45-metrics"
+      ],
+      "options": [
+        "適切に実装された ZTA は、ホスト資産の侵害そのものを防ぐ。そのため、侵害された後の横方向の移動を最小化または防止することは、基本原則の狙いに含まれていない",
+        "適切に実装された ZTA は、従来の境界型よりもセキュリティ態勢を改善する。従来の戦略と比べた成功の指標もすでに策定されており、攻撃対象領域の縮小は実証されている",
+        "適切に実装された ZTA でも、従来の境界型よりセキュリティ態勢が改善するとは言えない。そのため、成功の指標を策定し終えるまで、ZTA の採用は見送るべきである",
+        "適切に実装された ZTA は、従来の境界型よりもセキュリティ態勢を改善する。ただし、従来の戦略と比べた ZTA の成功の指標は、これから策定する必要がある"
+      ]
+    },
+    {
+      "id": "user-experience-research",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "B.4.6 は、ZTA を使うエンタープライズでのエンドユーザーの体験について、現在の知見をどう説明していますか？",
+      "points": 1,
+      "referenceIds": [
+        "b46-research",
+        "b46-fatigue",
+        "b-areas"
+      ],
+      "options": [
+        "厳密な調査がすでにあり、大規模な ZTA のユースケースの分析から結論が出ている。MFA は、手順が合理化されているかどうかや、使うデバイスの種類にかかわらず、大半のユーザーに受け入れられている",
+        "厳密な調査はまだないが、MFA などへの反応の研究が予測の基礎になりうる。MFA は、私物のデバイスを業務に使うものであっても反感を抱かれず、監視されていると感じるユーザーも見られない",
+        "厳密な調査はまだないが、MFA などへの反応の研究が予測の基礎になりうる。MFA は、手順が合理化され、使い慣れたデバイスを使うものなら受け入れるユーザーがいる一方、反感を抱くユーザーもいる",
+        "厳密な調査はまだなく、MFA などへの反応の研究も、予測の基礎にはならないとされている。MFA がユーザーの行動に与える変化は、紹介されているどの研究でも、一貫して否定的なものである"
+      ]
+    },
+    {
+      "id": "fatigue-term",
+      "type": "choice",
+      "category": "vocabulary",
+      "prompt": "B.4.6 によると、この用語はどのような現象を指しますか？",
+      "points": 1,
+      "referenceIds": [
+        "b46-fatigue",
+        "b5-refs"
+      ],
+      "term": "security fatigue（セキュリティ疲労）",
+      "options": [
+        "セキュリティ製品が非常に多くのポリシーを同時に評価し、そのことがアクセス決定の遅延を生じさせ始める現象",
+        "セキュリティ担当者が非常に多くのアラートへの対応に追われ、そのことが攻撃の見落としにつながり始める現象",
+        "エンドユーザーが MFA の操作に慣れていき、そのことが認証に使うデバイスの管理への注意を薄れさせていく現象",
+        "エンドユーザーが非常に多くのセキュリティポリシーや課題に直面し、そのことが生産性に悪影響を及ぼし始める現象"
+      ]
+    },
+    {
+      "id": "dependency-web",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "B.4.7 は、ZTA を展開するエンタープライズが複数のサービスや製品を組み合わせることについて、何を指摘していますか？",
+      "points": 1,
+      "referenceIds": [
+        "b47-dependencies"
+      ],
+      "options": [
+        "コンポーネントの依存関係をなくすには、完全なゼロトラストソリューションを単独で提供しているプロバイダーを選び、すべてのコンポーネントをその 1 社から購入すればよい",
+        "コンポーネントの提供元が分散するので、重要なコンポーネントが 1 つ停止または到達不能になっても、その影響は、そのコンポーネントを使う 1 つのビジネスプロセスの範囲に収まる",
+        "コンポーネントの依存関係が網の目のように絡み合うが、重要なコンポーネントが 1 つ停止または到達不能になっても、他の製品がその機能を自動的に引き継ぐので、ビジネスプロセスには影響しない",
+        "コンポーネントの依存関係が網の目のように絡み合い、重要なコンポーネントが 1 つでも停止または到達不能になると、障害が連鎖して 1 つまたは複数のビジネスプロセスに影響しうる"
+      ]
+    },
+    {
+      "id": "cloud-reachability",
+      "type": "choice",
+      "category": "debugging",
+      "prompt": "B.4.7 に照らして、この説明が見落としている点はどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "b47-cloud",
+        "acronyms"
+      ],
+      "scenario": "ある設計者が、ポリシーエンジン（PE）とポリシー管理者（PA）をクラウドサービスに置く構成を提案し、「クラウドは堅牢なので、DDoS 攻撃の最中でも PE と PA に到達できるかぎり、アクセス決定とその実施は止まらない」と説明しました。",
+      "options": [
+        "クラウドサービスが到達不能になる原因は攻撃に限られるので、DDoS 攻撃への対策があれば、単純なミスによる障害までは考えなくてよい",
+        "クラウド上の PE と PA に到達できても、PE と PA の側から、リソースと同じ場所に置かれたすべての PEP に到達できるとは限らない",
+        "クラウド上の PE と PA は、DDoS 攻撃の最中には到達不能になるので、オンプレミスに置く構成にしなければ、アクセス決定を続けることはできない",
+        "クラウド上の PE と PA に到達できれば、PEP に到達できなくても、PE と PA がリソースへの通信経路を直接確立するので、実施は止まらない"
+      ]
+    },
+    {
+      "id": "coop-plan-review",
+      "type": "written",
+      "category": "design",
+      "prompt": "B.4.7 の説明に基づいて、この考えを評価し、COOP 計画を見直すときに踏まえるべき点を述べてください。",
+      "points": 4,
+      "referenceIds": [
+        "b47-coop"
+      ],
+      "scenario": "ある機関が ZTA を展開し、リソースへのアクセスに MFA を求めるようにしました。業務継続（COOP）計画は ZTA の導入前のままで、担当者は「ZTA ではリモートからも同じようにリソースへアクセスできるので、COOP 計画を見直す必要はない」と考えています。",
+      "answerHint": "見直しの必要性、ZTA が COOP にもたらす利点、MFA のようなポリシーの影響、非常時にユーザーに起こりうることの 4 点を、それぞれ 1 文程度で書いてください。"
+    },
+    {
+      "id": "requirements-and-roadmap",
+      "type": "written",
+      "category": "design",
+      "prompt": "B.2.1 と B.3 の説明に基づいて、この考えの問題点と、要件やロードマップを検討するうえで踏まえるべき点を述べてください。",
+      "points": 4,
+      "referenceIds": [
+        "b21-terms",
+        "b33-api",
+        "b33-customer",
+        "b34-opportunity"
+      ],
+      "scenario": "ある連邦政府機関の調達担当者が、ZTA のコンポーネントを数年かけて調達する計画を立てています。担当者は「製品どうしの連携は、各ベンダーがパートナー向けに提供している API で実現できるので、互換性の要件は書かなくてよい。用語はベンダーの資料に合わせれば十分で、複数年のロードマップも、製品の一覧があれば作れる」と考えています。",
+      "answerHint": "用語と概念、独自 API への依存、購入者が頼れる標準、標準化の動向の 4 点を、それぞれ 1〜2 文で書いてください。"
+    }
+  ],
+  "solutions": {
+    "acronym-expansions": {
+      "answer": 1,
+      "explanation": "付録 A。G2B は Government to Business（private industry）、G2G は Government to Government の略です。NPE は Non-Person Entity、PE は Policy Engine、SDN は Software Defined Network、SDP は Software Defined Perimeter、PDP は Policy Decision Point、PA は Policy Administrator を表します。"
+    },
+    "sdp-framework": {
+      "answer": 2,
+      "explanation": "付録 A・付録 B.3.4。SDP は Software Defined Perimeter の略です。B.3.4 は、CSA が作成した SDP のフレームワークを、ZTA にも役立つ可能性があるものとして挙げています。IETF が規定した、脅威情報の交換に役立つ可能性があるプロトコルは XMPP-Grid です。また B.3.4 は、ZTA へ移行できるようにする単一のプロトコルやフレームワークを用意することは不可能だとしています。"
+    },
+    "maturity-conclusion": {
+      "answer": 2,
+      "explanation": "付録 B の冒頭。調査は、ZTA のエコシステムの現状が、広範な採用に十分なほど成熟していないと結論しました。ZTA の戦略でエンタープライズ環境を計画・展開することは可能ですが、必要なコンポーネントをすべて提供する単一のソリューションはありません。また、エンタープライズにあるさまざまなワークフローのすべてに使える ZTA のコンポーネントは、現在はほとんどありません。"
+    },
+    "survey-purpose": {
+      "answer": 2,
+      "explanation": "付録 B.1。調査では、複数のベンダーを招いて、製品とゼロトラストについての見解を聞きました。目的は、政府機関が ZT ベースのエンタープライズインフラストラクチャへ今すぐ移行すること、あるいは既存の ZTA 実装を維持することを妨げている、欠けている要素を特定することでした。ギャップは、即時の展開（即時または短期）、保守や運用に影響する構造的なギャップ（短期または中期）、不足している知識（将来の研究分野）の 3 つに分類されています。"
+    },
+    "table-mapping": {
+      "answer": 3,
+      "explanation": "表 B-1。即時の展開の分類には、調達要件の書き方と、ZTA の計画が TIC・FISMA などの要件とどう両立するかという質問があり、ギャップは、ZTA に関する共通のフレームワークと用語の欠如と、ZTA は既存のポリシーと矛盾するという認識です。ベンダーロックインの防止と、異なる ZTA 環境どうしのやり取りは構造的な分類の質問で、ギャップはベンダー API への過度な依存です。脅威やビジネスプロセスの変化は、さらなる研究が必要な分野の質問で、ZTA を導入したエンタープライズでの侵害の成功がどのようなものになるかと、文書化されたエンドユーザーエクスペリエンスがギャップに挙げられています。"
+    },
+    "category-natures": {
+      "answer": 1,
+      "explanation": "付録 B.2〜B.4。B.2 は、現時点で ZTA の採用を遅らせている問題で、将来の保守や移行は考慮せずに、即時の問題として分類されています（先を見据えたエンタープライズは保守の分類も差し迫った懸念と捉えるかもしれませんが、この分析では別の分類です）。B.3 は、ZTA の初期の実装・展開と、継続的な運用・成熟に影響するギャップで、オープンな標準が役に立つ分野です。B.4 は、組織が ZTA を採用する妨げにはならない知識のグレーゾーンで、その大半は、成熟したゼロトラストの展開に関する時間と経験の不足から生じています。"
+    },
+    "common-terms-and-base": {
+      "answer": 0,
+      "explanation": "付録 B.2.1。戦略としてのゼロトラストはまだ形成途上の概念で、業界は、ZTA のコンポーネントと運用を説明する用語や概念を 1 つにまとめていません。そのため組織は、ゼロトラストのエンタープライズインフラストラクチャの設計とコンポーネントの調達について、一貫した要件とポリシーを策定しにくくなっています。§2.1 と §3.1 は、ZTA を説明する用語と概念の中立的な土台を築く最初の試みで、エンタープライズの要件の策定や市場調査で ZTA のソリューションを捉え、モデル化し、議論する共通の方法を提供することを目指しています。経験が蓄積すれば不完全だと分かるかもしれませんが、現時点では共通の概念的な枠組みの土台になります。"
+    },
+    "conflict-misconception": {
+      "answer": 0,
+      "explanation": "付録 B.2.2。ZTA が、既存のサイバーセキュリティの見方とは両立しない一連のソリューションを備えた単一のフレームワークだというのは誤解です。ゼロトラストは、多くの概念や考え方が長い間流通してきた、現在のサイバーセキュリティ戦略の進化と見るべきものです。連邦政府機関は、既存のガイダンス（§6 を参照）を通じて、よりゼロトラスト的なアプローチをとるよう奨励されてきました。成熟した ID 管理システムと堅牢な CDM の機能を整備している機関は、すでに ZTA への道を歩んでいます（§7.3 を参照）。"
+    },
+    "single-vendor": {
+      "answer": 0,
+      "explanation": "付録 B.3.3。技術調査では、ゼロトラストを実現する単一のソリューションを提供しているベンダーは 1 社もないことが明らかになりました。さらに、単一ベンダーのソリューションでゼロトラストを実現することは、ベンダーロックインのリスクを負うので、望ましくない場合があります。そのため、コンポーネントの相互運用性が、購入時だけでなく、時間の経過とともに問題になります。"
+    },
+    "api-change-chain": {
+      "answer": [
+        "niche",
+        "proprietary",
+        "change",
+        "integrators",
+        "consumers"
+      ],
+      "explanation": "付録 B.3.3。多くの製品はゼロトラストの中の単一の領域に特化し、データやサービスの提供を他の製品に頼っています。この統合を実現するために、ベンダーは、標準化されたベンダー非依存の API ではなく、パートナー企業が提供する独自 API に頼ることがあまりに多いとされています。独自 API は単一のベンダーが管理していて、そのベンダーは API の動作を変更でき、統合する側はそれに対応して製品を更新しなければなりません。その結果、ベンダーは製品の変更に資源を費やし、利用者は複数の製品に更新を適用する必要があります。"
+    },
+    "vendor-vs-purchaser": {
+      "answer": 0,
+      "explanation": "付録 B.3.3。ベンダーは、最大限の互換性と相互運用性を確保するために、パートナーのコンポーネントごとにラッパーを実装し、保守しなければなりません。たとえば、多くの MFA 製品のベンダーは、クラウドプロバイダーや ID 管理システムごとに異なるラッパーを作る必要があります。API の変更を早期に知るには、ベンダーのコミュニティ間の緊密なパートナーシップも必要です。購入者の側には、製品間の互換性を見極めるために頼れる標準がなく、コンポーネントの互換性の最小限の要件を特定できないため、ZTA へ移行するための複数年のロードマップを作ることは非常に困難です。"
+    },
+    "emerging-standards": {
+      "answer": 1,
+      "explanation": "付録 B.3.4。ZTA を作り上げる単一のソリューションはなく、ゼロトラストのエンタープライズのための単一のツールやサービスのセットもないため、ZTA へ移行できるようにする単一のプロトコルやフレームワークを用意することは不可能です。現在は、ZTA における主導的な権威となることを目指す、多種多様なモデルやソリューションがあります。これは、組織の移行を助ける、オープンで標準化された一連のプロトコルやフレームワークを開発する機会があることを示しています。本書は、ZTA に関連するフレームワークやプロトコルの現状を調査し、仕様の作成や改善が必要な箇所を特定することに力を注ぐべきだとしています。"
+    },
+    "hybrid-foothold": {
+      "answer": 2,
+      "explanation": "付録 B.4.5。執拗な攻撃者は手をこまねいているわけではなく、ZTA を前にして行動を変えますが、攻撃がどのように変化するかは未解決の問題です。可能性の 1 つは、ハイブリッドの ZTA/境界型のエンタープライズで、攻撃者が、ZTA の基本原則を適用していない（従来のネットワーク境界型のセキュリティに従っている）ビジネスプロセスに狙いを絞ることです。これは、攻略しやすい部分を狙って、ZTA のビジネスプロセスへの足がかりを得ようとするものです。もう 1 つの可能性は、クレデンシャルの窃取を狙う攻撃が拡大し、フィッシングやソーシャルエンジニアリングなどで MFA を標的にするようになることです。"
+    },
+    "zta-effect-metrics": {
+      "answer": 3,
+      "explanation": "付録 B.4.5。エンタープライズに適切に実装された ZTA は、従来のネットワーク境界型のセキュリティと比べて、サイバーセキュリティ態勢を改善します。ZTA の基本原則は、リソースが攻撃者にさらされる機会を減らし、ホスト資産が侵害された場合のエンタープライズ内での横方向の移動を最小化または防止することを狙っています。ZTA が成熟し、展開事例が増え、経験が蓄積されるにつれて、攻撃対象領域を縮小する有効性が明らかになる可能性がありますが、従来のサイバーセキュリティ戦略と比べた成功の指標は、これから策定する必要があります。"
+    },
+    "user-experience-research": {
+      "answer": 2,
+      "explanation": "付録 B.4.6。ZTA を使うエンタープライズでエンドユーザーがどう行動するかについて、厳密な調査はまだありません。主な理由は、分析に使える大規模な ZTA のユースケースがないことです。ただし、MFA など、ZTA のエンタープライズの一部となるセキュリティ運用へのユーザーの反応の研究はあり、予測の基礎になりえます。MFA がもたらす行動の変化は全体としてまちまちで、手順が合理化され、スマートフォンのアプリケーションのように使い慣れた（あるいは身近に持っている）デバイスを使うものなら受け入れるユーザーがいる一方、ビジネスプロセスに私物のデバイスを使うことに反感を抱くユーザーや、常に監視されていると感じるユーザーもいます。付録 B の冒頭も、土台となる取り組みがある分野はあるものの、多様な ZTA 中心の環境での経験が足りず、基本原則がそれらをどう変えるかはよく分かっていないとしています。"
+    },
+    "fatigue-term": {
+      "answer": 3,
+      "explanation": "付録 B.4.6。セキュリティ疲労は、エンドユーザーが非常に多くのセキュリティポリシーや課題に直面し、そのことが生産性に悪影響を及ぼし始める現象です。エンタープライズでの MFA の利用とセキュリティ疲労に関する研究は、ZTA がエンドユーザーエクスペリエンスにどう影響するかを予測できる研究の 1 つとして挙げられています。担当者のアラート対応や、製品の処理の遅延を指す言葉ではありません。"
+    },
+    "dependency-web": {
+      "answer": 3,
+      "explanation": "付録 B.4.7。現時点では、完全なゼロトラストソリューションを単独で提供できるプロバイダーはありません。その結果、エンタープライズは複数の異なるサービスや製品を購入することになり、コンポーネントの依存関係が網の目のように絡み合うおそれがあります。重要なコンポーネントが 1 つでも停止したり到達不能になったりすると、障害が連鎖して、1 つまたは複数のビジネスプロセスに影響する可能性があります。"
+    },
+    "cloud-reachability": {
+      "answer": 1,
+      "explanation": "付録 B.4.7。調査した製品やサービスの大半は、堅牢性をクラウド上の存在に頼っていましたが、クラウドサービスも、攻撃や単純なミスによって到達不能になることが知られています。その場合、アクセス決定に使う主要なコンポーネントに到達できなかったり、他のコンポーネントと通信できなかったりします。たとえば、クラウドに置いた PE と PA は、DDoS 攻撃の最中でも到達可能かもしれませんが、リソースと同じ場所に置かれたすべての PEP（ポリシー実施ポイント）には到達できないかもしれません。本書は、ZTA の展開モデルで起こりうるチョークポイントの発見と、コンポーネントが到達不能な場合や到達性が限られる場合のネットワーク運用への影響について、研究が必要だとしています。"
+    },
+    "coop-plan-review": {
+      "explanation": "付録 B.4.7。ZTA を採用するときには、エンタープライズの COOP 計画の見直しが必要になる可能性が高いとされています。担当者の言うとおり、リモートワーカーがオンプレミスにいるときと同じようにリソースへアクセスできる場合があるため、ZTA は COOP に関わる多くの要素を容易にします。しかし、MFA のようなポリシーは、ユーザーが適切な訓練を受けていなかったり、経験が不足していたりすると、悪影響を及ぼすこともあります。非常時には、ユーザーがトークンやエンタープライズのデバイスを忘れたり使えなかったりして、ビジネスプロセスの速度と有効性に影響します。",
+      "rubric": [
+        {
+          "criterion": "ZTA を採用するときには、COOP 計画の見直しが必要になる可能性が高いことを述べている",
+          "points": 1,
+          "referenceIds": [
+            "b47-coop"
+          ]
+        },
+        {
+          "criterion": "リモートワーカーがオンプレミスにいるときと同じようにリソースへアクセスできる場合があるため、ZTA が COOP に関わる多くの要素を容易にすることを認めている",
+          "points": 1,
+          "referenceIds": [
+            "b47-coop"
+          ]
+        },
+        {
+          "criterion": "MFA のようなポリシーは、ユーザーが適切な訓練を受けていない場合や経験が不足している場合に、悪影響を及ぼしうることを述べている",
+          "points": 1,
+          "referenceIds": [
+            "b47-coop"
+          ]
+        },
+        {
+          "criterion": "非常時には、ユーザーがトークンやエンタープライズのデバイスを忘れたり使えなかったりして、ビジネスプロセスの速度と有効性に影響することを述べている",
+          "points": 1,
+          "referenceIds": [
+            "b47-coop"
+          ]
+        }
+      ]
+    },
+    "requirements-and-roadmap": {
+      "explanation": "付録 B.2.1・B.3.3・B.3.4。業界は ZTA の用語や概念をまだ 1 つにまとめていないので、ベンダーの資料の用語に頼ると一貫した要件を策定しにくくなります。本書の §2.1・§3.1 が、共通の概念的な枠組みの土台になります。パートナーの独自 API は単一のベンダーが管理していて動作を変更でき、統合する側の製品の更新や、利用者による複数の製品への更新の適用といった負担が生じます。購入者には製品間の互換性を見極めるために頼れる標準がなく、互換性の最小限の要件を特定できないため、複数年のロードマップの作成は非常に困難です。構造的なギャップは、標準化団体（SDO）や業界コンソーシアムによるオープンな標準が役に立つ分野で、IETF の XMPP-Grid や CSA の SDP のフレームワークのような取り組みがあります。",
+      "rubric": [
+        {
+          "criterion": "業界が ZTA の用語や概念をまだ 1 つにまとめておらず、一貫した要件を策定しにくいことを指摘している。または、本書の §2.1・§3.1（抽象的なコンポーネントと展開モデル）が共通の概念的な枠組みの土台になることを述べている",
+          "points": 1,
+          "referenceIds": [
+            "b21-terms",
+            "b21-base"
+          ]
+        },
+        {
+          "criterion": "パートナーの独自 API は単一のベンダーが管理していて動作を変更でき、統合する側の製品の更新や、利用者による複数の製品への更新の適用といった負担が生じることを述べている",
+          "points": 1,
+          "referenceIds": [
+            "b33-api"
+          ]
+        },
+        {
+          "criterion": "購入者には製品間の互換性を見極めるために頼れる標準がなく、コンポーネントの互換性の最小限の要件を特定できないため、複数年のロードマップの作成が非常に難しいことを述べている",
+          "points": 1,
+          "referenceIds": [
+            "b33-customer"
+          ]
+        },
+        {
+          "criterion": "オープンで標準化されたプロトコルやフレームワークが役に立ちうること（例: IETF の XMPP-Grid、CSA の SDP のフレームワーク）、または関連する仕様の現状を調査する必要があることを述べている",
+          "points": 1,
+          "referenceIds": [
+            "b34-opportunity",
+            "b3-scope"
+          ]
+        }
+      ]
+    }
+  },
+  "inconsistencies": []
+}

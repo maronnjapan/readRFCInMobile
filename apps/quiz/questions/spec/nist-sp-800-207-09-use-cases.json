@@ -1,0 +1,660 @@
+{
+  "format": "spec-understanding-quiz",
+  "version": 1,
+  "id": "nist-sp-800-207-09-use-cases",
+  "title": "NIST SP 800-207 ゼロトラスト 9/16: 展開シナリオとユースケース",
+  "status": "published",
+  "spec": {
+    "id": "pdf-0290d6ece2487428",
+    "status": "adopted",
+    "repository": "maronnjapan/readRFCInMobile",
+    "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+    "path": "apps/quiz/specs/nist-sp-800-207.txt"
+  },
+  "references": [
+    {
+      "id": "intro-any",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 369,
+      "endLine": 369,
+      "reason": "§4: ZTA のルーツと、あらゆる組織への適用",
+      "excerpt": "Any enterprise environment can be designed with zero trust tenets in mind. Most organizations already have some elements of zero trust in their enterprise infrastructure or are on their way through implementation of information security and resiliency policies and best practices. Several deployment scenarios and use cases lend themselves readily to a zero trust architecture. For instance, ZTA has its roots in organizations that are geographically distributed and/or have a highly mobile workforce. That said, any organization can benefit from a zero trust architecture."
+    },
+    {
+      "id": "intro-hybrid",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 371,
+      "endLine": 371,
+      "reason": "§4: ユースケースで ZTA を明示しない理由",
+      "excerpt": "In the use cases below, ZTA is not explicitly indicated since the enterprise likely has both perimeter-based and possibly ZTA infrastructures. As discussed in Section 7.2, there will likely be a period when ZTA components and perimeter-based network infrastructure are concurrently in operation in an enterprise."
+    },
+    {
+      "id": "satellite-scenario",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 375,
+      "endLine": 375,
+      "reason": "§4.1: サテライト拠点とリモートの従業員のシナリオ",
+      "excerpt": "The most common scenario involves an enterprise with a single headquarters and one or more geographically dispersed locations that are not joined by an enterprise-owned physical network connection (see Figure 8). Employees at the remote location may not have a full enterprise-owned local network but still need to access enterprise resources to perform their tasks. The enterprise may have a Multiprotocol Label Switch (MPLS) link to the enterprise HQ network but may not have adequate bandwidth for all traffic or may not wish for traffic destined for cloud-based applications/services to traverse through the enterprise HQ network. Likewise, employees may be teleworking or in a remote location and using enterprise-owned or personally-owned devices. In such cases, an enterprise may wish to grant access to some resources (e.g., employee calendar, email) but deny access or restrict actions to more sensitive resources (e.g., HR database)."
+    },
+    {
+      "id": "satellite-pepa",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 377,
+      "endLine": 377,
+      "reason": "§4.1: PE/PA をクラウドサービスとして置く理由",
+      "excerpt": "In this use case, the PE/PA(s) is often hosted as a cloud service (which usually provides superior availability and would not require remote workers to rely on enterprise infrastructure to access cloud resources) with end assets having an installed agent (see Section 3.2.1) or accessing a resource portal (see Section 3.2.3). It may not be most responsive to have the PE/PA(s) hosted on the enterprise local network as remote offices and workers must send all traffic back to the enterprise network to reach applications/services hosted by cloud services."
+    },
+    {
+      "id": "multicloud-scenario",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 383,
+      "endLine": 383,
+      "reason": "§4.2: 複数のクラウドプロバイダーを使うシナリオ",
+      "excerpt": "One increasingly common use case for deploying a ZTA is an enterprise utilizing multiple cloud providers (see Figure 9). In this use case, the enterprise has a local network but uses two or more cloud service providers to host applications/services and data. Sometimes, the application/service is hosted on a cloud service that is separate from the data source. For performance and ease of management, the application hosted in Cloud Provider A should be able to connect directly to the data source hosted in Cloud Provider B rather than force the application to tunnel back through the enterprise network."
+    },
+    {
+      "id": "multicloud-zt",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 387,
+      "endLine": 387,
+      "reason": "§4.2: PEP の配置、PE と PA の置き場所、課題",
+      "excerpt": "This use case is the server-server implementation of the CSA’s software defined perimeter (SDP) specification [CSA-SDP]. As enterprises move to more cloud-hosted applications and services, it becomes apparent that relying on the enterprise perimeter for security becomes a liability. As discussed in Section 2.2, ZT principles take the view that there should be no difference between enterprise-owned and -operated network infrastructure and infrastructure owned and operated by any other service provider. The zero trust approach to multi-cloud use is to place PEPs at the access points of each application/service and data source. The PE and PA may be services located in either cloud or even on a third cloud provider. The client (via a portal or local installed agent) then accesses the PEPs directly. That way, the enterprise can still manage access to resources even when hosted outside the enterprise. One challenge is that different cloud providers have unique ways of implementing similar functionality. Enterprise architects will need to be aware of the how to implement their enterprise ZTA with each cloud provider they utilize."
+    },
+    {
+      "id": "nonemployee-scenario",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 391,
+      "endLine": 391,
+      "reason": "§4.3: 来訪者と委託サービスプロバイダーのシナリオ",
+      "excerpt": "Another common scenario is an enterprise that includes on-site visitors and/or contracted service providers that require limited access to enterprise resources to do their work (see Figure 10). For example, an enterprise has its own internal applications/services, databases, and assets. These include services contracted out to providers who may occasionally be on-site to provide maintenance (e.g., smart heating and lighting systems that are owned and managed by external providers). These visitors and service providers will need network connectivity to perform their tasks. A zero trust enterprise could facilitate this by allowing these devices and any visiting service technician access to the internet while obscuring enterprise resources."
+    },
+    {
+      "id": "nonemployee-conference",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 395,
+      "endLine": 395,
+      "reason": "§4.3: カンファレンスセンターの来訪者と従業員の区別",
+      "excerpt": "In this example, the organization also has a conference center where visitors interact with employees. Again, with a ZTA approach of SDPs, employee devices and subjects are differentiated and may be able to access appropriate enterprise resources. Visitors to the campus can have internet access but cannot access enterprise resources. They may not even be able to discover enterprise services via network scans (i.e., prevent active network reconnaissance/east-west movement)."
+    },
+    {
+      "id": "nonemployee-pepa",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 397,
+      "endLine": 397,
+      "reason": "§4.3: PE と PA の置き場所と、エンタープライズ外の資産の扱い",
+      "excerpt": "In this use case, the PE(s) and PA(s) could be hosted as a cloud service or on the LAN (assuming little or no use of cloud-hosted services). The enterprise assets could have an installed agent (see Section 3.2.1) or access resources via a portal (see Section 3.2.3). The PA(s) ensures that all nonenterprise assets (those that do not have installed agents or cannot connect to a portal) cannot access local resources but may access the internet."
+    },
+    {
+      "id": "collab-scenario",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 401,
+      "endLine": 401,
+      "reason": "§4.4: エンタープライズ間のプロジェクトとフェデレーション ID 管理",
+      "excerpt": "A fourth use case is cross-enterprise collaboration. For example, there is a project involving employees from Enterprise A and Enterprise B (see Figure 11). The two enterprises may be separate federal agencies (G2G) or even a federal agency and a private enterprise (G2B). Enterprise A operates the database used for the project but must allow access to the data for certain members of Enterprise B. Enterprise A can set up specialized accounts for the employees of Enterprise B to access the required data and deny access to all other resources, but this can quickly become difficult to manage. Having both organizations enrolled in a federated ID management system would allow quicker establishment of these relationships provided that both organizations’ PEPs can authenticate subjects in a federated ID community."
+    },
+    {
+      "id": "collab-access",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 405,
+      "endLine": 405,
+      "reason": "§4.4: ユースケース 1 との共通点とアクセスの実現方法",
+      "excerpt": "This scenario can be similar to Use Case 1 (Section 4.1) as employees of both enterprises may not be located on their organizations’ network infrastructures, and the resource they need to access may be within one enterprise environment or hosted in the cloud. This means that there do not need to be complex firewall rules or enterprise-wide access control lists (ACLs) allowing certain IP addresses belonging to Enterprise B to access resources in Enterprise A based on Enterprise A’s access policies. How this access is accomplished depends on the technology in use. Similar to Use Case 1, a PE and PA hosted as a cloud service may provide availability to all parties without having to establish a VPN or similar. The employees of Enterprise B may be asked to install a software agent on their asset or access the necessary data resources through a web gateway (see Section 3.2.3)."
+    },
+    {
+      "id": "acronyms-g2",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 655,
+      "endLine": 656,
+      "reason": "付録 A: G2B と G2G の略語",
+      "excerpt": "|| G2B | Government to Business (private industry)\n|| G2G | Government to Government"
+    },
+    {
+      "id": "public-scenario",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 409,
+      "endLine": 409,
+      "reason": "§4.5: 公開サービスの対象と制約",
+      "excerpt": "A common feature in many enterprises is a public-facing service that may or may not include user registration (i.e., users must create or have been issued a set of login credentials). Such services could be for the general public, a set of customers with an existing business relationship, or a special set of nonenterprise users such as employee dependents. In all cases, it is likely that requesting assets are not enterprise-owned, and the enterprise is constrained as to what internal cybersecurity polices can be enforced."
+    },
+    {
+      "id": "public-anonymous",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 411,
+      "endLine": 411,
+      "reason": "§4.5: ログインを必要としない公開リソース",
+      "excerpt": "For a general, public-facing resource that does not require login credentials to access (e.g., public web page), the tenets of ZTA do not directly apply. The enterprise cannot strictly control the state of requesting assets, and anonymous public resources (e.g., a public web page) do not require credentials in order to be accessed."
+    },
+    {
+      "id": "public-registered",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 413,
+      "endLine": 413,
+      "reason": "§4.5: 登録された一般ユーザーへのポリシーと限界",
+      "excerpt": "Enterprises may establish policies for registered public users such as customers (i.e., those with a business relationship) and special users (e.g., employee dependents). If the users are required to produce or are issued credentials, the enterprise may institute policies regarding password length, life cycle, and other details and may provide MFA as an option or requirement. However, enterprises are limited in the policies they can implement for this class of user. Information about incoming requests may be useful in determining the state of the public service and detecting possible attacks masquerading as legitimate users. For example, a registered user portal is known to be accessed by registered customers using one of a set of common web browsers. A sudden increase in access requests from unknown browser types or known outdated versions could indicate an automated attack of some kind, and the enterprise could take steps to limit requests from these identified clients. The enterprise should also be aware of any statutes or regulations regarding what information can be collected and recorded about the requesting users and assets."
+    }
+  ],
+  "questions": [
+    {
+      "id": "satellite-facilities-term",
+      "type": "choice",
+      "category": "vocabulary",
+      "prompt": "§4.1 が最も一般的なシナリオとして挙げる、このエンタープライズの説明として正しいものはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "satellite-scenario"
+      ],
+      "term": "enterprise with satellite facilities（サテライト拠点を持つエンタープライズ）",
+      "options": [
+        "1 つの本部と、エンタープライズが所有する物理的なネットワーク接続では結ばれていない、地理的に分散した 1 つ以上の拠点を持つ",
+        "1 つの本部と、エンタープライズが所有する専用の物理回線だけで結ばれている、同じ地域内に集まった 1 つ以上の拠点を持つ",
+        "複数の本部を持ち、それぞれが独立した境界型のネットワークを運用していて、本部の間ではリソースを一切共有していない",
+        "本部にあたる拠点を持たず、2 つ以上のクラウドプロバイダーの上にだけ、アプリケーションとデータを分散して配置している"
+      ]
+    },
+    {
+      "id": "zta-roots",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "§4 の導入は、ZTA のルーツと、ZTA の恩恵を受けられる組織の範囲をどう説明していますか？",
+      "points": 1,
+      "referenceIds": [
+        "intro-any"
+      ],
+      "options": [
+        "連邦政府機関にルーツがあり、ゼロトラストの要素をまだ 1 つも取り入れていない組織ほど、大きな恩恵を受けられる",
+        "地理的に分散している組織や、モバイル性の高い従業員を抱える組織にルーツがあり、恩恵を受けられるのもそうした組織に限られる",
+        "単一の拠点に従業員が集まっている組織にルーツがあるが、クラウドサービスを利用している組織であれば恩恵を受けられる",
+        "地理的に分散している組織や、モバイル性の高い従業員を抱える組織にルーツがあるが、どのような組織でも恩恵を受けられる"
+      ]
+    },
+    {
+      "id": "zta-not-indicated",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "§4 は、以降のユースケースの説明で ZTA を明示していない理由を何としていますか？",
+      "points": 1,
+      "referenceIds": [
+        "intro-hybrid"
+      ],
+      "options": [
+        "ユースケースはどれも、境界型のインフラストラクチャだけで実現でき、ZTA のコンポーネントを追加する必要がないため",
+        "エンタープライズは、ユースケースを実現する前に、境界型のインフラストラクチャをすべて ZTA に置き換えているはずであるため",
+        "エンタープライズは、境界型のインフラストラクチャと、場合によっては ZTA のインフラストラクチャの両方を持っている可能性が高いため",
+        "ユースケースで使う ZTA のコンポーネントは、エンタープライズごとに異なる製品になり、共通の名前では示せないため"
+      ]
+    },
+    {
+      "id": "remote-partial-access",
+      "type": "choice",
+      "category": "design",
+      "prompt": "§4.1 が、このような場合にエンタープライズが望むことがあるとしているアクセスの扱いはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "satellite-scenario"
+      ],
+      "scenario": "サテライト拠点を持つエンタープライズで、テレワーク中の従業員が、エンタープライズ所有のデバイスや個人所有のデバイスからエンタープライズのリソースを利用しています。",
+      "options": [
+        "従業員のカレンダーや電子メールなど一部のリソースへのアクセスは許可し、人事データベースなど、より機微なリソースへのアクセスは拒否するか、操作を制限する",
+        "本部のネットワークへの VPN 接続を確立したデバイスには、人事データベースを含むすべてのリソースへのアクセスを、本部の内部にいるときと同じ権限で許可する",
+        "個人所有のデバイスからのアクセスは、リソースの種類にかかわらず拒否し、エンタープライズ所有のデバイスには、すべてのリソースへのアクセスを同じ権限で許可する",
+        "従業員のカレンダーや電子メールへのアクセスは拒否し、人事データベースなど、より機微なリソースへのアクセスだけを、リモート拠点にいる従業員に限って許可する"
+      ]
+    },
+    {
+      "id": "pe-pa-at-headquarters",
+      "type": "choice",
+      "category": "debugging",
+      "prompt": "§4.1 に照らして、この設計の問題点はどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "satellite-scenario",
+        "satellite-pepa"
+      ],
+      "scenario": "サテライト拠点とテレワークの従業員を多く抱え、業務アプリケーションの多くをクラウドサービスで利用しているエンタープライズがあります。アーキテクトは「本部への MPLS リンクがあるので、PE/PA は本部のローカルネットワークに置き、拠点と従業員のトラフィックはすべて本部を経由させる」と設計しました。",
+      "options": [
+        "MPLS リンクは、エンタープライズが所有する物理的な接続ではないので、その上で PE/PA と PEP が通信することは認められていない",
+        "サテライト拠点のユースケースでは、PE/PA を拠点ごとに 1 組ずつ置くことが前提であり、1 か所にまとめる構成は想定されていない",
+        "PE/PA を本部のローカルネットワークに置くと、拠点の資産にはエージェントをインストールできなくなり、リソースポータルも使えなくなる",
+        "クラウド上のアプリケーションに到達するために、すべてのトラフィックを本部のネットワークへ送り返すことになり、応答性が最善とは限らない"
+      ]
+    },
+    {
+      "id": "multicloud-sdp",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "§4.2 は、マルチクラウドのユースケースを何の実装にあたるとし、クラウドへの移行が進むにつれて何が明らかになるとしていますか？",
+      "points": 1,
+      "referenceIds": [
+        "multicloud-zt"
+      ],
+      "options": [
+        "エンクレーブゲートウェイモデルの実装にあたる。セキュリティをエンタープライズの境界に集約することが、いっそう重要になる",
+        "CSA の SDP 仕様のサーバー間実装にあたる。セキュリティをエンタープライズの境界に集約することが、いっそう重要になる",
+        "CSA の SDP 仕様のサーバー間実装にあたる。セキュリティをエンタープライズの境界に依存することが、足かせになる",
+        "リソースポータルモデルの実装にあたる。セキュリティをクラウドプロバイダーの境界に依存することが、足かせになる"
+      ]
+    },
+    {
+      "id": "tunnel-back",
+      "type": "choice",
+      "category": "debugging",
+      "prompt": "§4.2 に照らして、この決定の問題点はどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "multicloud-scenario",
+        "multicloud-zt"
+      ],
+      "scenario": "あるエンタープライズは、アプリケーションをクラウドプロバイダー A に、そのデータソースをクラウドプロバイダー B に置いています。セキュリティ担当者は「境界のファイアウォールで検査したいので、A のアプリケーションから B のデータソースへの通信は、必ずエンタープライズのネットワークを経由するトンネルで折り返させる」と決めました。",
+      "options": [
+        "性能と管理のしやすさの観点から、A のアプリケーションは、エンタープライズのネットワークを経由せず、B のデータソースに直接接続できるべきである",
+        "アプリケーションとデータソースは、同じクラウドプロバイダーに置かなければならず、別々のプロバイダーに分ける構成そのものが、本書では想定されていない",
+        "エンタープライズのネットワークを経由させるなら、トンネルではなく、エンタープライズが所有する物理的な専用回線を、両方のプロバイダーまで引く必要がある",
+        "クラウドプロバイダーどうしの通信は、プロバイダーの側で保護されるので、エンタープライズがアクセスを管理する必要はなく、PEP も置かなくてよい"
+      ]
+    },
+    {
+      "id": "visitors-and-contractors",
+      "type": "choice",
+      "category": "design",
+      "prompt": "§4.3 が、ゼロトラストのエンタープライズでの対応として説明しているものはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "nonemployee-scenario",
+        "nonemployee-conference"
+      ],
+      "scenario": "あるエンタープライズの建物には、外部のプロバイダーが所有・管理するスマート暖房・照明システムがあり、保守のために技術者がときおり来訪します。来訪者が従業員と交流するカンファレンスセンターもあります。来訪者と技術者は、作業のためにネットワーク接続を必要としています。",
+      "options": [
+        "来訪者や技術者のデバイスにも従業員と同じネットワーク接続を与え、エンタープライズのリソースへのアクセスは、ログで事後に確認する",
+        "来訪者や技術者のデバイスにはネットワーク接続を与えず、作業が必要なときには、エンタープライズ所有のデバイスを貸し出す",
+        "来訪者や技術者のデバイスにはインターネットへのアクセスを許可し、エンタープライズのサービスは、発見できる状態のままログイン画面で保護する",
+        "来訪者や技術者のデバイスにはインターネットへのアクセスを許可し、エンタープライズのリソースは見えないようにしておく"
+      ]
+    },
+    {
+      "id": "pa-nonenterprise-assets",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "§4.3 のユースケースで、PA は、エンタープライズ外の資産（エージェントがインストールされていない、またはポータルに接続できない資産）について、どのような状態を保証しますか？",
+      "points": 1,
+      "referenceIds": [
+        "nonemployee-pepa"
+      ],
+      "options": [
+        "ローカルのリソースにも、インターネットにも、アクセスできない状態",
+        "ローカルのリソースにはアクセスできないが、インターネットにはアクセスできる状態",
+        "ローカルのリソースには、読み取りの操作に限ってアクセスできる状態",
+        "ローカルのリソースにはアクセスできるが、インターネットにはアクセスできない状態"
+      ]
+    },
+    {
+      "id": "pe-pa-placement",
+      "type": "choice",
+      "category": "comparison",
+      "prompt": "PE/PA の置き場所について、§4.1（サテライト拠点）と §4.3（委託サービス・非従業員アクセス）の説明の組み合わせとして正しいものはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "satellite-pepa",
+        "nonemployee-pepa"
+      ],
+      "options": [
+        "§4.1 では、多くの場合クラウドサービスとして置く。§4.3 では、クラウド上のサービスをほとんど使わないなら、LAN 上に置くこともできる",
+        "§4.1 では、拠点ごとの LAN 上に置く。§4.3 では、委託サービスプロバイダーが所有するインフラストラクチャの上に置くことになる",
+        "§4.1 では、多くの場合本部の LAN 上に置く。§4.3 では、来訪者の資産が LAN 上にあるので、クラウドサービスとして置くことしかできない",
+        "§4.1 でも §4.3 でも、PE/PA は LAN 上に置くものとされており、クラウドサービスとして置く構成には、どちらの節も触れていない"
+      ]
+    },
+    {
+      "id": "g2g-g2b",
+      "type": "choice",
+      "category": "vocabulary",
+      "prompt": "§4.4 のエンタープライズ間のコラボレーションで、これらの略語が表す 2 つのエンタープライズの組み合わせはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "collab-scenario",
+        "acronyms-g2"
+      ],
+      "term": "G2G / G2B",
+      "options": [
+        "G2G は同じ連邦政府機関の本部と拠点、G2B は連邦政府機関と来訪者",
+        "G2G は連邦政府機関と民間企業、G2B は別々の民間企業どうし",
+        "G2G は別々の連邦政府機関どうし、G2B は連邦政府機関と民間企業",
+        "G2G は連邦政府機関と一般の人々、G2B は民間企業とその顧客"
+      ]
+    },
+    {
+      "id": "accounts-vs-federation",
+      "type": "choice",
+      "category": "comparison",
+      "prompt": "エンタープライズ A のデータベースに、エンタープライズ B の特定のメンバーがアクセスできるようにする方法について、§4.4 の説明に合うものはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "collab-scenario"
+      ],
+      "options": [
+        "A が B の従業員のために専用アカウントを設定する方法は、ゼロトラストでは認められていない。フェデレーション ID 管理システムへの登録が、コラボレーションの必須の条件になる",
+        "A が B の従業員のために専用アカウントを設定する方法でも、フェデレーション ID 管理システムを使う方法でも、B の従業員は、A のすべてのリソースにアクセスできるようになる",
+        "A が B の従業員のために専用アカウントを設定する方法は、関係を最も速く確立できる。フェデレーション ID 管理システムは、すぐに管理が難しくなりうるので、避けるべきである",
+        "A が B の従業員のために専用アカウントを設定する方法は、すぐに管理が難しくなりうる。両組織がフェデレーション ID 管理システムに登録していれば、関係をより速く確立できる"
+      ]
+    },
+    {
+      "id": "ip-allowlist-rules",
+      "type": "choice",
+      "category": "debugging",
+      "prompt": "§4.4 に照らして、この提案の問題点はどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "collab-access"
+      ],
+      "scenario": "エンタープライズ A とエンタープライズ B の共同プロジェクトで、A の管理者は「B の従業員が A のデータベースを使えるように、B のネットワークに属する IP アドレスを、ファイアウォールルールとエンタープライズ全体の ACL に登録する」と提案しました。B の従業員の多くは、テレワークで B のネットワークの外から作業しています。",
+      "options": [
+        "B の従業員がテレワークをしている場合は、A のアクセスポリシーを適用できないので、プロジェクトのデータを B の環境へ複製する手順が必要になる",
+        "B の IP アドレスを許可するファイアウォールルールと ACL に加えて、B の従業員が A のネットワークへ VPN で接続する手順が、提案から抜けている",
+        "両エンタープライズの従業員は自組織のネットワーク上にいるとは限らず、B の IP アドレスを許可する複雑なファイアウォールルールや ACL は必要ない",
+        "両エンタープライズの従業員は自組織のネットワーク上にいるはずなので、B の IP アドレスを許可するファイアウォールルールと ACL だけでは粒度が粗すぎる"
+      ]
+    },
+    {
+      "id": "collab-cloud-pe-pa",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "§4.4 は、ユースケース 1（§4.1）と同様に、PE と PA をクラウドサービスとして置くと、何ができる場合があるとしていますか？",
+      "points": 1,
+      "referenceIds": [
+        "collab-access",
+        "collab-scenario"
+      ],
+      "options": [
+        "エンタープライズ B の従業員の認証を、エンタープライズ A の PEP が省略できる",
+        "VPN などを確立しなくても、すべての当事者に可用性を提供できる",
+        "両方のエンタープライズのネットワークを、1 つの境界の内側に統合できる",
+        "ファイアウォールルールと ACL の管理を、クラウドプロバイダーに一任できる"
+      ]
+    },
+    {
+      "id": "agent-or-portal",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "§4.1〜§4.4 のユースケースで、資産（クライアント）の側がリソースにアクセスする方法として、共通して挙げられているものはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "satellite-pepa",
+        "multicloud-zt",
+        "nonemployee-pepa",
+        "collab-access"
+      ],
+      "options": [
+        "エージェントをインストールして使うか、リソースポータル（Web ゲートウェイ）を経由する",
+        "リソースと同じクラウドプロバイダーに置くか、リソースと同じ LAN のセグメントに接続する",
+        "エンタープライズのネットワークへ VPN で接続するか、本部への MPLS リンクを経由する",
+        "エンタープライズ所有のデバイスに限定するか、利用者ごとに専用アカウントの発行を受ける"
+      ]
+    },
+    {
+      "id": "public-facing-service-term",
+      "type": "choice",
+      "category": "vocabulary",
+      "prompt": "§4.5 がこのサービスについて述べていることとして正しいものはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "public-scenario"
+      ],
+      "term": "public-facing service（公開サービス）",
+      "options": [
+        "ユーザー登録を必ず伴うものであり、リクエスト元の資産は、エンタープライズが発行したクレデンシャルを持つものに限られる",
+        "ユーザー登録を伴わないものだけを指し、従業員の扶養家族のような特別なユーザーに向けたサービスは、対象に含まれない",
+        "ユーザー登録を伴うものも伴わないものもあり、リクエスト元の資産は、エンタープライズが所有するものではない可能性が高い",
+        "ユーザー登録を伴うものも伴わないものもあり、エンタープライズは、内部のサイバーセキュリティポリシーをそのまま適用できる"
+      ]
+    },
+    {
+      "id": "anonymous-vs-registered",
+      "type": "choice",
+      "category": "comparison",
+      "prompt": "ログインを必要としない公開リソースと、登録された一般ユーザー向けのサービスについて、§4.5 の説明の組み合わせとして正しいものはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "public-anonymous",
+        "public-registered"
+      ],
+      "options": [
+        "前者には、ZTA の基本原則が直接には適用されない。後者にも、ポリシーを定めることはできず、クレデンシャルの扱いは個々のユーザーに委ねられる",
+        "前者には、ZTA の基本原則がそのまま適用される。後者には、パスワードや MFA などのポリシーを定められ、従業員と同じポリシーをすべて実装できる",
+        "前者には、ZTA の基本原則が直接には適用されない。後者には、パスワードや MFA などのポリシーを定められるが、実装できるポリシーには限りがある",
+        "前者には、リクエスト元の資産の状態を検査するポリシーを定められる。後者には、ZTA の基本原則が直接には適用されず、ポリシーを定められない"
+      ]
+    },
+    {
+      "id": "unknown-browser-surge",
+      "type": "choice",
+      "category": "debugging",
+      "prompt": "§4.5 に照らして、この判断の問題点はどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "public-registered"
+      ],
+      "scenario": "登録済みの顧客向けポータルは、これまで一般的な Web ブラウザーからアクセスされてきました。ある日、未知の種類のブラウザーや、既知の古いバージョンのブラウザーからのアクセスリクエストが急に増えました。運用担当者は「リクエストは登録ユーザーのクレデンシャルを使っているので、調べる必要も、対応する必要もない」と判断しました。",
+      "options": [
+        "この急増は、登録ユーザーのデバイスが侵害されたことを示しており、エンタープライズが顧客のデバイスを隔離して修復しなければならない",
+        "この急増は、ZTA の基本原則が直接には適用されない範囲の出来事なので、リクエストに関する情報は、記録せずに破棄しなければならない",
+        "この急増は、公開サービスでは起こりえないものであり、ポータルを公開サービスではなく内部のリソースとして扱い直さなければならない",
+        "この急増は、何らかの自動化された攻撃を示している可能性があり、特定されたクライアントからのリクエストを制限する措置を講じることができる"
+      ]
+    },
+    {
+      "id": "design-multicloud",
+      "type": "written",
+      "category": "design",
+      "prompt": "§4.2 の説明に基づいて、このエンタープライズにゼロトラストのアプローチを当てはめる設計の方針を述べてください。",
+      "points": 4,
+      "referenceIds": [
+        "multicloud-scenario",
+        "multicloud-zt"
+      ],
+      "scenario": "あるエンタープライズは、ローカルネットワークを持ちながら、業務アプリケーションをクラウドプロバイダー A に、そのデータソースをクラウドプロバイダー B に置いています。現在は、A から B への通信も、従業員からのアクセスも、すべてエンタープライズのネットワークを経由させています。",
+      "answerHint": "PEP の配置、PE と PA の置き場所、クライアントやアプリケーションの接続経路、マルチクラウドならではの課題の 4 点を、それぞれ 1〜2 文で書いてください。"
+    },
+    {
+      "id": "design-public-services",
+      "type": "written",
+      "category": "design",
+      "prompt": "§4.5 の説明に基づいて、公開 Web ページと顧客向けポータルのそれぞれについて、何ができて、どこに限界があるかを説明してください。",
+      "points": 4,
+      "referenceIds": [
+        "public-scenario",
+        "public-anonymous",
+        "public-registered"
+      ],
+      "scenario": "あるエンタープライズは、誰でも閲覧できる公開 Web ページと、登録済みの顧客がログインして使う顧客向けポータルを運営しています。セキュリティ責任者から「この 2 つにも、従業員向けのリソースと同じゼロトラストのポリシーを適用したい」という相談がありました。",
+      "answerHint": "公開 Web ページへの ZTA の基本原則の適用、登録ユーザーに定められるポリシー、その限界、リクエストに関する情報の使い道と注意点を、短い箇条書きで書いてください。"
+    }
+  ],
+  "solutions": {
+    "satellite-facilities-term": {
+      "answer": 0,
+      "explanation": "§4.1。最も一般的なシナリオは、1 つの本部と、エンタープライズが所有する物理的なネットワーク接続では結ばれていない、地理的に分散した 1 つ以上の拠点を持つエンタープライズです。リモート拠点の従業員は、エンタープライズ所有の完全なローカルネットワークを持たない場合がありますが、業務のためにエンタープライズのリソースへアクセスする必要があります。複数のクラウドプロバイダーを使う構成は、§4.2 が扱う別のユースケースです。"
+    },
+    "zta-roots": {
+      "answer": 3,
+      "explanation": "§4。ZTA は、地理的に分散している組織や、モバイル性の高い従業員を抱える組織にルーツがあります。ただし、どのようなエンタープライズ環境でもゼロトラストの基本原則を念頭に置いて設計でき、どのような組織でも ZTA の恩恵を受けられるとしています。また、ほとんどの組織は、すでにゼロトラストの要素をいくつか持っているか、情報セキュリティとレジリエンスのポリシーやベストプラクティスの実装を進めている途上にあります。"
+    },
+    "zta-not-indicated": {
+      "answer": 2,
+      "explanation": "§4。以降のユースケースで ZTA を明示していないのは、エンタープライズが境界型のインフラストラクチャと、場合によっては ZTA のインフラストラクチャの両方を持っている可能性が高いためです。§7.2 で述べられているとおり、ZTA のコンポーネントと境界型のネットワークインフラストラクチャが同時に運用される期間が生じる可能性が高いとしています。境界型だけで足りるとも、すべて置き換え済みであるとも想定していません。"
+    },
+    "remote-partial-access": {
+      "answer": 0,
+      "explanation": "§4.1。従業員がテレワーク中や遠隔地にいて、エンタープライズ所有または個人所有のデバイスを使っている場合、エンタープライズは、従業員のカレンダーや電子メールなど一部のリソースへのアクセスは許可しつつ、人事データベースなど、より機微なリソースへのアクセスは拒否するか、操作を制限したいと考えることがあります。デバイスの所有者だけで一律に決めることや、VPN で接続すれば内部と同じ権限を与えることは述べていません。"
+    },
+    "pe-pa-at-headquarters": {
+      "answer": 3,
+      "explanation": "§4.1。PE/PA をエンタープライズのローカルネットワークに置くと、リモートのオフィスや従業員は、クラウドサービス上のアプリケーション/サービスに到達するために、すべてのトラフィックをエンタープライズのネットワークへ送り返さなければならず、応答性が最善とは限りません。本部への MPLS リンクがあっても、すべてのトラフィックに十分な帯域幅がない場合や、クラウド宛てのトラフィックを本部経由にしたくない場合があります。このユースケースでは、PE/PA は多くの場合クラウドサービスとして置かれます。"
+    },
+    "multicloud-sdp": {
+      "answer": 2,
+      "explanation": "§4.2。このユースケースは、CSA のソフトウェア定義境界（SDP）仕様のサーバー間実装にあたります。エンタープライズがクラウド上のアプリケーションやサービスへの移行を進めるにつれて、セキュリティをエンタープライズの境界に依存することが足かせになることが明らかになるとしています。ZT の原則は、エンタープライズが所有・運用するネットワークインフラストラクチャと、他のサービスプロバイダーが所有・運用するインフラストラクチャの間に違いはないという見方に立ちます。"
+    },
+    "tunnel-back": {
+      "answer": 0,
+      "explanation": "§4.2。性能と管理のしやすさの観点から、クラウドプロバイダー A のアプリケーションは、エンタープライズのネットワークを経由するトンネルで折り返すことを強いられるのではなく、クラウドプロバイダー B のデータソースに直接接続できるべきだとしています。アプリケーションとデータソースが別々のクラウドサービスにあることは、想定された構成です。各アプリケーション/サービスとデータソースのアクセスポイントに PEP を置けば、リソースがエンタープライズの外にあっても、エンタープライズはアクセスを管理し続けられます。"
+    },
+    "visitors-and-contractors": {
+      "answer": 3,
+      "explanation": "§4.3。ゼロトラストのエンタープライズは、エンタープライズのリソースを見えないようにしたまま、来訪者や委託サービスプロバイダーのデバイスと技術者にインターネットへのアクセスを許可することで、必要なネットワーク接続を提供できます。SDP による ZTA のアプローチでは、従業員のデバイスとサブジェクトは区別され、適切なリソースにアクセスできる場合があります。一方、来訪者はエンタープライズのリソースにアクセスできず、ネットワークスキャンでエンタープライズのサービスを発見することすらできない場合があります（アクティブなネットワーク偵察や東西方向の移動を防ぎます）。"
+    },
+    "pa-nonenterprise-assets": {
+      "answer": 1,
+      "explanation": "§4.3。PA は、エンタープライズ外のすべての資産（エージェントがインストールされていない、またはポータルに接続できないもの）が、ローカルのリソースにはアクセスできず、インターネットにはアクセスできる状態を保証します。エンタープライズの資産のほうは、インストール済みのエージェントを備えるか、ポータル経由でリソースにアクセスできます。"
+    },
+    "pe-pa-placement": {
+      "answer": 0,
+      "explanation": "§4.1・§4.3。§4.1 では、PE/PA は多くの場合クラウドサービスとして置かれます。クラウドサービスは通常、優れた可用性を提供し、リモートの従業員がクラウドリソースにアクセスするためにエンタープライズのインフラストラクチャに頼る必要もないためです。§4.3 では、PE と PA はクラウドサービスとしても LAN 上にも置けますが、LAN 上に置くのは、クラウド上のサービスの利用がほとんど、またはまったくないことが前提です。"
+    },
+    "g2g-g2b": {
+      "answer": 2,
+      "explanation": "§4.4・付録 A。エンタープライズ間のコラボレーションに参加する 2 つのエンタープライズは、別々の連邦政府機関（G2G: Government to Government）の場合も、連邦政府機関と民間企業（G2B: Government to Business）の場合もあります。本部と拠点の関係は §4.1、来訪者は §4.3、一般の人々や顧客は §4.5 が扱う別のユースケースです。"
+    },
+    "accounts-vs-federation": {
+      "answer": 3,
+      "explanation": "§4.4。エンタープライズ A の側で、エンタープライズ B の従業員のために専用アカウントを設定し、その他のすべてのリソースへのアクセスを拒否することもできますが、この方法はすぐに管理が困難になりえます。両組織がフェデレーション ID 管理システムに登録されていれば、こうした関係をより迅速に確立できます。ただし、両組織の PEP がフェデレーション ID コミュニティ内のサブジェクトを認証できることが条件です。専用アカウントが認められないとも、フェデレーションが必須とも述べていません。"
+    },
+    "ip-allowlist-rules": {
+      "answer": 2,
+      "explanation": "§4.4。このシナリオは §4.1 と似ていることがあり、両エンタープライズの従業員は自組織のネットワークインフラストラクチャ上にいるとは限らず、リソースは一方のエンタープライズの環境内にも、クラウドにもありえます。そのため、エンタープライズ A のアクセスポリシーに基づいて B の特定の IP アドレスにアクセスを許可する、複雑なファイアウォールルールやエンタープライズ全体の ACL は必要ありません。アクセスをどう実現するかは、使用している技術によって異なります。"
+    },
+    "collab-cloud-pe-pa": {
+      "answer": 1,
+      "explanation": "§4.4。ユースケース 1 と同様に、クラウドサービスとして置かれた PE と PA は、VPN などを確立することなく、すべての当事者に可用性を提供できる場合があります。ネットワークを 1 つの境界に統合することや、認証を省略することは述べていません。フェデレーション ID 管理システムを使う場合も、両組織の PEP がフェデレーション ID コミュニティ内のサブジェクトを認証できることが条件です。"
+    },
+    "agent-or-portal": {
+      "answer": 0,
+      "explanation": "§4.1〜§4.4。§4.1 のエンド資産は、インストール済みのエージェントを備えるか、リソースポータルにアクセスします。§4.2 のクライアントは、ポータルまたはローカルにインストールされたエージェントを介して、PEP に直接アクセスします。§4.3 のエンタープライズの資産も同じ 2 つの方法を使え、§4.4 のエンタープライズ B の従業員は、自身の資産にソフトウェアエージェントをインストールするか、Web ゲートウェイ経由でアクセスするよう求められることがあります。"
+    },
+    "public-facing-service-term": {
+      "answer": 2,
+      "explanation": "§4.5。公開サービスには、ユーザー登録（ログイン用のクレデンシャルの作成または発行）を伴うものと伴わないものがあります。対象は、一般の人々、既存のビジネス関係を持つ顧客、従業員の扶養家族のようなエンタープライズ外の特別なユーザーなどです。いずれの場合も、リクエスト元の資産はエンタープライズ所有ではない可能性が高く、エンタープライズが適用できる内部のサイバーセキュリティポリシーには制約があります。"
+    },
+    "anonymous-vs-registered": {
+      "answer": 2,
+      "explanation": "§4.5。ログイン用のクレデンシャルを必要としない一般向けの公開リソース（例: 公開 Web ページ）には、ZTA の基本原則は直接には適用されません。エンタープライズはリクエスト元の資産の状態を厳密に制御できず、匿名の公開リソースはクレデンシャルを必要としないためです。一方、顧客や特別なユーザーといった登録された一般ユーザーには、パスワードの長さやライフサイクルに関するポリシーを設けたり、MFA をオプションまたは必須として提供したりできますが、実装できるポリシーには限りがあります。"
+    },
+    "unknown-browser-surge": {
+      "answer": 3,
+      "explanation": "§4.5。受信したリクエストに関する情報は、公開サービスの状態を把握し、正規のユーザーになりすました攻撃の可能性を検知するうえで役立つことがあります。未知の種類のブラウザーや、既知の古いバージョンからのアクセスリクエストの急増は、何らかの自動化された攻撃を示している可能性があり、エンタープライズは、特定されたクライアントからのリクエストを制限する措置を講じることができます。あわせて、リクエスト元のユーザーや資産について、どのような情報を収集・記録してよいかに関する法令や規制にも留意すべきだとしています。"
+    },
+    "design-multicloud": {
+      "explanation": "§4.2。マルチクラウドに対するゼロトラストのアプローチは、各アプリケーション/サービスとデータソースのアクセスポイントに PEP を配置することです。PE と PA は、いずれかのクラウド、または第 3 のクラウドプロバイダーの上のサービスにできます。クライアントはポータルまたはエージェントを介して PEP に直接アクセスし、A のアプリケーションは、性能と管理のしやすさの観点から、B のデータソースに直接接続できるべきです。こうすれば、リソースがエンタープライズの外にあっても、アクセスを管理し続けられます。課題は、クラウドプロバイダーごとに同様の機能の実装方法が異なることで、エンタープライズアーキテクトは、各プロバイダーでの実装方法を把握しておく必要があります。",
+      "rubric": [
+        {
+          "criterion": "各アプリケーション/サービスとデータソースのアクセスポイントに PEP を配置することを述べている",
+          "points": 1,
+          "referenceIds": [
+            "multicloud-zt"
+          ]
+        },
+        {
+          "criterion": "PE と PA は、いずれかのクラウド、または第 3 のクラウドプロバイダーの上のサービスとして置けることを述べている",
+          "points": 1,
+          "referenceIds": [
+            "multicloud-zt"
+          ]
+        },
+        {
+          "criterion": "エンタープライズのネットワークを経由させる経路を改めることを述べている（クライアントがポータルまたはエージェントを介して PEP に直接アクセスする、または、A のアプリケーションが B のデータソースに直接接続する。どちらか一方でよい）",
+          "points": 1,
+          "referenceIds": [
+            "multicloud-scenario",
+            "multicloud-zt"
+          ]
+        },
+        {
+          "criterion": "クラウドプロバイダーごとに同様の機能の実装方法が異なるという課題を挙げ、利用する各プロバイダーで ZTA をどう実装するかを把握しておく必要があることを述べている",
+          "points": 1,
+          "referenceIds": [
+            "multicloud-zt"
+          ]
+        }
+      ]
+    },
+    "design-public-services": {
+      "explanation": "§4.5。ログインを必要としない公開 Web ページには、ZTA の基本原則は直接には適用されません。エンタープライズはリクエスト元の資産の状態を厳密に制御できず、匿名の公開リソースはクレデンシャルを必要としないためです。登録された顧客には、パスワードの長さやライフサイクルのポリシーを設けたり、MFA をオプションまたは必須として提供したりできますが、リクエスト元の資産はエンタープライズ所有ではない可能性が高く、実装できるポリシーには限りがあります。受信したリクエストに関する情報は、サービスの状態の把握や、正規のユーザーになりすました攻撃の検知に役立つことがあり、収集・記録してよい情報に関する法令や規制にも留意すべきです。",
+      "rubric": [
+        {
+          "criterion": "ログインを必要としない公開 Web ページには、ZTA の基本原則が直接には適用されないことを、理由（リクエスト元の資産の状態を厳密に制御できない、または匿名の公開リソースはクレデンシャルを必要としない）とともに述べている",
+          "points": 1,
+          "referenceIds": [
+            "public-anonymous"
+          ]
+        },
+        {
+          "criterion": "登録された一般ユーザーには、パスワードの長さやライフサイクルなどのポリシーを設けたり、MFA をオプションまたは必須として提供したりできることを述べている",
+          "points": 1,
+          "referenceIds": [
+            "public-registered"
+          ]
+        },
+        {
+          "criterion": "リクエスト元の資産はエンタープライズ所有ではない可能性が高く、この種のユーザーに実装できるポリシーには限りがある（従業員向けの内部ポリシーをそのまま適用することはできない）ことを述べている",
+          "points": 1,
+          "referenceIds": [
+            "public-scenario",
+            "public-registered"
+          ]
+        },
+        {
+          "criterion": "受信したリクエストに関する情報を、サービスの状態の把握や、正規のユーザーになりすました攻撃の検知に使えること、または、収集・記録してよい情報に関する法令や規制に留意すべきことを述べている",
+          "points": 1,
+          "referenceIds": [
+            "public-registered"
+          ]
+        }
+      ]
+    }
+  },
+  "inconsistencies": []
+}

@@ -1,0 +1,651 @@
+{
+  "format": "spec-understanding-quiz",
+  "version": 1,
+  "id": "nist-sp-800-207-08-network",
+  "title": "NIST SP 800-207 ゼロトラスト 8/16: コントロールプレーン・データプレーンとネットワーク要件",
+  "status": "published",
+  "spec": {
+    "id": "pdf-0290d6ece2487428",
+    "status": "adopted",
+    "repository": "maronnjapan/readRFCInMobile",
+    "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+    "path": "apps/quiz/specs/nist-sp-800-207.txt"
+  },
+  "references": [
+    {
+      "id": "planes-separation",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 347,
+      "endLine": 347,
+      "reason": "§3.4: 制御の通信とアプリケーションの通信の分離",
+      "excerpt": "In a ZT environment, there should be a separation (logical or possibly physical) of the communication flows used to control and configure the network and application/service communication flows used to perform the actual work of the organization. This is often broken down to a control plane for network control communication and a data plane for application/service communication flows [Gilman]."
+    },
+    {
+      "id": "planes-roles",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 349,
+      "endLine": 349,
+      "reason": "§3.4: コントロールプレーンとデータプレーンの役割",
+      "excerpt": "The control plane is used by various infrastructure components (both enterprise-owned and from service providers) to maintain and configure assets; judge, grant, or deny access to resources; and perform any necessary operations to set up communication paths between resources. The data plane is used for actual communication between software components. This communication channel may not be possible before the path has been established via the control plane. For example, the control plane could be used by the PA and PEP to set up the communication path between the subject and the enterprise resource. The application/service workload would then use the data plane path that was established."
+    },
+    {
+      "id": "requirements",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 353,
+      "endLine": 365,
+      "reason": "§3.4.1: ネットワーク要件 1〜10 の全体",
+      "excerpt": "1. Enterprise assets have basic network connectivity. The local area network (LAN), enterprise controlled or not, provides basic routing and infrastructure (e.g., DNS). The remote enterprise asset may not necessarily use all infrastructure services.\n2. The enterprise must be able to distinguish between what assets are owned or managed by the enterprise and the devices’ current security posture. This is determined by enterprise-issued credentials and not using information that cannot be authenticated information (e.g., network MAC addresses that can be spoofed).\n3. The enterprise can observe all network traffic. The enterprise records packets seen on the data plane, even if it is not be able to perform application layer inspection (i.e., OSI layer 7) on all packets. The enterprise filters out metadata about the connection (e.g., destination, time, device identity) to dynamically update policies and inform the PE as it evaluates access requests.\n4. Enterprise resources should not be reachable without accessing a PEP. Enterprise resources do not accept arbitrary incoming connections from the internet. Resources accept custom-configured connections only after a client has been authenticated and authorized. These communication paths are set up by the PEP. Resources may not even be discoverable without accessing a PEP. This prevents attackers from identifying targets via scanning and/or launching DoS attacks against resources located behind PEPs. Note that not all resources should be hidden this way; some network infrastructure components (e.g., DNS servers) must be accessible.\n5. The data plane and control plane are logically separate. The policy engine, policy administrator, and PEPs communicate on a network that is logically separate and not directly accessible by enterprise assets and resources. The data plane is used for\n\n- application/service data traffic. The policy engine, policy administrator, and PEPs use the control plane to communicate and manage communication paths between assets. The PEPs must be able to send and receive messages from both the data and control planes.\n\n6. Enterprise assets can reach the PEP component. Enterprise subjects must be able to access the PEP component to gain access to resources. This could take the form of a web portal, network device, or software agent on the enterprise asset that enables the connection.\n7. The PEP is the only component that accesses the policy administrator as part of a business flow. Each PEP operating on the enterprise network has a connection to the policy administrator to establish communication paths from clients to resources. All enterprise business process traffic passes through one or more PEPs.\n8. Remote enterprise assets should be able to access enterprise resources without needing to traverse enterprise network infrastructure first. For example, a remote subject should not be required to use a link back to the enterprise network (i.e., virtual private network [VPN]) to access services utilized by the enterprise and hosted by a public cloud provider (e.g., email).\n9. The infrastructure used to support the ZTA access decision process should be made scalable to account for changes in process load. The PE(s), PA(s), and PEPs used in a ZTA become the key components in any business process. Delay or inability to reach a PEP (or inability of the PEPs to reach the PA/PE) negatively impacts the ability to perform the workflow. An enterprise implementing a ZTA needs to provision the components for the expected workload or be able to rapidly scale the infrastructure to handle increased usage when needed.\n10. Enterprise assets may not be able to reach certain PEPs due to policy or observable factors. For example, there may be a policy stating that mobile assets may not be able to reach certain resources if the requesting asset is located outside of the enterprise’s home country. These factors could be based on location (geolocation or network location), device type, or other criteria."
+    },
+    {
+      "id": "req-1",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 353,
+      "endLine": 353,
+      "reason": "§3.4.1: 要件 1（基本的なネットワーク接続性）",
+      "excerpt": "1. Enterprise assets have basic network connectivity. The local area network (LAN), enterprise controlled or not, provides basic routing and infrastructure (e.g., DNS). The remote enterprise asset may not necessarily use all infrastructure services."
+    },
+    {
+      "id": "req-2",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 354,
+      "endLine": 354,
+      "reason": "§3.4.1: 要件 2（資産の判別とクレデンシャル）",
+      "excerpt": "2. The enterprise must be able to distinguish between what assets are owned or managed by the enterprise and the devices’ current security posture. This is determined by enterprise-issued credentials and not using information that cannot be authenticated information (e.g., network MAC addresses that can be spoofed)."
+    },
+    {
+      "id": "req-3",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 355,
+      "endLine": 355,
+      "reason": "§3.4.1: 要件 3（ネットワークトラフィックの観測）",
+      "excerpt": "3. The enterprise can observe all network traffic. The enterprise records packets seen on the data plane, even if it is not be able to perform application layer inspection (i.e., OSI layer 7) on all packets. The enterprise filters out metadata about the connection (e.g., destination, time, device identity) to dynamically update policies and inform the PE as it evaluates access requests."
+    },
+    {
+      "id": "req-4",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 356,
+      "endLine": 356,
+      "reason": "§3.4.1: 要件 4（PEP を経由しないリソースへの到達の防止）",
+      "excerpt": "4. Enterprise resources should not be reachable without accessing a PEP. Enterprise resources do not accept arbitrary incoming connections from the internet. Resources accept custom-configured connections only after a client has been authenticated and authorized. These communication paths are set up by the PEP. Resources may not even be discoverable without accessing a PEP. This prevents attackers from identifying targets via scanning and/or launching DoS attacks against resources located behind PEPs. Note that not all resources should be hidden this way; some network infrastructure components (e.g., DNS servers) must be accessible."
+    },
+    {
+      "id": "req-5",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 357,
+      "endLine": 359,
+      "reason": "§3.4.1: 要件 5（データプレーンとコントロールプレーンの論理的な分離）",
+      "excerpt": "5. The data plane and control plane are logically separate. The policy engine, policy administrator, and PEPs communicate on a network that is logically separate and not directly accessible by enterprise assets and resources. The data plane is used for\n\n- application/service data traffic. The policy engine, policy administrator, and PEPs use the control plane to communicate and manage communication paths between assets. The PEPs must be able to send and receive messages from both the data and control planes."
+    },
+    {
+      "id": "req-6",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 361,
+      "endLine": 361,
+      "reason": "§3.4.1: 要件 6（PEP コンポーネントへの到達）",
+      "excerpt": "6. Enterprise assets can reach the PEP component. Enterprise subjects must be able to access the PEP component to gain access to resources. This could take the form of a web portal, network device, or software agent on the enterprise asset that enables the connection."
+    },
+    {
+      "id": "req-7",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 362,
+      "endLine": 362,
+      "reason": "§3.4.1: 要件 7（ポリシー管理者にアクセスするのは PEP だけ）",
+      "excerpt": "7. The PEP is the only component that accesses the policy administrator as part of a business flow. Each PEP operating on the enterprise network has a connection to the policy administrator to establish communication paths from clients to resources. All enterprise business process traffic passes through one or more PEPs."
+    },
+    {
+      "id": "req-8",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 363,
+      "endLine": 363,
+      "reason": "§3.4.1: 要件 8（リモート資産からの直接のアクセス）",
+      "excerpt": "8. Remote enterprise assets should be able to access enterprise resources without needing to traverse enterprise network infrastructure first. For example, a remote subject should not be required to use a link back to the enterprise network (i.e., virtual private network [VPN]) to access services utilized by the enterprise and hosted by a public cloud provider (e.g., email)."
+    },
+    {
+      "id": "req-9",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 364,
+      "endLine": 364,
+      "reason": "§3.4.1: 要件 9（アクセス決定を支えるインフラストラクチャの拡張性）",
+      "excerpt": "9. The infrastructure used to support the ZTA access decision process should be made scalable to account for changes in process load. The PE(s), PA(s), and PEPs used in a ZTA become the key components in any business process. Delay or inability to reach a PEP (or inability of the PEPs to reach the PA/PE) negatively impacts the ability to perform the workflow. An enterprise implementing a ZTA needs to provision the components for the expected workload or be able to rapidly scale the infrastructure to handle increased usage when needed."
+    },
+    {
+      "id": "req-10",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 365,
+      "endLine": 365,
+      "reason": "§3.4.1: 要件 10（ポリシーや観測可能な要因による到達の制限）",
+      "excerpt": "10. Enterprise assets may not be able to reach certain PEPs due to policy or observable factors. For example, there may be a policy stating that mobile assets may not be able to reach certain resources if the requesting asset is located outside of the enterprise’s home country. These factors could be based on location (geolocation or network location), device type, or other criteria."
+    }
+  ],
+  "questions": [
+    {
+      "id": "control-plane-term",
+      "type": "choice",
+      "category": "vocabulary",
+      "prompt": "§3.4 によると、この用語が表す通信の説明として正しいものはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "planes-separation",
+        "planes-roles"
+      ],
+      "term": "control plane（コントロールプレーン）",
+      "options": [
+        "サブジェクトが、PEP を経由せずに、ポリシー管理者へアクセスリクエストを直接送って判定を受けるために使う、サブジェクトの認証のための通信",
+        "エンタープライズが所有するコンポーネントだけが、資産の維持と構成に使う通信。サービスプロバイダーのコンポーネントは、この通信に参加しない",
+        "インフラストラクチャコンポーネントが、資産の維持と構成、リソースへのアクセスの判定・許可・拒否、通信経路の設定に使う、ネットワーク制御のための通信",
+        "ソフトウェアコンポーネントが、組織の実際の業務を遂行するために、確立された経路の上でやり取りする、アプリケーション/サービスのデータのための通信"
+      ]
+    },
+    {
+      "id": "data-plane-term",
+      "type": "choice",
+      "category": "vocabulary",
+      "prompt": "§3.4 は、このプレーンの用途と、コントロールプレーンとの関係をどう説明していますか？",
+      "points": 1,
+      "referenceIds": [
+        "planes-roles"
+      ],
+      "term": "data plane（データプレーン）",
+      "options": [
+        "ポリシーエンジンとポリシー管理者の間の通信に使う。アプリケーション/サービスの通信は、コントロールプレーンで経路の設定と一緒に運ばれる",
+        "ソフトウェアコンポーネント間の実際の通信に使う。コントロールプレーン経由で経路が確立されるまでは、この通信チャネルを利用できない場合がある",
+        "ネットワークの制御と構成のための通信に使う。コントロールプレーンを利用できない場合に、資産の維持と構成を代わりに引き受ける",
+        "ソフトウェアコンポーネント間の実際の通信に使う。経路はこのプレーンの上で確立され、確立された後に、その結果がコントロールプレーンへ通知される"
+      ]
+    },
+    {
+      "id": "connection-metadata",
+      "type": "choice",
+      "category": "vocabulary",
+      "prompt": "§3.4.1 の要件 3 で、エンタープライズが抽出するこの情報の例と使い道の組み合わせはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "req-3",
+        "req-2"
+      ],
+      "term": "metadata about the connection（接続に関するメタデータ）",
+      "options": [
+        "ネットワークの MAC アドレスなど。エンタープライズが所有または管理する資産であることを、クレデンシャルの代わりに示す情報にする",
+        "宛先、時刻、デバイスの ID など。PEP を経由せずにリソースへ到達できる経路を、資産ごとに事前に登録するための情報にする",
+        "宛先、時刻、デバイスの ID など。ポリシーを動的に更新し、PE がアクセスリクエストを評価する際の情報にする",
+        "パケットの本文を復号して得た内容など。ポリシーを動的に更新し、PE がアクセスリクエストを評価する際の情報にする"
+      ]
+    },
+    {
+      "id": "separation-nature",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "§3.4 は、ZT 環境で、ネットワークの制御と構成に使う通信フローと、業務を遂行するアプリケーション/サービスの通信フローを、どうすべきだとしていますか？",
+      "points": 1,
+      "referenceIds": [
+        "planes-separation"
+      ],
+      "options": [
+        "境界型のネットワークを併用する場合に限り、論理的に分離すべきである",
+        "論理的に、場合によっては物理的に、分離すべきである",
+        "物理的に分離しなければならず、論理的な分離は認められない",
+        "分離せずに同じ通信フローにまとめ、暗号化で保護すべきである"
+      ]
+    },
+    {
+      "id": "basic-connectivity",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "§3.4.1 の要件 1（エンタープライズの資産は、基本的なネットワーク接続性を備えている）の説明として正しいものはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "req-1"
+      ],
+      "options": [
+        "LAN は、エンタープライズが管理しているかどうかにかかわらず、基本的なルーティングと DNS などのインフラストラクチャを提供する",
+        "リモートのエンタープライズ資産は、PEP が通信経路を設定するまで、基本的なルーティングと DNS などのインフラストラクチャを使用できない",
+        "リモートのエンタープライズ資産は、接続先の LAN が提供するインフラストラクチャサービスを、すべて使用しなければならない",
+        "LAN は、エンタープライズが管理しているものである場合に限り、基本的なルーティングと DNS などのインフラストラクチャを提供できる"
+      ]
+    },
+    {
+      "id": "mac-address-inventory",
+      "type": "choice",
+      "category": "debugging",
+      "prompt": "§3.4.1 の要件 2 に照らして、この設計の問題点はどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "req-2"
+      ],
+      "scenario": "ネットワーク担当者が、ある資産がエンタープライズの所有するものかどうかを、事前に登録した MAC アドレスの一覧と照合して判別する設計を提案しました。",
+      "options": [
+        "判別は、ZTA では行う必要がない。資産がエンタープライズの所有するものかどうかは、アクセスの決定に使われない情報である",
+        "判別は、PEP が設定した通信経路によって行う。MAC アドレスの一覧は、コントロールプレーンの通信に対してしか照合できない",
+        "判別は、資産が接続している LAN の種類によって行う。MAC アドレスの一覧は、エンタープライズが管理する LAN の上でしか照合できない",
+        "判別は、エンタープライズが発行したクレデンシャルによって行う。偽装されうる MAC アドレスのような、認証できない情報には基づかない"
+      ]
+    },
+    {
+      "id": "must-vs-should",
+      "type": "choice",
+      "category": "comparison",
+      "prompt": "§3.4.1 の要件のうち、本文が「〜できなければならない（must）」という強さで述べているものはどれですか？ほかの 3 つは「〜すべきである（should）」と述べられています。",
+      "points": 1,
+      "referenceIds": [
+        "req-2",
+        "requirements"
+      ],
+      "options": [
+        "エンタープライズが、どの資産を所有または管理しているかと、デバイスの現在のセキュリティ態勢を判別できること",
+        "リモートのエンタープライズ資産が、エンタープライズのネットワークインフラストラクチャを先に経由せずに、リソースにアクセスできること",
+        "ZTA のアクセス決定プロセスをサポートするインフラストラクチャを、処理負荷の変化に対応できるようスケーラブルにすること",
+        "エンタープライズのリソースに、PEP を経由しなければ到達できないようにすること"
+      ]
+    },
+    {
+      "id": "uninspectable-traffic",
+      "type": "choice",
+      "category": "debugging",
+      "prompt": "§3.4.1 の要件 3 に照らして、この方針の問題点はどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "req-3"
+      ],
+      "scenario": "運用チームが「暗号化されていてアプリケーション層（OSI レイヤー 7）の検査ができないパケットは、分析に使えないので、データプレーンでの記録の対象から外す」という方針を立てました。",
+      "options": [
+        "アプリケーション層の検査は、すべてのパケットに実行できなければならないので、検査できない通信は、コントロールプレーンへ移さなければならない",
+        "アプリケーション層の検査をすべてのパケットには実行できない場合でも、エンタープライズは、データプレーン上で確認したパケットを記録する",
+        "アプリケーション層の検査ができないパケットは、記録の対象から外すだけでは足りず、PEP で破棄して、リソースに届かないようにしなければならない",
+        "アプリケーション層の検査ができないパケットは、データプレーンではなく、コントロールプレーン上で確認して記録しなければならない"
+      ]
+    },
+    {
+      "id": "resource-reachability",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "§3.4.1 の要件 4 は、エンタープライズのリソースが接続を受け付ける条件と、リソースを PEP を経由しなければ到達・発見できないようにすることの効果を、どう説明していますか？",
+      "points": 1,
+      "referenceIds": [
+        "req-4"
+      ],
+      "options": [
+        "インターネットからの任意の着信接続を受け付け、接続を確立した後でクライアントを認証・認可する。正当なクライアントの接続が認証の待ち時間で遅れることを防げる",
+        "クライアントが認証された時点で、認可を待たずに、個別に設定された接続を受け付ける。PEP に処理が集中して経路の設定が滞ることを防げる",
+        "エンタープライズのネットワーク上にあるクライアントからは、認証・認可なしに接続を受け付ける。PEP の設定の誤りで業務が止まることを防げる",
+        "クライアントが認証・認可された後にのみ、個別に設定された接続を受け付ける。攻撃者がスキャンで標的を特定することや、DoS 攻撃を仕掛けることを防げる"
+      ]
+    },
+    {
+      "id": "hide-dns",
+      "type": "choice",
+      "category": "debugging",
+      "prompt": "§3.4.1 の要件 4 に照らして、この決定の問題点はどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "req-4"
+      ],
+      "scenario": "設計者が「要件 4 に従い、DNS サーバーを含むすべてのネットワークインフラストラクチャコンポーネントを、PEP を経由しなければ到達も発見もできないようにする」と決めました。",
+      "options": [
+        "リソースを発見できないようにすることは、要件 4 では想定されていない。隠してよいのは、DNS サーバーなどのネットワークインフラストラクチャコンポーネントだけである",
+        "DNS サーバーは、コントロールプレーンのコンポーネントである。エンタープライズの資産からは、PEP を経由しても到達できてはならない",
+        "すべてのリソースをこのように隠すべきというわけではない。DNS サーバーなど一部のネットワークインフラストラクチャコンポーネントは、アクセス可能でなければならない",
+        "DNS サーバーを隠すこと自体は適切である。ただし、PEP ではなくポリシー管理者を経由して到達させなければならない"
+      ]
+    },
+    {
+      "id": "pep-both-planes",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "§3.4.1 の要件 5（データプレーンとコントロールプレーンは、論理的に分離されている）の説明として正しいものはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "req-5"
+      ],
+      "options": [
+        "PE、PA、PEP は、論理的に分離されたネットワーク上で通信する。PEP は、データプレーンとコントロールプレーンの両方でメッセージを送受信できなければならない",
+        "PE、PA、PEP は、論理的に分離されたネットワーク上で通信する。PEP は、コントロールプレーンのメッセージだけを送受信し、データプレーンには接続しない",
+        "PE、PA、PEP は、エンタープライズの資産やリソースと同じネットワーク上で通信する。PEP は、データプレーンとコントロールプレーンの両方でメッセージを送受信できなければならない",
+        "PE と PA は、論理的に分離されたネットワーク上で通信する。PEP は、データプレーンのメッセージだけを送受信し、コントロールプレーンには接続しない"
+      ]
+    },
+    {
+      "id": "pep-forms",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "§3.4.1 の要件 6 は、エンタープライズのサブジェクトがリソースにアクセスするために到達する PEP コンポーネントの形態として、何を挙げていますか？",
+      "points": 1,
+      "referenceIds": [
+        "req-6"
+      ],
+      "options": [
+        "Web ポータル、DNS サーバー、エンタープライズが管理している LAN 上のルーター",
+        "Web ポータル、ネットワークデバイス、エンタープライズ資産上のソフトウェアエージェント",
+        "VPN の集約装置、ネットワークデバイス、パブリッククラウド上の電子メールサービス",
+        "ポリシーエンジン、ポリシー管理者、エンタープライズ資産上のソフトウェアエージェント"
+      ]
+    },
+    {
+      "id": "only-pep-reaches-pa",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "§3.4.1 の要件 7 の説明として正しいものはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "req-7"
+      ],
+      "options": [
+        "ビジネスフローの一部としてポリシー管理者にアクセスするコンポーネントは PEP だけで、ビジネスプロセスのトラフィックはすべて 1 つ以上の PEP を通過する",
+        "ビジネスフローの一部としてポリシー管理者にアクセスするのは PEP とエンタープライズの資産で、資産からのトラフィックは PEP を通過せずにリソースへ届く",
+        "ビジネスフローの一部としてポリシー管理者にアクセスするコンポーネントは PEP だけで、ポリシー管理者への接続を持つのは、代表となる 1 つの PEP に限られる",
+        "ビジネスフローの一部としてポリシー管理者にアクセスするコンポーネントは PEP だけで、ビジネスプロセスのトラフィックはすべて、ただ 1 つの PEP だけを通過する"
+      ]
+    },
+    {
+      "id": "vpn-backhaul",
+      "type": "choice",
+      "category": "debugging",
+      "prompt": "§3.4.1 の要件 8 に照らして、この規則の問題点はどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "req-8",
+        "req-7"
+      ],
+      "scenario": "あるエンタープライズは、パブリッククラウドプロバイダーがホストする電子メールサービスを使っています。情報システム部門は「リモートの従業員は、必ず VPN でエンタープライズのネットワークに接続してから、このサービスにアクセスする」という規則を設けました。",
+      "options": [
+        "リモートのエンタープライズ資産は、エンタープライズのネットワークインフラストラクチャを先に経由する場合に限り、認証・認可を省略できるべきである",
+        "リモートのエンタープライズ資産は、エンタープライズのネットワークインフラストラクチャを先に経由しなくても、エンタープライズのリソースにアクセスできるべきである",
+        "リモートのエンタープライズ資産は、パブリッククラウド上のリソースに限り、PEP を経由しなくても、エンタープライズのリソースにアクセスできるべきである",
+        "リモートのエンタープライズ資産は、VPN ではなく、エンタープライズが管理する専用の回線を先に経由してから、エンタープライズのリソースにアクセスすべきである"
+      ]
+    },
+    {
+      "id": "why-scalable",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "§3.4.1 の要件 9 は、ZTA のアクセス決定プロセスをサポートするインフラストラクチャをスケーラブルにすべき理由を、どう説明していますか？",
+      "points": 1,
+      "referenceIds": [
+        "req-9"
+      ],
+      "options": [
+        "PE、PA、PEP は、処理負荷が高まるとアクセスリクエストを評価せずに許可するので、負荷の変化が、そのままリソースへの不正なアクセスにつながるため",
+        "PE、PA、PEP の数は、保護するリソースの数と一致していなければならず、リソースを増やすたびに、同じ数のコンポーネントを追加する必要があるため",
+        "PE、PA、PEP があらゆるビジネスプロセスの要になり、PEP に到達できないことや到達の遅延が、ワークフローの実行に悪影響を及ぼすため",
+        "PE、PA、PEP は、コントロールプレーンでアプリケーションのデータも中継するので、データの量が増えると、通信経路の設定を行えなくなるため"
+      ]
+    },
+    {
+      "id": "scaling-design",
+      "type": "choice",
+      "category": "design",
+      "prompt": "§3.4.1 の要件 9 に沿った対応はどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "req-9"
+      ],
+      "scenario": "あるエンタープライズでは、月末の締め処理の時期に、アクセスリクエストが平常時の数倍に増えます。前回の月末には、PEP から PA に到達できない状態が続き、業務のワークフローが止まりました。",
+      "options": [
+        "月末の時期に限り、主要なリソースに PEP を経由せずに到達できるようにして、PA と PE に届くアクセスリクエストの数を減らせるようにする",
+        "想定されるワークロードに合わせてコンポーネントをプロビジョニングするか、使用量の増加に応じてインフラストラクチャを迅速にスケールできるようにする",
+        "月末の時期に限り、PE による評価を省略し、PA が直前の決定を再利用して通信経路を設定することで、処理の遅延を減らせるようにする",
+        "月末の時期に限り、業務のトラフィックをコントロールプレーンにも流して、データプレーンの経路の不足を補えるようにする"
+      ]
+    },
+    {
+      "id": "policy-limited-reach",
+      "type": "choice",
+      "category": "comparison",
+      "prompt": "§3.4.1 の要件 6（エンタープライズの資産は、PEP コンポーネントに到達できる）と要件 10 の関係について、本文に合う説明はどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "req-6",
+        "req-10"
+      ],
+      "options": [
+        "サブジェクトは、場所やデバイスの種類にかかわらず、すべての PEP にアクセスできる。ただし、本国の外にあるモバイル資産は、どの PEP にも到達できないようにしなければならない",
+        "サブジェクトは、リソースにアクセスするために PEP にアクセスできなければならないが、ポリシーや観測可能な要因によって、資産が特定の PEP に到達できない場合がある",
+        "サブジェクトは、リソースにアクセスするために PEP にアクセスできなければならないので、場所やデバイスの種類を理由に、資産から特定の PEP への到達を妨げてはならない",
+        "サブジェクトは、ポリシーによって特定の PEP に到達できない場合に限り、ポリシー管理者に直接アクセスして、リソースへの通信経路を設定してもらうことができる"
+      ]
+    },
+    {
+      "id": "path-setup-order",
+      "type": "ordering",
+      "category": "flow",
+      "prompt": "§3.4 と §3.4.1 の説明に沿って、サブジェクトがエンタープライズのリソースと通信できるようになるまでの流れを並べてください。",
+      "points": 2,
+      "referenceIds": [
+        "planes-roles",
+        "req-4",
+        "req-6"
+      ],
+      "items": [
+        {
+          "id": "setup-path",
+          "text": "PA と PEP が、コントロールプレーンを使って、サブジェクトとリソースの間の通信経路を設定する"
+        },
+        {
+          "id": "authorize",
+          "text": "クライアントが認証・認可される"
+        },
+        {
+          "id": "use-data-plane",
+          "text": "アプリケーション/サービスのワークロードが、確立されたデータプレーンの経路を使って通信する"
+        },
+        {
+          "id": "reach-pep",
+          "text": "サブジェクトが、リソースへのアクセスを得るために、PEP コンポーネントにアクセスする"
+        }
+      ]
+    },
+    {
+      "id": "plane-separation-design",
+      "type": "written",
+      "category": "design",
+      "prompt": "§3.4 と §3.4.1 の要件 5・要件 7 に基づいて、コントロールプレーンとデータプレーンの分け方と、PE・PA・PEP・エンタープライズの資産の通信の関係を説明してください。",
+      "points": 4,
+      "referenceIds": [
+        "planes-separation",
+        "req-5",
+        "req-7"
+      ],
+      "scenario": "あなたは、ZTA を導入するエンタープライズのネットワークアーキテクトです。PE、PA、PEP の通信と、業務アプリケーションの通信を、それぞれどのネットワークに流すかを、設計書にまとめることになりました。",
+      "answerHint": "2 つのプレーンの分け方、PE・PA・PEP が通信する場所、PEP に必要なこと、PA にアクセスできるコンポーネントの 4 点を、短い箇条書きで書いてください。"
+    },
+    {
+      "id": "resource-access-design",
+      "type": "written",
+      "category": "design",
+      "prompt": "§3.4.1 の要件 4・要件 8・要件 10 に基づいて、この案の問題点と改め方を述べてください。本国の外にあるモバイル資産についての希望が、要件と両立するかどうかも説明してください。",
+      "points": 4,
+      "referenceIds": [
+        "req-4",
+        "req-8",
+        "req-10"
+      ],
+      "scenario": "あるエンタープライズが、パブリッククラウド上に新しい人事アプリケーションを置きます。利用者は、オフィスの従業員とリモートの従業員です。現在の案では、アプリケーションはインターネットから誰でも接続でき、接続した後のログイン画面で利用者を認証します。リモートの従業員には、VPN でエンタープライズのネットワークを経由することを義務付けます。また、本国の外にあるモバイル資産からは、このアプリケーションに到達させたくないと考えています。",
+      "answerHint": "リソースへの到達の制限、接続を受け付ける条件、リモートからの経路、本国の外にあるモバイル資産の扱いの 4 点を、それぞれ 1〜2 文で書いてください。"
+    }
+  ],
+  "solutions": {
+    "control-plane-term": {
+      "answer": 2,
+      "explanation": "§3.4。コントロールプレーンは、エンタープライズが所有するものとサービスプロバイダーのものの両方を含むさまざまなインフラストラクチャコンポーネントが、資産の維持と構成、リソースへのアクセスの判定・許可・拒否、通信経路の設定に必要な操作に使う、ネットワーク制御のための通信です。業務を遂行するアプリケーション/サービスの通信は、データプレーンの役割です。本文の例でコントロールプレーンを使って通信経路を設定するのは PA と PEP であり、サブジェクトが PA に直接リクエストを送る通信とは説明されていません。"
+    },
+    "data-plane-term": {
+      "answer": 1,
+      "explanation": "§3.4。データプレーンは、ソフトウェアコンポーネント間の実際の通信に使われます。この通信チャネルは、コントロールプレーン経由で経路が確立されるまでは利用できない場合があり、アプリケーション/サービスのワークロードは、確立されたデータプレーンの経路を使います。ネットワークの制御と構成や、経路の設定は、コントロールプレーンの役割です。"
+    },
+    "connection-metadata": {
+      "answer": 2,
+      "explanation": "§3.4.1（要件 3）。エンタープライズは、宛先、時刻、デバイスの ID といった接続に関するメタデータを抽出し、ポリシーを動的に更新するとともに、PE がアクセスリクエストを評価する際の情報にします。パケットの本文を復号した内容は、メタデータの例として挙げられていません。MAC アドレスは、要件 2 で、資産の判別の根拠にしない「認証できない情報」の例とされています。"
+    },
+    "separation-nature": {
+      "answer": 1,
+      "explanation": "§3.4。ZT 環境では、ネットワークの制御と構成に使う通信フローと、組織の実際の業務を遂行するアプリケーション/サービスの通信フローを、論理的に（場合によっては物理的に）分離すべきだとしています。物理的な分離を必須とはしておらず、条件付きの分離でもありません。これは多くの場合、ネットワーク制御通信のためのコントロールプレーンと、アプリケーション/サービスの通信フローのためのデータプレーンに分けられます。"
+    },
+    "basic-connectivity": {
+      "answer": 0,
+      "explanation": "§3.4.1（要件 1）。LAN は、エンタープライズが管理しているかどうかにかかわらず、基本的なルーティングと DNS などのインフラストラクチャを提供します。リモートのエンタープライズ資産が、すべてのインフラストラクチャサービスを使うとは限りません。要件 1 は、資産が基本的なネットワーク接続性を備えていることを述べており、PEP が経路を設定するまで使えないとはしていません。"
+    },
+    "mac-address-inventory": {
+      "answer": 3,
+      "explanation": "§3.4.1（要件 2）。エンタープライズは、どの資産を所有または管理しているかと、デバイスの現在のセキュリティ態勢を、判別できなければなりません。この判別は、エンタープライズが発行したクレデンシャルによって行い、偽装されうるネットワークの MAC アドレスのような、認証できない情報には基づきません。LAN の種類や通信経路で判別するとは述べておらず、判別が不要だともしていません。"
+    },
+    "must-vs-should": {
+      "answer": 0,
+      "explanation": "§3.4.1。要件 2 は、所有または管理する資産と、デバイスの現在のセキュリティ態勢を、エンタープライズが判別「できなければならない（must）」と述べています。要件 4（PEP を経由しなければリソースに到達できない）、要件 8（エンタープライズのネットワークを経由しないアクセス）、要件 9（スケーラブルなインフラストラクチャ）の見出しの文は、いずれも「すべきである（should）」という言い回しです。"
+    },
+    "uninspectable-traffic": {
+      "answer": 1,
+      "explanation": "§3.4.1（要件 3）。エンタープライズはすべてのネットワークトラフィックを観測でき、すべてのパケットにアプリケーション層（OSI レイヤー 7）の検査を実行できない場合でも、データプレーン上で確認したパケットを記録します。そのうえで、接続に関するメタデータを抽出し、ポリシーの動的な更新と PE による評価に使います。検査できないパケットを破棄することや、別のプレーンで記録することは求めていません。"
+    },
+    "resource-reachability": {
+      "answer": 3,
+      "explanation": "§3.4.1（要件 4）。エンタープライズのリソースは、インターネットからの任意の着信接続を受け付けず、クライアントが認証・認可された後にのみ、PEP が設定する個別の接続を受け付けます。リソースは PEP を経由しなければ発見することさえできない場合があり、これにより、攻撃者がスキャンで標的を特定したり、PEP の背後にあるリソースに DoS 攻撃を仕掛けたりすることを防げます。ネットワーク上の場所を理由に認証・認可を省く説明はありません。"
+    },
+    "hide-dns": {
+      "answer": 2,
+      "explanation": "§3.4.1（要件 4）。要件 4 は、リソースを PEP を経由しなければ到達できないようにすべきだとしつつ、すべてのリソースをこのように隠すべきというわけではないと注記しています。DNS サーバーなど一部のネットワークインフラストラクチャコンポーネントは、アクセス可能でなければなりません。リソースを PEP を経由しなければ発見できないようにすること自体は、要件 4 が述べている形です。"
+    },
+    "pep-both-planes": {
+      "answer": 0,
+      "explanation": "§3.4.1（要件 5）。PE、PA、PEP は、論理的に分離され、エンタープライズの資産やリソースから直接アクセスできないネットワーク上で、コントロールプレーンを使って通信し、資産間の通信経路を管理します。データプレーンは、アプリケーション/サービスのデータトラフィックに使われます。PEP は、データプレーンとコントロールプレーンの両方でメッセージを送受信できなければなりません。"
+    },
+    "pep-forms": {
+      "answer": 1,
+      "explanation": "§3.4.1（要件 6）。エンタープライズのサブジェクトは、リソースにアクセスするために、PEP コンポーネントにアクセスできなければなりません。その形態として、Web ポータル、ネットワークデバイス、接続を可能にするエンタープライズ資産上のソフトウェアエージェントが挙げられています。PE と PA は PEP の形態ではなく、DNS サーバーや VPN の装置、クラウド上のサービスも挙げられていません。"
+    },
+    "only-pep-reaches-pa": {
+      "answer": 0,
+      "explanation": "§3.4.1（要件 7）。ビジネスフローの一部としてポリシー管理者（PA）にアクセスするコンポーネントは、PEP だけです。エンタープライズのネットワーク上で動作する各 PEP が、クライアントからリソースへの通信経路を確立するために PA への接続を持ち、ビジネスプロセスのトラフィックはすべて 1 つ以上の PEP を通過します。通過する PEP を 1 つに限る説明や、資産が PA に直接アクセスする説明はありません。"
+    },
+    "vpn-backhaul": {
+      "answer": 1,
+      "explanation": "§3.4.1（要件 8）。リモートのエンタープライズ資産は、エンタープライズのネットワークインフラストラクチャを先に経由しなくても、エンタープライズのリソースにアクセスできるべきです。本文は、パブリッククラウドプロバイダーがホストする電子メールなどのサービスにアクセスするために、エンタープライズのネットワークへ戻るリンク（VPN）の使用を、リモートのサブジェクトに要求すべきではないという例を挙げています。PEP を経由しなくてよいという意味ではなく、要件 7 のとおり、ビジネスプロセスのトラフィックは 1 つ以上の PEP を通過します。"
+    },
+    "why-scalable": {
+      "answer": 2,
+      "explanation": "§3.4.1（要件 9）。ZTA で使う PE、PA、PEP は、あらゆるビジネスプロセスの要となるコンポーネントになります。PEP への到達の遅延や不能、あるいは PEP から PA/PE への到達の不能は、ワークフローを実行する能力に悪影響を及ぼすため、インフラストラクチャを処理負荷の変化に対応できるようスケーラブルにすべきだとしています。評価せずに許可することや、コンポーネントの数をリソースの数に合わせることは述べていません。"
+    },
+    "scaling-design": {
+      "answer": 1,
+      "explanation": "§3.4.1（要件 9）。ZTA を実装するエンタープライズは、想定されるワークロードに合わせてコンポーネントをプロビジョニングするか、必要なときに使用量の増加に対応できるよう、インフラストラクチャを迅速にスケールできるようにしておく必要があります。PEP を迂回させること、PE の評価を省くこと、業務のトラフィックをコントロールプレーンに流すことは、要件 9 が示す対応ではありません。"
+    },
+    "policy-limited-reach": {
+      "answer": 1,
+      "explanation": "§3.4.1（要件 6・要件 10）。サブジェクトは、リソースにアクセスするために、PEP コンポーネントにアクセスできなければなりません。一方で要件 10 は、ポリシーや観測可能な要因によって、資産が特定の PEP に到達できない場合があるとしています。本文の例は、本国の外にあるモバイル資産は特定のリソースに到達できないとするポリシーで、要因は場所（ジオロケーションまたはネットワークロケーション）、デバイスの種類、その他の基準に基づくことがあります。到達できない資産がポリシー管理者に直接アクセスできるという説明はありません。"
+    },
+    "path-setup-order": {
+      "answer": [
+        "reach-pep",
+        "authorize",
+        "setup-path",
+        "use-data-plane"
+      ],
+      "explanation": "§3.4・§3.4.1。サブジェクトは、リソースにアクセスするために、まず PEP コンポーネントにアクセスします（要件 6）。リソースは、クライアントが認証・認可された後にのみ、個別に設定された接続を受け付けます（要件 4）。通信経路は、PA と PEP がコントロールプレーンを使って設定し、その後、アプリケーション/サービスのワークロードが、確立されたデータプレーンの経路を使います（§3.4）。"
+    },
+    "plane-separation-design": {
+      "explanation": "§3.4・§3.4.1（要件 5・要件 7）。制御・構成のための通信と、アプリケーション/サービスの通信は、論理的に（場合によっては物理的に）分離し、前者をコントロールプレーン、後者をデータプレーンとします。PE、PA、PEP は、エンタープライズの資産やリソースから直接アクセスできない、論理的に分離されたネットワークで通信し、通信経路を管理します。PEP は両方のプレーンでメッセージを送受信できなければなりません。ビジネスフローの一部として PA にアクセスするのは PEP だけで、ビジネスプロセスのトラフィックはすべて 1 つ以上の PEP を通過します。",
+      "rubric": [
+        {
+          "criterion": "ネットワークの制御・構成のための通信（コントロールプレーン）と、アプリケーション/サービスの通信（データプレーン）を、論理的に（場合によっては物理的に）分離することを述べている",
+          "points": 1,
+          "referenceIds": [
+            "planes-separation",
+            "req-5"
+          ]
+        },
+        {
+          "criterion": "PE、PA、PEP は、エンタープライズの資産やリソースから直接アクセスできない、論理的に分離されたネットワーク（コントロールプレーン）で通信し、通信経路を管理することを述べている",
+          "points": 1,
+          "referenceIds": [
+            "req-5"
+          ]
+        },
+        {
+          "criterion": "PEP は、データプレーンとコントロールプレーンの両方でメッセージを送受信できなければならないことを述べている",
+          "points": 1,
+          "referenceIds": [
+            "req-5"
+          ]
+        },
+        {
+          "criterion": "ビジネスフローの一部として PA にアクセスするコンポーネントは PEP だけであること、またはビジネスプロセスのトラフィックがすべて 1 つ以上の PEP を通過することを述べている",
+          "points": 1,
+          "referenceIds": [
+            "req-7"
+          ]
+        }
+      ]
+    },
+    "resource-access-design": {
+      "explanation": "§3.4.1（要件 4・要件 8・要件 10）。リソースは、PEP を経由しなければ到達できないようにすべきで、インターネットからの任意の着信接続を受け付けず、クライアントが認証・認可された後にのみ、PEP が設定する個別の接続を受け付けます。これにより、スキャンによる標的の特定や DoS 攻撃を防げます。リモートの資産は、VPN でエンタープライズのネットワークを先に経由しなくても、リソースにアクセスできるべきです。本国の外にあるモバイル資産は特定のリソースに到達できないとするポリシーは、要件 10 が例として挙げているもので、要件と両立します。",
+      "rubric": [
+        {
+          "criterion": "リソースは PEP を経由しなければ到達できないようにすべきであり、インターネットからの任意の着信接続を受け付けないことを述べている",
+          "points": 1,
+          "referenceIds": [
+            "req-4"
+          ]
+        },
+        {
+          "criterion": "リソースは、クライアントが認証・認可された後にのみ、PEP が設定する個別の接続を受け付けること（PEP を経由しなければ発見できないようにして、スキャンや DoS 攻撃を防げることでもよい）を述べている",
+          "points": 1,
+          "referenceIds": [
+            "req-4"
+          ]
+        },
+        {
+          "criterion": "リモートの資産は、VPN などでエンタープライズのネットワークインフラストラクチャを先に経由しなくても、リソースにアクセスできるべきであることを述べている",
+          "points": 1,
+          "referenceIds": [
+            "req-8"
+          ]
+        },
+        {
+          "criterion": "ポリシーや観測可能な要因（場所、デバイスの種類など）によって、資産が特定の PEP に到達できない場合があるので、本国の外にあるモバイル資産を制限するポリシーは要件と両立することを述べている",
+          "points": 1,
+          "referenceIds": [
+            "req-10"
+          ]
+        }
+      ]
+    }
+  },
+  "inconsistencies": []
+}

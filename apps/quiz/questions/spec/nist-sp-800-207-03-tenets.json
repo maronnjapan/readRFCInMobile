@@ -1,0 +1,597 @@
+{
+  "format": "spec-understanding-quiz",
+  "version": 1,
+  "id": "nist-sp-800-207-03-tenets",
+  "title": "NIST SP 800-207 ゼロトラスト 3/16: ゼロトラストの 7 つの基本原則",
+  "status": "published",
+  "spec": {
+    "id": "pdf-0290d6ece2487428",
+    "status": "adopted",
+    "repository": "maronnjapan/readRFCInMobile",
+    "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+    "path": "apps/quiz/specs/nist-sp-800-207.txt"
+  },
+  "references": [
+    {
+      "id": "tenets-intro",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 182,
+      "endLine": 184,
+      "reason": "§2.1: 基本原則で定義する背景と位置付け",
+      "excerpt": "Many definitions and discussions of ZT stress the concept of removing wide-area perimeter defenses (e.g., enterprise firewalls) as a factor. However, most of these definitions continue to define themselves in relation to perimeters in some way (such as micro-segmentation or micro-perimeters; see Section 3.1) as part of the functional capabilities of a ZTA. The following is an attempt to define ZT and ZTA in terms of basic tenets that should be involved rather than what is excluded. These tenets are the ideal goal, though it must be acknowledged that not all tenets may be fully implemented in their purest form for a given strategy.\n\nA zero trust architecture is designed and deployed with adherence to the following zero trust basic tenets:"
+    },
+    {
+      "id": "tenet-1",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 186,
+      "endLine": 186,
+      "reason": "§2.1: 基本原則 1（すべてのデータソースとコンピューティングサービスはリソース）",
+      "excerpt": "1. All data sources and computing services are considered resources. A network may be composed of multiple classes of devices. A network may also have small footprint devices that send data to aggregators/storage, software as a service (SaaS), systems sending instructions to actuators, and other functions. Also, an enterprise may decide to classify personally owned devices as resources if they can access enterprise-owned resources."
+    },
+    {
+      "id": "tenet-2",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 187,
+      "endLine": 187,
+      "reason": "§2.1: 基本原則 2（場所にかかわらない通信の保護）",
+      "excerpt": "2. All communication is secured regardless of network location. Network location alone does not imply trust. Access requests from assets located on enterprise-owned network infrastructure (e.g., inside a legacy network perimeter) must meet the same security requirements as access requests and communication from any other nonenterprise-owned network. In other words, trust should not be automatically granted based on the device being on enterprise network infrastructure. All communication should be done in the most secure manner available, protect confidentiality and integrity, and provide source authentication."
+    },
+    {
+      "id": "tenet-3",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 188,
+      "endLine": 188,
+      "reason": "§2.1: 基本原則 3（セッション単位のアクセス）",
+      "excerpt": "3. Access to individual enterprise resources is granted on a per-session basis. Trust in the requester is evaluated before the access is granted. Access should also be granted with the least privileges needed to complete the task. This could mean only “sometime recently” for this particular transaction and may not occur directly before initiating a session or performing a transaction with a resource. However, authentication and authorization to one resource will not automatically grant access to a different resource."
+    },
+    {
+      "id": "tenet-4",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 189,
+      "endLine": 191,
+      "reason": "§2.1: 基本原則 4（動的ポリシーによるアクセスの決定）",
+      "excerpt": "4. Access to resources is determined by dynamic policy—including the observable state of client identity, application/service, and the requesting asset—and may include other behavioral and environmental attributes. An organization protects resources by defining what resources it has, who its members are (or ability to authenticate users from a federated community), and what access to resources those members need. For zero trust, client identity can include the user account (or service identity) and any associated attributes assigned by the enterprise to that account or artifacts to authenticate automated tasks. Requesting asset state can include device characteristics such as software versions installed, network location, time/date of request, previously observed behavior, and installed credentials. Behavioral attributes include, but not limited to, automated subject analytics, device analytics, and measured deviations from observed usage patterns. Policy is the set of access rules based on attributes that an organization assigns to a subject, data asset, or application. Environmental attributes may include such factors as requestor\n\n- network location, time, reported active attacks, etc. These rules and attributes are based on the needs of the business process and acceptable level of risk. Resource access and action permission policies can vary based on the sensitivity of the resource/data. Least privilege principles are applied to restrict both visibility and accessibility."
+    },
+    {
+      "id": "tenet-5",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 193,
+      "endLine": 193,
+      "reason": "§2.1: 基本原則 5（資産の完全性とセキュリティ態勢の監視・測定）",
+      "excerpt": "5. The enterprise monitors and measures the integrity and security posture of all owned and associated assets. No asset is inherently trusted. The enterprise evaluates the security posture of the asset when evaluating a resource request. An enterprise implementing a ZTA should establish a continuous diagnostics and mitigation (CDM) or similar system to monitor the state of devices and applications and should apply patches/fixes as needed. Assets that are discovered to be subverted, have known vulnerabilities, and/or are not managed by the enterprise may be treated differently (including denial of all connections to enterprise resources) than devices owned by or associated with the enterprise that are deemed to be in their most secure state. This may also apply to associated devices (e.g., personally owned devices) that may be allowed to access some resources but not others. This, too, requires a robust monitoring and reporting system in place to provide actionable data about the current state of enterprise resources."
+    },
+    {
+      "id": "tenet-6",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 194,
+      "endLine": 194,
+      "reason": "§2.1: 基本原則 6（動的で厳格な認証・認可）",
+      "excerpt": "6. All resource authentication and authorization are dynamic and strictly enforced before access is allowed. This is a constant cycle of obtaining access, scanning and assessing threats, adapting, and continually reevaluating trust in ongoing communication. An enterprise implementing a ZTA would be expected to have Identity, Credential, and Access Management (ICAM) and asset management systems in place. This includes the use of multifactor authentication (MFA) for access to some or all enterprise resources. Continual monitoring with possible reauthentication and reauthorization occurs throughout user transactions, as defined and enforced by policy (e.g., time-based, new resource requested, resource modification, anomalous subject activity detected) that strives to achieve a balance of security, availability, usability, and cost-efficiency."
+    },
+    {
+      "id": "tenet-7",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 195,
+      "endLine": 195,
+      "reason": "§2.1: 基本原則 7（情報の収集とセキュリティ態勢の改善）",
+      "excerpt": "7. The enterprise collects as much information as possible about the current state of assets, network infrastructure and communications and uses it to improve its security posture. An enterprise should collect data about asset security posture, network traffic and access requests, process that data, and use any insight gained to improve policy creation and enforcement. This data can also be used to provide context for access requests from subjects (see Section 3.3.1)."
+    },
+    {
+      "id": "tenets-scope",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 197,
+      "endLine": 197,
+      "reason": "§2.1: 技術への非依存と基本原則の適用範囲",
+      "excerpt": "The above tenets attempt to be technology agnostic. For example, “user identification (ID)” could include several factors such as username/password, certificates, and onetime password. These tenets apply to work done within an organization or in collaboration with one or more partner organizations and not to anonymous public or consumer-facing business processes. An organization cannot impose internal policies on external actors (e.g., customers or general internet users) but may be able to implement some ZT-based policies on nonenterprise users who have a special relationship with the organization (e.g. registered customers, employee dependents, etc.)."
+    }
+  ],
+  "questions": [
+    {
+      "id": "why-define-by-tenets",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "§2.1 は、ゼロトラストを基本原則によって定義しようとする背景を、どう説明していますか？",
+      "points": 1,
+      "referenceIds": [
+        "tenets-intro"
+      ],
+      "options": [
+        "多くの定義は広域の境界防御の撤去を強調しており、その大半は境界に関わる機能を ZTA から除いている。そこで、同じように境界に関わる機能を除く形で定義を試みる",
+        "多くの定義は広域の境界防御の撤去を強調するが、その大半は境界との関係で自らを定義し続けている。そこで、何を除くかではなく、何が関与すべきかで定義を試みる",
+        "多くの定義は ID 管理の強化を強調するが、その大半はネットワークの機能に触れていない。そこで、何が関与すべきかではなく、何を除くかを列挙する形で定義を試みる",
+        "多くの定義は広域の境界防御の強化を強調するが、その大半は境界との関係を説明していない。そこで、マイクロセグメンテーションを必須の機能と位置付けて定義を試みる"
+      ]
+    },
+    {
+      "id": "tenets-ideal-goal",
+      "type": "choice",
+      "category": "debugging",
+      "prompt": "§2.1 に照らして、この指摘の問題点はどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "tenets-intro"
+      ],
+      "scenario": "ある監査担当者が「7 つの基本原則のうち、純粋な形で完全に実装されていないものが 1 つでもあれば、その戦略は ZTA に基づくものとは認められない」と指摘しました。",
+      "options": [
+        "基本原則は選択式の一覧であり、エンタープライズは 7 つのうち自らの戦略に合うものを 3 つ以上選んで実装すればよいと、本書は定めている",
+        "基本原則は連邦政府機関だけに向けた要件であり、それ以外のエンタープライズの戦略は、実装の程度を問われないと、本書は定めている",
+        "基本原則は展開モデルごとに対応するものが異なり、選んだモデルに対応する原則だけを完全に実装すればよいと、本書は認めている",
+        "基本原則は理想的な目標であり、特定の戦略で、すべての原則が最も純粋な形で完全に実装されるとは限らないことを、本書は認めている"
+      ]
+    },
+    {
+      "id": "resource-scope",
+      "type": "choice",
+      "category": "vocabulary",
+      "prompt": "基本原則 1 によると、エンタープライズがこの用語で扱う範囲の説明として正しいものはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "tenet-1"
+      ],
+      "term": "resource（リソース）",
+      "options": [
+        "すべてのデータソースとコンピューティングサービス。エンタープライズ所有のリソースにアクセスできる個人所有のデバイスを、リソースに分類すると決めてもよい",
+        "エンタープライズが所有するサーバーとストレージ。SaaS や、データをアグリゲーターに送信するフットプリントの小さいデバイスは、リソースには含めないものとして扱う",
+        "すべてのデータソースとコンピューティングサービス。個人所有のデバイスは、エンタープライズ所有のリソースにアクセスできる場合でも、リソースに分類することはできない",
+        "SaaS と、アクチュエーターに指示を送るシステム。データをアグリゲーターやストレージに送信するだけのデバイスは、データソースではないので、リソースには含めない"
+      ]
+    },
+    {
+      "id": "same-requirements-inside",
+      "type": "choice",
+      "category": "debugging",
+      "prompt": "基本原則 2 に照らして、この設計の問題点はどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "tenet-2"
+      ],
+      "scenario": "ネットワーク担当者が「エンタープライズ所有のネットワークインフラストラクチャ上にある資産は、従来の境界の内側にあるので、そこからのアクセスリクエストには、エンタープライズ所有ではないネットワークからのリクエストより緩いセキュリティ要件を適用する」と設計しました。",
+      "options": [
+        "要件に差を付けること自体は妥当である。ただし、差を付ける基準は、ネットワーク上の場所ではなく、資産の所有者（エンタープライズ所有か個人所有か）にする必要がある",
+        "ネットワーク上の場所だけでは信頼を意味しない。エンタープライズ所有のインフラストラクチャ上の資産からのリクエストも、他のネットワークからのものと同じセキュリティ要件を満たす必要がある",
+        "境界の内側には攻撃者がいる可能性が高い。エンタープライズ所有のインフラストラクチャ上の資産からのリクエストには、他のネットワークからのものより厳しいセキュリティ要件を適用する必要がある",
+        "境界の内側の資産を信頼すること自体は妥当である。ただし、その信頼は自動的に与えるのではなく、ネットワーク管理者が資産ごとに承認したうえで与える必要がある"
+      ]
+    },
+    {
+      "id": "communication-properties",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "基本原則 2 は、すべての通信をどのように行うべきだとしていますか？",
+      "points": 1,
+      "referenceIds": [
+        "tenet-2"
+      ],
+      "options": [
+        "利用可能な最も高速な方法で行い、可用性と完全性を保護し、宛先の認証を提供する",
+        "利用可能な最も安全な方法で行い、機密性と完全性を保護し、送信元の認証を提供する",
+        "ネットワーク上の場所に応じた方法で行い、境界の外側との通信に限って機密性と完全性を保護する",
+        "エンタープライズが承認した単一の方法で行い、機密性を保護し、完全性の保護は任意とする"
+      ]
+    },
+    {
+      "id": "trust-evaluation-timing",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "基本原則 3 は、リクエスト元に対する信頼の評価と、アクセスの付与との関係をどう説明していますか？",
+      "points": 1,
+      "referenceIds": [
+        "tenet-3"
+      ],
+      "options": [
+        "信頼はアクセスが付与される前に評価される。ただし、それは「最近のいずれかの時点」であればよい場合があり、セッションの開始やトランザクションの実行の直前に行われるとは限らない",
+        "信頼はネットワークへの最初の接続のときに評価される。以後は、どのエンタープライズリソースへのセッションを開始するときにも、その評価の結果をそのまま使うことができる",
+        "信頼はアクセスが付与される前に評価される。その評価は、セッションの開始とトランザクションの実行の直前にそのつど行われなければならず、それより前の評価を使うことは認められない",
+        "信頼はアクセスが付与された後の「最近のいずれかの時点」で評価される。セッションを開始する時点では、評価が済んでいなくても、最小限の権限でアクセスを付与することができる"
+      ]
+    },
+    {
+      "id": "no-automatic-cross-resource",
+      "type": "choice",
+      "category": "debugging",
+      "prompt": "基本原則 3 に照らして、この運用の問題点はどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "tenet-3"
+      ],
+      "scenario": "あるエンタープライズでは、サブジェクトが人事システムへの認証と認可を済ませると、その結果を根拠に、給与システムと財務システムへのアクセスも自動的に許可しています。権限は、どのシステムでも読み取り・書き込み・削除を一律に与えています。",
+      "options": [
+        "あるリソースへの認証と認可は、同じセッションの中であれば別のリソースにも有効である。ただし、その場合は、読み取りの権限だけを付与すべきである",
+        "あるリソースへの認証と認可は、別のリソースへのアクセスを自動的には与えない。また、アクセスは、タスクの完了に必要な最小限の権限で付与すべきである",
+        "複数のリソースへのアクセスをまとめて許可することは妥当である。ただし、対象になるリソースの組み合わせを、あらかじめサブジェクトに通知すべきである",
+        "認証と認可をリソースごとに行う必要はない。ただし、権限は、サブジェクトが所属する部門を単位にして、読み取りと書き込みに分けて付与すべきである"
+      ]
+    },
+    {
+      "id": "policy-term",
+      "type": "choice",
+      "category": "vocabulary",
+      "prompt": "基本原則 4 は、この用語をどう説明していますか？",
+      "points": 1,
+      "referenceIds": [
+        "tenet-4"
+      ],
+      "term": "policy（ポリシー）",
+      "options": [
+        "組織がサブジェクト、データ資産、アプリケーションに割り当てる属性に基づく、アクセスルールの集合",
+        "サブジェクトが自らのアカウントに設定する属性に基づく、認証方式の優先順位の集合",
+        "規制当局がリソースの種類ごとに定める基準に基づく、組織の監査項目の集合",
+        "組織がネットワークセグメントごとに割り当てるアドレスの範囲に基づく、通信の許可リストの集合"
+      ]
+    },
+    {
+      "id": "behavioral-attributes",
+      "type": "choice",
+      "category": "vocabulary",
+      "prompt": "基本原則 4 が、動的ポリシーに含まれうるこの属性の例として挙げているものはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "tenet-4"
+      ],
+      "term": "behavioral attributes（行動属性）",
+      "options": [
+        "ユーザーアカウント（またはサービスの ID）と、エンタープライズがそのアカウントに割り当てた関連属性",
+        "自動化されたサブジェクト分析、デバイス分析、観測された利用パターンからの逸脱の測定結果",
+        "リクエスト元のネットワーク上の場所、時刻、報告されている進行中の攻撃",
+        "インストールされているソフトウェアのバージョンと、インストールされているクレデンシャル"
+      ]
+    },
+    {
+      "id": "rules-and-least-privilege",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "基本原則 4 による、アクセスのルールと属性、および最小権限の説明として正しいものはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "tenet-4"
+      ],
+      "options": [
+        "ルールと属性は、リソースやデータの機微性にかかわらず、すべてのリソースで同一にする。最小権限の原則は、可視性とアクセス可能性の両方を制限するために適用される",
+        "ルールと属性は、ビジネスプロセスのニーズと許容可能なリスクレベルに基づく。最小権限の原則は、アクセス可能性を制限するために適用され、可視性は制限の対象にならない",
+        "ルールと属性は、導入するセキュリティ製品が備える機能に基づく。最小権限の原則は、可視性を制限するために適用され、アクセス可能性は制限の対象にならない",
+        "ルールと属性は、ビジネスプロセスのニーズと許容可能なリスクレベルに基づく。最小権限の原則は、可視性とアクセス可能性の両方を制限するために適用される"
+      ]
+    },
+    {
+      "id": "design-dynamic-policy",
+      "type": "written",
+      "category": "design",
+      "prompt": "基本原則 4 に基づいて、アクセスを動的ポリシーで決めるように改めるとき、組織が定義しておくこと、ポリシーが考慮する情報、ルールの決め方を説明してください。",
+      "points": 4,
+      "referenceIds": [
+        "tenet-4"
+      ],
+      "scenario": "あるエンタープライズは、人事データベースへのアクセスを「従業員番号とパスワードが正しければ、すべての操作を許可する」という固定のルールだけで判断しています。リクエストに使われたデバイスの状態や、リクエストが行われた状況は見ていません。",
+      "answerHint": "組織が定義しておく 3 つのこと、クライアントの ID とリクエスト元の資産の状態の例、行動属性または環境属性の例、ルールと権限の決め方を、短い箇条書きで書いてください。"
+    },
+    {
+      "id": "asset-monitoring-system",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "基本原則 5 は、資産の監視について、ZTA を導入するエンタープライズがどうすべきだとしていますか？",
+      "points": 1,
+      "referenceIds": [
+        "tenet-5"
+      ],
+      "options": [
+        "デバイスとアプリケーションの状態を監視するために、CDM またはそれに類するシステムを確立し、必要に応じてパッチや修正を適用すべきである",
+        "デバイスとアプリケーションの状態を、資産を登録するときに一度だけ評価し、リソースリクエストを評価するときには、その登録時の結果を使うべきである",
+        "デバイスとアプリケーションの状態の監視は、CDM システムを提供する外部の機関に任せ、エンタープライズはパッチや修正の適用だけを担うべきである",
+        "エンタープライズが所有する資産は本質的に信頼できるものとして扱い、エンタープライズ所有ではない資産に限って、状態を監視すべきである"
+      ]
+    },
+    {
+      "id": "vulnerable-personal-device",
+      "type": "choice",
+      "category": "design",
+      "prompt": "基本原則 5 に沿った扱い方と、そのために必要になるものの組み合わせはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "tenet-5"
+      ],
+      "scenario": "あるエンタープライズで、従業員の個人所有のスマートフォン（エンタープライズに関連付けられたデバイス）に、既知の脆弱性があることが判明しました。このデバイスから、複数のエンタープライズリソースへのアクセスリクエストが届いています。",
+      "options": [
+        "個人所有のデバイスからのリクエストは、デバイスの状態にかかわらず、すべてのリソースについて一律に拒否しなければならない。そのために、デバイスの所有者を判別できる登録システムが必要になる",
+        "個人所有のデバイスはエンタープライズが管理していないので、セキュリティ態勢を評価の対象から外してよい。そのために、サブジェクトの認証の結果だけでアクセスを判断できる ID 管理システムが必要になる",
+        "最も安全な状態にあるデバイスとは異なる扱いにしてよい（すべての接続の拒否や、一部のリソースに限ったアクセスなど）。そのために、資産の現在の状態を把握できる堅牢な監視・報告システムが必要になる",
+        "エンタープライズに関連付けられたデバイスは、脆弱性の有無にかかわらず、最も安全な状態にあるデバイスと同じ扱いにしてよい。そのために、関連付けの手続きを記録する資産台帳のシステムが必要になる"
+      ]
+    },
+    {
+      "id": "authn-authz-cycle",
+      "type": "ordering",
+      "category": "flow",
+      "prompt": "基本原則 6 は、認証と認可を絶え間ないサイクルとして説明しています。アクセスの取得から始めて、本文が挙げる順に並べてください。",
+      "points": 2,
+      "referenceIds": [
+        "tenet-6"
+      ],
+      "items": [
+        {
+          "id": "reevaluate",
+          "text": "進行中の通信における信頼を、継続的に再評価する"
+        },
+        {
+          "id": "scan",
+          "text": "脅威をスキャンし、評価する"
+        },
+        {
+          "id": "obtain",
+          "text": "アクセスを取得する"
+        },
+        {
+          "id": "adapt",
+          "text": "適応する"
+        }
+      ]
+    },
+    {
+      "id": "tenet-6-expectations",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "基本原則 6 の説明として正しいものはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "tenet-6"
+      ],
+      "options": [
+        "再認証と再認可を伴う場合がある継続的な監視は、ポリシーの定義にかかわらず、すべてのトランザクションの直前に必ず行い、ユーザーの操作をそのつど中断する",
+        "ZTA を導入するエンタープライズには、ICAM と資産管理のシステムが整備されていることが期待され、一部またはすべてのエンタープライズリソースへのアクセスに MFA を使う",
+        "ZTA を導入するエンタープライズには、ICAM と資産管理のシステムを ZTA のコンポーネントに置き換えることが期待され、すべてのエンタープライズリソースへのアクセスで MFA を省略する",
+        "再認証と再認可のポリシーは、可用性、使いやすさ、コスト効率を考慮の対象から外し、セキュリティが最大になるように定義することが期待される"
+      ]
+    },
+    {
+      "id": "tenet-5-vs-7",
+      "type": "choice",
+      "category": "comparison",
+      "prompt": "次の 2 つの取り組みは、それぞれどの基本原則の説明に最も直接に対応しますか？（ア）リソースリクエストを評価するときに、リクエスト元の資産のセキュリティ態勢を評価する。（イ）ネットワークトラフィックとアクセスリクエストに関するデータを収集して処理し、得られた知見でポリシーの作成と実施を改善する。",
+      "points": 1,
+      "referenceIds": [
+        "tenet-5",
+        "tenet-7"
+      ],
+      "options": [
+        "（ア）は原則 5（資産の完全性とセキュリティ態勢の監視・測定）、（イ）は原則 2（場所にかかわらない通信の保護）",
+        "（ア）は原則 7（情報の収集とセキュリティ態勢の改善）、（イ）は原則 5（資産の完全性とセキュリティ態勢の監視・測定）",
+        "（ア）は原則 5（資産の完全性とセキュリティ態勢の監視・測定）、（イ）は原則 7（情報の収集とセキュリティ態勢の改善）",
+        "（ア）は原則 1（すべてのデータソースとコンピューティングサービスはリソース）、（イ）は原則 7（情報の収集とセキュリティ態勢の改善）"
+      ]
+    },
+    {
+      "id": "tenet-3-vs-6",
+      "type": "choice",
+      "category": "comparison",
+      "prompt": "基本原則 3（セッション単位のアクセス）と基本原則 6（動的で厳格な認証・認可）の説明の組み合わせとして正しいものはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "tenet-3",
+        "tenet-6"
+      ],
+      "options": [
+        "原則 3 は、アクセスを関連するリソースのグループに対してまとめて付与するとする。原則 6 は、認証と認可を、アクセスが許可される前に一度だけ厳格に実施し、その後は再評価しないとする",
+        "原則 3 は、新しいリソースのリクエストや異常な活動の検知などに応じて、ポリシーに従った再認証・再認可がありうるとする。原則 6 は、アクセスを個々のリソースに対してセッション単位で付与するとする",
+        "原則 3 は、アクセスを個々のリソースに対してセッション単位で付与するとする。原則 6 は、認証と認可を、サブジェクトの異常な活動が検知された場合に限って実施し、それ以外では省略できるとする",
+        "原則 3 は、アクセスを個々のリソースに対してセッション単位で付与するとする。原則 6 は、新しいリソースのリクエストや異常な活動の検知などに応じて、ポリシーに従った再認証・再認可がありうるとする"
+      ]
+    },
+    {
+      "id": "use-collected-data",
+      "type": "choice",
+      "category": "debugging",
+      "prompt": "基本原則 7 に照らして、この運用に欠けている点はどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "tenet-7"
+      ],
+      "scenario": "あるエンタープライズは、資産のセキュリティ態勢、ネットワークトラフィック、アクセスリクエストに関するデータを収集していますが、保管しているだけで、インシデントが起きた後の調査にしか使っていません。",
+      "options": [
+        "収集したデータを、エンタープライズの外部の脅威インテリジェンスサービスに提供すること。ポリシーの作成と実施の改善は、その提供先が担うべきである",
+        "収集するデータを、インシデントに直接関係する資産のものだけに絞ること。資産やネットワークの現在の状態に関する情報は、必要最小限にとどめるべきである",
+        "収集したデータを処理し、得られた知見をポリシーの作成と実施の改善に役立てること。サブジェクトからのアクセスリクエストにコンテキストを提供するためにも使える",
+        "収集したデータを、アクセスが許可された後は参照しないこと。アクセスリクエストの評価には、サブジェクトの認証の結果だけを使うべきである"
+      ]
+    },
+    {
+      "id": "technology-agnostic",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "§2.1 は、基本原則が技術に依存しないものを目指していることを、どのような例で説明していますか？",
+      "points": 1,
+      "referenceIds": [
+        "tenets-scope"
+      ],
+      "options": [
+        "「ユーザー識別（ID）」には、ユーザー名/パスワードを使わず、証明書とワンタイムパスワードを組み合わせたものを使う",
+        "「資産の監視」には、CDM システムを使い、それに類する別のシステムは基本原則を満たさないものとして扱う",
+        "「ユーザー識別（ID）」には、ユーザー名/パスワード、証明書、ワンタイムパスワードといった複数の要素が含まれうる",
+        "「通信の保護」には、本書が指定する暗号化プロトコルを使い、それ以外のプロトコルは基本原則を満たさないものとして扱う"
+      ]
+    },
+    {
+      "id": "tenets-applicability",
+      "type": "written",
+      "category": "design",
+      "prompt": "§2.1 の末尾の説明に基づいて、基本原則を適用できる範囲を整理し、この計画をどう改めるべきかを説明してください。",
+      "points": 4,
+      "referenceIds": [
+        "tenets-scope"
+      ],
+      "scenario": "ある小売企業が、ゼロトラストの基本原則に基づく社内ポリシー（デバイスの状態の確認、MFA の必須化など）を、従業員、共同プロジェクトを進めるパートナー組織、会員登録した顧客、匿名で公開 Web サイトを閲覧する一般の利用者のすべてに、同じように適用しようとしています。",
+      "answerHint": "基本原則が適用される業務、適用されないプロセス、外部の主体に対してできないこと、特別な関係にある利用者に対してできることの 4 点を、短い箇条書きで書いてください。"
+    }
+  ],
+  "solutions": {
+    "why-define-by-tenets": {
+      "answer": 1,
+      "explanation": "§2.1。ZT の定義や議論の多くは、エンタープライズファイアウォールのような広域の境界防御を取り除くことを強調しますが、その大半は、マイクロセグメンテーションやマイクロ境界のように、何らかの形で境界との関係で自らを定義し続けています。そこで本書は、何が除外されるかではなく、関与すべき基本原則の観点から ZT と ZTA を定義しようとしています。マイクロセグメンテーションを必須と位置付けているわけではありません。"
+    },
+    "tenets-ideal-goal": {
+      "answer": 3,
+      "explanation": "§2.1。ZTA は 7 つの基本原則を遵守して設計・展開されますが、本書は、これらの原則が理想的な目標であり、特定の戦略ですべての原則が最も純粋な形で完全に実装されるとは限らないことを認めています。原則をいくつか選べばよいとも、展開モデルごとに対応する原則が決まっているとも述べていません。"
+    },
+    "resource-scope": {
+      "answer": 0,
+      "explanation": "§2.1（基本原則 1）。すべてのデータソースとコンピューティングサービスがリソースとみなされます。データをアグリゲーターやストレージに送信するフットプリントの小さいデバイス、SaaS、アクチュエーターに指示を送るシステムなども、ネットワークに含まれうるものとして挙げられています。また、個人所有のデバイスがエンタープライズ所有のリソースにアクセスできる場合、エンタープライズはそのデバイスをリソースに分類すると決めてもよいとしています。"
+    },
+    "same-requirements-inside": {
+      "answer": 1,
+      "explanation": "§2.1（基本原則 2）。すべての通信は、ネットワーク上の場所にかかわらず保護され、場所だけでは信頼を意味しません。エンタープライズ所有のネットワークインフラストラクチャ上（従来のネットワーク境界の内側など）にある資産からのアクセスリクエストは、エンタープライズ所有ではないネットワークからのリクエストや通信と同じセキュリティ要件を満たす必要があります。内側をより厳しくする、所有者で差を付ける、といった説明はありません。"
+    },
+    "communication-properties": {
+      "answer": 1,
+      "explanation": "§2.1（基本原則 2）。すべての通信は、利用可能な最も安全な方法で行い、機密性と完全性を保護し、送信元の認証を提供すべきだとしています。場所によって保護の有無を変える考え方は、「すべての通信は、ネットワーク上の場所にかかわらず保護される」というこの原則と合いません。"
+    },
+    "trust-evaluation-timing": {
+      "answer": 0,
+      "explanation": "§2.1（基本原則 3）。個々のエンタープライズリソースへのアクセスはセッション単位で付与され、リクエスト元に対する信頼は、アクセスが付与される前に評価されます。本文は、これがそのトランザクションにとって「最近のいずれかの時点」を意味するにすぎない場合があり、セッションの開始やトランザクションの実行の直前に行われるとは限らないとしています。一度の評価をどのリソースにも使い回せるという説明ではありません。"
+    },
+    "no-automatic-cross-resource": {
+      "answer": 1,
+      "explanation": "§2.1（基本原則 3）。アクセスは個々のエンタープライズリソースに対してセッション単位で付与され、あるリソースに対する認証と認可によって、別のリソースへのアクセスが自動的に付与されることはありません。また、アクセスは、タスクの完了に必要な最小限の権限で付与すべきだとしています。同じセッションなら別のリソースにも有効という説明は、本文と食い違います。"
+    },
+    "policy-term": {
+      "answer": 0,
+      "explanation": "§2.1（基本原則 4）。ポリシーとは、組織がサブジェクト、データ資産、またはアプリケーションに割り当てる属性に基づく、アクセスルールの集合です。属性を割り当てるのは組織であり、ネットワークセグメントのアドレスや、サブジェクトが自分で設定する値を基準にするものではありません。"
+    },
+    "behavioral-attributes": {
+      "answer": 1,
+      "explanation": "§2.1（基本原則 4）。行動属性には、自動化されたサブジェクト分析、デバイス分析、観測された利用パターンからの逸脱の測定結果などが含まれます（これらに限定されません）。ユーザーアカウントとその関連属性は「クライアントの ID」、ソフトウェアのバージョンやインストールされているクレデンシャルは「リクエスト元の資産の状態」、リクエスト元のネットワーク上の場所・時刻・報告されている進行中の攻撃は「環境属性」の例です。"
+    },
+    "rules-and-least-privilege": {
+      "answer": 3,
+      "explanation": "§2.1（基本原則 4）。ルールと属性は、ビジネスプロセスのニーズと許容可能なリスクレベルに基づきます。リソースへのアクセスや操作の許可に関するポリシーは、リソースやデータの機微性に応じて異なる場合があり、すべてのリソースで同一にするとはしていません。最小権限の原則は、可視性とアクセス可能性の両方を制限するために適用されます。"
+    },
+    "design-dynamic-policy": {
+      "explanation": "§2.1（基本原則 4）。組織は、持っているリソース、メンバー（またはフェデレーションされたコミュニティのユーザーを認証できるか）、メンバーに必要なアクセスを定義することでリソースを保護します。動的ポリシーには、クライアントの ID、アプリケーション/サービス、リクエスト元の資産について観測可能な状態が含まれ、行動属性や環境属性が含まれることもあります。ルールと属性はビジネスプロセスのニーズと許容可能なリスクレベルに基づき、ポリシーはリソースやデータの機微性に応じて変えられ、最小権限の原則で可視性とアクセス可能性の両方を制限します。",
+      "rubric": [
+        {
+          "criterion": "組織が、どのようなリソースを持っているか、メンバーが誰であるか（またはフェデレーションされたコミュニティのユーザーを認証できるか）、メンバーがリソースに対してどのようなアクセスを必要とするかを定義することを述べている",
+          "points": 1,
+          "referenceIds": [
+            "tenet-4"
+          ]
+        },
+        {
+          "criterion": "クライアントの ID（ユーザーアカウントやサービスの ID と、その関連属性など）と、リクエスト元の資産の状態（インストールされているソフトウェアのバージョン、ネットワーク上の場所、リクエストの日時、過去に観測された行動、インストールされているクレデンシャルなど）の両方を考慮することを述べている",
+          "points": 1,
+          "referenceIds": [
+            "tenet-4"
+          ]
+        },
+        {
+          "criterion": "行動属性（利用パターンからの逸脱の測定結果など）または環境属性（リクエスト元のネットワーク上の場所、時刻、報告されている進行中の攻撃など）を含めうることを述べている",
+          "points": 1,
+          "referenceIds": [
+            "tenet-4"
+          ]
+        },
+        {
+          "criterion": "ルールと属性をビジネスプロセスのニーズと許容可能なリスクレベルに基づいて決めること、またはリソースやデータの機微性に応じてポリシーを変え、最小権限の原則で可視性とアクセス可能性を制限することを述べている",
+          "points": 1,
+          "referenceIds": [
+            "tenet-4"
+          ]
+        }
+      ]
+    },
+    "asset-monitoring-system": {
+      "answer": 0,
+      "explanation": "§2.1（基本原則 5）。エンタープライズは、所有するすべての資産と関連するすべての資産の完全性とセキュリティ態勢を監視・測定します。本質的に信頼される資産は存在せず、リソースリクエストを評価する際に、その資産のセキュリティ態勢を評価します。そのために、継続的診断と緩和（CDM）またはそれに類するシステムを確立してデバイスとアプリケーションの状態を監視し、必要に応じてパッチや修正を適用すべきだとしています。"
+    },
+    "vulnerable-personal-device": {
+      "answer": 2,
+      "explanation": "§2.1（基本原則 5）。侵害されている、既知の脆弱性がある、またはエンタープライズによって管理されていないことが判明した資産は、最も安全な状態にあるとみなされるデバイスとは異なる扱い（エンタープライズリソースへのすべての接続の拒否を含む）を受ける場合があります。個人所有のデバイスのような関連デバイスは、一部のリソースにはアクセスを許可され、ほかのリソースには許可されない場合があります。そのためには、エンタープライズリソースの現在の状態について対応に活用できるデータを提供する、堅牢な監視・報告システムが必要です。一律の拒否を義務付けてはいません。"
+    },
+    "authn-authz-cycle": {
+      "answer": [
+        "obtain",
+        "scan",
+        "adapt",
+        "reevaluate"
+      ],
+      "explanation": "§2.1（基本原則 6）。すべてのリソースの認証と認可は動的であり、アクセスが許可される前に厳格に実施されます。本文はこれを、アクセスの取得、脅威のスキャンと評価、適応、そして進行中の通信における信頼の継続的な再評価という、絶え間ないサイクルだと説明しています。"
+    },
+    "tenet-6-expectations": {
+      "answer": 1,
+      "explanation": "§2.1（基本原則 6）。ZTA を導入するエンタープライズには、ID・クレデンシャル・アクセス管理（ICAM）と資産管理のシステムが整備されていることが期待され、これには一部またはすべてのエンタープライズリソースへのアクセスでの多要素認証（MFA）の使用が含まれます。再認証と再認可を伴う場合がある継続的な監視は、ポリシーが定義し実施するとおりに、ユーザーのトランザクションの全期間を通じて行われます。そのポリシーは、セキュリティ、可用性、使いやすさ、コスト効率のバランスを取ることを目指します。"
+    },
+    "tenet-5-vs-7": {
+      "answer": 2,
+      "explanation": "§2.1（基本原則 5・7）。原則 5 は、資産の完全性とセキュリティ態勢を監視・測定し、リソースリクエストを評価する際にその資産のセキュリティ態勢を評価するとしています。原則 7 は、資産、ネットワークインフラストラクチャ、通信の現在の状態に関する情報を可能な限り多く収集し、資産のセキュリティ態勢、ネットワークトラフィック、アクセスリクエストのデータから得た知見を、ポリシーの作成と実施の改善に役立てるべきだとしています。原則 5 は個々の資産の状態の把握、原則 7 は収集した情報によるセキュリティ態勢の改善に重点があります。"
+    },
+    "tenet-3-vs-6": {
+      "answer": 3,
+      "explanation": "§2.1（基本原則 3・6）。原則 3 は、個々のエンタープライズリソースへのアクセスをセッション単位で付与し、あるリソースへの認証と認可が別のリソースへのアクセスを自動的には与えないとしています。原則 6 は、認証と認可が動的で、アクセスが許可される前に厳格に実施されるとし、時間ベース、新しいリソースのリクエスト、リソースの変更、サブジェクトの異常な活動の検知といったポリシーに従って、ユーザーのトランザクションの全期間を通じて再認証・再認可がありうるとしています。一度だけ実施して再評価しない、異常時に限るという説明は本文と合いません。"
+    },
+    "use-collected-data": {
+      "answer": 2,
+      "explanation": "§2.1（基本原則 7）。エンタープライズは、資産、ネットワークインフラストラクチャ、通信の現在の状態に関する情報を可能な限り多く収集し、セキュリティ態勢の改善に利用します。資産のセキュリティ態勢、ネットワークトラフィック、アクセスリクエストに関するデータを収集して処理し、得られた知見をポリシーの作成と実施の改善に役立てるべきだとしており、このデータはサブジェクトからのアクセスリクエストにコンテキストを提供するためにも使えます。収集を最小限にとどめるという説明は、この原則と逆です。"
+    },
+    "technology-agnostic": {
+      "answer": 2,
+      "explanation": "§2.1。基本原則は、技術に依存しないものとなることを目指しています。本文はその例として、「ユーザー識別（ID）」にはユーザー名/パスワード、証明書、ワンタイムパスワードといった複数の要素が含まれうることを挙げています。特定の要素やプロトコル、製品を指定しているわけではなく、基本原則 5 も「CDM またはそれに類するシステム」としています。"
+    },
+    "tenets-applicability": {
+      "explanation": "§2.1。基本原則は、組織内で、または 1 つ以上のパートナー組織との協業で行われる業務に適用され、匿名の一般向けまたは消費者向けのビジネスプロセスには適用されません。組織は、顧客や一般のインターネットユーザーのような外部の主体に内部ポリシーを課すことはできませんが、登録顧客や従業員の扶養家族のように組織と特別な関係にあるエンタープライズ外のユーザーには、ZT に基づくポリシーの一部を実施できる場合があります。この計画は、従業員とパートナー組織との協業を基本原則の対象とし、匿名の閲覧者を対象から外し、会員登録した顧客には実施できる範囲のポリシーに絞る形に改めることが考えられます。",
+      "rubric": [
+        {
+          "criterion": "基本原則は、組織内で行われる業務、または 1 つ以上のパートナー組織との協業で行われる業務に適用されることを述べている",
+          "points": 1,
+          "referenceIds": [
+            "tenets-scope"
+          ]
+        },
+        {
+          "criterion": "基本原則は、匿名の一般向け、または消費者向けのビジネスプロセスには適用されないことを述べている",
+          "points": 1,
+          "referenceIds": [
+            "tenets-scope"
+          ]
+        },
+        {
+          "criterion": "組織は、顧客や一般のインターネットユーザーなどの外部の主体に対して、内部ポリシーを課すことはできないことを述べている",
+          "points": 1,
+          "referenceIds": [
+            "tenets-scope"
+          ]
+        },
+        {
+          "criterion": "登録顧客や従業員の扶養家族など、組織と特別な関係にあるエンタープライズ外のユーザーには、ZT に基づくポリシーの一部を実施できる場合があることを述べている",
+          "points": 1,
+          "referenceIds": [
+            "tenets-scope"
+          ]
+        }
+      ]
+    }
+  },
+  "inconsistencies": []
+}

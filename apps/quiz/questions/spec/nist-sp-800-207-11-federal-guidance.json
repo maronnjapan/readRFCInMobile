@@ -1,0 +1,662 @@
+{
+  "format": "spec-understanding-quiz",
+  "version": 1,
+  "id": "nist-sp-800-207-11-federal-guidance",
+  "title": "NIST SP 800-207 ゼロトラスト 11/16: 既存の連邦ガイダンスとの関係",
+  "status": "published",
+  "spec": {
+    "id": "pdf-0290d6ece2487428",
+    "status": "adopted",
+    "repository": "maronnjapan/readRFCInMobile",
+    "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+    "path": "apps/quiz/specs/nist-sp-800-207.txt"
+  },
+  "references": [
+    {
+      "id": "guidance-intro",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 475,
+      "endLine": 475,
+      "reason": "§6: 既存の連邦政府のポリシー・ガイダンスと ZTA の関係",
+      "excerpt": "Several existing federal policies and guidance intersect with the planning, deployment, and operation of a ZTA. These policies do not prohibit an enterprise from moving to a more zero trust-oriented architecture but can influence development of a zero trust strategy for an agency. When complemented with existing cybersecurity policies and guidance, ICAM, continuous monitoring, and general cyber hygiene, ZTA may reinforce an organization’s security posture and protect against common threats."
+    },
+    {
+      "id": "rmf-risk",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 479,
+      "endLine": 479,
+      "reason": "§6.1: 許容可能なリスクと RMF",
+      "excerpt": "A ZTA deployment involves developing access polices around acceptable risk to the designated mission or business process (see Section 7.3.3). It is possible to deny all network access to a resource and allow access only via a connected terminal, but this is disproportionately restrictive in the majority of cases and could inhibit work from being accomplished. For a federal agency to perform its mission, there is an acceptable level of risk. The risks associated with performing the given mission must be identified and evaluated, and either accepted or mitigated. To assist in this, the NIST Risk Management Framework (RMF) was developed [SP800-37]."
+    },
+    {
+      "id": "rmf-boundary",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 481,
+      "endLine": 481,
+      "reason": "§6.1: 認可境界の変化と RMF のプロセス",
+      "excerpt": "ZTA planning and implementation may change the authorization boundaries defined by the enterprise. This is due to the addition of new components (e.g., policy engine, policy administrator, and PEPs) and a reduction of reliance on network perimeter defenses. The overall process described in the RMF will not change in a ZTA."
+    },
+    {
+      "id": "privacy-framework",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 485,
+      "endLine": 485,
+      "reason": "§6.2: NIST プライバシーフレームワークの役割と対象",
+      "excerpt": "Protecting the privacy of users and private information (e.g., personally identifiable information) is a prime concern for organizations. Privacy and data protections are included in compliance programs such as FISMA and the Heath Insurance Portability and Accountability Act (HIPAA). In response, NIST produced a Privacy Framework for use by organizations [NISTPRIV]. This document provides a framework to describe privacy risks and mitigation strategies, as well as a process for an enterprise to identify, measure, and mitigate risks to user privacy and private information stored and processed by an organization. This includes personal information used by the enterprise to support ZTA operations and any biometric attributes used in access request evaluations."
+    },
+    {
+      "id": "privacy-traffic",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 487,
+      "endLine": 487,
+      "reason": "§6.2: トラフィックの検査・記録とプライバシーリスク",
+      "excerpt": "Part of the core requirements for ZT is that an enterprise should inspect and log traffic (or at least log and inspect metadata when dealing with traffic that cannot be decrypted by monitoring systems) in its environment. Some of this traffic may contain private information or have associated privacy risks. Organizations will need to identify any possible risks associated with intercepting, scanning, and logging network traffic [NISTIR 8062]. This may include actions such as informing users, obtaining consent (via a login page, banner, or similar), and educating enterprise users. The NIST Privacy Framework [NISTPRIV] could help in developing a formal process to identify and mitigate any privacy-related risks to an enterprise developing a zero trust architecture."
+    },
+    {
+      "id": "ficam-provisioning",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 491,
+      "endLine": 491,
+      "reason": "§6.3: サブジェクトのプロビジョニング",
+      "excerpt": "Subject provisioning is a key component of ZTA. The policy engine cannot determine if attempted connections are authorized to connect to a resource if the PE has insufficient information to identify associated subjects and resources. Strong subject provision and authentication policies need to be in place before moving to a more zero trust–aligned deployment. Enterprises need a clear set of subject attributes and policies that can be used by a PE to evaluate access requests."
+    },
+    {
+      "id": "ficam-m1917",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 493,
+      "endLine": 493,
+      "reason": "§6.3: OMB M-19-17 と ICAM ポリシーの統合",
+      "excerpt": "The Office of Management and Budget (OMB) issued M-19-17 on improving identity management for the Federal Government. The goal of the policy is to develop “…a common vision for identity as an enabler of mission delivery, trust, and safety of the Nation” [M-19-17]. The memo calls on all federal agencies to form an ICAM office to govern efforts related to identity issuance and management. Many of these management policies should use the recommendations in NIST SP 800-63-3, Digital Identity Guidelines [SP800-63]. As ZTA is heavily dependent on precise identity management, any ZTA effort will need to integrate the agency’s ICAM policy."
+    },
+    {
+      "id": "tic-history",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 497,
+      "endLine": 497,
+      "reason": "§6.4: TIC の位置付けと TIC 1.0・2.0 の前提",
+      "excerpt": "TIC is a federal cybersecurity initiative jointly managed by OMB, DHS, and the General Services Administration (GSA), and is intended to establish a network security baseline across the Federal Government. Historically, TIC was a perimeter-based cybersecurity strategy which required agencies to consolidate and monitor their external network connections. Inherent in TIC 1.0 and TIC 2.0 is the assumption that the inside of the perimeter is “trusted,” whereas ZTA assumes that network location does not infer “trust” (i.e., there is no “trust” on an agency’s internal network). TIC 2.0 provides a list of network-based security capabilities (e.g. content filtering, monitoring, authentication, and others) to be deployed at the TIC Access Point at the agency’s perimeter; many of these capabilities are aligned with ZT principles."
+    },
+    {
+      "id": "tic-3",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 499,
+      "endLine": 499,
+      "reason": "§6.4: TIC 3.0 の信頼の捉え方とセキュリティ機能",
+      "excerpt": "TIC 3.0 has been updated to accommodate cloud services and mobile devices [M-19-26]. In TIC 3.0, it is recognized that the definition of “trust” may vary across specific computing contexts and that agencies have different risk tolerances for defining trust zones. In addition, TIC 3.0 has an updated TIC Security Capability Handbook, which defines two types of security capabilities: (1) Universal Security Capabilities that apply at the enterprise level, and (2) PEP Security Capabilities that are network-level capabilities to be applied to multiple policy enforcement points (PEPs), as defined in TIC use cases. The PEP Security Capabilities may be applied at any appropriate PEP located along a given data flow instead of at a single PEP at the agency perimeter. Many of these TIC 3.0 security capabilities directly support ZTA (e.g., encrypted traffic, strong authentication, microsegmentation, network and system inventory, and others). TIC 3.0 defines specific use cases that describe the implementation of trust zones and security capabilities across specific applications, services, and environments."
+    },
+    {
+      "id": "tic-zta",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 501,
+      "endLine": 501,
+      "reason": "§6.4: TIC 3.0 と ZTA が扱う範囲",
+      "excerpt": "TIC 3.0 is focused on network-based security protections, whereas ZTA is a more inclusive architecture addressing application, user, and data protections. As TIC 3.0 evolves its use cases, it is likely that a ZTA TIC use case will be developed to define the network protections to be deployed at ZTA enforcement points."
+    },
+    {
+      "id": "ncps-overview",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 505,
+      "endLine": 505,
+      "reason": "§6.5: NCPS（EINSTEIN）の機能と目標",
+      "excerpt": "NCPS (operationally known as EINSTEIN) is an integrated system-of-systems that delivers intrusion detection, advanced analytics, information sharing, and intrusion prevention capabilities to defend the Federal Government from cyber threats. The goals of NCPS, which align with the overarching goals of zero trust, are to manage cyber risk, improve cyber protection, and empower partners to secure cyber space. EINSTEIN sensors enable CISA’s National Cybersecurity and Communications Integration Center (NCCIC) to defend federal networks and respond to significant incidents at federal agencies."
+    },
+    {
+      "id": "ncps-evolution",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 507,
+      "endLine": 507,
+      "reason": "§6.5: センサーの配置と ZTA に向けた進化",
+      "excerpt": "The placement of NCPS sensors for DHS situational awareness is based on a perimeter network defense in the Federal Government, while ZTA moves protections closer to the assets, data and all other resources. The NCPS program is evolving to ensure that situational awareness is preserved through utilization of security information about cloud-based traffic, helping to set the foundation for expanded situational awareness telemetry from ZTA systems. NCPS intrusion prevention functions would also require evolution to be able to inform policy enforcement at both the current NCPS locations as well as ZTA systems. As ZTA is adopted across the Federal Government, the NCPS implementation would need to continually evolve, or new capabilities would need to be deployed to fulfill NCPS objectives. Incident responders could potentially leverage information from the authentication, traffic inspection, and logging of agency traffic available to federal agencies that have implemented a zero trust architecture. Information generated in a ZTA may better inform event impact quantification; machine learning tools could use ZTA data to improve detection; and additional logs from ZTA may be saved for after-the-fact analyses by incident responders."
+    },
+    {
+      "id": "cdm-questions",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 511,
+      "endLine": 516,
+      "reason": "§6.6: CDM プログラムと 4 つの問い",
+      "excerpt": "The DHS CDM program is an effort to improve federal agency information technology (IT). Vital to that posture is an agency’s insight into the assets, configuration, and subjects within itself. To protect a system, agencies need to set up processes to discover and understand the basic components and actors in their infrastructure:\n\n- What is connected? What devices, applications, and services are used by the organization? This includes observing and improving the security posture of these artifacts as vulnerabilities and threats are discovered.\n- Who is using the network? What users are part of the organization or are external and allowed to access enterprise resources? These include NPEs that may be performing autonomous actions.\n- What is happening on the network? An enterprise needs insight into traffic patterns and messages between systems.\n- How is data protected? The enterprise needs a set policy on how information is protected at rest, in transit, and in use."
+    },
+    {
+      "id": "cdm-hwam",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 518,
+      "endLine": 520,
+      "reason": "§6.6: CDM の実装と HWAM",
+      "excerpt": "Having a strong CDM program implementation is key to the success of ZTA. For example, to move to ZTA, an enterprise must have a system to discover and record physical and virtual assets to create a usable inventory. The DHS CDM program has initiated several efforts to build the capabilities needed within federal agencies to move to a ZTA. For example, the DHS\n\nHardware Asset Management (HWAM) [HWAM] program is an effort to help agencies identify devices on their network infrastructure to deploy a secure configuration. This is similar to the first steps in developing a road map to ZTA. Agencies must have visibility into the assets active on the network (or those accessing resources remotely) to categorize, configure, and monitor the network’s activity."
+    },
+    {
+      "id": "cloud-inventory",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 524,
+      "endLine": 526,
+      "reason": "§6.7: データの棚卸しと ZTA の有力な候補",
+      "excerpt": "The Cloud Smart⁸ strategy, updated Data Center Optimization Initiative [M-19-19] policy, and Federal Data Strategy⁹ all influence some requirements for agencies planning a ZTA. These policies require agencies to inventory and assess how they collect, store, and access data, both on premises and in the cloud.\n\nThis inventory is critical to determining what business processes and resources would benefit from implementing a ZTA. Data resources and applications and services that are primarily cloud-based or primarily used by remote workers are good candidates for a ZTA approach (see Section 7.3.3) because the subjects and resources are located outside of the enterprise network perimeter and are likely to see the most benefit in use, scalability, and security."
+    },
+    {
+      "id": "data-strategy",
+      "kind": "spec",
+      "repository": "maronnjapan/readRFCInMobile",
+      "commit": "ffb08f05a0690f99436789cb1a44f7ab6f26c290",
+      "path": "apps/quiz/specs/nist-sp-800-207.txt",
+      "startLine": 528,
+      "endLine": 528,
+      "reason": "§6.7: Federal Data Strategy とコラボレーション",
+      "excerpt": "One additional consideration with the Federal Data Strategy is how to make agency data assets accessible to other agencies or the public. This corresponds with the cross-enterprise collaboration ZTA use case (see Section 4.4). Agencies using a ZTA for these assets may need to take collaboration or publication requirements into account when developing the strategy."
+    }
+  ],
+  "questions": [
+    {
+      "id": "guidance-not-obsolete",
+      "type": "choice",
+      "category": "debugging",
+      "prompt": "§6 の導入に照らして、このまとめの問題点はどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "guidance-intro"
+      ],
+      "scenario": "§6 を読んだ担当者が、次のようにまとめました。「既存の連邦政府のポリシーとガイダンスは境界型の防御を前提にしているので、ZTA へ移行する政府機関には関係がなくなる。ICAM や継続的モニタリングの役割も、ZTA が引き継ぐ」",
+      "options": [
+        "既存のポリシーとガイダンスは、ZTA の計画には影響するが、展開と運用には関わらない。ICAM と継続的モニタリングは、展開が終わった時点で、ZTA のコンポーネントに置き換えられる",
+        "既存のポリシーとガイダンスは、ZTA への移行を禁じている。政府機関は、ICAM と継続的モニタリングを維持するために、境界型の防御を続けることが求められている",
+        "既存のポリシーとガイダンスは、ZTA への移行を禁じないが、戦略の策定に影響しうる。ZTA は、ICAM や継続的モニタリングなどで補完されて、セキュリティ態勢を強化しうる",
+        "既存のポリシーとガイダンスは、ZTA に合わせて改定されるまで適用が止まる。ICAM と継続的モニタリングは、改定が済んだ後に、ZTA と組み合わせて使うことになる"
+      ]
+    },
+    {
+      "id": "deny-all-network-access",
+      "type": "choice",
+      "category": "debugging",
+      "prompt": "§6.1 に照らして、この方針の問題点はどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "rmf-risk"
+      ],
+      "scenario": "ある政府機関のセキュリティ責任者が「リスクをなくすために、すべてのリソースへのネットワークアクセスを拒否し、リソースに接続した端末からだけアクセスを許可する」という方針を示しました。",
+      "options": [
+        "ネットワークアクセスをすべて拒否する構成は、ZTA では実現できない。ZTA のアクセスポリシーは、すべてのリソースをネットワーク経由で利用できることを前提にしている",
+        "方針そのものは適切だが、RMF の対象から外れてしまう。ネットワークアクセスのないリソースは認可境界に含められないので、別の枠組みで管理しなければならない",
+        "方針そのものは適切だが、RMF はリスクの受容を認めていない。接続した端末からのアクセスに残るリスクも、すべて緩和したうえで運用しなければならない",
+        "大半の場合には過度に制限が厳しく、業務の遂行を妨げかねない。ミッションの遂行には許容可能なリスクの水準があり、リスクは特定・評価して、受容するか緩和する"
+      ]
+    },
+    {
+      "id": "authorization-boundary-change",
+      "type": "choice",
+      "category": "comparison",
+      "prompt": "§6.1 によると、ZTA の計画と実装によって変わる可能性があるものと、変わらないものの組み合わせはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "rmf-boundary"
+      ],
+      "options": [
+        "認可境界も、RMF に記載された全体的なプロセスも変わる可能性があり、どちらも ZTA 向けに定義し直すことになる",
+        "エンタープライズが定義する認可境界は変わる可能性があるが、RMF に記載された全体的なプロセスは変わらない",
+        "認可境界も、RMF に記載された全体的なプロセスも変わらず、追加したコンポーネントは既存の境界防御の一部として扱う",
+        "RMF に記載された全体的なプロセスは変わる可能性があるが、エンタープライズが定義する認可境界は変わらない"
+      ]
+    },
+    {
+      "id": "inspect-and-log-traffic",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "§6.2 は、ZT の中核的な要件の一部として、エンタープライズが自らの環境内のトラフィックをどう扱うべきだとしていますか？",
+      "points": 1,
+      "referenceIds": [
+        "privacy-traffic"
+      ],
+      "options": [
+        "すべてのトラフィックを監視システムで復号して検査する。復号できないトラフィックについては、エンタープライズのネットワークの入口で遮断する",
+        "トラフィックを検査して記録する。監視システムが復号できないトラフィックについては、プライバシーを守るために記録の対象から外す",
+        "トラフィックを検査して記録する。監視システムが復号できないトラフィックについては、少なくともメタデータを記録して検査する",
+        "トラフィックのメタデータを記録して検査する。トラフィックの内容については、監視システムが復号できる場合でも検査の対象にしない"
+      ]
+    },
+    {
+      "id": "provisioning-before-migration",
+      "type": "choice",
+      "category": "design",
+      "prompt": "§6.3 に基づくと、移行の前に整えておく必要があるものはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "ficam-provisioning"
+      ],
+      "scenario": "ある政府機関は、よりゼロトラストに沿った展開へ移行したいと考えています。現状では、サブジェクトの属性が部署ごとにばらばらに管理されており、認証のポリシーも統一されていません。",
+      "options": [
+        "サブジェクトのプロビジョニングを移行の後で整備できるよう、PEP がサブジェクトの認証を省略して接続を通すための、暫定的な通信経路",
+        "サブジェクトの属性に頼らずに判断できるよう、ネットワーク上の場所だけを使ってアクセスリクエストを評価するための、PE 向けの明確なルールのセット",
+        "サブジェクトを特定する情報が不足していても接続を認可できるよう、PE が既定でアクセスを許可するための、移行期間に限った暫定的なポリシー",
+        "サブジェクトのプロビジョニングと認証に関する強力なポリシーと、PE がアクセスリクエストの評価に使える、明確なサブジェクト属性とポリシーのセット"
+      ]
+    },
+    {
+      "id": "m-19-17-icam-office",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "§6.3 によると、OMB の M-19-17 は、すべての連邦政府機関に何を求めていますか？",
+      "points": 1,
+      "referenceIds": [
+        "ficam-m1917"
+      ],
+      "options": [
+        "ZTA の展開を統括するオフィスを設置し、ICAM の取り組みをその下に統合すること",
+        "ID の発行と管理を、政府機関に共通する単一の ID 管理システムへ移管すること",
+        "ID の発行と管理に関する取り組みを統括する、ICAM オフィスを設置すること",
+        "NIST SP 800-63-3 に代わる、政府機関ごとのデジタル ID の指針を策定すること"
+      ]
+    },
+    {
+      "id": "zta-separate-identity",
+      "type": "choice",
+      "category": "debugging",
+      "prompt": "§6.3 に照らして、この計画の問題点はどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "ficam-m1917"
+      ],
+      "scenario": "ZTA の推進チームが「ZTA では PE がアクセスリクエストごとに判断するので、政府機関の ICAM ポリシーとは切り離して、ZTA 専用の ID 管理を独自に構築する」と計画しました。",
+      "options": [
+        "ZTA は精密な ID 管理に大きく依存するので、ZTA に関する取り組みでは、政府機関の ICAM ポリシーを統合する必要がある",
+        "ZTA 専用の ID 管理を構築する前に、政府機関の ICAM ポリシーを廃止する手続きを済ませておく必要がある",
+        "ZTA は ID 管理に依存しないので、ZTA 専用の ID 管理を構築する作業そのものが、PE の導入によって不要になる",
+        "ZTA の ID 管理は PE の内部で完結させるものなので、PE とは別に ID 管理を構築する計画は、ZTA では成り立たない"
+      ]
+    },
+    {
+      "id": "tic-term",
+      "type": "choice",
+      "category": "vocabulary",
+      "prompt": "§6.4 によると、この取り組みは、従来はどのようなものでしたか？",
+      "points": 1,
+      "referenceIds": [
+        "tic-history"
+      ],
+      "term": "Trusted Internet Connections（TIC）",
+      "options": [
+        "政府機関にクラウドサービスへの直接接続の許可と記録を求める、クラウド移行のための戦略",
+        "政府機関にリソースごとの PEP の設置と監視を求める、リソース中心のサイバーセキュリティ戦略",
+        "政府機関に外部ネットワーク接続の集約と監視を求める、境界型のサイバーセキュリティ戦略",
+        "政府機関に物理資産と仮想資産の発見と記録を求める、資産のインベントリ作成のための戦略"
+      ]
+    },
+    {
+      "id": "tic-1-2-vs-zta",
+      "type": "choice",
+      "category": "comparison",
+      "prompt": "TIC 1.0・TIC 2.0 と ZTA の関係について、§6.4 の説明に合うものはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "tic-history"
+      ],
+      "options": [
+        "TIC 1.0・2.0 は境界の内側を「信頼できる」と前提する点で ZTA と異なるが、TIC 2.0 が挙げるセキュリティ機能の多くは ZT の原則と整合している",
+        "TIC 1.0・2.0 はネットワーク上の場所を「信頼」の根拠にしない点で ZTA と同じであり、TIC 2.0 が挙げるセキュリティ機能の多くも ZT の原則と整合している",
+        "TIC 1.0 は境界の内側を「信頼できる」と前提するが、TIC 2.0 はその前提を捨てて ZTA と同じ前提に立ち、ZT の原則と整合するセキュリティ機能を挙げている",
+        "TIC 1.0・2.0 は境界の内側を「信頼できる」と前提する点で ZTA と異なり、TIC 2.0 が挙げるセキュリティ機能にも ZT の原則と整合するものはない"
+      ]
+    },
+    {
+      "id": "pep-security-capabilities",
+      "type": "choice",
+      "category": "vocabulary",
+      "prompt": "TIC 3.0 でのこの機能の説明として、§6.4 に合うものはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "tic-3"
+      ],
+      "term": "PEP Security Capabilities（TIC 3.0 が定義する 2 種類のセキュリティ機能の 1 つ）",
+      "options": [
+        "複数の PEP に適用するネットワークレベルの機能。政府機関の境界にある単一の PEP ではなく、データフローに沿った適切な PEP であればどこにでも適用できる",
+        "政府機関の境界にある単一の PEP に適用するネットワークレベルの機能。データフローに沿った他の PEP ではなく、境界の 1 か所に集約して適用する",
+        "エンタープライズレベルで適用する機能。個々の PEP ではなく、政府機関の全体に対して、データフローの違いにかかわらず同じ内容で適用する",
+        "ポリシーエンジンに適用するアプリケーションレベルの機能。データフローに沿った PEP ではなく、アクセスを決定するコンポーネントに限って適用する"
+      ]
+    },
+    {
+      "id": "tic-3-trust",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "§6.4 による TIC 3.0 の説明として正しいものはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "tic-3",
+        "tic-zta"
+      ],
+      "options": [
+        "ZTA 向けの TIC ユースケースをすでに定義しており、ZTA の実施ポイントに展開するネットワーク保護の内容を確定させている",
+        "「信頼」の定義はコンピューティングコンテキストによって異なりうること、信頼ゾーンを定義する際のリスク許容度は政府機関ごとに異なることを認識している",
+        "クラウドサービスとモバイルデバイスを対象から外しており、政府機関の境界にある TIC アクセスポイントでの保護に、引き続き集中している",
+        "「信頼」の定義を連邦政府の全体で統一しており、すべての政府機関が、同じリスク許容度に基づいて同じ範囲の信頼ゾーンを定義することを求めている"
+      ]
+    },
+    {
+      "id": "tic-3-vs-zta-scope",
+      "type": "choice",
+      "category": "comparison",
+      "prompt": "TIC 3.0 と ZTA が扱う範囲について、§6.4 の説明に合うものはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "tic-zta",
+        "tic-3"
+      ],
+      "options": [
+        "TIC 3.0 はアプリケーション、ユーザー、データの保護にも対応する包括的な施策であり、ZTA はネットワークベースのセキュリティ保護に焦点を当てたアーキテクチャである",
+        "TIC 3.0 はネットワークベースのセキュリティ保護に焦点を当てているが、そのセキュリティ機能の中に、ZTA を直接支援するものは含まれていない",
+        "TIC 3.0 と ZTA はどちらもネットワークベースのセキュリティ保護に焦点を当てており、TIC 3.0 のセキュリティ機能を適用すれば、ZTA の実装を兼ねることができる",
+        "TIC 3.0 はネットワークベースのセキュリティ保護に焦点を当てており、ZTA はアプリケーション、ユーザー、データの保護にも対応する、より包括的なアーキテクチャである"
+      ]
+    },
+    {
+      "id": "ncps-term",
+      "type": "choice",
+      "category": "vocabulary",
+      "prompt": "§6.5 によるこのシステムの説明として正しいものはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "ncps-overview",
+        "cdm-hwam",
+        "tic-history"
+      ],
+      "term": "NCPS（National Cybersecurity Protection System、運用上は EINSTEIN として知られる）",
+      "options": [
+        "政府機関の外部ネットワーク接続を集約して監視し、連邦政府の全体でネットワークセキュリティのベースラインを確立する、サイバーセキュリティ施策",
+        "ネットワークインフラストラクチャ上のデバイスを特定して、セキュアな構成を展開できるようにする、ハードウェア資産の管理を支援するプログラム",
+        "侵入検知、高度な分析、情報共有、侵入防止の機能を提供して、連邦政府をサイバー脅威から防御する、統合されたシステム・オブ・システムズ",
+        "サブジェクトの ID の発行と管理を統括して、アクセスリクエストの評価に使う属性をポリシーエンジンに提供する、統合された ID 管理の仕組み"
+      ]
+    },
+    {
+      "id": "ncps-sensor-placement",
+      "type": "choice",
+      "category": "comparison",
+      "prompt": "§6.5 によると、NCPS のセンサーの配置と ZTA の考え方は、どのように異なりますか？",
+      "points": 1,
+      "referenceIds": [
+        "ncps-evolution"
+      ],
+      "options": [
+        "NCPS のセンサーの配置は個々のリソースの近くでの防御に基づいているが、ZTA は保護を、政府機関のネットワークの境界に集約する",
+        "NCPS のセンサーの配置は境界型のネットワーク防御に基づいているが、ZTA は保護を、資産、データ、その他すべてのリソースのより近くに移す",
+        "NCPS のセンサーの配置はクラウド事業者のネットワークでの防御に基づいているが、ZTA は保護を、オンプレミスのデータセンターに移す",
+        "NCPS のセンサーの配置も ZTA も境界型のネットワーク防御に基づいており、ZTA は保護を、境界に置かれたセンサーの内側に移す"
+      ]
+    },
+    {
+      "id": "cdm-four-questions",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "§6.6 は、政府機関がインフラストラクチャの基本的なコンポーネントとアクターを把握するための問いを 4 つ挙げています。「データはどのように保護されているか」について、エンタープライズに必要とされるものはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "cdm-questions"
+      ],
+      "options": [
+        "保存時、転送時、使用時のそれぞれで情報をどのように保護するかについての、定められたポリシー",
+        "システム間のトラフィックパターンとメッセージを把握するための、ネットワーク上の活動に対する洞察",
+        "組織のユーザーと、アクセスを許可された外部のユーザーや NPE を把握するための、利用者に対する洞察",
+        "組織が使うデバイス、アプリケーション、サービスと、そのセキュリティ態勢を把握するための、観察と改善"
+      ]
+    },
+    {
+      "id": "cdm-key-to-zta",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "§6.6 は、CDM プログラムと ZTA の関係をどう説明していますか？",
+      "points": 1,
+      "referenceIds": [
+        "cdm-hwam"
+      ],
+      "options": [
+        "CDM プログラムのしっかりした実装が、ZTA の成功の鍵になる。ZTA へ移行するには、物理資産と仮想資産を発見して記録し、利用可能なインベントリを作る仕組みが必要である",
+        "CDM プログラムは、ZTA へ移行した時点で役割を終える。ZTA では、PE がアクセスリクエストのたびに資産を発見するので、事前に作成したインベントリは使われなくなる",
+        "CDM プログラムは、ZTA の成功には関わらない。ZTA へ移行するには、資産のインベントリではなく、ネットワークの境界を通過するトラフィックの記録が必要である",
+        "CDM プログラムは、物理資産だけを記録の対象にする。ZTA へ移行するには、仮想資産を発見して記録するための仕組みを、CDM とは別に用意することが必要である"
+      ]
+    },
+    {
+      "id": "zta-candidates-from-inventory",
+      "type": "choice",
+      "category": "design",
+      "prompt": "§6.7 に基づくと、ZTA アプローチの有力な候補になるのはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "cloud-inventory"
+      ],
+      "scenario": "ある政府機関は、Cloud Smart 戦略などのポリシーに従って、データの収集、保存、アクセスの方法を、オンプレミスとクラウドの両方について棚卸しして評価しました。次に、この棚卸しの結果を使って、ZTA の恩恵を受けられるリソースを選ぼうとしています。",
+      "options": [
+        "主に一般に公開している、または主に匿名の利用者が使う、データリソース、アプリケーション、サービス",
+        "主にオンプレミスにある、または主に境界の内側の職員が使う、データリソース、アプリケーション、サービス",
+        "主に棚卸しから漏れていた、または主に管理者が把握していない、データリソース、アプリケーション、サービス",
+        "主にクラウドベースである、または主にリモートワーカーが使う、データリソース、アプリケーション、サービス"
+      ]
+    },
+    {
+      "id": "data-strategy-collaboration",
+      "type": "choice",
+      "category": "knowledge",
+      "prompt": "§6.7 の説明として正しいものはどれですか？",
+      "points": 1,
+      "referenceIds": [
+        "data-strategy",
+        "cloud-inventory"
+      ],
+      "options": [
+        "Federal Data Strategy には、政府機関のデータ資産を他の政府機関と共有しないようにする方法という検討事項があり、ZTA を使う政府機関は、コラボレーションの要件を戦略から除外できる",
+        "Federal Data Strategy には、政府機関のデータ資産を他の政府機関や一般市民がアクセスできるようにする方法という検討事項があり、エンタープライズ間コラボレーションの ZTA ユースケースに対応する",
+        "Cloud Smart 戦略などのポリシーは、クラウド上のデータについて棚卸しと評価を求めており、オンプレミスのデータは、すでに境界で保護されているので、棚卸しの対象に含めていない",
+        "Cloud Smart 戦略などのポリシーが求める棚卸しは、ZTA の展開が終わった後に行うものであり、どのビジネスプロセスが ZTA の恩恵を受けられるかの判断には使われない"
+      ]
+    },
+    {
+      "id": "ncps-with-zta",
+      "type": "written",
+      "category": "design",
+      "prompt": "§6.5 の説明に基づいて、ZTA の採用に伴って NCPS に求められる進化と、ZTA がインシデント対応にもたらしうる利点を説明してください。",
+      "points": 4,
+      "referenceIds": [
+        "ncps-evolution"
+      ],
+      "scenario": "ZTA の採用を進めている連邦政府機関で、インシデント対応チームから「ZTA が広がると、NCPS（EINSTEIN）はどうなるのか。インシデント対応にとって、ZTA に利点はあるのか」という質問が出ました。",
+      "answerHint": "状況認識の維持、侵入防止機能、インシデント対応担当者が活用できる情報、ZTA が生成する情報の使い道の 4 点を、短い箇条書きで書いてください。"
+    },
+    {
+      "id": "privacy-for-traffic-logging",
+      "type": "written",
+      "category": "design",
+      "prompt": "§6.2 の説明に基づいて、この政府機関に必要な対応と、取りうる措置を述べてください。",
+      "points": 4,
+      "referenceIds": [
+        "privacy-framework",
+        "privacy-traffic"
+      ],
+      "scenario": "ある政府機関が、ZTA の一環として、ネットワークトラフィックの検査と記録を始めます。アクセスリクエストの評価には、生体属性も使う予定です。プライバシー担当者から、どのような配慮が必要になるかを尋ねられました。",
+      "answerHint": "リスクの特定、ユーザーに対する措置、対象に含まれる情報、正式なプロセスづくりに役立つ枠組みの 4 点を、それぞれ 1〜2 文で書いてください。"
+    }
+  ],
+  "solutions": {
+    "guidance-not-obsolete": {
+      "answer": 2,
+      "explanation": "§6。既存の連邦政府のポリシーとガイダンスのいくつかは、ZTA の計画、展開、運用と接点を持ちます。これらは、よりゼロトラスト指向のアーキテクチャへの移行を禁じるものではありませんが、政府機関のゼロトラスト戦略の策定に影響を与える可能性があります。また ZTA は、既存のサイバーセキュリティのポリシーとガイダンス、ICAM、継続的モニタリング、一般的なサイバーハイジーンで補完されることで、組織のセキュリティ態勢を強化し、一般的な脅威から保護しうるとされています。ZTA がこれらを置き換えるわけではありません。"
+    },
+    "deny-all-network-access": {
+      "answer": 3,
+      "explanation": "§6.1。ZTA の展開では、指定されたミッションやビジネスプロセスにとって許容可能なリスクに基づいて、アクセスポリシーを策定します。リソースへのネットワークアクセスをすべて拒否し、接続された端末経由でだけアクセスを許可することは可能ですが、大半の場合には過度に制限が厳しく、業務の遂行を妨げかねません。連邦政府機関がミッションを遂行するうえでは許容可能なリスクの水準があり、リスクは特定して評価したうえで、受容するか緩和しなければなりません。これを支援するために策定されたのが、NIST リスクマネジメントフレームワーク（RMF）です。"
+    },
+    "authorization-boundary-change": {
+      "answer": 1,
+      "explanation": "§6.1。ZTA の計画と実装により、エンタープライズが定義する認可境界が変わる可能性があります。ポリシーエンジン、ポリシー管理者、PEP といった新しいコンポーネントが加わり、ネットワーク境界防御への依存が減るためです。一方、RMF に記載されている全体的なプロセスは、ZTA でも変わりません。"
+    },
+    "inspect-and-log-traffic": {
+      "answer": 2,
+      "explanation": "§6.2。ZT の中核的な要件の一部として、エンタープライズは自らの環境内のトラフィックを検査して記録すべきであり、監視システムが復号できないトラフィックを扱う場合には、少なくともメタデータを記録して検査すべきだとしています。復号できないトラフィックを対象から外したり遮断したりすることや、内容の検査をやめることは述べていません。こうしたトラフィックの一部にはプライベートな情報が含まれうるため、§6.2 はプライバシーリスクの特定も求めています。"
+    },
+    "provisioning-before-migration": {
+      "answer": 3,
+      "explanation": "§6.3。サブジェクトのプロビジョニングは ZTA の重要な構成要素です。ポリシーエンジン（PE）は、関連するサブジェクトとリソースを特定するための情報が不十分だと、試みられた接続が認可されたものかどうかを判断できません。そのため、よりゼロトラストに沿った展開へ移行する前に、サブジェクトのプロビジョニングと認証に関する強力なポリシーを整備しておく必要があり、エンタープライズには、PE がアクセスリクエストの評価に使える、明確なサブジェクト属性とポリシーのセットが必要です。"
+    },
+    "m-19-17-icam-office": {
+      "answer": 2,
+      "explanation": "§6.3。OMB は、連邦政府の ID 管理の改善に関する M-19-17 を発行しました。このポリシーの目標は、ミッションの遂行、信頼、国家の安全を可能にするものとしての ID に関する、共通のビジョンを策定することです。このメモは、すべての連邦政府機関に、ID の発行と管理に関する取り組みを統括する ICAM オフィスの設置を求めています。こうした管理ポリシーの多くは NIST SP 800-63-3（Digital Identity Guidelines）の推奨事項を活用すべきだとされており、これに代わる指針の策定は求めていません。"
+    },
+    "zta-separate-identity": {
+      "answer": 0,
+      "explanation": "§6.3。ZTA は精密な ID 管理に大きく依存しているため、ZTA に関するあらゆる取り組みでは、政府機関の ICAM ポリシーを統合する必要があります。ICAM ポリシーから切り離した ID 管理は、この説明と合いません。本文は、ZTA が ID 管理に依存しないとも、ID 管理を PE の内部で完結させるとも、ICAM ポリシーを廃止するとも述べていません。"
+    },
+    "tic-term": {
+      "answer": 2,
+      "explanation": "§6.4。TIC は、OMB、DHS、一般調達局（GSA）が共同で管理する連邦政府のサイバーセキュリティ施策で、連邦政府全体でネットワークセキュリティのベースラインを確立することを目的としています。従来の TIC は、政府機関に外部ネットワーク接続の集約と監視を求める、境界型のサイバーセキュリティ戦略でした。リソースごとの PEP の設置や、資産の発見と記録は、従来の TIC の説明には出てきません。"
+    },
+    "tic-1-2-vs-zta": {
+      "answer": 0,
+      "explanation": "§6.4。TIC 1.0 と TIC 2.0 には、境界の内側は「信頼できる」という前提が内在しています。これに対して ZTA は、ネットワーク上の場所が「信頼」を意味しない（政府機関の内部ネットワークに「信頼」は存在しない）ことを前提とします。ただし、TIC 2.0 が政府機関の境界にある TIC アクセスポイントに展開するものとして挙げる、ネットワークベースのセキュリティ機能（コンテンツフィルタリング、監視、認証など）の多くは、ZT の原則と整合しています。"
+    },
+    "pep-security-capabilities": {
+      "answer": 0,
+      "explanation": "§6.4。TIC 3.0 の更新された TIC Security Capability Handbook は、2 種類のセキュリティ機能を定義しています。エンタープライズレベルで適用される Universal Security Capabilities と、TIC ユースケースで定義されているとおり複数の PEP に適用されるネットワークレベルの機能である PEP Security Capabilities です。PEP Security Capabilities は、政府機関の境界にある単一の PEP ではなく、特定のデータフローに沿って配置された適切な PEP であればどこにでも適用できます。"
+    },
+    "tic-3-trust": {
+      "answer": 1,
+      "explanation": "§6.4。TIC 3.0 は、クラウドサービスとモバイルデバイスに対応するよう更新されました。TIC 3.0 では、「信頼」の定義が個々のコンピューティングコンテキストによって異なりうること、信頼ゾーンを定義する際のリスク許容度が政府機関ごとに異なることが認識されています。ZTA 向けの TIC ユースケースは、TIC 3.0 がユースケースを発展させていく中で策定される可能性が高いとされている段階で、すでに定義されたとは述べていません。"
+    },
+    "tic-3-vs-zta-scope": {
+      "answer": 3,
+      "explanation": "§6.4。TIC 3.0 はネットワークベースのセキュリティ保護に焦点を当てているのに対し、ZTA は、アプリケーション、ユーザー、データの保護にも対応する、より包括的なアーキテクチャです。一方で、TIC 3.0 のセキュリティ機能の多く（暗号化されたトラフィック、強力な認証、マイクロセグメンテーション、ネットワークとシステムのインベントリなど）は、ZTA を直接支援します。TIC 3.0 のセキュリティ機能を適用すれば ZTA の実装を兼ねられるとは述べていません。"
+    },
+    "ncps-term": {
+      "answer": 2,
+      "explanation": "§6.5。NCPS（運用上は EINSTEIN として知られる）は、侵入検知、高度な分析、情報共有、侵入防止の機能を提供して、連邦政府をサイバー脅威から防御する、統合されたシステム・オブ・システムズです。その目標（サイバーリスクの管理、サイバー防御の改善、パートナーによるサイバー空間の保護の後押し）は、ゼロトラストの包括的な目標と整合しています。EINSTEIN センサーにより、CISA の NCCIC は連邦政府のネットワークを防御し、重大なインシデントに対応できます。デバイスの特定は §6.6 の HWAM、外部接続の集約と監視は §6.4 の TIC の説明です。"
+    },
+    "ncps-sensor-placement": {
+      "answer": 1,
+      "explanation": "§6.5。DHS が状況認識を得るための NCPS センサーの配置は、連邦政府における境界型のネットワーク防御に基づいています。これに対して ZTA は、保護を、資産、データ、その他すべてのリソースのより近くに移します。この違いがあるため、NCPS プログラムは、クラウドベースのトラフィックに関するセキュリティ情報を活用して状況認識を維持できるよう、進化しつつあります。"
+    },
+    "cdm-four-questions": {
+      "answer": 0,
+      "explanation": "§6.6。4 つの問いは次のとおりです。「何が接続されているか」は、組織が使うデバイス、アプリケーション、サービスを把握し、脆弱性や脅威が見つかったときにそのセキュリティ態勢を観察して改善することを含みます。「ネットワークを使用しているのは誰か」は、組織のユーザーや、アクセスを許可された外部のユーザーを把握するもので、自律的な動作を行っている可能性のある NPE も含みます。「ネットワーク上で何が起きているか」は、システム間のトラフィックパターンとメッセージの把握です。「データはどのように保護されているか」では、保存時、転送時、使用時の情報の保護について、定められたポリシーが必要です。"
+    },
+    "cdm-key-to-zta": {
+      "answer": 0,
+      "explanation": "§6.6。CDM プログラムがしっかり実装されていることは、ZTA の成功の鍵です。たとえば ZTA へ移行するには、エンタープライズは、物理資産と仮想資産を発見して記録し、利用可能なインベントリを作成するための仕組みを備えていなければなりません。DHS の CDM プログラムは、政府機関が ZTA へ移行するのに必要な能力を築く取り組みを始めています。その一例のハードウェア資産管理（HWAM）プログラムは、セキュアな構成を展開するために、ネットワークインフラストラクチャ上のデバイスを特定するのを支援するもので、ZTA へのロードマップを策定する最初のステップに似ています。政府機関は、ネットワークの活動を分類、構成、監視するために、ネットワーク上で稼働している資産（またはリモートからリソースにアクセスしている資産）を可視化できていなければなりません。"
+    },
+    "zta-candidates-from-inventory": {
+      "answer": 3,
+      "explanation": "§6.7。Cloud Smart 戦略、更新された Data Center Optimization Initiative のポリシー、Federal Data Strategy は、政府機関に、データの収集、保存、アクセスの方法を、オンプレミスとクラウドの両方について棚卸しして評価することを求めています。この棚卸しは、どのビジネスプロセスとリソースが ZTA の導入によって恩恵を受けられるかを判断するうえで極めて重要です。主にクラウドベースである、または主にリモートワーカーが使うデータリソース、アプリケーション、サービスは、サブジェクトとリソースがエンタープライズネットワークの境界の外にあり、利用、スケーラビリティ、セキュリティの面で最も恩恵を受けやすいため、ZTA アプローチの有力な候補です。"
+    },
+    "data-strategy-collaboration": {
+      "answer": 1,
+      "explanation": "§6.7。Federal Data Strategy に関するもう 1 つの検討事項は、政府機関のデータ資産を、他の政府機関や一般市民がアクセスできるようにする方法です。これはエンタープライズ間コラボレーションの ZTA ユースケース（§4.4）に対応しており、こうした資産に ZTA を使う政府機関は、戦略を策定する際に、コラボレーションや公開に関する要件を考慮に入れる必要が生じる場合があります。また、これらのポリシーが求める棚卸しと評価は、オンプレミスとクラウドの両方が対象で、どのビジネスプロセスとリソースが ZTA の恩恵を受けられるかの判断に使われます。"
+    },
+    "ncps-with-zta": {
+      "explanation": "§6.5。NCPS プログラムは、クラウドベースのトラフィックに関するセキュリティ情報を活用して状況認識を維持できるよう進化しつつあり、これは ZTA システムから得られる状況認識テレメトリを拡充する基盤づくりにも役立ちます。侵入防止機能も、現在の NCPS の設置場所と ZTA システムの両方でポリシーの実施に情報を提供できるよう進化が求められ、ZTA の採用が進むにつれて、NCPS の実装を継続的に進化させるか、新たな機能を展開する必要が生じます。一方、インシデント対応担当者は、ZTA を導入した政府機関の認証、トラフィック検査、ログ記録から得られる情報を活用できる可能性があります。ZTA で生成される情報は、イベントの影響の定量化、機械学習ツールによる検知の改善、事後分析のためのログの保存に役立ちえます。",
+      "rubric": [
+        {
+          "criterion": "NCPS プログラムが、クラウドベースのトラフィックに関するセキュリティ情報を活用して状況認識を維持できるよう進化しつつあり、それが ZTA システムから得られる状況認識テレメトリを拡充する基盤づくりにも役立つことを述べている",
+          "points": 1,
+          "referenceIds": [
+            "ncps-evolution"
+          ]
+        },
+        {
+          "criterion": "NCPS の侵入防止機能が、現在の NCPS の設置場所と ZTA システムの両方でポリシーの実施に情報を提供できるよう進化を求められること、または、ZTA の採用が進むにつれて NCPS の実装の継続的な進化か新たな機能の展開が必要になることを述べている",
+          "points": 1,
+          "referenceIds": [
+            "ncps-evolution"
+          ]
+        },
+        {
+          "criterion": "インシデント対応担当者が、ZTA を導入した連邦政府機関で利用できる、認証、トラフィック検査、ログ記録から得られる情報を活用できる可能性を述べている",
+          "points": 1,
+          "referenceIds": [
+            "ncps-evolution"
+          ]
+        },
+        {
+          "criterion": "ZTA で生成される情報の使い道を 2 つ以上挙げている（イベントの影響の定量化、機械学習ツールによる検知の改善、インシデント対応担当者による事後分析のためのログの保存）",
+          "points": 1,
+          "referenceIds": [
+            "ncps-evolution"
+          ]
+        }
+      ]
+    },
+    "privacy-for-traffic-logging": {
+      "explanation": "§6.2。プライバシーとデータの保護は、FISMA や HIPAA などのコンプライアンスプログラムにも含まれる、組織の主要な関心事です。検査・記録するトラフィックの一部には、プライベートな情報が含まれていたり、プライバシーリスクが伴ったりする場合があるので、組織は、ネットワークトラフィックの傍受、スキャン、ログ記録に伴いうるリスクを特定する必要があります。対応には、ユーザーへの通知、ログインページやバナーなどを通じた同意の取得、エンタープライズのユーザーへの教育が含まれる場合があります。NIST プライバシーフレームワークは、プライバシーリスクと緩和戦略を記述する枠組みと、リスクを特定・測定・緩和するプロセスを提供し、その対象には、ZTA の運用を支えるために使う個人情報や、アクセスリクエストの評価に使う生体属性も含まれます。このフレームワークは、プライバシー関連のリスクを特定して緩和する正式なプロセスの策定に役立つ可能性があります。",
+      "rubric": [
+        {
+          "criterion": "トラフィックにはプライベートな情報が含まれたり、プライバシーリスクが伴ったりしうるので、ネットワークトラフィックの傍受、スキャン、ログ記録に伴いうるリスクを特定する必要があることを述べている",
+          "points": 1,
+          "referenceIds": [
+            "privacy-traffic"
+          ]
+        },
+        {
+          "criterion": "ユーザーに対する措置を 2 つ以上挙げている（ユーザーへの通知、ログインページやバナーなどを通じた同意の取得、エンタープライズのユーザーへの教育）",
+          "points": 1,
+          "referenceIds": [
+            "privacy-traffic"
+          ]
+        },
+        {
+          "criterion": "ZTA の運用を支えるために使う個人情報や、アクセスリクエストの評価に使う生体属性も、プライバシーリスクを特定・測定・緩和する対象に含まれることを述べている",
+          "points": 1,
+          "referenceIds": [
+            "privacy-framework"
+          ]
+        },
+        {
+          "criterion": "NIST プライバシーフレームワークが、プライバシー関連のリスクを特定して緩和するための正式なプロセスの策定に役立ちうることを述べている",
+          "points": 1,
+          "referenceIds": [
+            "privacy-framework",
+            "privacy-traffic"
+          ]
+        }
+      ]
+    }
+  },
+  "inconsistencies": []
+}
